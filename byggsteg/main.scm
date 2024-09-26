@@ -9,6 +9,7 @@
              (ice-9 time)
              (ice-9 format)
              (ice-9 string-fun)
+             (ice-9 iconv)
              (ice-9 futures)) 
 
 (define byggsteg-log-location "/var/log/byggsteg/")
@@ -125,21 +126,44 @@
   (byggsteg-respond `(
                       (h1 (@(class "font-sans text-3xl")) "requesting job run")
                       (form
-                       (@(method "POST") (class "flex flex-col justify-center"))
+                       (@(method "POST")
+                        (action "/jobs/submit")
+                        (enctype "application/x-www-form-urlencoded")
+                        (charset "utf-8")
+                        (class "flex flex-col justify-center"))
                        (label (@(for "project")) "project name:")
-                       (input (@(id "project") (class "rounded-xl border font-sans p-2")))
+                       (input (@(id "project")(name "project") (class "rounded-xl border font-sans p-2")))
                        (label (@(for "task")) "task:")
-                       (input (@(id "task")(class "rounded-xl border font-sans p-2")(value "test")))
+                       (input (@(id "task")(name "task")(class "rounded-xl border font-sans p-2")(value "test")))
                        (button (@(type "submit")(class "rounded-xl bg-purple-700 text-white cursor-pointer p-2 m-2")) "submit")
                        )
                       )))
+
+(define (byggsteg-read-url-encoded-body body)
+  (let* ((str (bytevector->string body "utf-8"))
+         (raw-kv-pairs (string-split str #\&))
+         )
+    (display raw-kv-pairs)
+    str
+    ))
+
+(define (byggsteg-job-submit-endpoint request body)
+  (cond
+   (equal? (request-method request) 'POST
+           (byggsteg-read-url-encoded-body body)
+
+           (byggsteg-welcome-page))
+   (else (byggsteg-not-found request)))
+  )
+
 
 (define (byggsteg-handler request body)
   (let ((path (byggsteg-request-path-components request)))
     (cond
      ((equal? path '()) (byggsteg-welcome-page))
      ((equal? path '("jobs" "request")) (byggsteg-job-request-form-page))
-     ((equal? (car path) "logs") (byggsteg-log-page path))
+     ((equal? path '("jobs" "submit")) (byggsteg-job-submit-endpoint request body))
+     ((equal? (car path) "logs") (byggsteg-log-page path ))
      (else (byggsteg-not-found request)))))
 
 ;; ((equal? path '("test" "free-alacarte"))
