@@ -84,7 +84,7 @@
   (split-and-decode-uri-path (uri-path (request-uri request))))
 
 (define (byggsteg-welcome-page)
-  (byggsteg-respond `((h1 (@(class "font-sans text-3xl")) "byggsteg")
+  (byggsteg-respond `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
                       (em "byggsteg means “build step” in the Norwegian language.")
                       (p "Simple CI/CD system made with Guile Scheme")
                       (a ( @ (href "/jobs/request")
@@ -100,15 +100,16 @@
          (log-data (get-string-all file))
          )
     (byggsteg-respond
-     `((h1 (@(class "font-sans text-3xl")) "viewing logs")
+     `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+       (h2 (@(class "font-sans text-2xl")) "viewing logs")
        (h3 ,log-filename)
        (pre(code ,log-data))
        ))
     ))
 
 (define (byggsteg-job-request-form-page)
-  (byggsteg-respond `(
-                      (h1 (@(class "font-sans text-3xl")) "requesting job run")
+  (byggsteg-respond `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+                      (h2 (@(class "font-sans text-2xl")) "requesting job run")
                       (form
                        (@(method "POST")
                         (action "/jobs/submit")
@@ -143,23 +144,22 @@
          (task (car (assoc-ref kv "task")))
          (formatted-kv (map (lambda(x) (format #f "~a: ~a  " (car x) (car (cdr x)))) kv ))
          (log-filename (byggsteg-new-project-log-filename project))
-         (public-log-filename
-          (byggsteg-base-16-encode
-           (string-replace-substring log-filename byggsteg-log-location "")))
+         (only-filename (string-replace-substring log-filename byggsteg-log-location ""))
+         (public-log-filename (byggsteg-base-16-encode only-filename))
          (logs-link (format #f "/logs/~a" public-log-filename))
          )
     
     (byggsteg-create-empty-log-file log-filename)
-    
+
     (future
      (byggsteg-stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte"
                           log-filename))
-    
-    (byggsteg-respond `((h1 (@(class "font-sans text-3xl")) "job submitted")
+
+    (byggsteg-respond `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+                        (h2 (@(class "font-sans text-2xl")) "job submitted")
                         (h3 (@(class "font-sans text-lg")) ,(string-append "job for: " project))
                         (h3 (@(class "font-sans text-lg")) ,(string-append "task: " task))
-                        (pre (@ (class "whitespace-pre rounded-xl bg-stone-200 p-4 m-4")) ,formatted-kv)
-                        (p ,(format #f "A job has been started for: ~a" project))
+                        (h3 (@(class "font-sans text-lg")) ,(string-append "log-file: " only-filename))
                         (a (@ (href ,logs-link) (class "font-bold text-purple-700 cursor-pointer underline"))
                            "click me to view the job logs")
                         ))
