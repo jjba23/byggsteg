@@ -93,22 +93,6 @@
                       )))
 
 
-(define (byggsteg-submit-job-page request body)
-  (let* ((project "free-alacarte")
-         (log-filename (byggsteg-new-project-log-filename project))
-         (public-log-filename
-          (byggsteg-base-16-encode
-           (string-replace-substring log-filename byggsteg-log-location "")))
-         (logs-link (format #f "/logs/~a" public-log-filename)))
-    (byggsteg-create-empty-log-file log-filename)
-    (future (byggsteg-stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte" log-filename))
-    (byggsteg-respond
-     `((h1 (@(class "font-sans text-3xl")) "job submitted!")
-       (p ,(format #f "A job has been started for: ~a" project))
-       (a (@ (href ,logs-link) (class "font-bold text-purple-700 cursor-pointer underline"))
-          "click me to view the job logs")
-       ))))
-
 (define (byggsteg-log-page path)
   (let* ((log-filename (byggsteg-base-16-decode (car (cdr path))))
          (file-path (string-append byggsteg-log-location log-filename))
@@ -139,33 +123,62 @@
                        )
                       )))
 
+(define (at-eq x) (string-split x #\=))
+(define (unsafe-mk-alist x) (cons (car x) (cdr x)))
+
 (define (byggsteg-read-url-encoded-body body)
   (let* ((str (bytevector->string body "utf-8"))
          (raw-kv-pairs (string-split str #\&))
-         )
-    (display raw-kv-pairs)
-    str
-    ))
+         (xs (map at-eq raw-kv-pairs))
+         (xss (map unsafe-mk-alist xs))
+         )    
+    (display xss)
+    xss
+    )
+  )
 
 (define (byggsteg-job-submit-endpoint request body)
-  (cond
-   (equal? (request-method request) 'POST
-           (byggsteg-read-url-encoded-body body)
-
-           (byggsteg-welcome-page))
-   (else (byggsteg-not-found request)))
+  (let* ((kv (byggsteg-read-url-encoded-body body))
+         (project (car (assoc-ref kv "project")))
+         (task (car (assoc-ref kv "task")))
+         (formatted-kv (map (lambda(x) (format #f "~a: ~a  " (car x) (car (cdr x)))) kv ))
+         (log-filename (byggsteg-new-project-log-filename project))
+         (public-log-filename
+          (byggsteg-base-16-encode
+           (string-replace-substring log-filename byggsteg-log-location "")))
+         (logs-link (format #f "/logs/~a" public-log-filename))
+         )
+    
+    (byggsteg-create-empty-log-file log-filename)
+    
+    (future
+     (byggsteg-stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte"
+                          log-filename))
+    
+    (byggsteg-respond `((h1 (@(class "font-sans text-3xl")) "job submitted")
+                        (h3 (@(class "font-sans text-lg")) ,(string-append "job for: " project))
+                        (h3 (@(class "font-sans text-lg")) ,(string-append "task: " task))
+                        (pre (@ (class "whitespace-pre rounded-xl bg-stone-200 p-4 m-4")) ,formatted-kv)
+                        (p ,(format #f "A job has been started for: ~a" project))
+                        (a (@ (href ,logs-link) (class "font-bold text-purple-700 cursor-pointer underline"))
+                           "click me to view the job logs")
+                        ))
+    )
   )
 
 
 (define (byggsteg-handler request body)
   (let ((path (byggsteg-request-path-components request)))
     (cond
-     ((equal? path '()) (byggsteg-welcome-page))
-     ((equal? path '("jobs" "request")) (byggsteg-job-request-form-page))
-     ((equal? path '("jobs" "submit")) (byggsteg-job-submit-endpoint request body))
-     ((equal? (car path) "logs") (byggsteg-log-page path ))
+     ((and (equal? path '()) (equal? (request-method request) 'GET))
+      (byggsteg-welcome-page))
+     ((and (equal? path '("jobs" "request")) (equal? (request-method request) 'GET))
+      (byggsteg-job-request-form-page))
+     ((and (equal? path '("jobs" "submit")) (equal? (request-method request) 'POST))
+      (byggsteg-job-submit-endpoint request body))
+     ((and (equal? (car path) "logs") (equal? (request-method request) 'GET))
+      (byggsteg-log-page path ))
      (else (byggsteg-not-found request)))))
 
-;; ((equal? path '("test" "free-alacarte"))
-;; (byggsteg-submit-job-page request body))
+
 
