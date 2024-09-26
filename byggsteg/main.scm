@@ -9,6 +9,7 @@
 (use-modules (ice-9 format))
 (use-modules (ice-9 futures))
 
+
 (define (get-current-date-time)
   "Get current timestamp string formatted to contain only dashes."
   (let ((now (localtime (current-time))))
@@ -29,7 +30,6 @@
          (process-output (get-string-all process)))
     (close-pipe process)
     (with-output-to-file log-filename (lambda () (display process-output)))))
-
 
 
 (define (templatize title body)
