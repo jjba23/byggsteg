@@ -93,14 +93,13 @@
          (public-log-filename
           (string-replace-substring log-filename byggsteg-log-location ""))
          (logs-link (format #f "/logs/~a" public-log-filename))
-         (submitted-description (format #f "A job has been started for: ~a" project))
          )
     (byggsteg-create-empty-log-file log-filename)
     (future (byggsteg-stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte" log-filename))
     (byggsteg-respond
      `((h1 "job submitted!")
-       (p submitted-description)
-       (a (@ (href logs-link)))
+       (p ,(format #f "A job has been started for: ~a" project))
+       (a (@ (href ,logs-link)))
        (pre (code ,(with-output-to-string (lambda() (display public-log-filename)))))
        )
      )
