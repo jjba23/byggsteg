@@ -27,6 +27,18 @@
   "Create an empty log file."
   (with-output-to-file log-filename (lambda () (display ""))))
 
+(define (byggsteg-base-16-encode str)
+  (let* ((process (open-input-pipe (format #f "echo \"~a\" | xxd -p" str)))
+         (process-output (get-string-all process)))
+    (close-pipe process)
+    (string-replace-substring process-output "\n" "")))
+
+(define (byggsteg-base-16-decode str)
+  (let* ((process (open-input-pipe (format #f "echo \"~a\" | xxd -p -r" str)))
+         (process-output (get-string-all process)))
+    (close-pipe process)
+    (string-replace-substring process-output "\n" "")))
+
 
 (define (byggsteg-stack-test project-path log-filename)
   (let* ((process (open-input-pipe (format #f "cd ~a && stack test" project-path)))
@@ -83,26 +95,35 @@
 (define (byggsteg-welcome-page)
   (byggsteg-respond `((h1 "byggsteg")
                       (em "byggsteg means “build step” in the Norwegian language.")
-                      (p "Simple CI/CD system made with Guile Scheme")
-                      )))
+                      (p "Simple CI/CD system made with Guile Scheme"))))
 
 
 (define (byggsteg-submit-job-page request body)
   (let* ((project "free-alacarte")
          (log-filename (byggsteg-new-project-log-filename project))
          (public-log-filename
-          (string-replace-substring log-filename byggsteg-log-location ""))
-         (logs-link (format #f "/logs/~a" public-log-filename))
-         )
+          (byggsteg-base-16-encode
+           (string-replace-substring log-filename byggsteg-log-location "")))
+         (logs-link (format #f "/logs/~a" public-log-filename)))
     (byggsteg-create-empty-log-file log-filename)
     (future (byggsteg-stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte" log-filename))
     (byggsteg-respond
      `((h1 "job submitted!")
        (p ,(format #f "A job has been started for: ~a" project))
-       (a (@ (href ,logs-link)))
-       (pre (code ,(with-output-to-string (lambda() (display public-log-filename)))))
-       )
-     )
+       (a (@ (href ,logs-link)) "click me to view the job logs")
+       ))))
+
+(define (byggsteg-log-page path)
+  (let* ((log-filename (byggsteg-base-16-decode (car (cdr path))))
+         (file-path (string-append byggsteg-log-location log-filename))
+         (file (open-input-file file-path))
+         (log-data (get-string-all file))
+         )
+    (byggsteg-respond
+     `((h1 "viewing logs")
+       (h3 ,log-filename)
+       (pre(code ,log-data))
+       ))
     ))
 
 (define (byggsteg-handler request body)
@@ -111,9 +132,8 @@
      ((equal? path '()) (byggsteg-welcome-page))
      ((equal? path '("debug")) (byggsteg-debug-page request body))
      ((equal? path '("test" "free-alacarte")) (byggsteg-submit-job-page request body))
-     ((equal? (car path) "logs") (byggsteg-debug-page request body))
-     (else (byggsteg-not-found request))     
-     )))
+     ((equal? (car path) "logs") (byggsteg-log-page path))
+     (else (byggsteg-not-found request)))))
 
 
 
