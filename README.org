@@ -1,0 +1,6 @@
+* byggsteg
+
+/byggsteg/ means "build step" in the Norwegian language.
+
+This is a simple CI/CD system written in Guile Scheme.
+
