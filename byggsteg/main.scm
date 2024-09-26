@@ -48,8 +48,12 @@
 
 
 (define (byggsteg-templatize title body)
-  `(html (head (title ,title))
-         (body ,@body)))
+  `(html (head
+          (title ,title)
+          (script (@(src "https://cdn.tailwindcss.com")) "")
+          )
+         (body (div (@(class "container mx-auto my-4")) ,@body
+                    ))))
 
 (define (byggsteg-not-found request)
   (values (build-response #:code 404)
@@ -78,24 +82,14 @@
 (define (byggsteg-request-path-components request)
   (split-and-decode-uri-path (uri-path (request-uri request))))
 
-(define (byggsteg-debug-page request body)
-  (byggsteg-respond
-   `((h1 "debug world!")
-     (table
-      (tr (th "header") (th "value"))
-      ,@(map (lambda (pair)
-               `(tr (td (tt ,(with-output-to-string
-                               (lambda () (display (car pair))))))
-                    (td (tt ,(with-output-to-string
-                               (lambda ()
-                                 (write (cdr pair))))))))
-             (request-headers request))))))
-
-
 (define (byggsteg-welcome-page)
-  (byggsteg-respond `((h1 "byggsteg")
+  (byggsteg-respond `((h1 (@(class "font-sans text-3xl")) "byggsteg")
                       (em "byggsteg means “build step” in the Norwegian language.")
-                      (p "Simple CI/CD system made with Guile Scheme"))))
+                      (p "Simple CI/CD system made with Guile Scheme")
+                      (a ( @ (href "/jobs/request")
+                             (class "font-bold text-purple-700 cursor-pointer underline"))
+                         "request a job run")
+                      )))
 
 
 (define (byggsteg-submit-job-page request body)
@@ -108,9 +102,10 @@
     (byggsteg-create-empty-log-file log-filename)
     (future (byggsteg-stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte" log-filename))
     (byggsteg-respond
-     `((h1 "job submitted!")
+     `((h1 (@(class "font-sans text-3xl")) "job submitted!")
        (p ,(format #f "A job has been started for: ~a" project))
-       (a (@ (href ,logs-link)) "click me to view the job logs")
+       (a (@ (href ,logs-link) (class "font-bold text-purple-700 cursor-pointer underline"))
+          "click me to view the job logs")
        ))))
 
 (define (byggsteg-log-page path)
@@ -120,20 +115,33 @@
          (log-data (get-string-all file))
          )
     (byggsteg-respond
-     `((h1 "viewing logs")
+     `((h1 (@(class "font-sans text-3xl")) "viewing logs")
        (h3 ,log-filename)
        (pre(code ,log-data))
        ))
     ))
 
+(define (byggsteg-job-request-form-page)
+  (byggsteg-respond `(
+                      (h1 (@(class "font-sans text-3xl")) "requesting job run")
+                      (form
+                       (@(method "POST") (class "flex flex-col justify-center"))
+                       (label (@(for "project")) "project name:")
+                       (input (@(id "project") (class "rounded-xl border font-sans p-2")))
+                       (label (@(for "task")) "task:")
+                       (input (@(id "task")(class "rounded-xl border font-sans p-2")(value "test")))
+                       (button (@(type "submit")(class "rounded-xl bg-purple-700 text-white cursor-pointer p-2 m-2")) "submit")
+                       )
+                      )))
+
 (define (byggsteg-handler request body)
   (let ((path (byggsteg-request-path-components request)))
     (cond
      ((equal? path '()) (byggsteg-welcome-page))
-     ((equal? path '("debug")) (byggsteg-debug-page request body))
-     ((equal? path '("test" "free-alacarte")) (byggsteg-submit-job-page request body))
+     ((equal? path '("jobs" "request")) (byggsteg-job-request-form-page))
      ((equal? (car path) "logs") (byggsteg-log-page path))
      (else (byggsteg-not-found request)))))
 
-
+;; ((equal? path '("test" "free-alacarte"))
+;; (byggsteg-submit-job-page request body))
 
