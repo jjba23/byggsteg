@@ -111,6 +111,7 @@
      ((equal? path '()) (byggsteg-welcome-page))
      ((equal? path '("debug")) (byggsteg-debug-page request body))
      ((equal? path '("test" "free-alacarte")) (byggsteg-submit-job-page request body))
+     ((equal? (car path) "logs") (byggsteg-debug-page request body))
      (else (byggsteg-not-found request))     
      )))
 
