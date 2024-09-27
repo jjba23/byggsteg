@@ -18,7 +18,8 @@
 (define job-log-location "/var/log/byggsteg/job-log/")
 (define job-failure-location "/var/log/byggsteg/job-failure/")
 (define job-success-location "/var/log/byggsteg/job-success/")
-(define job-request-location "/var/log/byggsteg/job-request/")
+(define job-clone-location "/var/log/byggsteg/job-clone/")
+;;(define job-request-location "/var/log/byggsteg/job-request/")
 
 (define (get-current-date-time)
   "Get current timestamp string formatted to contain only dashes."
@@ -47,18 +48,37 @@
     (close-pipe process)
     (string-replace-substring process-output "\n" "")))
 
-(define (stack-test project-path log-filename)
-  (let* ((process (open-input-pipe (format #f "cd ~a && stack test" project-path)))
+(define (stack-test project branch-name clone-url log-filename)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+         (cmd (format #f
+                      (string-append
+                       "cd ~a"
+                       " && stack test")
+                      clone-dir))
+         (process (open-input-pipe cmd))
          (process-output (get-string-all process)))
     (close-pipe process)
     (with-output-to-file (string-append job-log-location log-filename) (lambda () (display process-output)))
     (create-empty-file (string-append job-success-location log-filename))))
 
-(define (clone-repo project-path log-filename clone-url branch-name)
-  (let* ((process (open-input-pipe (format #f "cd ~a && git clone ~a" project-path clone-url)))
-         (process-output (get-string-all process)))ll
-         (close-pipe process)
-         (with-output-to-file log-filename (lambda () (display process-output)))))
+(define (clone-repo project branch-name clone-url log-filename)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+         (cmd (format #f
+                      (string-append
+                       "mkdir -p ~a"
+                       " && git clone -b ~a ~a ~a || true"
+                       " && cd ~a && git pull"
+                       )                      
+                      clone-dir
+                      branch-name
+                      clone-url
+                      clone-dir
+                      clone-dir))
+         (process (open-input-pipe cmd))
+         (process-output (get-string-all process)))
+    (display cmd)
+    (close-pipe process)
+    (with-output-to-file log-filename (lambda () (display process-output)))))
 
 (define (templatize title body)
   `(html
@@ -148,13 +168,25 @@
        (enctype "application/x-www-form-urlencoded")
        (charset "utf-8")
        (class "flex flex-col justify-center gap-4"))
+      
       (label (@(for "project")) "project name:")
-      (input (@(id "project")(name "project")(required "")(class "rounded-xl border font-sans p-2")))
+      (input (@(id "project")(name "project")(required "")
+              (class "rounded-xl border font-sans p-2")))
+      
       (label (@(for "clone-url")) "clone URL:")
-      (input (@(id "clone-url")(name "clone-url")(required "")(class "rounded-xl border font-sans p-2")))
+      (input (@(id "clone-url")(name "clone-url")(required "")
+              (class "rounded-xl border font-sans p-2")))
+
+      (label (@(for "branch-name")) "branch name:")
+      (input (@(id "branch-name")(name "branch-name")(required "")
+              (class "rounded-xl border font-sans p-2")))
+      
       (label (@(for "task")) "task:")
-      (textarea (@(id "task")(name "task")(required "")(class "rounded-xl border font-sans p-2 min-w-full min-h-60")) "")
-      (button (@(type "submit")(class "rounded-xl bg-purple-700 text-white cursor-pointer p-2 m-2")) "submit")
+      (textarea (@(id "task")(name "task")(required "")
+                 (class "rounded-xl border font-sans p-2 min-w-full min-h-60")) "")
+      
+      (button (@(type "submit")
+               (class "rounded-xl bg-purple-700 text-white cursor-pointer p-2 m-2")) "submit")
       )
      )))
 
@@ -172,10 +204,44 @@
     )
   )
 
+(define url-decode-alist
+  '(("%20" . " ")
+    ("%21" . "!")
+    ("%22" . "\"")
+    ("%23" . "#")
+    ("%24" . "$")
+    ("%25" . "%")
+    ("%26" . "&")
+    ("%27" . "'")
+    ("%28" . "(")
+    ("%29" . ")")
+    ("%2A" . "*")
+    ("%2B" . "+")
+    ("%2C" . ",")
+    ("%2F" . "/")
+    ("%3A" . ":")
+    ("%3B" . ";")
+    ("%3C" . "<")
+    ("%3D" . "=")
+    ("%3E" . ">")
+    ("%3F" . "?")
+    ("%40" . "@")
+    ("%25" . "%")))
+
+
+(define (url-decode str)
+  (for-each (lambda (kv)
+              (set! str (string-replace-substring str (car kv) (cdr kv)))
+              ) url-decode-alist)
+  str
+  )
+
 (define (job-submit-endpoint request body)
   (let* ((kv (read-url-encoded-body body))
          (project (car (assoc-ref kv "project")))
-         (task (car (assoc-ref kv "task")))
+         (clone-url (url-decode (car (assoc-ref kv "clone-url"))))
+         (branch-name (car (assoc-ref kv "branch-name")))
+         (task (url-decode (car (assoc-ref kv "task"))))
          (formatted-kv (map (lambda(x) (format #f "~a: ~a" (car x) (car (cdr x)))) kv ))
          (log-filename (new-project-log-filename project))
          (only-filename (string-replace-substring log-filename job-log-location ""))
@@ -184,14 +250,17 @@
     
     (create-empty-file (string-append job-log-location log-filename))
 
+    (clone-repo project branch-name clone-url log-filename)
     (future
-     (stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte" log-filename))
+     (stack-test project branch-name clone-url log-filename))
 
     (respond
      `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
        (h2 (@(class "font-sans text-2xl")) "job submitted")
        (h3 (@(class "font-sans text-lg")) ,(string-append "job for: " project))
        (h3 (@(class "font-sans text-lg")) ,(string-append "task: " task))
+       (h3 (@(class "font-sans text-lg")) ,(string-append "clone-url: " clone-url))
+       (h3 (@(class "font-sans text-lg")) ,(string-append "branch-name: " branch-name))
        (h3 (@(class "font-sans text-lg")) ,(string-append "log-file: " only-filename))
        (a (@ (href ,logs-link) (class "font-bold text-purple-700 cursor-pointer underline"))
           "click me to view the job logs")
