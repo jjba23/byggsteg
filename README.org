@@ -4,7 +4,14 @@
 
 This is a simple CI/CD system written in Guile Scheme.
 
+~byggsteg~ uses plain Guile with almost no dependencies to function, SXML, and some basic POSIX / UNIX utilities. 
+
+#+begin_html
+<img src="./resources/combined_image.png"/>
+#+end_html
+
 ** Project management - backlog
+**** TODO Split codebase into separate modules
+**** TODO Hot reload server
+**** TODO Improve JSON support
 **** TODO Allow user to send Guile over the wire and define his/her own pipeline in a ~progn~ fashion.
-
-
