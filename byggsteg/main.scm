@@ -93,13 +93,13 @@
                          (uri->string (request-uri request)))))
 
 (define* (respond #:optional body #:key
-                           (status 200)
-                           (title "Hello hello!")
-                           (doctype "<!DOCTYPE html>\n")
-                           (content-type-params '((charset . "utf-8")))
-                           (content-type 'text/html)
-                           (extra-headers '())
-                           (sxml (and body (templatize title body))))
+                  (status 200)
+                  (title "Hello hello!")
+                  (doctype "<!DOCTYPE html>\n")
+                  (content-type-params '((charset . "utf-8")))
+                  (content-type 'text/html)
+                  (extra-headers '())
+                  (sxml (and body (templatize title body))))
   (values (build-response
            #:code status
            #:headers `((content-type
@@ -110,6 +110,21 @@
                 (begin
                   (if doctype (display doctype port))
                   (sxml->xml sxml port))))))
+
+(define* (respond-json vals #:optional body #:key
+                       (status 200)
+                       (title "Hello hello!")
+
+                       (content-type-params '((charset . "utf-8")))
+                       (content-type 'application/json)
+                       (extra-headers '())
+                       (sxml (and body (templatize title body))))
+  (values (build-response
+           #:code status
+           #:headers `((content-type
+                        . (,content-type ,@content-type-params))
+                       ,@extra-headers))
+          (lambda (port) (display "test" port))))
 
 (define (request-path-components request)
   (split-and-decode-uri-path (uri-path (request-uri request))))
@@ -156,6 +171,22 @@
        (h3 ,log-filename)
        (pre(code ,log-data))
        ))
+    ))
+
+(define (log-api-page path)
+  (let* ((log-filename (base-16-decode (car (cdr path))))
+         (file-path (string-append job-log-location log-filename))
+         (file (open-input-file file-path))
+         (log-data (get-string-all file))
+         (success (read-job-success log-filename))
+         (failure (read-job-failure log-filename))
+         (job-status (cond
+                      ((equal? success #t) "job succeeded")
+                      ((equal? failure #t)  "job failed")
+                      (else  "job in progress")
+                      ))
+         )
+    (respond-json "")
     ))
 
 (define (job-request-form-page)
@@ -280,6 +311,8 @@
       (job-submit-endpoint request body))
      ((and (equal? (car path) "logs") (equal? (request-method request) 'GET))
       (log-page path ))
+     ((and (equal? (car path) "logs-api") (equal? (request-method request) 'GET))
+      (log-api-page path ))
      (else (not-found request)))))
 
 
