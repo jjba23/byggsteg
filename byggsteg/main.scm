@@ -24,12 +24,12 @@
 (define (get-current-date-time)
   "Get current timestamp string formatted to contain only dashes."
   (let ((now (localtime (current-time))))
-    (strftime "%Y-%m-%d-%H-%M-%S" now)))
+    (strftime "%Y-%m-%d__%H:%M:%S" now)))
 
 (define (new-project-log-filename project)
   "Create a new name for a log file, based on the project and current timestamp."
   (let ((timestamp (get-current-date-time)))
-    (string-append project "-" timestamp ".byggsteg.log")))
+    (string-append project "__" timestamp ".byggsteg.log")))
 
 (define (create-empty-file filename)
   "Create an empty log file."
@@ -96,7 +96,7 @@
      (script (@(src "https://cdn.tailwindcss.com")) "")
      (script (@(src "/resources/js/tailwind.config.js")) ())
      )
-    (body (div (@(class "container mx-auto my-4")) ,@body))))
+    (body (@(class "bg-stone-900")) (div (@(class "container mx-auto my-4")) ,@body))))
 
 (define (not-found request)
   (values (build-response #:code 404)
@@ -147,33 +147,38 @@
          (success (read-job-success log-filename))
          (failure (read-job-failure log-filename))
          (job-status (cond
-                      ((equal? success #t) `(h2 (@(class "font-sans text-sm text-green-700")) "job succeeded"))
-                      ((equal? failure #t) `(h2 (@(class "font-sans text-sm text-red-700")) "job failed"))
-                      (else `(h2 (@(class "font-sans text-sm text-sky-700")) "job in progress"))
+                      ((equal? success #t) `(h2 (@(class "text-sm text-green-700 text-lg")) "job succeeded"))
+                      ((equal? failure #t) `(h2 (@(class "text-sm text-red-700 text-lg")) "job failed"))
+                      (else `(h2 (@(class "text-sm text-sky-700 text-lg")) "job in progress"))
                       ))
          )
     `((div
        (@(class "flex flex-col gap-2"))
-       (a (@(class "text-purple-700 font-bold underline cursor-pointer text-sm")
+       (a (@(class "text-orange-400 font-bold underline cursor-pointer text-lg")
            (href ,logs-link)) ,log-filename)
-       (div (@(class "p-2 text-sm")) ,job-status)
+       (div (@(class "p-2 text-lg")) ,job-status)
        )))
   )
 
-(define (welcome-page)
-  (let* ((successes (get-file-list job-log-location))
-         (success-html (map welcome-make-job-link successes)))
-    (respond
-     `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-       (em "byggsteg means “build step” in the Norwegian language.")
-       (p "Simple CI/CD system made with Guile Scheme")
-       (a ( @ (href "/jobs/request")
-              (class "font-bold text-purple-700 cursor-pointer underline text-lg"))
-          "request a job run")
+(define (page-top)
+  `((h1 (@(class "text-3xl text-orange-500 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+    (em (@(class "text-lg text-stone-200")) "byggsteg means “build step” in the Norwegian language.")
+    (p (@(class "text-lg text-stone-300 ")) "Simple CI/CD system made with Guile Scheme")
+    (a ( @ (href "/jobs/request")
+           (class "font-bold text-orange-400 cursor-pointer underline text-lg my-6"))
+       (button (@(class "bg-orange-400 text-stone-200 rounded-xl cursor-pointer p-2 m-2 text-lg font-bold"))  "request a job run") )
+    )
+  )
 
-       (div (@(class "w-full rounded-xl bg-stone-200 p-4 flex flex-col gap-4 align-center my-6"))
-            (h4 "jobs")
-            ,success-html)
+(define (welcome-page)
+  (let* ((jobs (get-file-list job-log-location))
+         (jobs-html (map welcome-make-job-link jobs)))
+    (respond
+     `(
+       ,(page-top)
+       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
+            (h4 (@(class "text-stone-200 font-bold text-lg")) "jobs")
+            ,jobs-html)
        )
      )
     ))
@@ -189,11 +194,9 @@
    (else #f)))
 
 
-(define (get-file-list dir)
-  (let* ((process (open-input-pipe ))
-         (process-output (get-string-all process)))
-    (close-pipe process)
-    (string-split process-output #\newline )))
+(define (get-file-list dir)  
+  (string-split
+   (run-system (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
 
 (define (log-page path)
   (let* ((log-filename (base-16-decode (car (cdr path))))
@@ -203,25 +206,27 @@
          (success (read-job-success log-filename))
          (failure (read-job-failure log-filename))
          (job-status (cond
-                      ((equal? success #t) `(h2 (@(class "font-sans text-2xl text-green-700")) "job succeeded"))
-                      ((equal? failure #t) `(h2 (@(class "font-sans text-2xl text-red-700")) "job failed"))
-                      (else `(h2 (@(class "font-sans text-2xl text-sky-700")) "job in progress"))
+                      ((equal? success #t) `(h2 (@(class "text-2xl text-green-700")) "job succeeded"))
+                      ((equal? failure #t) `(h2 (@(class "text-2xl text-red-700")) "job failed"))
+                      (else `(h2 (@(class "text-2xl text-sky-700")) "job in progress"))
                       ))
          )
     (respond
-     `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+     `(,(page-top)
+       (hr (@(class "my-6")))
+       (h3 (@(class "text-stone-200 text-2xl my-4")) ,log-filename)
        (div (@(class "flex flex-row flex-wrap align-center gap-6"))
-            (h2 (@(class "font-sans text-2xl")) "viewing logs")
+            (h2 (@(class "font-sans text-2xl text-stone-200")) "viewing logs")
             ,job-status
             )
-       (h3 ,log-filename)
+       
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
              (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
                      (class "rounded-xl border font-sans p-2")))
              (button (@(type "submit")
-                      (class "rounded-xl bg-red-700 text-white cursor-pointer p-2 m-2")) "delete")
+                      (class "rounded-xl bg-red-700 text-stone-200 font-bold text-lg cursor-pointer p-2 m-2")) "delete")
              )
-       (pre (@(class "font-mono")) ,log-data)
+       (pre (@(class "rounded-xl bg-stone-800 p-4 my-6 text-stone-200 white-space-pre")) ,log-data)
        ))
     ))
 
@@ -265,8 +270,9 @@
 
 (define (job-request-form-page)
   (respond
-   `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-     (h2 (@(class "font-sans text-2xl")) "requesting job run")
+   `(,(page-top)
+     (hr (@(class "my-6")))
+     (h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "requesting job run")
      (form
       (@(method "POST")
        (action "/jobs/submit")
@@ -274,24 +280,24 @@
        (charset "utf-8")
        (class "flex flex-col justify-center gap-4"))
       
-      (label (@(for "project")) "project name:")
+      (label (@(for "project")(class "text-stone-200 font-bold")) "project name:")
       (input (@(id "project")(name "project")(required "")
-              (class "rounded-xl border font-sans p-2")))
+              (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
       
-      (label (@(for "clone-url")) "clone URL:")
+      (label (@(for "clone-url")(class "text-stone-200 font-bold")) "clone URL:")
       (input (@(id "clone-url")(name "clone-url")(required "")
-              (class "rounded-xl border font-sans p-2")))
+              (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
 
-      (label (@(for "branch-name")) "branch name:")
+      (label (@(for "branch-name")(class "text-stone-200 font-bold")) "branch name:")
       (input (@(id "branch-name")(name "branch-name")(required "")
-              (class "rounded-xl border font-sans p-2")))
+              (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
       
-      (label (@(for "task")) "task:")
+      (label (@(for "task")(class "text-stone-200 font-bold")) "task:")
       (textarea (@(id "task")(name "task")(required "")
-                 (class "rounded-xl border font-sans p-2 min-w-full min-h-60")) "")
+                 (class "rounded-xl border font-sans p-2 min-w-full min-h-60 bg-stone-800 text-stone-200")) "")
       
       (button (@(type "submit")
-               (class "rounded-xl bg-purple-700 text-white cursor-pointer p-2 m-2")) "submit")
+               (class "text-lg font-bold rounded-xl bg-orange-400 text-stone-200 cursor-pointer p-2 m-2")) "submit")
       )
      )))
 
@@ -365,14 +371,14 @@
     ;; (stack-test project branch-name clone-url log-filename)
 
     (respond
-     `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-       (h2 (@(class "font-sans text-2xl")) "job submitted")
-       (h3 (@(class "font-sans text-lg")) ,(string-append "job for: " project))
-       (h3 (@(class "font-sans text-lg")) ,(string-append "task: " task))
-       (h3 (@(class "font-sans text-lg")) ,(string-append "clone-url: " clone-url))
-       (h3 (@(class "font-sans text-lg")) ,(string-append "branch-name: " branch-name))
-       (h3 (@(class "font-sans text-lg")) ,(string-append "log-file: " only-filename))
-       (a (@ (href ,logs-link) (class "font-bold text-purple-700 cursor-pointer underline"))
+     `(,(page-top)
+       (h2 (@(class "font-sans text-2xl text-stone-200")) "job submitted")
+       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "job for: " project))
+       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "task: " task))
+       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "clone-url: " clone-url))
+       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "branch-name: " branch-name))
+       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " only-filename))
+       (a (@ (href ,logs-link) (class "font-bold text-orange-400 cursor-pointer underline"))
           "click me to view the job logs")
        ))
     )
@@ -388,9 +394,9 @@
     (run-system (format #f "rm -rfv ~a" (string-append job-success-location log-filename)))
     
     (respond
-     `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-       (h2 (@(class "font-sans text-2xl")) "job deleted !")
-       (h3 (@(class "font-sans text-lg")) ,(string-append "log-file: " log-filename))
+     `((h1 (@(class "font-sans text-3xl text-orange-500 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+       (h2 (@(class "font-sans text-2xl text-stone-200")) "job deleted !")
+       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " log-filename))
        ))
     )
   )
