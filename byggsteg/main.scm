@@ -34,6 +34,7 @@
   "Create an empty log file."
   (with-output-to-file filename (lambda () (display ""))))
 
+
 (define (base-16-encode str)
   (let* ((process (open-input-pipe (format #f "echo \"~a\" | xxd -p" str)))
          (process-output (get-string-all process)))
@@ -102,16 +103,36 @@
             (class "font-bold text-purple-700 cursor-pointer underline"))
         "request a job run"))))
 
+(define (read-job-success log-filename)
+  (cond
+   ((file-exists? (string-append job-success-location log-filename)) #t)
+   (else #f)))
+
+(define (read-job-failure log-filename)
+  (cond
+   ((file-exists? (string-append job-failure-location log-filename)) #t)
+   (else #f)))
+
 
 (define (log-page path)
   (let* ((log-filename (base-16-decode (car (cdr path))))
          (file-path (string-append job-log-location log-filename))
          (file (open-input-file file-path))
          (log-data (get-string-all file))
+         (success (read-job-success log-filename))
+         (failure (read-job-failure log-filename))
+         (job-status (cond
+                      ((equal? success #t) `(h2 (@(class "font-sans text-2xl text-green-700")) "job succeeded"))
+                      ((equal? failure #t) `(h2 (@(class "font-sans text-2xl text-red-700")) "job failed"))
+                      (else `(h2 (@(class "font-sans text-2xl text-sky-700")) "job in progress"))
+                      ))
          )
     (respond
      `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-       (h2 (@(class "font-sans text-2xl")) "viewing logs")
+       (div (@(class "flex flex-row flex-wrap align-center gap-6"))
+            (h2 (@(class "font-sans text-2xl")) "viewing logs")
+            ,job-status
+            )
        (h3 ,log-filename)
        (pre(code ,log-data))
        ))
@@ -126,7 +147,7 @@
        (action "/jobs/submit")
        (enctype "application/x-www-form-urlencoded")
        (charset "utf-8")
-       (class "flex flex-col justify-center"))
+       (class "flex flex-col justify-center gap-4"))
       (label (@(for "project")) "project name:")
       (input (@(id "project")(name "project")(required "")(class "rounded-xl border font-sans p-2")))
       (label (@(for "clone-url")) "clone URL:")
@@ -159,14 +180,12 @@
          (log-filename (new-project-log-filename project))
          (only-filename (string-replace-substring log-filename job-log-location ""))
          (public-log-filename (base-16-encode only-filename))
-         (logs-link (format #f "/logs/~a" public-log-filename))
-         )
+         (logs-link (format #f "/logs/~a" public-log-filename)))
     
     (create-empty-file (string-append job-log-location log-filename))
 
     (future
-     (stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte"
-                 log-filename))
+     (stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte" log-filename))
 
     (respond
      `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
