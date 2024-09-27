@@ -39,6 +39,7 @@
   (let* ((process (open-input-pipe cmd))
          (process-output (get-string-all process)))
     (close-pipe process)
+    (display process-output)
     process-output))
 
 (define (base-16-encode str)
@@ -56,7 +57,7 @@
          (process-output
           (run-system (format #f (string-append "cd ~a" " && stack test") clone-dir)))
          (output-port (open-file (string-append job-log-location log-filename) "a")))
-    (close-pipe process)
+
     (display process-output output-port)
     (close output-port)
     (create-empty-file (string-append job-success-location log-filename))))
@@ -80,6 +81,7 @@
                  ))
          (output-port (open-file (string-append job-log-location log-filename) "a"))
          )
+    (display log-d)
     (display log-d output-port)
     (close output-port)))
 
@@ -186,8 +188,9 @@
    ((file-exists? (string-append job-failure-location log-filename)) #t)
    (else #f)))
 
+
 (define (get-file-list dir)
-  (let* ((process (open-input-pipe (format #f "ls -1 --sort=time ~a" dir)))
+  (let* ((process (open-input-pipe ))
          (process-output (get-string-all process)))
     (close-pipe process)
     (string-split process-output #\newline )))
@@ -353,8 +356,13 @@
     (create-empty-file (string-append job-log-location log-filename))
 
     (clone-repo project branch-name clone-url log-filename)
+
+    ;; async fire job
     (future
      (stack-test project branch-name clone-url log-filename))
+    
+    ;; sync debug
+    ;; (stack-test project branch-name clone-url log-filename)
 
     (respond
      `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
