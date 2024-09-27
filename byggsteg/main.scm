@@ -135,14 +135,38 @@
 (define (request-path-components request)
   (split-and-decode-uri-path (uri-path (request-uri request))))
 
+(define (welcome-make-job-link log-filename)
+  (let* (
+         (public-log-filename (base-16-encode log-filename))
+         (logs-link (format #f "/logs/~a" public-log-filename))
+         )
+    `((div
+       (@(class "flex flex-row gap-2"))
+       (span "✅")
+       (a (@(class "text-purple-700 font-bold underline cursor-pointer text-sm")
+           (href ,logs-link)) ,log-filename)
+       )))
+  )
+
 (define (welcome-page)
-  (respond
-   `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-     (em "byggsteg means “build step” in the Norwegian language.")
-     (p "Simple CI/CD system made with Guile Scheme")
-     (a ( @ (href "/jobs/request")
-            (class "font-bold text-purple-700 cursor-pointer underline"))
-        "request a job run"))))
+  (let* ((successes (get-file-list job-success-location))
+         (success-html (map welcome-make-job-link successes))
+         (failures (get-file-list job-failure-location)))
+    (respond
+     `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+       (em "byggsteg means “build step” in the Norwegian language.")
+       (p "Simple CI/CD system made with Guile Scheme")
+       (a ( @ (href "/jobs/request")
+              (class "font-bold text-purple-700 cursor-pointer underline text-lg"))
+          "request a job run")
+       (div (@(class "flex flex-row flex-wrap w-full justify-center gap-2"))
+            (div (@(class "w-full md:w-2/5 rounded-xl bg-stone-200 p-4 flex flex-column flex-wrap gap-4 align-center"))
+                 ,success-html)
+            (div (@(class "w-full md:w-2/5 rounded-xl bg-stone-200 p-4 block"))
+                 ,failures)
+            ))
+     )
+    ))
 
 (define (read-job-success log-filename)
   (cond
@@ -154,6 +178,11 @@
    ((file-exists? (string-append job-failure-location log-filename)) #t)
    (else #f)))
 
+(define (get-file-list dir)
+  (let* ((process (open-input-pipe (format #f "ls -1 --sort=time ~a" dir)))
+         (process-output (get-string-all process)))
+    (close-pipe process)
+    (string-split process-output #\newline )))
 
 (define (log-page path)
   (let* ((log-filename (base-16-decode (car (cdr path))))
