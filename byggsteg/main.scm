@@ -111,7 +111,7 @@
                   (if doctype (display doctype port))
                   (sxml->xml sxml port))))))
 
-(define* (respond-json vals #:optional body #:key
+(define* (respond-json json #:optional body #:key
                        (status 200)
                        (title "Hello hello!")
 
@@ -124,7 +124,7 @@
            #:headers `((content-type
                         . (,content-type ,@content-type-params))
                        ,@extra-headers))
-          (lambda (port) (display "test" port))))
+          (lambda (port) (display json port))))
 
 (define (request-path-components request)
   (split-and-decode-uri-path (uri-path (request-uri request))))
@@ -185,8 +185,20 @@
                       ((equal? failure #t)  "job failed")
                       (else  "job in progress")
                       ))
+         (json (format #f (string-append "{"
+                                         "\"success\": \"~a\","
+                                         "\"failure\": \"~a\","
+                                         "\"log-filename\": \"~a\","
+                                         "\"log-data\": \"~a\""
+                                         "}"
+                                         )
+                       success
+                       failure
+                       log-filename
+                       (base-16-encode log-data)
+                       ))
          )
-    (respond-json "")
+    (respond-json json)
     ))
 
 (define (job-request-form-page)
