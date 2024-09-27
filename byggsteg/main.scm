@@ -35,28 +35,26 @@
   "Create an empty log file."
   (with-output-to-file filename (lambda () (display ""))))
 
+(define (system-run cmd)
+  (let* ((process (open-input-pipe cmd))
+         (process-output (get-string-all process)))
+    (close-pipe process)
+    process-output))
 
 (define (base-16-encode str)
-  (let* ((process (open-input-pipe (format #f "echo \"~a\" | xxd -p" str)))
-         (process-output (get-string-all process)))
-    (close-pipe process)
-    (string-replace-substring process-output "\n" "")))
+  (string-replace-substring
+   (system-run (format #f "echo \"~a\" | xxd -p" str)) "\n" ""))
 
 (define (base-16-decode str)
-  (let* ((process (open-input-pipe (format #f "echo \"~a\" | xxd -p -r" str)))
-         (process-output (get-string-all process)))
-    (close-pipe process)
-    (string-replace-substring process-output "\n" "")))
+  (string-replace-substring
+   (system-run (format #f "echo \"~a\" | xxd -p -r" str)) "\n" ""))
+
 
 (define (stack-test project branch-name clone-url log-filename)
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
-         (cmd (format #f
-                      (string-append
-                       "cd ~a"
-                       " && stack test")
-                      clone-dir))
-         (process (open-input-pipe cmd))
-         (process-output (get-string-all process))
+  (let* ((clone-dir
+          (string-append job-clone-location project "/" branch-name))
+         (process-output
+          (run-system (format #f (string-append "cd ~a" " && stack test") clone-dir)))
          (output-port (open-file (string-append job-log-location log-filename) "a")))
     (close-pipe process)
     (display process-output output-port)
@@ -74,12 +72,11 @@
                             branch-name
                             clone-url
                             clone-dir))
-         (pull-cmd (format #f "cd ~a && git pull" clone-dir))
-         
+         (pull-cmd (format #f "cd ~a && git pull" clone-dir))         
          (should-clone (not (file-exists? clone-dir)))
          (log-d (cond
-                 (should-clone (get-string-all (open-input-pipe clone-cmd)))
-                 (else (get-string-all (open-input-pipe pull-cmd)))
+                 (should-clone (run-system clone-cmd))
+                 (else (run-system pull-cmd))
                  ))
          (output-port (open-file (string-append job-log-location log-filename) "a"))
          )
@@ -139,19 +136,25 @@
   (let* (
          (public-log-filename (base-16-encode log-filename))
          (logs-link (format #f "/logs/~a" public-log-filename))
+         (success (read-job-success log-filename))
+         (failure (read-job-failure log-filename))
+         (job-status (cond
+                      ((equal? success #t) `(h2 (@(class "font-sans text-sm text-green-700")) "job succeeded"))
+                      ((equal? failure #t) `(h2 (@(class "font-sans text-sm text-red-700")) "job failed"))
+                      (else `(h2 (@(class "font-sans text-sm text-sky-700")) "job in progress"))
+                      ))
          )
     `((div
-       (@(class "flex flex-row gap-2"))
-       (span "✅")
+       (@(class "flex flex-col gap-2"))
        (a (@(class "text-purple-700 font-bold underline cursor-pointer text-sm")
            (href ,logs-link)) ,log-filename)
+       (div (@(class "p-2 text-sm")) ,job-status)
        )))
   )
 
 (define (welcome-page)
-  (let* ((successes (get-file-list job-success-location))
-         (success-html (map welcome-make-job-link successes))
-         (failures (get-file-list job-failure-location)))
+  (let* ((successes (get-file-list job-log-location))
+         (success-html (map welcome-make-job-link successes)))
     (respond
      `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
        (em "byggsteg means “build step” in the Norwegian language.")
@@ -159,14 +162,11 @@
        (a ( @ (href "/jobs/request")
               (class "font-bold text-purple-700 cursor-pointer underline text-lg"))
           "request a job run")
-       (div (@(class "my-6 flex flex-col flex-wrap w-full justify-center gap-2"))
-            (div (@(class "w-full rounded-xl bg-stone-200 p-4 flex flex-col gap-4 align-center"))
-                 (h4 "succesful jobs")
-                 ,success-html)
-            (div (@(class "w-full rounded-xl bg-stone-200 p-4 block"))
-                 (h4 "failed jobs")
-                 ,failures)
-            ))
+
+       (div (@(class "w-full rounded-xl bg-stone-200 p-4 flex flex-col gap-4 align-center my-6"))
+            (h4 "jobs")
+            ,success-html)
+       )
      )
     ))
 
