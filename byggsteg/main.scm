@@ -28,11 +28,11 @@
 (define (new-project-log-filename project)
   "Create a new name for a log file, based on the project and current timestamp."
   (let ((timestamp (get-current-date-time)))
-    (string-append log-location project "-" timestamp ".byggsteg.log")))
+    (string-append project "-" timestamp ".byggsteg.log")))
 
-(define (create-empty-log-file log-filename)
+(define (create-empty-file filename)
   "Create an empty log file."
-  (with-output-to-file log-filename (lambda () (display ""))))
+  (with-output-to-file filename (lambda () (display ""))))
 
 (define (base-16-encode str)
   (let* ((process (open-input-pipe (format #f "echo \"~a\" | xxd -p" str)))
@@ -46,21 +46,25 @@
     (close-pipe process)
     (string-replace-substring process-output "\n" "")))
 
-
 (define (stack-test project-path log-filename)
   (let* ((process (open-input-pipe (format #f "cd ~a && stack test" project-path)))
          (process-output (get-string-all process)))
     (close-pipe process)
-    (with-output-to-file log-filename (lambda () (display process-output)))))
+    (with-output-to-file (string-append job-log-location log-filename) (lambda () (display process-output)))
+    (create-empty-file (string-append job-success-location log-filename))))
 
+(define (clone-repo project-path log-filename clone-url branch-name)
+  (let* ((process (open-input-pipe (format #f "cd ~a && git clone ~a" project-path clone-url)))
+         (process-output (get-string-all process)))ll
+         (close-pipe process)
+         (with-output-to-file log-filename (lambda () (display process-output)))))
 
 (define (templatize title body)
-  `(html (head
-          (title ,title)
-          (script (@(src "https://cdn.tailwindcss.com")) "")
-          )
-         (body (div (@(class "container mx-auto my-4")) ,@body
-                    ))))
+  `(html
+    (head
+     (title ,title)
+     (script (@(src "https://cdn.tailwindcss.com")) ""))
+    (body (div (@(class "container mx-auto my-4")) ,@body))))
 
 (define (not-found request)
   (values (build-response #:code 404)
@@ -90,18 +94,18 @@
   (split-and-decode-uri-path (uri-path (request-uri request))))
 
 (define (welcome-page)
-  (respond `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-                      (em "byggsteg means “build step” in the Norwegian language.")
-                      (p "Simple CI/CD system made with Guile Scheme")
-                      (a ( @ (href "/jobs/request")
-                             (class "font-bold text-purple-700 cursor-pointer underline"))
-                         "request a job run")
-                      )))
+  (respond
+   `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+     (em "byggsteg means “build step” in the Norwegian language.")
+     (p "Simple CI/CD system made with Guile Scheme")
+     (a ( @ (href "/jobs/request")
+            (class "font-bold text-purple-700 cursor-pointer underline"))
+        "request a job run"))))
 
 
 (define (log-page path)
   (let* ((log-filename (base-16-decode (car (cdr path))))
-         (file-path (string-append log-location log-filename))
+         (file-path (string-append job-log-location log-filename))
          (file (open-input-file file-path))
          (log-data (get-string-all file))
          )
@@ -114,21 +118,24 @@
     ))
 
 (define (job-request-form-page)
-  (respond `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-                      (h2 (@(class "font-sans text-2xl")) "requesting job run")
-                      (form
-                       (@(method "POST")
-                        (action "/jobs/submit")
-                        (enctype "application/x-www-form-urlencoded")
-                        (charset "utf-8")
-                        (class "flex flex-col justify-center"))
-                       (label (@(for "project")) "project name:")
-                       (input (@(id "project")(name "project") (class "rounded-xl border font-sans p-2")))
-                       (label (@(for "task")) "task:")
-                       (input (@(id "task")(name "task")(class "rounded-xl border font-sans p-2")(value "test")))
-                       (button (@(type "submit")(class "rounded-xl bg-purple-700 text-white cursor-pointer p-2 m-2")) "submit")
-                       )
-                      )))
+  (respond
+   `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+     (h2 (@(class "font-sans text-2xl")) "requesting job run")
+     (form
+      (@(method "POST")
+       (action "/jobs/submit")
+       (enctype "application/x-www-form-urlencoded")
+       (charset "utf-8")
+       (class "flex flex-col justify-center"))
+      (label (@(for "project")) "project name:")
+      (input (@(id "project")(name "project")(required "")(class "rounded-xl border font-sans p-2")))
+      (label (@(for "clone-url")) "clone URL:")
+      (input (@(id "clone-url")(name "clone-url")(required "")(class "rounded-xl border font-sans p-2")))
+      (label (@(for "task")) "task:")
+      (textarea (@(id "task")(name "task")(required "")(class "rounded-xl border font-sans p-2 min-w-full min-h-60")) "")
+      (button (@(type "submit")(class "rounded-xl bg-purple-700 text-white cursor-pointer p-2 m-2")) "submit")
+      )
+     )))
 
 (define (at-eq x) (string-split x #\=))
 (define (unsafe-mk-alist x) (cons (car x) (cdr x)))
@@ -148,27 +155,28 @@
   (let* ((kv (read-url-encoded-body body))
          (project (car (assoc-ref kv "project")))
          (task (car (assoc-ref kv "task")))
-         (formatted-kv (map (lambda(x) (format #f "~a: ~a  " (car x) (car (cdr x)))) kv ))
+         (formatted-kv (map (lambda(x) (format #f "~a: ~a" (car x) (car (cdr x)))) kv ))
          (log-filename (new-project-log-filename project))
-         (only-filename (string-replace-substring log-filename log-location ""))
+         (only-filename (string-replace-substring log-filename job-log-location ""))
          (public-log-filename (base-16-encode only-filename))
          (logs-link (format #f "/logs/~a" public-log-filename))
          )
     
-    (create-empty-log-file log-filename)
+    (create-empty-file (string-append job-log-location log-filename))
 
     (future
      (stack-test "/home/joe/Ontwikkeling/Persoonlijk/free-alacarte"
                  log-filename))
 
-    (respond `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-               (h2 (@(class "font-sans text-2xl")) "job submitted")
-               (h3 (@(class "font-sans text-lg")) ,(string-append "job for: " project))
-               (h3 (@(class "font-sans text-lg")) ,(string-append "task: " task))
-               (h3 (@(class "font-sans text-lg")) ,(string-append "log-file: " only-filename))
-               (a (@ (href ,logs-link) (class "font-bold text-purple-700 cursor-pointer underline"))
-                  "click me to view the job logs")
-               ))
+    (respond
+     `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+       (h2 (@(class "font-sans text-2xl")) "job submitted")
+       (h3 (@(class "font-sans text-lg")) ,(string-append "job for: " project))
+       (h3 (@(class "font-sans text-lg")) ,(string-append "task: " task))
+       (h3 (@(class "font-sans text-lg")) ,(string-append "log-file: " only-filename))
+       (a (@ (href ,logs-link) (class "font-bold text-purple-700 cursor-pointer underline"))
+          "click me to view the job logs")
+       ))
     )
   )
 

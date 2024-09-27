@@ -1,0 +1,15 @@
+
+Free a la Carte
+  using the FileSystem free monad
+    can read from file successfully  [✔]
+    can write to file successfully [✔]
+  using the Logger free monad
+Free a la Carte
+    can log to stdout [✔]
+  using FileSystem :+: Logger monads
+Free a la Carte
+
+    can read a file's contents to stdout [✔]
+
+Finished in 0.0098 seconds
+4 examples, 0 failures
