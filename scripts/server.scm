@@ -1,3 +1,7 @@
-(load "../byggsteg/main.scm")
+(use-modules (web server))
 
-(run-server byggsteg-handler)
+(load "../byggsteg/main.scm")
+(use-modules (byggsteg-main))
+
+
+(run-server byggsteg-http-server)
