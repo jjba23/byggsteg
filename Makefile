@@ -8,4 +8,4 @@ prepare-log-dir:
 dev:
 	watchexec -r -e scm -- make server
 server:
-	guile -s scripts/server.scm
+	GUILE_AUTO_COMPILE=0 guile -s scripts/server.scm
