@@ -56,29 +56,35 @@
                        " && stack test")
                       clone-dir))
          (process (open-input-pipe cmd))
-         (process-output (get-string-all process)))
+         (process-output (get-string-all process))
+         (output-port (open-file (string-append job-log-location log-filename) "a")))
     (close-pipe process)
-    (with-output-to-file (string-append job-log-location log-filename) (lambda () (display process-output)))
+    (display process-output output-port)
+    (close output-port)
     (create-empty-file (string-append job-success-location log-filename))))
 
 (define (clone-repo project branch-name clone-url log-filename)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
-         (cmd (format #f
-                      (string-append
-                       "mkdir -p ~a"
-                       " && git clone -b ~a ~a ~a || true"
-                       " && cd ~a && git pull"
-                       )                      
-                      clone-dir
-                      branch-name
-                      clone-url
-                      clone-dir
-                      clone-dir))
-         (process (open-input-pipe cmd))
-         (process-output (get-string-all process)))
-    (display cmd)
-    (close-pipe process)
-    (with-output-to-file log-filename (lambda () (display process-output)))))
+         (clone-cmd (format #f
+                            (string-append
+                             "mkdir -p ~a"
+                             " && git clone -b ~a ~a ~a || true"
+                             )                      
+                            clone-dir
+                            branch-name
+                            clone-url
+                            clone-dir))
+         (pull-cmd (format #f "cd ~a && git pull" clone-dir))
+         
+         (should-clone (not (file-exists? clone-dir)))
+         (log-d (cond
+                 (should-clone (get-string-all (open-input-pipe clone-cmd)))
+                 (else (get-string-all (open-input-pipe pull-cmd)))
+                 ))
+         (output-port (open-file (string-append job-log-location log-filename) "a"))
+         )
+    (display log-d output-port)
+    (close output-port)))
 
 (define (templatize title body)
   `(html
