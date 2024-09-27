@@ -1,18 +1,18 @@
-(define-module (byggsteg-main)
-  #:export (byggsteg-http-server)
-  #:use-module (web server)
-  #:use-module (web request)             
-  #:use-module (web response)
-  #:use-module (web uri)
-  #:use-module (sxml simple)
-  #:use-module (ice-9 popen)
-  #:use-module (ice-9 textual-ports)
-  #:use-module (ice-9 time)
-  #:use-module (ice-9 format)
-  #:use-module (ice-9 string-fun)
-  #:use-module (ice-9 iconv)
-  #:use-module (ice-9 futures)
-  )
+4(define-module (byggsteg-main)
+   #:export (byggsteg-http-server)
+   #:use-module (web server)
+   #:use-module (web request)             
+   #:use-module (web response)
+   #:use-module (web uri)
+   #:use-module (sxml simple)
+   #:use-module (ice-9 popen)
+   #:use-module (ice-9 textual-ports)
+   #:use-module (ice-9 time)
+   #:use-module (ice-9 format)
+   #:use-module (ice-9 string-fun)
+   #:use-module (ice-9 iconv)
+   #:use-module (ice-9 futures)
+   )
 
 
 (define job-log-location "/var/log/byggsteg/job-log/")
@@ -88,14 +88,11 @@
     (head
      (title ,title)
      (link (@(rel "stylesheet")
-            (href "https://cdnjs.cloudflare.com/ajax/libs/Iosevka/11.1.1/iosevka/iosevka.min.css")
-            (integrity "sha512-3hU20586NsplKRzjf2jQN5vTRTI2EsXObrHDOBLGdkiRkneg699BlmBXWGHHFHADCF3TOk2BREsVy7qTkmvQqQ==")
-            (crossorigin "anonymous")
-            (referrerpolicy "no-referrer")
+            (href "https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.1.0/400.min.css")
             )
            )
      (script (@(src "https://cdn.tailwindcss.com")) "")
-     (script "tailwind.config={theme:{fontFamily:{mono:[\"Iosevka\",\"monospace\"]}}}")
+     (script (@(src "/resources/js/tailwind.config.js")) ())
      )
     (body (div (@(class "container mx-auto my-4")) ,@body))))
 
@@ -390,6 +387,18 @@
     )
   )
 
+(define* (respond-static-file path content-type #:key
+                              (status 200)                              
+                              (content-type-params '((charset . "utf-8")))
+                              (extra-headers '()))
+  (values (build-response
+           #:code status
+           #:headers `((content-type
+                        . (,content-type ,@content-type-params))
+                       ,@extra-headers))
+          (lambda (port)
+            (display (get-string-all (open-input-file path)) port)
+            )))
 
 (define (byggsteg-http-server request body)
   (let ((path (request-path-components request)))
@@ -406,6 +415,8 @@
       (log-page path ))
      ((and (equal? (car path) "logs-api") (equal? (request-method request) 'GET))
       (log-api-page path ))
+     ((and (equal? path '("resources" "js" "tailwind.config.js")) (equal? (request-method request) 'GET))
+      (respond-static-file "./resources/js/tailwind.config.js" 'text/javascript))
      (else (not-found request)))))
 
 

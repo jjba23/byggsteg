@@ -1,0 +1,10 @@
+tailwind.config={
+    darkMode:"media",
+    theme:{
+        fontFamily:{
+            sans:["Iosevka","ui-sans-serif","system-ui","sans-serif"],
+            serif:["Iosevka","serif"],
+            mono:["Iosevka","monospace"]
+        }
+    }
+}
