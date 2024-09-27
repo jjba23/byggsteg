@@ -35,7 +35,7 @@
   "Create an empty log file."
   (with-output-to-file filename (lambda () (display ""))))
 
-(define (system-run cmd)
+(define (run-system cmd)
   (let* ((process (open-input-pipe cmd))
          (process-output (get-string-all process)))
     (close-pipe process)
@@ -43,11 +43,11 @@
 
 (define (base-16-encode str)
   (string-replace-substring
-   (system-run (format #f "echo \"~a\" | xxd -p" str)) "\n" ""))
+   (run-system (format #f "echo \"~a\" | xxd -p" str)) "\n" ""))
 
 (define (base-16-decode str)
   (string-replace-substring
-   (system-run (format #f "echo \"~a\" | xxd -p -r" str)) "\n" ""))
+   (run-system (format #f "echo \"~a\" | xxd -p -r" str)) "\n" ""))
 
 
 (define (stack-test project branch-name clone-url log-filename)
@@ -87,7 +87,16 @@
   `(html
     (head
      (title ,title)
-     (script (@(src "https://cdn.tailwindcss.com")) ""))
+     (link (@(rel "stylesheet")
+            (href "https://cdnjs.cloudflare.com/ajax/libs/Iosevka/11.1.1/iosevka/iosevka.min.css")
+            (integrity "sha512-3hU20586NsplKRzjf2jQN5vTRTI2EsXObrHDOBLGdkiRkneg699BlmBXWGHHFHADCF3TOk2BREsVy7qTkmvQqQ==")
+            (crossorigin "anonymous")
+            (referrerpolicy "no-referrer")
+            )
+           )
+     (script (@(src "https://cdn.tailwindcss.com")) "")
+     (script "tailwind.config={theme:{fontFamily:{mono:[\"Iosevka\",\"monospace\"]}}}")
+     )
     (body (div (@(class "container mx-auto my-4")) ,@body))))
 
 (define (not-found request)
@@ -206,7 +215,13 @@
             ,job-status
             )
        (h3 ,log-filename)
-       (pre(code ,log-data))
+       (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
+             (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
+                     (class "rounded-xl border font-sans p-2")))
+             (button (@(type "submit")
+                      (class "rounded-xl bg-red-700 text-white cursor-pointer p-2 m-2")) "delete")
+             )
+       (pre (@(class "font-mono")) ,log-data)
        ))
     ))
 
@@ -358,6 +373,23 @@
     )
   )
 
+(define (job-delete-endpoint request body)
+  (let* ((kv (read-url-encoded-body body))
+         (log-filename (car (assoc-ref kv "log-filename"))))
+    
+
+    (run-system (format #f "rm -rfv ~a" (string-append job-log-location log-filename)))
+    (run-system (format #f "rm -rfv ~a" (string-append job-failure-location log-filename)))
+    (run-system (format #f "rm -rfv ~a" (string-append job-success-location log-filename)))
+    
+    (respond
+     `((h1 (@(class "font-sans text-3xl text-purple-900 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
+       (h2 (@(class "font-sans text-2xl")) "job deleted !")
+       (h3 (@(class "font-sans text-lg")) ,(string-append "log-file: " log-filename))
+       ))
+    )
+  )
+
 
 (define (byggsteg-http-server request body)
   (let ((path (request-path-components request)))
@@ -368,6 +400,8 @@
       (job-request-form-page))
      ((and (equal? path '("jobs" "submit")) (equal? (request-method request) 'POST))
       (job-submit-endpoint request body))
+     ((and (equal? path '("jobs" "delete")) (equal? (request-method request) 'POST))
+      (job-delete-endpoint request body))
      ((and (equal? (car path) "logs") (equal? (request-method request) 'GET))
       (log-page path ))
      ((and (equal? (car path) "logs-api") (equal? (request-method request) 'GET))
