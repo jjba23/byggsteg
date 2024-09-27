@@ -178,26 +178,36 @@
          (file-path (string-append job-log-location log-filename))
          (file (open-input-file file-path))
          (log-data (get-string-all file))
-         (success (read-job-success log-filename))
-         (failure (read-job-failure log-filename))
-         (job-status (cond
-                      ((equal? success #t) "job succeeded")
-                      ((equal? failure #t)  "job failed")
-                      (else  "job in progress")
-                      ))
-         (json (format #f (string-append "{"
-                                         "\"success\": \"~a\","
-                                         "\"failure\": \"~a\","
-                                         "\"log-filename\": \"~a\","
-                                         "\"log-data\": \"~a\""
-                                         "}"
-                                         )
+         (success
+          (cond
+           ((equal? (read-job-success log-filename) #t) "true")
+           (else "false")))
+         (failure
+          (cond
+           ((equal? (read-job-failure log-filename) #t) "true")
+           (else "false")
+           ))
+         (in-progress
+          (cond
+           ((equal? (and (not (equal? success "true")) (not (equal? failure "true"))) #t) "true" )
+           (else "false")
+           ))
+         (json (format #f
+                       (string-append
+                        "{"
+                        "\"success\": ~a,"
+                        "\"failure\": ~a,"
+                        "\"in-progress\": ~a,"
+                        "\"log-filename\": \"~a\","
+                        "\"log-data\": \"~a\""
+                        "}"
+                        )
                        success
                        failure
+                       in-progress
                        log-filename
                        (base-16-encode log-data)
-                       ))
-         )
+                       )))
     (respond-json json)
     ))
 
