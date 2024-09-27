@@ -4,3 +4,8 @@
 
 This is a simple CI/CD system written in Guile Scheme.
 
+** Project management - backlog
+**** TODO Allow user to send Guile over the wire and define his/her own pipeline in a ~progn~ fashion.
+**** TODO Create directories for success and failure based on id (logname base 16)
+**** TODO Write functions to clone repos in isolation to folder
+
