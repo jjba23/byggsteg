@@ -57,9 +57,7 @@
 
 (define-public (job-request-form-page)
   (respond
-   `(,(page-top)
-     (hr (@(class "my-6")))
-     (h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "requesting job run")
+   `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "requesting job run")
      (form
       (@(method "POST")
        (action "/jobs/submit")
@@ -134,8 +132,7 @@
     ;; (stack-test project branch-name clone-url log-filename)
 
     (respond
-     `(,(page-top)
-       (h2 (@(class "font-sans text-2xl text-stone-200")) "job submitted")
+     `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "job submitted")
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "job for: " project))
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "task: " task))
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "clone-url: " clone-url))
@@ -162,9 +159,7 @@
                       ))
          )
     (respond
-     `(,(page-top)
-       (hr (@(class "my-6")))
-       (h3 (@(class "text-stone-200 text-2xl my-4")) ,log-filename)
+     `((h3 (@(class "text-stone-200 text-2xl my-4")) ,log-filename)
        (div (@(class "flex flex-row flex-wrap align-center gap-6"))
             (h2 (@(class "font-sans text-2xl text-stone-200")) "viewing logs")
             ,job-status
@@ -185,9 +180,8 @@
          (jobs-html (map welcome-make-job-link jobs)))
     (respond
      `(
-       ,(page-top)
-       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
-            (h4 (@(class "text-stone-200 font-bold text-lg")) "jobs")
+       (h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
+       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
             ,jobs-html)
        )
      )
@@ -220,7 +214,7 @@
          (a ( @ (href "/jobs/request")
                 (class "font-bold text-orange-400 cursor-pointer underline text-lg"))
             (button (@(class "bg-orange-500/75 text-stone-200 rounded-xl cursor-pointer p-2 m-2 text-lg font-bold"))
-                    "request a job run") )
+                    "+ new job run") )
          )
     
     (em (@(class "text-lg text-stone-200")) "byggsteg means “build step” in the Norwegian language.")
@@ -240,4 +234,8 @@
      (script (@(src "https://cdn.tailwindcss.com")) "")
      (script (@(src "/resources/js/tailwind.config.js")) ())
      )
-    (body (@(class "bg-stone-900")) (div (@(class "container mx-auto my-4")) ,@body))))
+    (body (@(class "bg-stone-900"))
+          (div (@(class "container mx-auto my-4"))
+               ,(page-top)
+               (hr (@(class "my-6")))
+               ,@body))))
