@@ -10,8 +10,28 @@ This is a simple CI/CD system written in Guile Scheme.
 <img src="./resources/combined_image.png"/>
 #+end_html
 
+** What is byggsteg ?
+
+~byggsteg~ is a free software project with the aim of developing a suite of functionalities to allow engineers to deliver software quicker and with less friction.
+
+The aim of byggsteg is to release you from your dependency on proprietary systems like GitHub actions.
+This allows you to create continuous integration and continuous delivery (CI & CD) pipelines in an easy way that are tailored to your needs and which you fully control.
+
+My initial idea when developing ~byggsteg~ revolves around my Haskell projects, which are hosted on GitHub and deployed to Amazon AWS EC2 compute.
+
+I don't mind having the software building and testing happening in the same machine as where I run the production workloads, since I am looking for supreme cost-efficiency, but it's highly recommended that you do separate these things, if you can afford it.
+
+And thus, I set out to build a CI/CD system, that on command can:
+- clone specified repo URL to an isolated folder for each branch (but caching by reusing same branch and doing ~git pull~)
+- navigate to that directory and perform a system command a.k.a. job (for a Haskell project ~stack test~ or ~stack build~)
+- capture the log output of all steps and save it
+- record job in progress, success or failure
+- show dashboard with job statuses
+
+~byggsteg~ is a deploy-your-own type tool, but if enough community interest is shown a SaaS offering in freedom might be a really good thing.
+
 ** Project management - backlog
 **** TODO Split codebase into separate modules
 **** TODO Hot reload server
 **** TODO Improve JSON support
-**** TODO Allow user to send Guile over the wire and define his/her own pipeline in a ~progn~ fashion.
+**** TODO Allow user to send Guile Scheme over the wire and define his/her own pipeline in a ~progn~ fashion.
