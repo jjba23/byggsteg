@@ -1,5 +1,10 @@
+
+
 (define-module (byggsteg-main)
-  #:export (byggsteg-http-server)
+  #:use-module (byggsteg-process)
+  #:use-module (byggsteg-log)
+  #:use-module (byggsteg-html)
+  #:use-module (byggsteg-preferences)
   #:use-module (web server)
   #:use-module (web request)             
   #:use-module (web response)
@@ -15,40 +20,15 @@
   )
 
 
-(define job-log-location "/var/log/byggsteg/job-log/")
-(define job-failure-location "/var/log/byggsteg/job-failure/")
-(define job-success-location "/var/log/byggsteg/job-success/")
-(define job-clone-location "/var/log/byggsteg/job-clone/")
-;;(define job-request-location "/var/log/byggsteg/job-request/")
-
 (define (get-current-date-time)
   "Get current timestamp string formatted to contain only dashes."
   (let ((now (localtime (current-time))))
     (strftime "%Y-%m-%d__%H:%M:%S" now)))
 
-(define (new-project-log-filename project)
-  "Create a new name for a log file, based on the project and current timestamp."
-  (let ((timestamp (get-current-date-time)))
-    (string-append project "__" timestamp ".byggsteg.log")))
 
 (define (create-empty-file filename)
   "Create an empty log file."
   (with-output-to-file filename (lambda () (display ""))))
-
-(define (run-system cmd)
-  (let* ((process (open-input-pipe cmd))
-         (process-output (get-string-all process)))
-    (close-pipe process)
-    (display process-output)
-    process-output))
-
-(define (base-16-encode str)
-  (string-replace-substring
-   (run-system (format #f "echo \"~a\" | xxd -p" str)) "\n" ""))
-
-(define (base-16-decode str)
-  (string-replace-substring
-   (run-system (format #f "echo \"~a\" | xxd -p -r" str)) "\n" ""))
 
 
 (define (stack-test project branch-name clone-url log-filename)
@@ -85,154 +65,12 @@
     (display log-d output-port)
     (close output-port)))
 
-(define (templatize title body)
-  `(html
-    (head
-     (title ,title)
-     (link (@(rel "stylesheet")
-            (href "https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.1.0/400.min.css")
-            )
-           )
-     (script (@(src "https://cdn.tailwindcss.com")) "")
-     (script (@(src "/resources/js/tailwind.config.js")) ())
-     )
-    (body (@(class "bg-stone-900")) (div (@(class "container mx-auto my-4")) ,@body))))
 
-(define (not-found request)
-  (values (build-response #:code 404)
-          (string-append "Resource not found: "
-                         (uri->string (request-uri request)))))
 
-(define* (respond #:optional body #:key
-                  (status 200)
-                  (title "Hello hello!")
-                  (doctype "<!DOCTYPE html>\n")
-                  (content-type-params '((charset . "utf-8")))
-                  (content-type 'text/html)
-                  (extra-headers '())
-                  (sxml (and body (templatize title body))))
-  (values (build-response
-           #:code status
-           #:headers `((content-type
-                        . (,content-type ,@content-type-params))
-                       ,@extra-headers))
-          (lambda (port)
-            (if sxml
-                (begin
-                  (if doctype (display doctype port))
-                  (sxml->xml sxml port))))))
-
-(define* (respond-json json #:optional body #:key
-                       (status 200)
-                       (title "Hello hello!")
-
-                       (content-type-params '((charset . "utf-8")))
-                       (content-type 'application/json)
-                       (extra-headers '())
-                       (sxml (and body (templatize title body))))
-  (values (build-response
-           #:code status
-           #:headers `((content-type
-                        . (,content-type ,@content-type-params))
-                       ,@extra-headers))
-          (lambda (port) (display json port))))
 
 (define (request-path-components request)
   (split-and-decode-uri-path (uri-path (request-uri request))))
 
-(define (welcome-make-job-link log-filename)
-  (let* (
-         (public-log-filename (base-16-encode log-filename))
-         (logs-link (format #f "/logs/~a" public-log-filename))
-         (success (read-job-success log-filename))
-         (failure (read-job-failure log-filename))
-         (job-status (cond
-                      ((equal? success #t) `(h2 (@(class "text-sm text-green-700 text-lg")) "job succeeded"))
-                      ((equal? failure #t) `(h2 (@(class "text-sm text-red-700 text-lg")) "job failed"))
-                      (else `(h2 (@(class "text-sm text-sky-700 text-lg")) "job in progress"))
-                      ))
-         )
-    `((div
-       (@(class "flex flex-col gap-2"))
-       (a (@(class "text-orange-400 font-bold underline cursor-pointer text-lg")
-           (href ,logs-link)) ,log-filename)
-       (div (@(class "p-2 text-lg")) ,job-status)
-       )))
-  )
-
-(define (page-top)
-  `(
-    (div (@(class "flex flex-row flex-wrap justify-between"))
-         (h1 (@(class "text-3xl text-orange-500 font-bold")) (a (@(href "/")) "byggsteg"))
-         (a ( @ (href "/jobs/request")
-                (class "font-bold text-orange-400 cursor-pointer underline text-lg"))
-            (button (@(class "bg-orange-500/75 text-stone-200 rounded-xl cursor-pointer p-2 m-2 text-lg font-bold"))
-                    "request a job run") )
-         )
-    
-    (em (@(class "text-lg text-stone-200")) "byggsteg means “build step” in the Norwegian language.")
-    (p (@(class "text-lg text-stone-300 ")) "Simple CI/CD system made with Guile Scheme")
-    ))
-
-(define (welcome-page)
-  (let* ((jobs (get-file-list job-log-location))
-         (jobs-html (map welcome-make-job-link jobs)))
-    (respond
-     `(
-       ,(page-top)
-       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
-            (h4 (@(class "text-stone-200 font-bold text-lg")) "jobs")
-            ,jobs-html)
-       )
-     )
-    ))
-
-(define (read-job-success log-filename)
-  (cond
-   ((file-exists? (string-append job-success-location log-filename)) #t)
-   (else #f)))
-
-(define (read-job-failure log-filename)
-  (cond
-   ((file-exists? (string-append job-failure-location log-filename)) #t)
-   (else #f)))
-
-
-(define (get-file-list dir)  
-  (string-split
-   (run-system (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
-
-(define (log-page path)
-  (let* ((log-filename (base-16-decode (car (cdr path))))
-         (file-path (string-append job-log-location log-filename))
-         (file (open-input-file file-path))
-         (log-data (get-string-all file))
-         (success (read-job-success log-filename))
-         (failure (read-job-failure log-filename))
-         (job-status (cond
-                      ((equal? success #t) `(h2 (@(class "text-2xl text-green-700")) "job succeeded"))
-                      ((equal? failure #t) `(h2 (@(class "text-2xl text-red-700")) "job failed"))
-                      (else `(h2 (@(class "text-2xl text-sky-700")) "job in progress"))
-                      ))
-         )
-    (respond
-     `(,(page-top)
-       (hr (@(class "my-6")))
-       (h3 (@(class "text-stone-200 text-2xl my-4")) ,log-filename)
-       (div (@(class "flex flex-row flex-wrap align-center gap-6"))
-            (h2 (@(class "font-sans text-2xl text-stone-200")) "viewing logs")
-            ,job-status
-            )
-       
-       (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
-             (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
-                     (class "rounded-xl border font-sans p-2")))
-             (button (@(type "submit")
-                      (class "rounded-xl bg-red-700 text-stone-200 font-bold text-lg cursor-pointer p-2 m-2")) "delete")
-             )
-       (pre (@(class "rounded-xl bg-stone-800 p-4 my-6 text-stone-200 white-space-pre")) ,log-data)
-       ))
-    ))
 
 (define (log-api-page path)
   (let* ((log-filename (base-16-decode (car (cdr path))))
@@ -272,40 +110,6 @@
     (respond-json json)
     ))
 
-(define (job-request-form-page)
-  (respond
-   `(,(page-top)
-     (hr (@(class "my-6")))
-     (h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "requesting job run")
-     (form
-      (@(method "POST")
-       (action "/jobs/submit")
-       (enctype "application/x-www-form-urlencoded")
-       (charset "utf-8")
-       (class "flex flex-col justify-center gap-4"))
-      
-      (label (@(for "project")(class "text-stone-200 font-bold")) "project name:")
-      (input (@(id "project")(name "project")(required "")
-              (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
-      
-      (label (@(for "clone-url")(class "text-stone-200 font-bold")) "clone URL:")
-      (input (@(id "clone-url")(name "clone-url")(required "")
-              (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
-
-      (label (@(for "branch-name")(class "text-stone-200 font-bold")) "branch name:")
-      (input (@(id "branch-name")(name "branch-name")(value "trunk")(required "")
-              (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
-      
-      (label (@(for "task")(class "text-stone-200 font-bold")) "task:")
-      (select (@(id "task")(name "task")(required "")
-               (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200"))
-              (option (@(value "stack-test")) "Haskell - Test Stack project")
-              )
-      
-      (button (@(type "submit")
-               (class "text-lg font-bold rounded-xl bg-orange-500/75 text-stone-200 cursor-pointer p-2 m-2")) "submit")
-      )
-     )))
 
 (define (at-eq x) (string-split x #\=))
 (define (unsafe-mk-alist x) (cons (car x) (cdr x)))
@@ -353,59 +157,8 @@
   str
   )
 
-(define (job-submit-endpoint request body)
-  (let* ((kv (read-url-encoded-body body))
-         (project (car (assoc-ref kv "project")))
-         (clone-url (url-decode (car (assoc-ref kv "clone-url"))))
-         (branch-name (car (assoc-ref kv "branch-name")))
-         (task (url-decode (car (assoc-ref kv "task"))))
-         (formatted-kv (map (lambda(x) (format #f "~a: ~a" (car x) (car (cdr x)))) kv ))
-         (log-filename (new-project-log-filename project))
-         (only-filename (string-replace-substring log-filename job-log-location ""))
-         (public-log-filename (base-16-encode only-filename))
-         (logs-link (format #f "/logs/~a" public-log-filename)))
-    
-    (create-empty-file (string-append job-log-location log-filename))
 
-    (clone-repo project branch-name clone-url log-filename)
 
-    ;; async fire job
-    (future
-     (stack-test project branch-name clone-url log-filename))
-    
-    ;; sync debug
-    ;; (stack-test project branch-name clone-url log-filename)
-
-    (respond
-     `(,(page-top)
-       (h2 (@(class "font-sans text-2xl text-stone-200")) "job submitted")
-       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "job for: " project))
-       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "task: " task))
-       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "clone-url: " clone-url))
-       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "branch-name: " branch-name))
-       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " only-filename))
-       (a (@ (href ,logs-link) (class "font-bold text-orange-400 cursor-pointer underline"))
-          "click me to view the job logs")
-       ))
-    )
-  )
-
-(define (job-delete-endpoint request body)
-  (let* ((kv (read-url-encoded-body body))
-         (log-filename (car (assoc-ref kv "log-filename"))))
-    
-
-    (run-system (format #f "rm -rfv ~a" (string-append job-log-location log-filename)))
-    (run-system (format #f "rm -rfv ~a" (string-append job-failure-location log-filename)))
-    (run-system (format #f "rm -rfv ~a" (string-append job-success-location log-filename)))
-    
-    (respond
-     `((h1 (@(class "font-sans text-3xl text-orange-500 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
-       (h2 (@(class "font-sans text-2xl text-stone-200")) "job deleted !")
-       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " log-filename))
-       ))
-    )
-  )
 
 (define* (respond-static-file path content-type #:key
                               (status 200)                              
@@ -420,7 +173,7 @@
             (display (get-string-all (open-input-file path)) port)
             )))
 
-(define (byggsteg-http-server request body)
+(define-public (byggsteg-http-server request body)
   (let ((path (request-path-components request)))
     (cond
      ((and (equal? path '()) (equal? (request-method request) 'GET))
