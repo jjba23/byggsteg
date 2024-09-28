@@ -8,6 +8,7 @@
 (load "byggsteg/preferences.scm")
 (load "byggsteg/process.scm")
 (load "byggsteg/base16.scm")
+(load "byggsteg/url.scm")
 (load "byggsteg/job.scm")
 (load "byggsteg/log.scm")
 (load "byggsteg/html.scm")

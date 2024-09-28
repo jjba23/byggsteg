@@ -4,6 +4,7 @@
             read-job-success read-job-failure
             get-file-list)
   #:use-module (byggsteg-preferences)
+  #:use-module (byggsteg-process)
   #:use-module (web server)
   #:use-module (web request)             
   #:use-module (web response)

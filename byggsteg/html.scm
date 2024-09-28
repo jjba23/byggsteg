@@ -2,7 +2,10 @@
 (define-module (byggsteg-html)
   #:use-module (byggsteg-base16)
   #:use-module (byggsteg-preferences)
+  #:use-module (byggsteg-url)
+  #:use-module (byggsteg-process)
   #:use-module (byggsteg-job)
+  #:use-module (byggsteg-log)
   #:use-module (web server)
   #:use-module (web request)             
   #:use-module (web response)
@@ -73,9 +76,10 @@
 
 (define-public (job-delete-endpoint request body)
   (let* ((kv (read-url-encoded-body body))
-         (log-filename (car (assoc-ref kv "log-filename"))))
+         (log-filename (url-decode (car (assoc-ref kv "log-filename")))))
     
 
+    (display (string-append "deleting: " (string-append job-log-location log-filename)))
     (run-system (format #f "rm -rfv ~a" (string-append job-log-location log-filename)))
     (run-system (format #f "rm -rfv ~a" (string-append job-failure-location log-filename)))
     (run-system (format #f "rm -rfv ~a" (string-append job-success-location log-filename)))

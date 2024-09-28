@@ -10,9 +10,14 @@
   #:use-module (ice-9 iconv)
   )
 
-(define (new-project-log-filename project)
+(define (get-log-current-date-time)
+  "Get current timestamp string formatted to contain only dashes."
+  (let ((now (localtime (current-time))))
+    (strftime "%Y-%m-%d__%H:%M:%S" now)))
+
+
+(define-public (new-project-log-filename project)
   "Create a new name for a log file, based on the project and current timestamp."
-  (let ((timestamp (get-current-date-time)))
-    (string-append project "__" timestamp ".byggsteg.log")))
+  (string-append project "__" (get-log-current-date-time) ".byggsteg.log"))
 
 
