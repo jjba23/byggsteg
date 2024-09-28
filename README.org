@@ -31,7 +31,10 @@ And thus, I set out to build a CI/CD system, that on command can:
 ~byggsteg~ is a deploy-your-own type tool, but if enough community interest is shown a SaaS offering in freedom might be a really good thing.
 
 ** Project management - backlog
-**** TODO Split codebase into separate modules
 **** TODO Hot reload server
 **** TODO Improve JSON support
 **** TODO Allow user to send Guile Scheme over the wire and define his/her own pipeline in a ~progn~ fashion.
+
+** ✅ Work done
+**** DONE Split codebase into separate modules
+CLOSED: [2024-09-28 za 12:17]
