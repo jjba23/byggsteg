@@ -37,7 +37,7 @@
 
 
 (define-public (log-api-page path)
-  (let* ((log-filename (base-16-decode (car (cdr path))))
+  (let* ((log-filename (base-16-decode (car (cdr (cdr path)))))
          (file-path (string-append job-log-location log-filename))
          (file (open-input-file file-path))
          (log-data (get-string-all file))
