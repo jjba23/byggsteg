@@ -1,4 +1,19 @@
+;;; url.scm
 
+;; Copyright (C) 2024 Free Software Foundation, Inc.
+
+;; byggsteg is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; byggsteg is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (byggsteg-url)
   #:use-module (byggsteg-process)
@@ -11,8 +26,7 @@
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
-  #:use-module (ice-9 iconv)
-  )
+  #:use-module (ice-9 iconv))
 
 
 (define (at-eq x) (string-split x #\=))
@@ -21,13 +35,8 @@
 (define-public (read-url-encoded-body body)
   (let* ((str (bytevector->string body "utf-8"))
          (raw-kv-pairs (string-split str #\&))
-         (xs (map at-eq raw-kv-pairs))
-         (xss (map unsafe-mk-alist xs))
-         )    
-    (display xss)
-    xss
-    )
-  )
+         (xss (map unsafe-mk-alist (map at-eq raw-kv-pairs))))    
+    xss))
 
 (define-public url-decode-alist
   '(("%20" . " ")
@@ -55,8 +64,7 @@
 
 
 (define-public (url-decode str)
-  (for-each (lambda (kv)
-              (set! str (string-replace-substring str (car kv) (cdr kv)))
-              ) url-decode-alist)
-  str
-  )
+  (for-each
+   (lambda (kv)
+     (set! str (string-replace-substring str (car kv) (cdr kv))))
+   url-decode-alist)  str)
