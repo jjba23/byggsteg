@@ -22,6 +22,7 @@
   #:use-module (byggsteg-process)
   #:use-module (byggsteg-job)
   #:use-module (byggsteg-log)
+  #:use-module (byggsteg-tailwind)
   #:use-module (web server)
   #:use-module (web request)             
   #:use-module (web response)
@@ -33,8 +34,7 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 futures)
-  )
+  #:use-module (ice-9 futures))
 
 (define* (respond #:optional body #:key
                   (status 200)
@@ -80,13 +80,11 @@
       (label (@(for "task")(class "text-stone-200 font-bold")) "task:")
       (select (@(id "task")(name "task")(required "")
                (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200"))
-              (option (@(value "stack-test")) "Haskell - Test Stack project")
-              )
+              (option (@(value "stack-test")) "Haskell - Test Stack project"))
       
       (button (@(type "submit")
-               (class "text-lg font-bold rounded-xl bg-orange-500/75 text-stone-200 cursor-pointer p-2 m-2")) "submit")
-      )
-     )))
+               (class ,button-class))
+              "submit")))))
 
 (define-public (job-delete-endpoint request body)
   (let* ((kv (read-url-encoded-body body))
@@ -101,10 +99,7 @@
     (respond
      `((h1 (@(class "font-sans text-3xl text-orange-500 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
        (h2 (@(class "font-sans text-2xl text-stone-200")) "job deleted !")
-       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " log-filename))
-       ))
-    )
-  )
+       (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " log-filename))))))
 
 
 
@@ -139,10 +134,7 @@
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "branch-name: " branch-name))
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " only-filename))
        (a (@ (href ,logs-link) (class "font-bold text-orange-400 cursor-pointer underline"))
-          "click me to view the job logs")
-       ))
-    )
-  )
+          "click me to view the job logs")))))
 
 
 (define-public (log-page path)
@@ -155,37 +147,27 @@
          (job-status (cond
                       ((equal? success #t) `(h2 (@(class "text-2xl text-green-700")) "job succeeded"))
                       ((equal? failure #t) `(h2 (@(class "text-2xl text-red-700")) "job failed"))
-                      (else `(h2 (@(class "text-2xl text-sky-700")) "job in progress"))
-                      ))
-         )
+                      (else `(h2 (@(class "text-2xl text-sky-700")) "job in progress")))))
     (respond
      `((h3 (@(class "text-stone-200 text-2xl my-4")) ,log-filename)
        (div (@(class "flex flex-row flex-wrap align-center gap-6"))
             (h2 (@(class "font-sans text-2xl text-stone-200")) "viewing logs")
-            ,job-status
-            )
+            ,job-status)
        
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
              (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
                      (class "rounded-xl border font-sans p-2")))
              (button (@(type "submit")
-                      (class "rounded-xl bg-red-700 text-stone-200 font-bold text-lg cursor-pointer p-2 m-2")) "delete")
-             )
-       (pre (@(class "rounded-xl bg-stone-800 p-4 my-6 text-stone-200 white-space-pre")) ,log-data)
-       ))
-    ))
+                      (class ,danger-button-class)) "delete"))
+       (pre (@(class "rounded-xl bg-stone-800 p-4 my-6 text-stone-200 white-space-pre overflow-x-scroll")) ,log-data)))))
 
 (define-public (welcome-page)
   (let* ((jobs (get-file-list job-log-location))
          (jobs-html (map welcome-make-job-link jobs)))
     (respond
-     `(
-       (h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
+     `((h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
        (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
-            ,jobs-html)
-       )
-     )
-    ))
+            ,jobs-html)))))
 
 (define-public (welcome-make-job-link log-filename)
   (let* (
@@ -196,30 +178,23 @@
          (job-status (cond
                       ((equal? success #t) `(h2 (@(class "text-sm text-green-700 text-lg")) "job succeeded"))
                       ((equal? failure #t) `(h2 (@(class "text-sm text-red-700 text-lg")) "job failed"))
-                      (else `(h2 (@(class "text-sm text-sky-700 text-lg")) "job in progress"))
-                      ))
-         )
+                      (else `(h2 (@(class "text-sm text-sky-700 text-lg")) "job in progress")))))
     `((div
        (@(class "flex flex-col gap-2"))
        (a (@(class "text-orange-400 font-bold underline cursor-pointer text-lg")
            (href ,logs-link)) ,log-filename)
-       (div (@(class "p-2 text-lg")) ,job-status)
-       )))
-  )
+       (div (@(class "p-2 text-lg")) ,job-status)))))
 
 (define-public (page-top)
-  `(
-    (div (@(class "flex flex-row flex-wrap justify-between"))
+  `((div (@(class "flex flex-row flex-wrap justify-between"))
          (h1 (@(class "text-3xl text-orange-500 font-bold")) (a (@(href "/")) "byggsteg"))
-         (a ( @ (href "/jobs/request")
-                (class "font-bold text-orange-400 cursor-pointer underline text-lg"))
-            (button (@(class "bg-orange-500/75 text-stone-200 rounded-xl cursor-pointer p-2 m-2 text-lg font-bold"))
-                    "+ new job run") )
-         )
-    
+         (a (@ (href "/jobs/request")
+               (class "font-bold text-orange-400 cursor-pointer underline text-lg"))
+            (button (@(class ,button-class))
+                    "+ new job run")))
     (em (@(class "text-lg text-stone-200")) "byggsteg means “build step” in the Norwegian language.")
-    (p (@(class "text-lg text-stone-300 ")) "Simple CI/CD system made with Guile Scheme")
-    ))
+    (p (@(class "text-lg text-stone-300 ")) "Simple CI/CD system made with Guile Scheme")))
+
 
 
 
@@ -228,12 +203,9 @@
     (head
      (title ,title)
      (link (@(rel "stylesheet")
-            (href "https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.1.0/400.min.css")
-            )
-           )
+            (href "https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.1.0/400.min.css")))
      (script (@(src "https://cdn.tailwindcss.com")) "")
-     (script (@(src "/resources/js/tailwind.config.js")) ())
-     )
+     (script (@(src "/resources/js/tailwind.config.js")) ()))
     (body (@(class "bg-stone-900"))
           (div (@(class "container mx-auto my-4"))
                ,(page-top)

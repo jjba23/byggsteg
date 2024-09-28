@@ -20,6 +20,8 @@
   #:use-module (byggsteg-log)
   #:use-module (byggsteg-html)
   #:use-module (byggsteg-preferences)
+  #:use-module (byggsteg-base16)
+  #:use-module (byggsteg-server)
   #:use-module (web server)
   #:use-module (web request)             
   #:use-module (web response)

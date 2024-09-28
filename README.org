@@ -30,6 +30,33 @@ And thus, I set out to build a CI/CD system, that on command can:
 
 ~byggsteg~ is a deploy-your-own type tool, but if enough community interest is shown a SaaS offering in freedom might be a really good thing.
 
+** Using
+
+You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root directory. Refer to the ~Makefile~ for more convenient commands and variations.
+
+~byggsteg~ exposes an HTML frontend (server-side-rendered SSR) and a REST API.
+
+*** Starting a job
+
+You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via URL encoded form data (~application/x-www-form-urlencoded~).
+You could do this  for example from a GitHub action pipeline:
+#+begin_src  shell
+  curl 'http://localhost:8080/jobs/submit' -X POST --data-raw \
+       'project=free-alacarte&clone-url=https%3A%2F%2Fgithub.com%2Fjjba23%2Ffree-alacarte&branch-name=trunk&task=stack-test'
+#+end_src
+
+You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
+#+begin_src  shell
+  curl 'http://localhost:8080/logs-api/667265652d616c6163617274655f5f323032342d30392d32385f5f31353a32313a30372e62796767737465672e6c6f670a'
+  #
+  # {"success": true,
+  #  "failure": false,
+  #  "in-progress": false,
+  #  "log-filename": "free-alacarte__2024-09-28__15:21:07.byggsteg.log",
+  #  "log-data": "31353a32313a30372e627......."
+  # }
+#+end_src
+
 ** Project management - backlog
 **** TODO Hot reload server
 **** TODO Improve JSON support

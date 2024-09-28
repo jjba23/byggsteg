@@ -32,6 +32,7 @@
     "url.scm"
     "job.scm"
     "log.scm"
+    "tailwind.scm"
     "html.scm"
     "server.scm"
     "main.scm"))

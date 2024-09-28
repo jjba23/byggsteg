@@ -7,8 +7,7 @@ prepare-dirs:
 	sudo chown -R joe:users /var/log/byggsteg
 clean-dirs:
 	sudo rm -rfv /var/log/byggsteg/* || true
-#watchexec -r -e scm -- make server
 dev:
-	make server
+	watchexec -r -e scm -- make server
 server:
 	GUILE_AUTO_COMPILE=0 guile run-server.scm
