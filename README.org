@@ -23,7 +23,7 @@ I don't mind having the software building and testing happening in the same mach
 
 And thus, I set out to build a CI/CD system, that on command can:
 - clone specified repo URL to an isolated folder for each branch (but caching by reusing same branch and doing ~git pull~)
-- navigate to that directory and perform a system command a.k.a. job (for a Haskell project ~stack test~ or ~stack build~)
+- navigate to that directory and perform a system command a.k.a. job (for a Haskell project ~stack test~ or ~stack build~ or a combination of those)
 - capture the log output of all steps and save it
 - record job in progress, success or failure
 - show dashboard with job statuses
@@ -56,6 +56,10 @@ You can query for the job status via the UI or also via the REST API. You could 
   #  "log-data": "31353a32313a30372e627......."
   # }
 #+end_src
+
+** Licensing
+
+~byggsteg~ is licensed under the GNU GPL v3 License or newer.
 
 ** Project management - backlog
 **** TODO Hot reload server

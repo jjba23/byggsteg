@@ -48,16 +48,29 @@
   (with-output-to-file filename (lambda () (display ""))))
 
 
-(define-public (stack-test project branch-name clone-url log-filename)
+(define-public (stack-job project branch-name clone-url log-filename stack-task)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name))
          (process-output
-          (run-system (format #f (string-append "cd ~a" " && stack test") clone-dir)))
+          (run-system (format #f (string-append "cd ~a" " && stack ~a") clone-dir stack-task)))
          (output-port (open-file (string-append job-log-location log-filename) "a")))
 
+    (display process-output)
     (display process-output output-port)
     (close output-port)
-    (create-empty-file (string-append job-success-location log-filename))))
+    ))
+
+(define-public (cabal-job project branch-name clone-url log-filename cabal-task)
+  (let* ((clone-dir
+          (string-append job-clone-location project "/" branch-name))
+         (process-output
+          (run-system (format #f (string-append "cd ~a" " && cabal ~a") clone-dir cabal-task)))
+         (output-port (open-file (string-append job-log-location log-filename) "a")))
+
+    (display process-output)
+    (display process-output output-port)
+    (close output-port)
+    ))
 
 (define-public (clone-repo project branch-name clone-url log-filename)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
