@@ -35,6 +35,7 @@
     "tailwind.scm"
     "html.scm"
     "server.scm"
+    "rest.scm"
     "main.scm"))
 (for-each (lambda(file) (load (format #f "byggsteg/~a" file))) source-files)
 

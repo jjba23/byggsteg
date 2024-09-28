@@ -17,6 +17,7 @@
 
 (define-module (byggsteg-main)
   #:use-module (byggsteg-process)
+  #:use-module (byggsteg-rest)
   #:use-module (byggsteg-log)
   #:use-module (byggsteg-html)
   #:use-module (byggsteg-preferences)
@@ -37,67 +38,6 @@
   )
 
 
-
-(define (request-path-components request)
-  (split-and-decode-uri-path (uri-path (request-uri request))))
-
-
-(define (log-api-page path)
-  (let* ((log-filename (base-16-decode (car (cdr path))))
-         (file-path (string-append job-log-location log-filename))
-         (file (open-input-file file-path))
-         (log-data (get-string-all file))
-         (success
-          (cond
-           ((equal? (read-job-success log-filename) #t) "true")
-           (else "false")))
-         (failure
-          (cond
-           ((equal? (read-job-failure log-filename) #t) "true")
-           (else "false")
-           ))
-         (in-progress
-          (cond
-           ((equal? (and (not (equal? success "true")) (not (equal? failure "true"))) #t) "true" )
-           (else "false")
-           ))
-         (json (format #f
-                       (string-append
-                        "{"
-                        "\"success\": ~a,"
-                        "\"failure\": ~a,"
-                        "\"in-progress\": ~a,"
-                        "\"log-filename\": \"~a\","
-                        "\"log-data\": \"~a\""
-                        "}"
-                        )
-                       success
-                       failure
-                       in-progress
-                       log-filename
-                       (base-16-encode log-data)
-                       )))
-    (respond-json json)
-    ))
-
-
-
-
-
-
-(define* (respond-static-file path content-type #:key
-                              (status 200)                              
-                              (content-type-params '((charset . "utf-8")))
-                              (extra-headers '()))
-  (values (build-response
-           #:code status
-           #:headers `((content-type
-                        . (,content-type ,@content-type-params))
-                       ,@extra-headers))
-          (lambda (port)
-            (display (get-string-all (open-input-file path)) port)
-            )))
-
 (define-public (byggsteg-http-server request body)
   (let ((path (request-path-components request)))
     (cond
@@ -111,7 +51,9 @@
       (job-delete-endpoint request body))
      ((and (equal? (car path) "logs") (equal? (request-method request) 'GET))
       (log-page path ))
-     ((and (equal? (car path) "logs-api") (equal? (request-method request) 'GET))
+     ((and
+       (and (equal? (car path) "api") (equal? (car (cdr path)) "logs") )
+       (equal? (request-method request) 'GET))
       (log-api-page path ))
      ((and (equal? path '("resources" "js" "tailwind.config.js")) (equal? (request-method request) 'GET))
       (respond-static-file "./resources/js/tailwind.config.js" 'text/javascript))

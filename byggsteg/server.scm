@@ -19,6 +19,8 @@
   #:export (not-found
             respond-json
             read-job-success read-job-failure
+            request-path-components
+            respond-static-file
             get-file-list)
   #:use-module (byggsteg-preferences)
   #:use-module (byggsteg-process)
@@ -69,3 +71,21 @@
   (string-split
    (run-system (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
 
+
+
+(define (request-path-components request)
+  (split-and-decode-uri-path (uri-path (request-uri request))))
+
+
+(define* (respond-static-file path content-type #:key
+                              (status 200)                              
+                              (content-type-params '((charset . "utf-8")))
+                              (extra-headers '()))
+  (values (build-response
+           #:code status
+           #:headers `((content-type
+                        . (,content-type ,@content-type-params))
+                       ,@extra-headers))
+          (lambda (port)
+            (display (get-string-all (open-input-file path)) port)
+            )))
