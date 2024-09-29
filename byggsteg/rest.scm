@@ -19,9 +19,11 @@
   #:use-module (byggsteg-preferences)
   #:use-module (byggsteg-process)
   #:use-module (byggsteg-server)
+  #:use-module (byggsteg-job)
   #:use-module (byggsteg-preferences)
   #:use-module (byggsteg-base16)
   #:use-module (byggsteg-log)
+  #:use-module (byggsteg-url)
   #:use-module (web server)
   #:use-module (web request)             
   #:use-module (web response)
@@ -73,3 +75,47 @@
                        )))
     (respond-json json)
     ))
+
+(define-public (job-submit-api request body)
+  (let* ((kv (read-url-encoded-body body))
+         (project (car (assoc-ref kv "project")))
+         (clone-url (url-decode (car (assoc-ref kv "clone-url"))))
+         (branch-name (car (assoc-ref kv "branch-name")))
+         (task (url-decode (car (assoc-ref kv "task"))))
+         (formatted-kv (map (lambda(x) (format #f "~a: ~a" (car x) (car (cdr x)))) kv ))
+         (log-filename (new-project-log-filename project))
+         (only-filename (string-replace-substring log-filename job-log-location ""))
+         (public-log-filename (base-16-encode only-filename))
+         (logs-link (format #f "/logs/~a" public-log-filename))
+         (json (format #f
+                       (string-append
+                        "{"
+                        "\"project\": \"~a\","
+                        "\"task\": \"~a\","
+                        "\"clone-url\": \"~a\","
+                        "\"branch-name\": \"~a\","
+                        "\"log-filename\": \"~a\","
+                        "\"public-log-filename\": \"~a\""
+                        "}"
+                        )
+                       project
+                       task
+                       clone-url
+                       branch-name
+                       only-filename
+                       public-log-filename
+                       )))
+
+    ;; async fire job
+    (make-future
+     (lambda ()
+       (display "starting new job...")
+       (create-empty-file (string-append job-log-location log-filename))
+       (clone-repo project branch-name clone-url log-filename)
+       (stack-job project branch-name clone-url log-filename "build")
+       (stack-job project branch-name clone-url log-filename "test")
+       (stack-job project branch-name clone-url log-filename "sdist -o .")
+       (create-empty-file (string-append job-success-location log-filename))
+       ))
+
+    (respond-json json)))

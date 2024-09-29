@@ -40,14 +40,23 @@ You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root di
 
 You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via URL encoded form data (~application/x-www-form-urlencoded~).
 You could do this  for example from a GitHub action pipeline:
+
 #+begin_src  shell
-  curl 'http://localhost:8080/jobs/submit' -X POST --data-raw \
+  curl 'http://localhost:8080/api/jobs/submit' -X POST --data-raw \
        'project=free-alacarte&clone-url=https%3A%2F%2Fgithub.com%2Fjjba23%2Ffree-alacarte&branch-name=trunk&task=stack-test'
+  # {"project": "free-alacarte",
+  #  "task": "stack-test",
+  #  "clone-url": "https://github.com/jjba23/free-alacarte",
+  #  "branch-name": "trunk",
+  #  "log-filename": "free-alacarte__2024-09-29__11:54:43.byggsteg.log",
+  #  "public-log-filename": "667265652d616c6163"
+  # }
 #+end_src
 
 You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
+
 #+begin_src  shell
-  curl 'http://localhost:8080/api/logs/667265652d616c6163617274655f5f323032342d30392d32385f5f31353a32313a30372e62796767737465672e6c6f670a'
+  curl 'http://localhost:8080/api/logs/667265652d616c6163'
   #
   # {"success": true,
   #  "failure": false,

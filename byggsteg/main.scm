@@ -51,6 +51,9 @@
       (job-delete-endpoint request body))
      ((and (equal? (car path) "logs") (equal? (request-method request) 'GET))
       (log-page path ))
+     ((and (equal? path '("api" "jobs" "submit"))
+           (equal? (request-method request) 'POST))
+      (job-submit-api request body))
      ((and
        (and (equal? (car path) "api") (equal? (car (cdr path)) "logs") )
        (equal? (request-method request) 'GET))
