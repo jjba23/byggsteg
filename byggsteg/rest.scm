@@ -106,11 +106,12 @@
                        public-log-filename
                        )))
 
+    (display "starting new job...")
+    (create-empty-file (string-append job-log-location log-filename))
+    
     ;; async fire job
     (make-future
      (lambda ()
-       (display "starting new job...")
-       (create-empty-file (string-append job-log-location log-filename))
        (clone-repo project branch-name clone-url log-filename)
        (stack-job project branch-name clone-url log-filename "build")
        (stack-job project branch-name clone-url log-filename "test")
