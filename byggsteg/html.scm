@@ -124,7 +124,7 @@
      (lambda ()        
        (stack-job project branch-name clone-url log-filename "build")
        (stack-job project branch-name clone-url log-filename "test")
-       (stack-job project branch-name clone-url log-filename "sdist -o .")
+       (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
        (create-empty-file (string-append job-success-location log-filename))
        ))                                  
 
