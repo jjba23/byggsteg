@@ -106,15 +106,14 @@
                        public-log-filename
                        )))
 
+    ;; TODO async that works also on AWS EC2
     (display "starting new job...")
     (create-empty-file (string-append job-log-location log-filename))
     (clone-repo project branch-name clone-url log-filename)
+    (stack-job project branch-name clone-url log-filename "build")
+    (stack-job project branch-name clone-url log-filename "test")
+    (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
+    (create-empty-file (string-append job-success-location log-filename))
 
-    (future
-     ((stack-job project branch-name clone-url log-filename "build")
-      (stack-job project branch-name clone-url log-filename "test")
-      (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
-      (create-empty-file (string-append job-success-location log-filename)))
-     )
 
     (respond-json json)))
