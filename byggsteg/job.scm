@@ -54,7 +54,7 @@
          (process-output
           (run-system (format #f (string-append "cd ~a" " && stack ~a") clone-dir stack-task)))
          (output-port (open-file (string-append job-log-location log-filename) "a")))
-
+    (display clone-dir)
     (display process-output)
     (display process-output output-port)
     (close output-port)
@@ -66,7 +66,7 @@
          (process-output
           (run-system (format #f (string-append "cd ~a" " && cabal ~a") clone-dir cabal-task)))
          (output-port (open-file (string-append job-log-location log-filename) "a")))
-
+    (display clone-dir)
     (display process-output)
     (display process-output output-port)
     (close output-port)
@@ -91,6 +91,7 @@
                  ))
          (output-port (open-file (string-append job-log-location log-filename) "a"))
          )
+    (display clone-cmd)
     (display log-d)
     (display log-d output-port)
     (close output-port)))
