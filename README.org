@@ -42,8 +42,9 @@ You can use the UI and visit ~/jobs/request~ or you can also invoke this via the
 You could do this  for example from a GitHub action pipeline:
 
 #+begin_src  shell
-  curl 'http://localhost:8080/api/jobs/submit' -X POST --data-raw \
+  curl 'http://localhost:50023/api/jobs/submit' -X POST --data-raw \
        'project=free-alacarte&clone-url=https%3A%2F%2Fgithub.com%2Fjjba23%2Ffree-alacarte&branch-name=trunk&task=stack-test'
+  #
   # {"project": "free-alacarte",
   #  "task": "stack-test",
   #  "clone-url": "https://github.com/jjba23/free-alacarte",
@@ -56,7 +57,7 @@ You could do this  for example from a GitHub action pipeline:
 You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
 
 #+begin_src  shell
-  curl 'http://localhost:8080/api/logs/667265652d616c6163'
+  curl 'http://localhost:50023/api/logs/667265652d616c6163'
   #
   # {"success": true,
   #  "failure": false,
@@ -74,6 +75,7 @@ You can query for the job status via the UI or also via the REST API. You could 
 **** TODO Hot reload server
 **** TODO Improve JSON support
 **** TODO Allow user to send Guile Scheme over the wire and define his/her own pipeline in a ~progn~ fashion.
+**** TODO Add REPL interface via website, to allow hot-modifications
 
 ** ✅ Work done
 **** DONE Split codebase into separate modules

@@ -40,6 +40,6 @@
 (for-each (lambda(file) (load (format #f "byggsteg/~a" file))) source-files)
 
 (use-modules (byggsteg-main))
-(run-server byggsteg-http-server)
+(run-server byggsteg-http-server 'http '(#:port 50023))
 
 
