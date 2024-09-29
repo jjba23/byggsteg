@@ -119,7 +119,7 @@
     (create-empty-file (string-append job-log-location log-filename))
     (clone-repo project branch-name clone-url log-filename)
     
-    async fire job
+
     (make-future
      (lambda ()        
        (stack-job project branch-name clone-url log-filename "build")
@@ -127,10 +127,6 @@
        (stack-job project branch-name clone-url log-filename "sdist -o .")
        (create-empty-file (string-append job-success-location log-filename))
        ))                                  
-    
-    
-    ;; sync debug
-    ;; (stack-test project branch-name clone-url log-filename)
 
     (respond
      `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "job submitted")
