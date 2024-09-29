@@ -25,7 +25,6 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 futures)
   )
 
 (define-public (read-job-success log-filename)
