@@ -120,13 +120,12 @@
     (clone-repo project branch-name clone-url log-filename)
     
 
-    (make-future
-     (lambda ()        
-       (stack-job project branch-name clone-url log-filename "build")
-       (stack-job project branch-name clone-url log-filename "test")
-       (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
-       (create-empty-file (string-append job-success-location log-filename))
-       ))                                  
+    (future
+     ((stack-job project branch-name clone-url log-filename "build")
+      (stack-job project branch-name clone-url log-filename "test")
+      (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
+      (create-empty-file (string-append job-success-location log-filename))
+      ))
 
     (respond
      `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "job submitted")
