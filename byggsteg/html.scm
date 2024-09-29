@@ -115,11 +115,13 @@
          (public-log-filename (base-16-encode only-filename))
          (logs-link (format #f "/logs/~a" public-log-filename)))
 
+    (display "starting job...")
+    (create-empty-file (string-append job-log-location log-filename))
+    (clone-repo project branch-name clone-url log-filename)
+    
     ;; async fire job
     (make-future
-     (lambda ()
-       (create-empty-file (string-append job-log-location log-filename))
-       (clone-repo project branch-name clone-url log-filename)
+     (lambda ()       
        (stack-job project branch-name clone-url log-filename "build")
        (stack-job project branch-name clone-url log-filename "test")
        (stack-job project branch-name clone-url log-filename "sdist -o .")
