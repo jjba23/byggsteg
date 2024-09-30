@@ -35,6 +35,7 @@
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 futures)
+  #:use-module (ice-9 threads)
   )
 
 
@@ -107,13 +108,15 @@
                        )))
 
     ;; TODO async that works also on AWS EC2
-    (display "starting new job...")
-    (create-empty-file (string-append job-log-location log-filename))
-    (clone-repo project branch-name clone-url log-filename)
-    (stack-job project branch-name clone-url log-filename "build")
-    (stack-job project branch-name clone-url log-filename "test")
-    (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
-    (create-empty-file (string-append job-success-location log-filename))
-
-
+    (call-with-new-thread
+     (lambda ()
+       (display "starting new job...")
+       (create-empty-file (string-append job-log-location log-filename))
+       (clone-repo project branch-name clone-url log-filename)
+       (stack-job project branch-name clone-url log-filename "build")
+       (stack-job project branch-name clone-url log-filename "test")
+       (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
+       (create-empty-file (string-append job-success-location log-filename))))
+    
+    
     (respond-json json)))
