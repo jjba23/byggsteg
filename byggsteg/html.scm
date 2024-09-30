@@ -80,8 +80,13 @@
       (label (@(for "task")(class "text-stone-200 font-bold")) "task:")
       (select (@(id "task")(name "task")(required "")
                (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200"))
-              (option (@(value "stack-test")) "Haskell - Test Stack project")
-              (option (@(value "guile-pull-and-restart")) "Guile pull and restart systemd"))
+              
+              (option (@(value "stack-test")) "Haskell - Test Stack project + Hackage bundle")
+              (option (@(value "stack-build")) "Haskell - Build Stack project + Hackage bundle")
+              (option (@(value "byggsteg-version")) "Byggsteg pull and restart systemd of itself")
+              (option (@(value "nix-build")) "Nix build flake")
+              
+              )
       
       (button (@(type "submit")
                (class ,button-class))

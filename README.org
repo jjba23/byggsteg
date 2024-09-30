@@ -36,6 +36,17 @@ You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root di
 
 ~byggsteg~ exposes an HTML frontend (server-side-rendered SSR) and a REST API.
 
+*** Types of jobs
+
+~stack-test~ - Haskell project build and test with Stack + Hackage bundle
+
+~stack-build~ - Haskell project build with Stack + Hackage bundle
+
+~nix-build~ - Nix build (flake)
+
+~byggsteg-version~ - Byggsteg pull and restart systemd of itself
+
+
 *** Starting a job
 
 You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via URL encoded form data (~application/x-www-form-urlencoded~).
@@ -78,5 +89,9 @@ You can query for the job status via the UI or also via the REST API. You could 
 **** TODO Add REPL interface via website, to allow hot-modifications
 
 ** ✅ Work done
+
+**** DONE Concurrency primitives and usage
+CLOSED: [2024-10-01 di 00:23]
+
 **** DONE Split codebase into separate modules
 CLOSED: [2024-09-28 za 12:17]
