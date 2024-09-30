@@ -15,5 +15,5 @@ jobs:
            curl 'https://byggsteg.jointhefreeworld.org/api/jobs/submit' \
                -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
                -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
-               --data-raw 'project=byggsteg&clone-url=https%3A%2F%2Fgithub.com%2Fjjba23%2Fbyggsteg&branch-name=trunk&task=guile-pull-and-restart'
+               --data-raw 'project=byggsteg&clone-url=https%3A%2F%2Fgithub.com%2Fjjba23%2Fbyggsteg&branch-name=trunk&task=byggsteg-version'
 
