@@ -34,7 +34,7 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 futures))
+  #:use-module (ice-9 threads))
 
 (define* (respond #:optional body #:key
                   (status 200)
