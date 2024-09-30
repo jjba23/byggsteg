@@ -116,7 +116,7 @@
          (public-log-filename (base-16-encode only-filename))
          (logs-link (format #f "/logs/~a" public-log-filename)))
 
-    (async-job-pipeline log-filename project branch-name clone-url)
+    (async-job-pipeline log-filename project branch-name clone-url task)
     
     (respond
      `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "job submitted")

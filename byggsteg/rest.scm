@@ -106,6 +106,6 @@
                        public-log-filename
                        )))
 
-    (async-job-pipeline log-filename project branch-name clone-url)
+    (async-job-pipeline log-filename project branch-name clone-url task)
     
     (respond-json json)))

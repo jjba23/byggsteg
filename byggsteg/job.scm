@@ -131,7 +131,7 @@
     (close output-port)))
 
 
-(define-public (async-job-pipeline log-filename project branch-name clone-url)
+(define-public (async-job-pipeline log-filename project branch-name clone-url task)
   (call-with-new-thread
    (lambda ()
      (display "starting new job...")
@@ -155,5 +155,5 @@
        (make-build-job project branch-name clone-url log-filename)
        ))
 
-     (create-empty-file (string-append job-success-location log-filename))))
-  )
+     (create-empty-file (string-append job-success-location log-filename)))))
+
