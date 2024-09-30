@@ -51,54 +51,54 @@
 (define-public (stack-job project branch-name clone-url log-filename stack-task)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name))
-         (process-output
-          (run-system (format #f (string-append "cd ~a" " && stack ~a") clone-dir stack-task)))
-         (output-port (open-file (string-append job-log-location log-filename) "a")))
-    (display clone-dir)
-    (display process-output)
-    (display process-output output-port)
-    (close output-port)
+         (log-file-port (open-file (string-append job-log-location log-filename) "a")))
+    (with-output-to-port log-file-port
+      (lambda () (run-system (format #f (string-append "cd ~a" " && stack ~a") clone-dir stack-task))))
+    (close log-file-port)
     ))
 
 (define-public (cabal-job project branch-name clone-url log-filename cabal-task)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name))
-         (process-output
-          (run-system (format #f (string-append "cd ~a" " && cabal ~a") clone-dir cabal-task)))
-         (output-port (open-file (string-append job-log-location log-filename) "a")))
-    (display clone-dir)
-    (display process-output)
-    (display process-output output-port)
-    (close output-port)
+         (log-file-port (open-file (string-append job-log-location log-filename) "a")))
+    (with-output-to-port log-file-port
+      (lambda () (run-system (format #f (string-append "cd ~a" " && cabal ~a") clone-dir cabal-task))))
+    (close log-file-port)
     ))
 
 (define-public (guile-pull-and-restart-job project branch-name clone-url log-filename service-name)
   (let* ((clone-dir
-          (string-append job-clone-location project "/" branch-name)))
+          (string-append job-clone-location project "/" branch-name))
+         (log-file-port (open-file (string-append job-log-location log-filename) "a"))
+         )
 
+    (call-with-new-thread
+     (lambda ()
+       (with-output-to-port log-file-port
+         (lambda ()
+           (run-system
+            (format #f
+                    (string-append "cd ~a" " && systemctl restart ~a")
+                    clone-dir
+                    service-name))))
+       (close log-file-port)
+       ))
+    
     (create-empty-file (string-append job-success-location log-filename))
-    (run-system
-     (format #f
-             (string-append "cd ~a" " && systemctl restart ~a")
-             clone-dir
-             service-name))
 
     ))
 
 (define-public (make-build-job project branch-name clone-url log-filename service-name)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name))
-         (process-output
-          (run-system
-           (format #f
-                   (string-append "cd ~a" " && make build")
-                   clone-dir
-                   service-name)))
-         (output-port (open-file (string-append job-log-location log-filename) "a")))
-    (display clone-dir)
-    (display process-output)
-    (display process-output output-port)
-    (close output-port)
+         (log-file-port (open-file (string-append job-log-location log-filename) "a")))
+    (with-output-to-port log-file-port
+      (lambda () (run-system
+             (format #f
+                     (string-append "cd ~a" " && make build")
+                     clone-dir
+                     service-name))))
+    (close log-file-port)
     ))
 
 
@@ -116,16 +116,16 @@
                             clone-dir))
          (pull-cmd (format #f "cd ~a && git pull" clone-dir))         
          (should-clone (not (file-exists? clone-dir)))
-         (log-d (cond
-                 (should-clone (run-system clone-cmd))
-                 (else (run-system pull-cmd))
-                 ))
-         (output-port (open-file (string-append job-log-location log-filename) "a"))
+         (log-file-port (open-file (string-append job-log-location log-filename) "a"))
          )
-    (display clone-cmd)
-    (display log-d)
-    (display log-d output-port)
-    (close output-port)))
+    (with-output-to-port log-file-port
+      (lambda ()
+        (cond
+         (should-clone (run-system clone-cmd))
+         (else (run-system pull-cmd))
+         )))
+
+    (close log-file-port)))
 
 
 (define-public (async-job-pipeline log-filename project branch-name clone-url task)
