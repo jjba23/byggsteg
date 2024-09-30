@@ -78,7 +78,7 @@
          (process-output
           (run-system
            (format #f
-                   (string-append "cd ~a" " && systemctl restart ~a")
+                   (string-append "cd ~a" " && sudo systemctl restart ~a")
                    clone-dir
                    service-name)))
          (output-port (open-file (string-append job-log-location log-filename) "a")))
