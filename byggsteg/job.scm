@@ -71,6 +71,40 @@
     (close output-port)
     ))
 
+(define-public (guile-pull-and-restart-job project branch-name clone-url log-filename service-name)
+  (let* ((clone-dir
+          (string-append job-clone-location project "/" branch-name))
+         (process-output
+          (run-system
+           (format #f
+                   (string-append "cd ~a" " && systemctl restart ~a")
+                   clone-dir
+                   service-name)))
+         (output-port (open-file (string-append job-log-location log-filename) "a")))
+    (display clone-dir)
+    (display process-output)
+    (display process-output output-port)
+    (close output-port)
+    ))
+
+(define-public (make-build-job project branch-name clone-url log-filename service-name)
+  (let* ((clone-dir
+          (string-append job-clone-location project "/" branch-name))
+         (process-output
+          (run-system
+           (format #f
+                   (string-append "cd ~a" " && make build")
+                   clone-dir
+                   service-name)))
+         (output-port (open-file (string-append job-log-location log-filename) "a")))
+    (display clone-dir)
+    (display process-output)
+    (display process-output output-port)
+    (close output-port)
+    ))
+
+
+
 (define-public (clone-repo project branch-name clone-url log-filename)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
          (clone-cmd (format #f
@@ -95,3 +129,30 @@
     (display log-d output-port)
     (close output-port)))
 
+
+(define-public (async-job-pipeline log-filename project branch-name clone-url)
+  (call-with-new-thread
+   (lambda ()
+     (display "starting new job...")
+     (create-empty-file (string-append job-log-location log-filename))
+     (clone-repo project branch-name clone-url log-filename)
+     
+     (cond
+      ((equal? task "stack-test")
+       (stack-job project branch-name clone-url log-filename "build")
+       (stack-job project branch-name clone-url log-filename "test")
+       (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
+       )
+      ((equal? task "guile-pull-and-restart")
+       (guile-pull-and-restart-job project
+                                   branch-name
+                                   clone-url
+                                   log-filename
+                                   "byggsteg")        
+       )
+      (else
+       (make-build-job project branch-name clone-url log-filename)
+       ))
+
+     (create-empty-file (string-append job-success-location log-filename))))
+  )

@@ -115,18 +115,8 @@
          (public-log-filename (base-16-encode only-filename))
          (logs-link (format #f "/logs/~a" public-log-filename)))
 
-    (call-with-new-thread
-     (lambda ()
-       (display "starting job...")
-       (create-empty-file (string-append job-log-location log-filename))
-       (clone-repo project branch-name clone-url log-filename)
-       ;; TODO async that works also on AWS EC2
-       (stack-job project branch-name clone-url log-filename "build")
-       (stack-job project branch-name clone-url log-filename "test")
-       (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
-       (create-empty-file (string-append job-success-location log-filename))))
+    (async-job-pipeline log-filename project branch-name clone-url)
     
-
     (respond
      `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "job submitted")
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "job for: " project))
