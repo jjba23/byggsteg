@@ -80,7 +80,8 @@
       (label (@(for "task")(class "text-stone-200 font-bold")) "task:")
       (select (@(id "task")(name "task")(required "")
                (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200"))
-              (option (@(value "stack-test")) "Haskell - Test Stack project"))
+              (option (@(value "stack-test")) "Haskell - Test Stack project")
+              (option (@(value "guile-pull-and-restart")) "Guile pull and restart systemd"))
       
       (button (@(type "submit")
                (class ,button-class))
