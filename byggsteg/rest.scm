@@ -106,27 +106,6 @@
                        public-log-filename
                        )))
 
-    ;; TODO async that works also on AWS EC2
-    (call-with-new-thread
-     (lambda ()
-       (display "starting new job...")
-       (create-empty-file (string-append job-log-location log-filename))
-       (clone-repo project branch-name clone-url log-filename)
-       
-       (cond
-        ((equal? task "stack-test")
-         (stack-job project branch-name clone-url log-filename "build")
-         (stack-job project branch-name clone-url log-filename "test")
-         (stack-job project branch-name clone-url log-filename "sdist --tar-dir .")
-         )
-        ((equal? task "guile-pull-and-restart")
-         (guile-pull-and-restart-job project branch-name clone-url log-filename "byggsteg")         
-         )
-        (else
-         (make-build-job project branch-name clone-url log-filename)
-         ))
-
-       (create-empty-file (string-append job-success-location log-filename))))
-    
+    (async-job-pipeline log-filename project branch-name clone-url)
     
     (respond-json json)))
