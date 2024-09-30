@@ -125,7 +125,7 @@
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "clone-url: " clone-url))
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "branch-name: " branch-name))
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " only-filename))
-       (a (@ (href ,logs-link) (class "font-bold text-orange-400 cursor-pointer underline"))
+       (a (@ (href ,logs-link) (class "font-bold text-orange-400 cursor-pointer"))
           "click me to view the job logs")))))
 
 
@@ -151,7 +151,7 @@
                      (class "rounded-xl border font-sans p-2")))
              (button (@(type "submit")
                       (class ,danger-button-class)) "delete"))
-       (pre (@(class "rounded-xl bg-stone-800 p-4 my-6 text-stone-200 white-space-pre overflow-x-scroll")) ,log-data)))))
+       (pre (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll")) ,log-data)))))
 
 (define-public (welcome-page)
   (let* ((jobs (get-file-list job-log-location))
@@ -173,7 +173,7 @@
                       (else `(h2 (@(class "text-sm text-sky-700 text-lg")) "job in progress")))))
     `((div
        (@(class "flex flex-col gap-2"))
-       (a (@(class "text-orange-400 font-bold underline cursor-pointer text-lg")
+       (a (@(class "text-orange-400 font-bold cursor-pointer text-lg")
            (href ,logs-link)) ,log-filename)
        (div (@(class "p-2 text-lg")) ,job-status)))))
 
@@ -181,7 +181,7 @@
   `((div (@(class "flex flex-row flex-wrap justify-between"))
          (h1 (@(class "text-3xl text-orange-500 font-bold")) (a (@(href "/")) "byggsteg"))
          (a (@ (href "/jobs/request")
-               (class "font-bold text-orange-400 cursor-pointer underline text-lg"))
+               (class "font-bold text-orange-400 cursor-pointer text-lg"))
             (button (@(class ,button-class))
                     "+ new job run")))
     (em (@(class "text-lg text-stone-200")) "byggsteg means “build step” in the Norwegian language.")
