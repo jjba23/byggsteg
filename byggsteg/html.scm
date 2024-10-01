@@ -101,9 +101,10 @@
     
 
     (display (string-append "deleting: " (string-append job-log-location log-filename)))
-    (run-system (format #f "rm -rfv ~a" (string-append job-log-location log-filename)))
-    (run-system (format #f "rm -rfv ~a" (string-append job-failure-location log-filename)))
-    (run-system (format #f "rm -rfv ~a" (string-append job-success-location log-filename)))
+    (syscall (format #f "rm -rfv ~a" (string-append job-log-location log-filename)))
+    (syscall (format #f "rm -rfv ~a" (string-append job-failure-location log-filename)))
+    (syscall (format #f "rm -rfv ~a" (string-append job-success-location log-filename)))
+    (syscall (format #f "rm -rfv ~a" (string-append job-detail-location log-filename)))
     
     (respond
      #f
@@ -143,9 +144,10 @@
 (define-public (log-page path)
   (let*
       ((log-filename (base-16-decode (car (cdr path))))
-       (file-path (string-append job-log-location log-filename))
-       (file (open-input-file file-path))
+       (file (open-input-file (string-append job-log-location log-filename)))
        (log-data (get-string-all file))
+       (detail-file (open-input-file (string-append job-detail-location log-filename)))
+       (detail-data (get-string-all detail-file))
        (success (read-job-success log-filename))
        (failure (read-job-failure log-filename))
        (job-status
@@ -165,16 +167,22 @@
                      (class "rounded-xl border font-sans p-2")))
              (button (@(type "submit")
                       (class ,danger-button-class)) "delete"))
-       (pre (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll")) ,log-data)))))
+
+       (pre
+        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll"))
+        ,detail-data)
+       (pre
+        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll"))
+        ,log-data)))))
 
 (define-public (welcome-page)
-  (let* ((jobs (get-file-list job-log-location))
-         (jobs-html (map welcome-make-job-link jobs)))
-    (respond
-     #t
-     `((h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
-       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
-            ,jobs-html)))))
+(let* ((jobs (get-file-list job-log-location))
+(jobs-html (map welcome-make-job-link jobs)))
+(respond
+#t
+`((h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
+(div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
+     ,jobs-html)))))
 
 (define-public (welcome-make-job-link log-filename)
   (let* (

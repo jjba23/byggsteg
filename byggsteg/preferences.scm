@@ -25,3 +25,4 @@
 (define-public job-success-location "/var/log/byggsteg/job-success/")
 (define-public job-clone-location "/var/log/byggsteg/job-clone/")
 (define-public job-log-location "/var/log/byggsteg/job-log/")
+(define-public job-detail-location "/var/log/byggsteg/job-detail/")

@@ -69,7 +69,7 @@
 
 (define (get-file-list dir)  
   (string-split
-   (run-system (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
+   (syscall (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
 
 
 

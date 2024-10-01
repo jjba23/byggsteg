@@ -40,7 +40,7 @@
 
 (define-public (get-file-list dir)  
   (string-split
-   (run-system-silent (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
+   (syscall-silent (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
 
 
 (define-public (create-empty-file filename)
@@ -51,7 +51,7 @@
 (define-public (stack-step project branch-name clone-url log-filename stack-task)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
-    (run-system-to-log-file
+    (syscall-to-log-file
      log-filename
      (format #f (string-append "cd ~a" " && stack ~a") clone-dir stack-task))))
 
@@ -61,7 +61,7 @@
 
     (call-with-new-thread
      (lambda ()
-       (run-system-to-log-file
+       (syscall-to-log-file
         log-filename
         (format #f
                 (string-append "cd ~a" " && systemctl restart byggsteg")
@@ -74,7 +74,7 @@
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
 
-    (run-system-to-log-file
+    (syscall-to-log-file
      log-filename
      (format #f
              (string-append "cd ~a" " && systemctl restart ~a")
@@ -86,7 +86,7 @@
 (define-public (make-build-step project branch-name clone-url log-filename)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
-    (run-system-to-log-file
+    (syscall-to-log-file
      log-filename
      (format #f
              (string-append "cd ~a" " && make build")
@@ -95,7 +95,7 @@
 (define-public (nix-build-step project branch-name clone-url log-filename)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
-    (run-system-to-log-file
+    (syscall-to-log-file
      log-filename
      (format #f
              (string-append "cd ~a" " && nix build")
@@ -104,7 +104,7 @@
 (define-public (sbt-test-step project branch-name clone-url log-filename)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
-    (run-system-to-log-file
+    (syscall-to-log-file
      log-filename
      (format #f
              (string-append "cd ~a" " && sbt test")
@@ -117,7 +117,7 @@
     
     (cond
      (should-clone
-      (run-system-to-log-file
+      (syscall-to-log-file
        log-filename
        (format #f
                (string-append
@@ -127,7 +127,7 @@
                branch-name
                clone-url
                clone-dir)))
-     (else (run-system-to-log-file
+     (else (syscall-to-log-file
             log-filename
             (format #f "cd ~a && git pull" clone-dir))))))
 
@@ -135,8 +135,26 @@
 (define-public (async-job-pipeline log-filename project branch-name clone-url task)
   (call-with-new-thread
    (lambda ()
-     (run-system-to-log-file log-filename (format #f "echo '~a'" "starting new job..."))
      (create-empty-file (string-append job-log-location log-filename))
+     (create-empty-file (string-append job-detail-location log-filename))
+
+     (syscall-to-detail-file
+      log-filename
+      (format #f "echo '~a'" (string-append "task: " task)))
+     (syscall-to-detail-file
+      log-filename
+      (format #f "echo '~a'" (string-append "branch-name: " branch-name)))
+     (syscall-to-detail-file
+      log-filename
+      (format #f "echo '~a'" (string-append "project: " project)))
+     (syscall-to-detail-file
+      log-filename
+      (format #f "echo '~a'" (string-append "clone-url: " clone-url)))
+     
+     (syscall-to-log-file
+      log-filename
+      (format #f "echo '~a'" "\nstarting new job...\n"))
+     
      (clone-repo-step project branch-name clone-url log-filename)
      
      (cond
