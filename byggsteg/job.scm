@@ -40,7 +40,7 @@
 
 (define-public (get-file-list dir)  
   (string-split
-   (run-system (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
+   (run-system-silent (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
 
 
 (define-public (create-empty-file filename)
