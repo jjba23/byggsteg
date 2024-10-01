@@ -33,6 +33,12 @@
     (display process-output)
     process-output))
 
+(define-public (run-system-silent cmd)
+  (let* ((process (open-input-pipe cmd))
+         (process-output (get-string-all process)))
+    (close-pipe process)
+    process-output))
+
 (define-public (run-system-to-log-file log-filename cmd)
   (let*
       ((log-file-port

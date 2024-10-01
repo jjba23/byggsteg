@@ -24,8 +24,8 @@
 
 (define-public (base-16-encode str)
   (string-replace-substring
-   (run-system (format #f "echo \"~a\" | xxd -p" str)) "\n" ""))
+   (run-system-silent (format #f "echo \"~a\" | xxd -p" str)) "\n" ""))
 
 (define-public (base-16-decode str)
   (string-replace-substring
-   (run-system (format #f "echo \"~a\" | xxd -p -r" str)) "\n" ""))
+   (run-system-silent (format #f "echo \"~a\" | xxd -p -r" str)) "\n" ""))

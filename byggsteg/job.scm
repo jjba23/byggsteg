@@ -134,7 +134,7 @@
 (define-public (async-job-pipeline log-filename project branch-name clone-url task)
   (call-with-new-thread
    (lambda ()
-     (display "starting new job...")
+     (run-system-to-log-file log-filename (format #f "echo '~a'" "starting new job..."))
      (create-empty-file (string-append job-log-location log-filename))
      (clone-repo-step project branch-name clone-url log-filename)
      
