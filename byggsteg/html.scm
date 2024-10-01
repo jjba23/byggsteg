@@ -86,6 +86,8 @@
               (option (@(value "stack-build")) "Haskell - Build Stack project + Hackage bundle")
               (option (@(value "byggsteg-version")) "Byggsteg pull and restart systemd of itself")
               (option (@(value "nix-build")) "Nix build flake")
+              (option (@(value "pull-and-restart")) "Pull and restart systemd service")
+              (option (@(value "sbt-test")) "SBT test - Scala")
               
               )
       
