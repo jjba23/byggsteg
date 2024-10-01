@@ -36,14 +36,14 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads))
 
-(define* (respond #:optional body #:key
+(define* (respond should-auto-refresh #:optional body #:key
                   (status 200)
                   (title "Hello hello!")
                   (doctype "<!DOCTYPE html>\n")
                   (content-type-params '((charset . "utf-8")))
                   (content-type 'text/html)
                   (extra-headers '())
-                  (sxml (and body (byggsteg-html-template title body))))
+                  (sxml (and body (byggsteg-html-template title body should-auto-refresh))))
   (values (build-response
            #:code status
            #:headers `((content-type
@@ -57,6 +57,7 @@
 
 (define-public (job-request-form-page)
   (respond
+   #f
    `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "requesting job run")
      (form
       (@(method "POST")
@@ -103,6 +104,7 @@
     (run-system (format #f "rm -rfv ~a" (string-append job-success-location log-filename)))
     
     (respond
+     #f
      `((h1 (@(class "font-sans text-3xl text-orange-500 font-bold mb-6")) (a (@(href "/")) "byggsteg"))
        (h2 (@(class "font-sans text-2xl text-stone-200")) "job deleted !")
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "log-file: " log-filename))))))
@@ -110,20 +112,22 @@
 
 
 (define-public (job-submit-endpoint request body)
-  (let* ((kv (read-url-encoded-body body))
-         (project (car (assoc-ref kv "project")))
-         (clone-url (url-decode (car (assoc-ref kv "clone-url"))))
-         (branch-name (car (assoc-ref kv "branch-name")))
-         (task (url-decode (car (assoc-ref kv "task"))))
-         (formatted-kv (map (lambda(x) (format #f "~a: ~a" (car x) (car (cdr x)))) kv ))
-         (log-filename (new-project-log-filename project))
-         (only-filename (string-replace-substring log-filename job-log-location ""))
-         (public-log-filename (base-16-encode only-filename))
-         (logs-link (format #f "/logs/~a" public-log-filename)))
+  (let*
+      ((kv (read-url-encoded-body body))
+       (project (car (assoc-ref kv "project")))
+       (clone-url (url-decode (car (assoc-ref kv "clone-url"))))
+       (branch-name (car (assoc-ref kv "branch-name")))
+       (task (url-decode (car (assoc-ref kv "task"))))
+       (formatted-kv (map (lambda(x) (format #f "~a: ~a" (car x) (car (cdr x)))) kv ))
+       (log-filename (new-project-log-filename project))
+       (only-filename (string-replace-substring log-filename job-log-location ""))
+       (public-log-filename (base-16-encode only-filename))
+       (logs-link (format #f "/logs/~a" public-log-filename)))
 
     (async-job-pipeline log-filename project branch-name clone-url task)
     
     (respond
+     #f
      `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "job submitted")
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "job for: " project))
        (h3 (@(class "font-sans text-lg text-stone-200")) ,(string-append "task: " task))
@@ -135,17 +139,20 @@
 
 
 (define-public (log-page path)
-  (let* ((log-filename (base-16-decode (car (cdr path))))
-         (file-path (string-append job-log-location log-filename))
-         (file (open-input-file file-path))
-         (log-data (get-string-all file))
-         (success (read-job-success log-filename))
-         (failure (read-job-failure log-filename))
-         (job-status (cond
-                      ((equal? success #t) `(h2 (@(class "text-2xl text-green-700")) "job succeeded"))
-                      ((equal? failure #t) `(h2 (@(class "text-2xl text-red-700")) "job failed"))
-                      (else `(h2 (@(class "text-2xl text-sky-700")) "job in progress")))))
+  (let*
+      ((log-filename (base-16-decode (car (cdr path))))
+       (file-path (string-append job-log-location log-filename))
+       (file (open-input-file file-path))
+       (log-data (get-string-all file))
+       (success (read-job-success log-filename))
+       (failure (read-job-failure log-filename))
+       (job-status
+        (cond
+         ((equal? success #t) `(h2 (@(class "text-2xl text-green-700")) "job succeeded"))
+         ((equal? failure #t) `(h2 (@(class "text-2xl text-red-700")) "job failed"))
+         (else `(h2 (@(class "text-2xl text-sky-700")) "job in progress")))))
     (respond
+     #t
      `((h3 (@(class "text-stone-200 text-2xl my-4")) ,log-filename)
        (div (@(class "flex flex-row flex-wrap align-center gap-6"))
             (h2 (@(class "font-sans text-2xl text-stone-200")) "viewing logs")
@@ -162,6 +169,7 @@
   (let* ((jobs (get-file-list job-log-location))
          (jobs-html (map welcome-make-job-link jobs)))
     (respond
+     #t
      `((h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
        (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
             ,jobs-html)))))
@@ -195,16 +203,24 @@
 
 
 
-(define (byggsteg-html-template title body)
-  `(html
-    (head
-     (title ,title)
-     (link (@(rel "stylesheet")
-            (href "https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.1.0/400.min.css")))
-     (script (@(src "https://cdn.tailwindcss.com")) "")
-     (script (@(src "/resources/js/tailwind.config.js")) ()))
-    (body (@(class "bg-stone-900"))
-          (div (@(class "container mx-auto my-4"))
-               ,(page-top)
-               (hr (@(class "my-6")))
-               ,@body))))
+(define (byggsteg-html-template title body should-auto-refresh)
+  (let
+      ((maybe-auto-refresh
+        (cond
+         ((equal? should-auto-refresh #t) `(meta(@(content "6")(http-equiv "refresh")) ()))
+         (else `()))))
+
+    `(html
+      (head
+       (title ,title)
+       (link (@(rel "stylesheet")
+              (href "https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.1.0/400.min.css")))
+       ,maybe-auto-refresh
+       (script (@(src "https://cdn.tailwindcss.com")) "")
+       (script (@(src "/resources/js/tailwind.config.js")) ()))
+      (body (@(class "bg-stone-900"))
+            (div (@(class "container mx-auto my-4"))
+                 ,(page-top)
+                 (hr (@(class "my-6")))
+                 ,@body)))))
+
