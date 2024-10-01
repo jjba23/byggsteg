@@ -62,10 +62,10 @@
      (lambda ()
        (run-system-to-log-file
         (format #f
-                    (string-append "cd ~a" " && systemctl restart byggsteg")
-                    clone-dir)))
-    
-    (create-empty-file (string-append job-success-location log-filename))))
+                (string-append "cd ~a" " && systemctl restart byggsteg")
+                clone-dir)))
+     
+     (create-empty-file (string-append job-success-location log-filename)))))
 
 (define-public (make-build-step project branch-name clone-url log-filename)
   (let* ((clone-dir
@@ -81,59 +81,57 @@
     (run-system-to-log-file
      (format #f
              (string-append "cd ~a" " && nix build")
-             clone-dir)))
+             clone-dir))))
 
 
-  (define-public (clone-repo-step project branch-name clone-url log-filename)
-    (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
-           (clone-cmd
-            (format #f
-                    (string-append
-                     "mkdir -p ~a"
-                     " && git clone -b ~a ~a ~a || true")                      
-                    clone-dir
-                    branch-name
-                    clone-url
-                    clone-dir))
-           (pull-cmd (format #f "cd ~a && git pull" clone-dir)) 
-           (should-clone (not (file-exists? clone-dir))))
-      
-      (cond
-         (should-clone (run-system-to-log-file clone-cmd))
-         (else (run-system-to-log-file pull-cmd)))))
+(define-public (clone-repo-step project branch-name clone-url log-filename)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+         (clone-cmd
+          (format #f
+                  (string-append
+                   "mkdir -p ~a"
+                   " && git clone -b ~a ~a ~a || true")                      
+                  clone-dir
+                  branch-name
+                  clone-url
+                  clone-dir))
+         (pull-cmd (format #f "cd ~a && git pull" clone-dir)) 
+         (should-clone (not (file-exists? clone-dir))))
+    
+    (cond
+     (should-clone (run-system-to-log-file clone-cmd))
+     (else (run-system-to-log-file pull-cmd)))))
 
 
-  (define-public (async-job-pipeline log-filename project branch-name clone-url task)
-    (call-with-new-thread
-     (lambda ()
-       (display "starting new job...")
-       (create-empty-file (string-append job-log-location log-filename))
-       (clone-repo-step project branch-name clone-url log-filename)
-       
-       (cond
-        ((equal? task "stack-test")
-         (stack-step project branch-name clone-url log-filename "test")
-         (stack-step project branch-name clone-url log-filename "sdist --tar-dir .")
-         (create-empty-file (string-append job-success-location log-filename))
-         )
-        ((equal? task "stack-build")
-         (stack-step project branch-name clone-url log-filename "build")
-         (stack-step project branch-name clone-url log-filename "sdist --tar-dir .")
-         (create-empty-file (string-append job-success-location log-filename))
-         )
-        ((equal? task "byggsteg-version")
-         (byggsteg-version-step project
-                                branch-name
-                                clone-url
-                                log-filename)        
-         )
-        ((equal? task "nix-build")
-         (nix-build-step project
-                         branch-name
-                         clone-url
-                         log-filename)        
-         )
-        (else
-         (make-build-step project branch-name clone-url log-filename))))))
-
-
+(define-public (async-job-pipeline log-filename project branch-name clone-url task)
+  (call-with-new-thread
+   (lambda ()
+     (display "starting new job...")
+     (create-empty-file (string-append job-log-location log-filename))
+     (clone-repo-step project branch-name clone-url log-filename)
+     
+     (cond
+      ((equal? task "stack-test")
+       (stack-step project branch-name clone-url log-filename "test")
+       (stack-step project branch-name clone-url log-filename "sdist --tar-dir .")
+       (create-empty-file (string-append job-success-location log-filename))
+       )
+      ((equal? task "stack-build")
+       (stack-step project branch-name clone-url log-filename "build")
+       (stack-step project branch-name clone-url log-filename "sdist --tar-dir .")
+       (create-empty-file (string-append job-success-location log-filename))
+       )
+      ((equal? task "byggsteg-version")
+       (byggsteg-version-step project
+                              branch-name
+                              clone-url
+                              log-filename)        
+       )
+      ((equal? task "nix-build")
+       (nix-build-step project
+                       branch-name
+                       clone-url
+                       log-filename)        
+       )
+      (else
+       (make-build-step project branch-name clone-url log-filename))))))
