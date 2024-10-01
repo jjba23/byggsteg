@@ -100,6 +100,15 @@
              (string-append "cd ~a" " && nix build")
              clone-dir))))
 
+(define-public (sbt-test-step project branch-name clone-url log-filename)
+  (let* ((clone-dir
+          (string-append job-clone-location project "/" branch-name)))
+    (run-system-to-log-file
+     log-filename
+     (format #f
+             (string-append "cd ~a" " && sbt test")
+             clone-dir))))
+
 
 (define-public (clone-repo-step project branch-name clone-url log-filename)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
@@ -156,5 +165,10 @@
                               branch-name
                               clone-url
                               log-filename))
+      ((equal? task "sbt-test")
+       (sbt-test-step project
+                      branch-name
+                      clone-url
+                      log-filename))
       (else
        (make-build-step project branch-name clone-url log-filename))))))

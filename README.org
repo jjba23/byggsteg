@@ -48,6 +48,8 @@ You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root di
 
 ~pull-and-restart~ - Git pull and restart wanted systemd service
 
+~sbt-test~ - Scala project test with SBT
+
 *** Starting a job
 
 You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via URL encoded form data (~application/x-www-form-urlencoded~).
