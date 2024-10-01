@@ -54,8 +54,11 @@ You can use the UI and visit ~/jobs/request~ or you can also invoke this via the
 You could do this  for example from a GitHub action pipeline:
 
 #+begin_src  shell
-  curl 'http://localhost:50023/api/jobs/submit' -X POST --data-raw \
-       'project=free-alacarte&clone-url=https%3A%2F%2Fgithub.com%2Fjjba23%2Ffree-alacarte&branch-name=trunk&task=stack-test'
+  curl 'http://localhost:50023/api/jobs/submit' -X POST \
+       --data-urlencode "project=free-alacarte" \
+       --data-urlencode "branch-name=trunk" \
+       --data-urlencode "task=stack-test" \
+       --data-urlencode "clone-url=https://github.com/jjba23/free-alacarte"
   #
   # {"project": "free-alacarte",
   #  "task": "stack-test",
