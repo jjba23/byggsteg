@@ -169,6 +169,8 @@
        (sbt-test-step project
                       branch-name
                       clone-url
-                      log-filename))
+                      log-filename)
+       (create-empty-file (string-append job-success-location log-filename)))
+      
       (else
        (make-build-step project branch-name clone-url log-filename))))))
