@@ -33,7 +33,7 @@
     (display process-output)
     process-output))
 
-(define-public (run-system-to-log-file cmd)
+(define-public (run-system-to-log-file log-filename cmd)
   (let*
       ((log-file-port
         (open-file (string-append job-log-location log-filename) "a")))

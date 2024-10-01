@@ -52,6 +52,7 @@
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
     (run-system-to-log-file
+     log-filename
      (format #f (string-append "cd ~a" " && stack ~a") clone-dir stack-task))))
 
 (define-public (byggsteg-version-step project branch-name clone-url log-filename)
@@ -61,6 +62,7 @@
     (call-with-new-thread
      (lambda ()
        (run-system-to-log-file
+        log-filename
         (format #f
                 (string-append "cd ~a" " && systemctl restart byggsteg")
                 clone-dir)))
@@ -71,6 +73,7 @@
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
     (run-system-to-log-file
+     log-filename
      (format #f
              (string-append "cd ~a" " && make build")
              clone-dir))))
@@ -79,6 +82,7 @@
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
     (run-system-to-log-file
+     log-filename
      (format #f
              (string-append "cd ~a" " && nix build")
              clone-dir))))
@@ -86,21 +90,23 @@
 
 (define-public (clone-repo-step project branch-name clone-url log-filename)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
-         (clone-cmd
-          (format #f
-                  (string-append
-                   "mkdir -p ~a"
-                   " && git clone -b ~a ~a ~a || true")                      
-                  clone-dir
-                  branch-name
-                  clone-url
-                  clone-dir))
-         (pull-cmd (format #f "cd ~a && git pull" clone-dir)) 
          (should-clone (not (file-exists? clone-dir))))
     
     (cond
-     (should-clone (run-system-to-log-file clone-cmd))
-     (else (run-system-to-log-file pull-cmd)))))
+     (should-clone
+      (run-system-to-log-file
+       log-filename
+       (format #f
+               (string-append
+                "mkdir -p ~a"
+                " && git clone -b ~a ~a ~a || true")                      
+               clone-dir
+               branch-name
+               clone-url
+               clone-dir)))
+     (else (run-system-to-log-file
+            log-filename
+            (format #f "cd ~a && git pull" clone-dir))))))
 
 
 (define-public (async-job-pipeline log-filename project branch-name clone-url task)
