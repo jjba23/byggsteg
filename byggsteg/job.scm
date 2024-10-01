@@ -154,8 +154,7 @@
        (byggsteg-version-step project
                               branch-name
                               clone-url
-                              log-filename)        
-       )
+                              log-filename))
       ((equal? task "nix-build")
        (nix-build-step project
                        branch-name
