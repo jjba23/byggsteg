@@ -80,7 +80,7 @@
              clone-dir
              project))
     
-    (create-empty-file (string-append job-success-location log-filename)))))
+    (create-empty-file (string-append job-success-location log-filename))))
 
 (define-public (make-build-step project branch-name clone-url log-filename)
   (let* ((clone-dir
