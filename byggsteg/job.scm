@@ -152,9 +152,9 @@
                        clone-url
                        log-filename))
       ((equal? task "pull-and-restart")
-       (nix-build-step project
-                       branch-name
-                       clone-url
-                       log-filename))
+       (pull-and-restart-step project
+                              branch-name
+                              clone-url
+                              log-filename))
       (else
        (make-build-step project branch-name clone-url log-filename))))))
