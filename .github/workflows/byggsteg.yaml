@@ -3,14 +3,13 @@ on:
   push:
     branches:
       - trunk
-  pull_request:
-    types: []
+
 
 jobs:
   byggsteg:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger job run at byggsteg
+      - name: "trigger deploy new byggsteg version at jointhefreeworld.org"
         run: |
            curl 'https://byggsteg.jointhefreeworld.org/api/jobs/submit' \
                -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
