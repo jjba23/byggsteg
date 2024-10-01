@@ -18,11 +18,12 @@
 (define-module (byggsteg-process)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
+  #:use-module (byggsteg-preferences)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 futures)
+  #:use-module (ice-9 threads)
   )
 
 (define-public (run-system cmd)
@@ -31,3 +32,11 @@
     (close-pipe process)
     (display process-output)
     process-output))
+
+(define-public (run-system-to-log-file)
+  (let*
+      ((log-file-port
+        (open-file (string-append job-log-location log-filename) "a")))
+    (with-output-to-port log-file-port
+      (lambda () (run-system cmd)))
+    (close log-file-port)))
