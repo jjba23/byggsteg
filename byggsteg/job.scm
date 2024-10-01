@@ -69,6 +69,19 @@
      
      (create-empty-file (string-append job-success-location log-filename)))))
 
+(define-public (pull-and-restart-step project branch-name clone-url log-filename)
+  (let* ((clone-dir
+          (string-append job-clone-location project "/" branch-name)))
+
+    (run-system-to-log-file
+     log-filename
+     (format #f
+             (string-append "cd ~a" " && systemctl restart ~a")
+             clone-dir
+             project))
+    
+    (create-empty-file (string-append job-success-location log-filename)))))
+
 (define-public (make-build-step project branch-name clone-url log-filename)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
@@ -137,7 +150,11 @@
        (nix-build-step project
                        branch-name
                        clone-url
-                       log-filename)        
-       )
+                       log-filename))
+      ((equal? task "pull-and-restart")
+       (nix-build-step project
+                       branch-name
+                       clone-url
+                       log-filename))
       (else
        (make-build-step project branch-name clone-url log-filename))))))

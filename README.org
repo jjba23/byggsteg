@@ -46,6 +46,7 @@ You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root di
 
 ~byggsteg-version~ - Byggsteg pull and restart systemd of itself
 
+~pull-and-restart~ - Git pull and restart wanted systemd service
 
 *** Starting a job
 
