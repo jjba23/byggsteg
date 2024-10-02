@@ -52,23 +52,27 @@ You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root di
 
 *** Starting a job
 
-You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via URL encoded form data (~application/x-www-form-urlencoded~).
+Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, for example :
+#+begin_src  scheme
+  `((project . "free-alacarte")
+    (branch-name . "trunk")
+    (task . "stack-test")
+    (clone-url . "https://github.com/jjba23/free-alacarte")
+    )
+#+end_src
+
+You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
 You could do this  for example from a GitHub action pipeline:
 
-#+begin_src  shell
-  curl 'http://localhost:50023/api/jobs/submit' -X POST \
-       --data-urlencode "project=free-alacarte" \
-       --data-urlencode "branch-name=trunk" \
-       --data-urlencode "task=stack-test" \
-       --data-urlencode "clone-url=https://github.com/jjba23/free-alacarte"
-  #
-  # {"project": "free-alacarte",
-  #  "task": "stack-test",
-  #  "clone-url": "https://github.com/jjba23/free-alacarte",
-  #  "branch-name": "trunk",
-  #  "log-filename": "free-alacarte__2024-09-29__11:54:43.byggsteg.log",
-  #  "public-log-filename": "667265652d616c6163"
-  # }
+#+begin_src  json
+  {
+    "project": "free-alacarte",
+    "task": "stack-test",
+    "clone-url": "https://github.com/jjba23/free-alacarte",
+    "branch-name": "trunk",
+    "log-filename": "free-alacarte__2024-09-29__11:54:43.byggsteg.log",
+   "public-log-filename": "667265652d616c6163"
+  }
 #+end_src
 
 You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
