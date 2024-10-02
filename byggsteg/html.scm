@@ -266,30 +266,11 @@
          (enctype "application/x-www-form-urlencoded")
          (charset "utf-8"))
         
-        (input (@(id "project")
-                (name "project")
-                (value ,project)
+        (input (@(id "job-code")
+                (name "job-code")
+                (value ,profile-data)
                 (required "")
                 (hidden "")))
-        
-        (input (@(id "clone-url")
-                (name "clone-url")
-                (value ,clone-url)
-                (required "")
-                (hidden "")))
-
-        (input (@(id "branch-name")
-                (name "branch-name")
-                (value ,branch-name)
-                (required "")
-                (hidden "")))
-        
-
-        (select (@(id "task")
-                 (name "task")
-                 (required "")
-                 (hidden ""))
-                (option (@(value ,task) (selected "")) ,task))
         
         (button (@(type "submit")
                  (class ,button-class))
