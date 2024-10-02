@@ -126,7 +126,6 @@
   (let* ((kv (read-url-encoded-body body))
          (log-filename (url-decode (car (assoc-ref kv "log-filename")))))
     
-    (display (string-append "deleting: " (string-append job-log-location log-filename)))
     (syscall (format #f "rm -rfv ~a" (string-append job-log-location log-filename)))
     (syscall (format #f "rm -rfv ~a" (string-append job-failure-location log-filename)))
     (syscall (format #f "rm -rfv ~a" (string-append job-success-location log-filename)))
@@ -249,11 +248,15 @@
        (file (open-input-file (string-append profile-location profile-name)))
        (profile-data (get-string-all file))
        (kv (eval-string profile-data))
+       (project (assoc-ref kv 'project))
+       (clone-url (assoc-ref kv 'clone-url))
+       (branch-name (assoc-ref kv 'branch-name))
+       (task (assoc-ref kv 'task))
        )
 
     
     (respond
-     #t
+     #f
      `((h3 (@(class "text-stone-200 text-2xl my-4")) ,profile-name)
        (div (@(class "flex flex-row flex-wrap align-center gap-6"))
             (h2 (@(class "font-sans text-2xl text-stone-200")) "viewing profile"))
@@ -267,16 +270,51 @@
        (pre
         (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll"))
         ,profile-data)
+
+       (form
+        (@(method "POST")
+         (action "/jobs/submit")
+         (enctype "application/x-www-form-urlencoded")
+         (charset "utf-8"))
+        
+        (input (@(id "project")
+                (name "project")
+                (value ,project)
+                (required "")
+                (hidden "")))
+        
+        (input (@(id "clone-url")
+                (name "clone-url")
+                (value ,clone-url)
+                (required "")
+                (hidden "")))
+
+        (input (@(id "branch-name")
+                (name "branch-name")
+                (value ,branch-name)
+                (required "")
+                (hidden "")))
+        
+
+        (select (@(id "task")(name "task")(required "")(hidden ""))
+                (option (@(value ,task) (selected "")) ,task))
+        
+        (button (@(type "submit")
+                 (class ,button-class))
+                "start new job"))
+
+       
+       
        ))))
 
 (define-public (welcome-page)
-  (let* ((jobs (get-file-list job-log-location))
-         (jobs-html (map make-job-link jobs)))
-    (respond
-     #t
-     `((h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
-       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
-            ,jobs-html)))))
+(let* ((jobs (get-file-list job-log-location))
+       (jobs-html (map make-job-link jobs)))
+  (respond
+   #t
+   `((h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
+     (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
+          ,jobs-html)))))
 
 (define-public (make-job-link log-filename)
   (let* (
