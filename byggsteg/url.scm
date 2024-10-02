@@ -38,33 +38,15 @@
          (xss (map unsafe-mk-alist (map at-eq raw-kv-pairs))))    
     xss))
 
-(define-public url-decode-alist
-  '(("%20" . " ")
-    ("%21" . "!")
-    ("%22" . "\"")
-    ("%23" . "#")
-    ("%24" . "$")
-    ("%25" . "%")
-    ("%26" . "&")
-    ("%27" . "'")
-    ("%28" . "(")
-    ("%29" . ")")
-    ("%2A" . "*")
-    ("%2B" . "+")
-    ("%2C" . ",")
-    ("%2F" . "/")
-    ("%3A" . ":")
-    ("%3B" . ";")
-    ("%3C" . "<")
-    ("%3D" . "=")
-    ("%3E" . ">")
-    ("%3F" . "?")
-    ("%40" . "@")
-    ("%25" . "%")))
 
 
 (define-public (url-decode str)
-  (for-each
-   (lambda (kv)
-     (set! str (string-replace-substring str (car kv) (cdr kv))))
-   url-decode-alist)  str)
+  (let ((cmd (string-append
+              "python -c 'print(input().replace(\"+\", \" \").replace(\"%\", \"\\\\x\").encode().decode(\"unicode_escape\"))' <<< '"
+              str
+              "'")))
+    (display cmd)
+    (syscall cmd)
+    )
+  
+  )

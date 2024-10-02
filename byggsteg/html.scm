@@ -61,7 +61,7 @@
    ((equal? is-profile #t)
     `((label (@(for "profile-name")(class "text-stone-200 font-bold")) "profile name:")
       (input (@(id "profile-name")(name "profile-name")(required "")
-              (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
+              (class ,input-class)))
       )
     )
    (else `())
@@ -77,31 +77,17 @@
      (class "flex flex-col justify-center gap-4"))
 
     ,(maybe-profile-name is-profile)
-    
-    (label (@(for "project")(class "text-stone-200 font-bold")) "project name:")
-    (input (@(id "project")(name "project")(required "")
-            (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
-    
-    (label (@(for "clone-url")(class "text-stone-200 font-bold")) "clone URL:")
-    (input (@(id "clone-url")(name "clone-url")(required "")
-            (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
 
-    (label (@(for "branch-name")(class "text-stone-200 font-bold")) "branch name:")
-    (input (@(id "branch-name")(name "branch-name")(value "trunk")(required "")
-            (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200")))
+
+    (p (@(class "flex flex-row flex-wrap gap-4"))
+       (span (@(class "text-stone-400 text-sm")) "learn writing code for a job: ")
+       (a (@(class "text-orange-500 text-sm")(href "https://github.com/jjba23/byggsteg")) "https://github.com/jjba23/byggsteg"))
+
+
     
-    (label (@(for "task")(class "text-stone-200 font-bold")) "task:")
-    (select (@(id "task")(name "task")(required "")
-             (class "rounded-xl border font-sans p-2 bg-stone-800 text-stone-200 text-lg"))
-            
-            (option (@(value "stack-test")) "Haskell - Test Stack project + Hackage bundle")
-            (option (@(value "stack-build")) "Haskell - Build Stack project + Hackage bundle")
-            (option (@(value "byggsteg-version")) "Byggsteg pull and restart systemd of itself")
-            (option (@(value "nix-build")) "Nix build flake")
-            (option (@(value "pull-and-restart")) "Pull and restart systemd service")
-            (option (@(value "sbt-test")) "SBT test - Scala")
-            
-            )
+    (label (@(for "job-code")(class "text-stone-200 font-bold")) "job code:")
+    (textarea (@(id "job-code")(name "job-code")(required "")
+               (class ,textarea-class)) "")
     
     (button (@(type "submit")
              (class ,button-class))
@@ -111,14 +97,14 @@
 (define-public (job-request-form-page)
   (respond
    #f
-   `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "requesting job run")
+   `((h2 (@(class ,h2-class)) "requesting job run")
      ,(job-form "/jobs/submit" #f)
      )))
 
 (define-public (add-profile-form-page)
   (respond
    #f
-   `((h2 (@(class "font-sans text-2xl text-stone-200 my-4")) "adding profile")
+   `((h2 (@(class ,h2-class)) "adding profile")
      ,(job-form "/profiles/submit" #t)
      )))
 
@@ -158,16 +144,26 @@
 (define-public (job-submit-endpoint request body)
   (let*
       ((kv (read-url-encoded-body body))
-       (project (car (assoc-ref kv "project")))
-       (clone-url (url-decode (car (assoc-ref kv "clone-url"))))
-       (branch-name (car (assoc-ref kv "branch-name")))
-       (task (url-decode (car (assoc-ref kv "task"))))
+       (job-code (url-decode (car (assoc-ref kv "job-code"))))       
+       (kvv (eval-string job-code))
+       (project (assoc-ref kvv 'project))       
+       (clone-url (assoc-ref kvv 'clone-url))
+       (branch-name (assoc-ref kvv 'branch-name))
+       (task (assoc-ref kvv 'task))       
        (log-filename (new-project-log-filename project))
        (only-filename (string-replace-substring log-filename job-log-location ""))
        (public-log-filename (base-16-encode only-filename))
-       (logs-link (format #f "/logs/~a" public-log-filename)))
+       (logs-link (format #f "/logs/~a" public-log-filename))
+       )
 
+    (create-empty-file (string-append job-log-location log-filename))
+    (create-empty-file (string-append job-detail-location log-filename))
+    (with-output-to-file (string-append job-detail-location log-filename)
+      (lambda ()
+        (display job-code)
+        ))
     (async-job-pipeline log-filename project branch-name clone-url task)
+
     (respond #f
              `()
              #:status 302
@@ -178,32 +174,25 @@
 (define-public (profile-submit-endpoint request body)
   (let*
       ((kv (read-url-encoded-body body))
-       (project (car (assoc-ref kv "project")))
-       (clone-url (url-decode (car (assoc-ref kv "clone-url"))))
-       (branch-name (car (assoc-ref kv "branch-name")))
-       (task (url-decode (car (assoc-ref kv "task"))))
+       (profile-code (url-decode (car (assoc-ref kv "job-code"))))       
+       (kvv (eval-string profile-code))
+       (project (assoc-ref kvv 'project))       
+       (clone-url (assoc-ref kvv 'clone-url))
+       (branch-name (assoc-ref kvv 'branch-name))
+       (task (assoc-ref kvv 'task))       
        (profile-name (car (assoc-ref kv "profile-name")))
        (profile-link (format #f "/profiles/~a" profile-name)))
     
     (with-output-to-file (string-append profile-location profile-name)
       (lambda ()
-        (display
-         (string-append
-          "`("
-          (format #f "(project . \"~a\")\n" project )
-          (format #f "  (branch-name . \"~a\")\n" branch-name)
-          (format #f "  (task . \"~a\")\n" task)
-          (format #f "  (clone-url . \"~a\")\n" clone-url)
-          ")"
-          ))
-        ))
-
+        (display profile-code)
+        )
+      )
     (respond #f
              `()
              #:status 302
              #:extra-headers `((Location . ,profile-link))
-             )
-    ))
+             )))
 
 
 
@@ -225,7 +214,7 @@
      #t
      `((h3 (@(class "text-stone-200 text-2xl my-4")) ,log-filename)
        (div (@(class "flex flex-row flex-wrap align-center gap-6"))
-            (h2 (@(class "font-sans text-2xl text-stone-200")) "viewing logs")
+            (h2 (@(class ,h2-class)) "viewing logs")
             ,job-status)
        
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
@@ -259,7 +248,7 @@
      #f
      `((h3 (@(class "text-stone-200 text-2xl my-4")) ,profile-name)
        (div (@(class "flex flex-row flex-wrap align-center gap-6"))
-            (h2 (@(class "font-sans text-2xl text-stone-200")) "viewing profile"))
+            (h2 (@(class ,h2-class)) "viewing profile"))
        
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/profiles/delete"))
              (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
@@ -296,7 +285,10 @@
                 (hidden "")))
         
 
-        (select (@(id "task")(name "task")(required "")(hidden ""))
+        (select (@(id "task")
+                 (name "task")
+                 (required "")
+                 (hidden ""))
                 (option (@(value ,task) (selected "")) ,task))
         
         (button (@(type "submit")
@@ -308,13 +300,13 @@
        ))))
 
 (define-public (welcome-page)
-(let* ((jobs (get-file-list job-log-location))
-       (jobs-html (map make-job-link jobs)))
-  (respond
-   #t
-   `((h4 (@(class "text-stone-200 font-bold text-xl my-4")) "jobs")
-     (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
-          ,jobs-html)))))
+  (let* ((jobs (get-file-list job-log-location))
+         (jobs-html (map make-job-link jobs)))
+    (respond
+     #t
+     `((h2 (@(class ,h2-class)) "jobs")
+       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
+            ,jobs-html)))))
 
 (define-public (make-job-link log-filename)
   (let* (
@@ -337,7 +329,7 @@
          (profiles-html (map make-profile-link profiles)))
     (respond
      #f
-     `((h4 (@(class "text-stone-200 font-bold text-xl my-4")) "profiles")
+     `((h2 (@(class ,h2-class)) "profiles")
        (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
             ,profiles-html)))))
 
@@ -353,32 +345,43 @@
     ))
 
 (define-public (page-top)
-  `((div (@(class "flex flex-row flex-wrap"))
+  `((div (@(class "flex flex-row flex-wrap gap-1"))
          
-         (h1 (@(class "text-3xl text-orange-500 font-bold p-2 m-2")) (a (@(href "/")) "byggsteg |"))
+         (h1 (@(class "text-3xl text-orange-500 font-bold p-2 m-2"))
+             (a (@(href "/")) "byggsteg |"))
          
-         (div (@(class "flex flex-row flex-wrap items-center gap-4"))
+         (div (@(class "flex flex-row flex-wrap items-center gap-1"))
               (a (@ (href "/")
                     (class ,nav-button-class))
-                 "jobs"
-                 )
+                 "jobs")
               (a (@ (href "/jobs/request")
                     (class ,nav-button-class))
-                 "+ new job run"
-                 )
+                 "+ new job run")
               (a (@ (href "/profiles")
                     (class ,nav-button-class))
-                 "profiles"
-                 )
+                 "profiles")
               (a (@ (href "/profiles/new")
                     (class ,nav-button-class))
-                 "+ new profile"
-                 )
-              )
-         
-         )
-    (em (@(class "text-lg text-stone-200")) "byggsteg means “build step” in the Norwegian language. byggsteg is the hackable Guile CI/CD system.")))
+                 "+ new profile")))
+    ;;(hr (@(class ,hr-class)))
+    ))
 
+
+
+(define-public (page-footer)
+  `((div (@(class "block text-center"))
+         (hr (@(class ,hr-class)))
+         (p (@(class "text-lg text-stone-200")) "byggsteg is the hackable Guile CI/CD system.")
+         (p (@(class "text-lg text-stone-200")) "byggsteg is free software, available under the GNU General Public License v3 or newer.")
+         
+         (div (@(class "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
+              (p (@(class "text-sm text-stone-300")) "find the source code here:")
+              (a (@(class "text-orange-400 font-bold cursor-pointer text-sm")
+                  (href "https://github.com/jjba23/byggsteg")) "https://github.com/jjba23/byggsteg")
+              )
+         (p (@(class "mt-4")) (em (@(class "text-lg text-stone-200")) "Copyright 2024 - Free Software Foundation, Inc."))
+         (p (@(class "mt-4")) (span (@(class "text-sm text-stone-200")) "byggsteg means “build step” in the Norwegian language."))
+         )))
 
 
 
@@ -402,6 +405,6 @@
       (body (@(class "bg-stone-900"))
             (div (@(class "container mx-auto my-4"))
                  ,(page-top)
-                 (hr (@(class "my-6 border-t-2 border-t-stone-600")))
-                 ,@body)))))
+                 ,@body
+                 ,(page-footer))))))
 

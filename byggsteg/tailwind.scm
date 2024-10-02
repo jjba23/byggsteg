@@ -44,7 +44,9 @@
      "cursor-pointer"
      "p-2"
      "m-2"
-     "text-lg"
+     "border-b-2"
+     "border-b-orange-500"
+     "text-xl"
      "font-bold") " "))
 
 (define-public danger-button-class
@@ -59,3 +61,38 @@
      "cursor-pointer"
      "p-2"
      "m-2") " "))
+
+(define-public input-class
+  (string-join
+   '("rounded-xl"
+     "border"
+     "border-stone-500"
+     "p-2"
+     "ml-6"
+     "text-lg"
+     "bg-stone-800"
+     "text-stone-200"
+     ) " "))
+
+(define-public hr-class
+  (string-join
+   '("my-6" "border-t-2" "border-t-stone-600") " "))
+
+(define-public h2-class
+  (string-join
+   '("text-3xl" "text-stone-200" "my-4" "font-bold") " "))
+
+
+
+(define-public textarea-class
+  (string-join
+   '("rounded-xl"
+     "border"
+     "border-stone-500"
+     "p-2"
+     "ml-6"
+     "text-lg"
+     "bg-stone-800"
+     "text-stone-200"
+     "min-h-64"
+     ) " "))

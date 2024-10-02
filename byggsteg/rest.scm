@@ -78,11 +78,12 @@
 
 (define-public (job-submit-api request body)
   (let* ((kv (read-url-encoded-body body))
-         (project (car (assoc-ref kv "project")))
-         (clone-url (url-decode (car (assoc-ref kv "clone-url"))))
-         (branch-name (car (assoc-ref kv "branch-name")))
-         (task (url-decode (car (assoc-ref kv "task"))))
-         (formatted-kv (map (lambda(x) (format #f "~a: ~a" (car x) (car (cdr x)))) kv ))
+         (job-code (car (assoc-ref kv "job-code")))
+         (kvv (eval-string job-code))
+         (project (assoc-ref kvv 'project))
+         (clone-url (assoc-ref kvv 'clone-url))
+         (branch-name (assoc-ref kvv 'branch-name))
+         (task (assoc-ref kv 'task))
          (log-filename (new-project-log-filename project))
          (only-filename (string-replace-substring log-filename job-log-location ""))
          (public-log-filename (base-16-encode only-filename))
@@ -106,6 +107,12 @@
                        public-log-filename
                        )))
 
+    (create-empty-file (string-append job-log-location log-filename))
+    (create-empty-file (string-append job-detail-location log-filename))
+    (with-output-to-file (string-append job-detail-location log-filename)
+      (lambda ()
+        (display job-code)
+        ))
     (async-job-pipeline log-filename project branch-name clone-url task)
     
     (respond-json json)))
