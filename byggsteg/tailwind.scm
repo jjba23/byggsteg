@@ -37,6 +37,16 @@
      "text-lg"
      "font-bold") " "))
 
+(define-public nav-button-class
+  (string-join
+   '(
+     "text-orange-500/75"
+     "cursor-pointer"
+     "p-2"
+     "m-2"
+     "text-lg"
+     "font-bold") " "))
+
 (define-public danger-button-class
   (string-join
    '("rounded-xl"

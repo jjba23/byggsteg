@@ -353,24 +353,31 @@
     ))
 
 (define-public (page-top)
-  `((div (@(class "flex flex-row flex-wrap justify-between"))
-         (h1 (@(class "text-3xl text-orange-500 font-bold")) (a (@(href "/")) "byggsteg"))
-         (div (@(class "flex flex-row flex-wrap align-end"))
-              (a (@ (href "/jobs/request"))
-                 (button (@(class ,button-class))
-                         "+ new job run")
+  `((div (@(class "flex flex-row flex-wrap"))
+         
+         (h1 (@(class "text-3xl text-orange-500 font-bold p-2 m-2")) (a (@(href "/")) "byggsteg |"))
+         
+         (div (@(class "flex flex-row flex-wrap items-center gap-4"))
+              (a (@ (href "/")
+                    (class ,nav-button-class))
+                 "jobs"
                  )
-              (a (@ (href "/profiles"))
-                 (button (@(class ,button-class))
-                         "profiles"))
-              (a (@ (href "/profiles/new"))
-                 (button (@(class ,button-class))
-                         "+ new profile"))
+              (a (@ (href "/jobs/request")
+                    (class ,nav-button-class))
+                 "+ new job run"
+                 )
+              (a (@ (href "/profiles")
+                    (class ,nav-button-class))
+                 "profiles"
+                 )
+              (a (@ (href "/profiles/new")
+                    (class ,nav-button-class))
+                 "+ new profile"
+                 )
               )
          
          )
-    (em (@(class "text-lg text-stone-200")) "byggsteg means “build step” in the Norwegian language.")
-    (p (@(class "text-lg text-stone-300 ")) "Simple CI/CD system made with Guile Scheme")))
+    (em (@(class "text-lg text-stone-200")) "byggsteg means “build step” in the Norwegian language. byggsteg is the hackable Guile CI/CD system.")))
 
 
 
@@ -379,7 +386,7 @@
   (let
       ((maybe-auto-refresh
         (cond
-         ((equal? should-auto-refresh #t) `(meta(@(content "6")(http-equiv "refresh")) ()))
+         ((equal? should-auto-refresh #t) `(meta(@(content "10")(http-equiv "refresh")) ()))
          (else `()))))
 
     `(html
@@ -388,11 +395,13 @@
        (link (@(rel "stylesheet")
               (href "https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.1.0/400.min.css")))
        ,maybe-auto-refresh
+       (meta (@(name "viewport")
+              (content "width=device-width, initial-scale=1.0")))
        (script (@(src "https://cdn.tailwindcss.com")) "")
        (script (@(src "/resources/js/tailwind.config.js")) ()))
       (body (@(class "bg-stone-900"))
             (div (@(class "container mx-auto my-4"))
                  ,(page-top)
-                 (hr (@(class "my-6")))
+                 (hr (@(class "my-6 border-t-2 border-t-stone-600")))
                  ,@body)))))
 
