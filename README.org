@@ -89,9 +89,17 @@ You can query for the job status via the UI or also via the REST API. You could 
 ~byggsteg~ is licensed under the GNU GPL v3 License or newer.
 
 ** Project management - backlog
+
 **** TODO Hot reload server
+
+**** TODO Implement gettext internationalization
+
+**** TODO Feature parity (currently HTML has more functionalities than JSON)
+
 **** TODO Improve JSON support
+
 **** TODO Allow user to send Guile Scheme over the wire and define his/her own pipeline in a ~progn~ fashion.
+
 **** TODO Add REPL interface via website, to allow hot-modifications
 
 ** ✅ Work done

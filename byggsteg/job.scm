@@ -138,18 +138,19 @@
      (create-empty-file (string-append job-log-location log-filename))
      (create-empty-file (string-append job-detail-location log-filename))
 
-     (syscall-to-detail-file
-      log-filename
-      (format #f "echo '~a'" (string-append "task: " task)))
-     (syscall-to-detail-file
-      log-filename
-      (format #f "echo '~a'" (string-append "branch-name: " branch-name)))
-     (syscall-to-detail-file
-      log-filename
-      (format #f "echo '~a'" (string-append "project: " project)))
-     (syscall-to-detail-file
-      log-filename
-      (format #f "echo '~a'" (string-append "clone-url: " clone-url)))
+     (with-output-to-file (string-append job-detail-location log-filename)
+       (lambda ()
+         (display
+          (string-append
+           "`("
+           (format #f "(project . \"~a\")\n" project )
+           (format #f "  (branch-name . \"~a\")\n" branch-name)
+           (format #f "  (task . \"~a\")\n" task)
+           (format #f "  (clone-url . \"~a\")\n" clone-url)
+           ")"
+           ))
+         ))
+     
      
      (syscall-to-log-file
       log-filename

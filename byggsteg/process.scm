@@ -43,6 +43,9 @@
 (define-public (syscall-to-log-file log-filename cmd)
   (syscall-to-file log-filename cmd job-log-location))
 
+(define-public (syscall-to-profile-file log-filename cmd)
+  (syscall-to-file log-filename cmd profile-location))
+
 (define-public (syscall-to-detail-file log-filename cmd)
   (syscall-to-file log-filename cmd job-detail-location))
 
