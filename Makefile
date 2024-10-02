@@ -6,6 +6,7 @@ prepare-dirs:
 	mkdir -p /var/log/byggsteg/job-clone || true
 	mkdir -p /var/log/byggsteg/job-success || true
 	mkdir -p /var/log/byggsteg/job-detail || true
+	mkdir -p /var/log/byggsteg/profile || true
 clean-dirs:
 	sudo rm -rfv /var/log/byggsteg/* || true
 server:

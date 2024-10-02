@@ -18,7 +18,6 @@
 (define-module (byggsteg-server)
   #:export (not-found
             respond-json
-            read-job-success read-job-failure
             request-path-components
             respond-static-file
             get-file-list)
@@ -56,16 +55,6 @@
                        ,@extra-headers))
           (lambda (port) (display json port))))
 
-
-(define (read-job-success log-filename)
-  (cond
-   ((file-exists? (string-append job-success-location log-filename)) #t)
-   (else #f)))
-
-(define (read-job-failure log-filename)
-  (cond
-   ((file-exists? (string-append job-failure-location log-filename)) #t)
-   (else #f)))
 
 (define (get-file-list dir)  
   (string-split
