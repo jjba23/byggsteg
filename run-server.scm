@@ -23,8 +23,8 @@
 (use-modules (web server))
 
 (setlocale LC_ALL "")
-(textdomain "html")
-(bindtextdomain "html" "/home/joe/Ontwikkeling/Persoonlijk/byggsteg/po")
+(textdomain "messages")
+(bindtextdomain "messages" "/home/joe/Ontwikkeling/Persoonlijk/byggsteg/po")
 
 (define source-files
   ;; byggsteg source code ordered list of modules to be loaded.
