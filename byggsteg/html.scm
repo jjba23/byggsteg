@@ -36,8 +36,6 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads))
 
-(define-public (_ str) (gettext str))
-
 (define* (respond should-auto-refresh #:optional body #:key
                   (status 200)
                   (title "Hello hello!")
@@ -99,14 +97,14 @@
 (define-public (job-request-form-page)
   (respond
    #f
-   `((h2 (@(class ,h2-class)) (_ "requesting job run"))
+   `((h2 (@(class ,h2-class)) (gettext "requesting job run"))
      ,(job-form "/jobs/submit" #f)
      )))
 
 (define-public (add-profile-form-page)
   (respond
    #f
-   `((h2 (@(class ,h2-class)) "adding profile")
+   `((h2 (@(class ,h2-class)) (gettext "adding profile"))
      ,(job-form "/profiles/submit" #t)
      )))
 

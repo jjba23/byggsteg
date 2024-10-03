@@ -12,4 +12,16 @@ clean-dirs:
 server:
 	GUILE_AUTO_COMPILE=0 guile run-server.scm
 xgettext:
-	xgettext --keyword=_ --language=scheme --add-comments --sort-output -o po/html.pot byggsteg/html.scm 
+	xgettext --keyword=gettext --language=scheme --add-comments --sort-output -o po/html.pot byggsteg/html.scm
+msginit:
+	msginit --input=po/html.pot --locale=nl --output=po/nl/html.po
+msginit-en:
+	msginit --input=po/html.pot --locale=en --output=po/en/html.po
+msgmerge:
+	msgmerge --update po/nl/html.po po/html.pot
+msgmerge-en:
+	msgmerge --update po/en/html.po po/html.pot
+msgfmt:
+	msgfmt --output-file=po/nl/html.mo po/nl/html.po
+msgfmt-en:
+	msgfmt --output-file=po/en/html.mo po/en/html.po
