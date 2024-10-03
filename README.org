@@ -91,11 +91,13 @@ You can query for the job status via the UI or also via the REST API. You could 
 
 ~byggsteg~ is licensed under the GNU GPL v3 License or newer.
 
+** Ongoing efforts
+
+**** WIP Implement gettext internationalization
+
 ** Project management - backlog
 
 **** TODO Hot reload server
-
-**** TODO Implement gettext internationalization
 
 **** TODO Feature parity (currently HTML has more functionalities than JSON)
 
