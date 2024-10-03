@@ -98,14 +98,14 @@
 (define-public (job-request-form-page)
   (respond
    #f
-   `((h2 (@(class ,h2-class)) (G_ "requesting job run"))
+   `((h2 (@(class ,h2-class)) (i 'run-job-title))
      ,(job-form "/jobs/submit" #f)
      )))
 
 (define-public (add-profile-form-page)
   (respond
    #f
-   `((h2 (@(class ,h2-class)) (G_ "adding profile"))
+   `((h2 (@(class ,h2-class)) "adding profile")
      ,(job-form "/profiles/submit" #t)
      )))
 

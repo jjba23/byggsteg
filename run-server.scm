@@ -26,8 +26,13 @@
   ;; byggsteg source code ordered list of modules to be loaded.
   ;; please ensure that load order is respected.
   '("preferences.scm"
+    
+    "i18n/en.scm"
+    "i18n/nl.scm"
+    
     "prelude.scm"
     "process.scm"
+
     "base16.scm"
     "url.scm"
     "job.scm"
