@@ -11,4 +11,5 @@ clean-dirs:
 	sudo rm -rfv /var/log/byggsteg/* || true
 server:
 	GUILE_AUTO_COMPILE=0 guile run-server.scm
-
+xgettext:
+	xgettext --keyword=_ --language=scheme --add-comments --sort-output -o po/html.pot byggsteg/html.scm 
