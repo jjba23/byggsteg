@@ -250,12 +250,34 @@
      `((div (@(class "flex flex-row flex-wrap align-center gap-6"))
             (h2 (@(class ,h2-class)) ,(ii 'viewing-profile-title))
             (h3 (@(class "text-stone-200 text-2xl my-4")) ,profile-name))
-       
-       (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/profiles/delete"))
-             (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
-                     (class "rounded-xl border font-sans p-2")))
+
+
+       (div (@(class "flex flex-row flex-wrap gap-4"))
+            (form
+             (@(method "POST")
+              (action "/jobs/submit")
+              (enctype "application/x-www-form-urlencoded")
+              (charset "utf-8"))
+
+             (textarea (@(id "job-code")
+                        (name "job-code")
+                        (required "")
+                        (hidden "")) ,profile-data)
+             
              (button (@(type "submit")
-                      (class ,danger-button-class)) "delete"))
+                      (class ,button-class))
+                     "start new job"))
+            
+            (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/profiles/delete"))
+                  (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
+                          (class "rounded-xl border font-sans p-2")))
+                  (button (@(type "submit")
+                           (class ,danger-button-class)) "delete"))
+            )
+
+
+
+       
 
        (form (@(method "POST")
               (enctype "application/x-www-form-urlencoded")
@@ -270,34 +292,19 @@
              )
        
 
-       (form
-        (@(method "POST")
-         (action "/jobs/submit")
-         (enctype "application/x-www-form-urlencoded")
-         (charset "utf-8"))
 
-        (textarea (@(id "job-code")
-                   (name "job-code")
-                   (required "")
-                   (hidden "")) ,profile-data)        
-
-
-        
-        (button (@(type "submit")
-                 (class ,button-class))
-                "start new job"))
        )
      )))
 
-  (define-public (welcome-page)
-    (let* ((jobs (get-file-list job-log-location))
-           (jobs-html (map make-job-link jobs)))
+(define-public (welcome-page)
+  (let* ((jobs (get-file-list job-log-location))
+         (jobs-html (map make-job-link jobs)))
 
-      (respond
-       #t
-       `((h2 (@(class ,h2-class)) "jobs")
-         (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
-              ,jobs-html)))))
+    (respond
+     #t
+     `((h2 (@(class ,h2-class)) "jobs")
+       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
+            ,jobs-html)))))
 
 (define-public (make-job-link log-filename)
   (let* (
