@@ -23,8 +23,8 @@
 (use-modules (web server))
 
 (setlocale LC_ALL "")
-(textdomain "messages")
-(bindtextdomain "messages" "/home/joe/Ontwikkeling/Persoonlijk/byggsteg/po")
+(textdomain "byggsteg")
+
 
 (define source-files
   ;; byggsteg source code ordered list of modules to be loaded.
@@ -40,7 +40,7 @@
     "server.scm"
     "rest.scm"
     "main.scm"))
-(for-each (lambda(file) (load (format #f "byggsteg/~a" file))) source-files)
+(for-each (lambda(file) (load (format #f "src/~a" file))) source-files)
 
 (use-modules (byggsteg-main))
 (run-server byggsteg-http-server 'http '(#:port 50023))

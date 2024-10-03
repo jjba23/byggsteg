@@ -11,17 +11,25 @@ clean-dirs:
 	sudo rm -rfv /var/log/byggsteg/* || true
 server:
 	GUILE_AUTO_COMPILE=0 guile run-server.scm
+
 xgettext:
-	xgettext --keyword=gettext --language=scheme --add-comments --sort-output -o po/html.pot byggsteg/html.scm
+	xgettext --keyword=gettext \
+		--language=scheme \
+		--add-comments \
+		--sort-output \
+		-o po/byggsteg.pot \
+		./src/html.scm \
+		./src/server.scm \
+		./src/job.scm
+
 msginit:
-	msginit --input=po/html.pot --locale=nl --output=po/nl/html.po
-msginit-en:
-	msginit --input=po/html.pot --locale=en --output=po/en/html.po
+	msginit --input=po/byggsteg.pot --locale=${BYGGSTEG_LOCALE} \
+		--output=po/byggsteg.${BYGGSTEG_LOCALE}.po
+
 msgmerge:
-	msgmerge --update po/nl/html.po po/html.pot
-msgmerge-en:
-	msgmerge --update po/en/html.po po/html.pot
+	msgmerge --update po/byggsteg.${BYGGSTEG_LOCALE}.po po/byggsteg.pot
 msgfmt:
-	msgfmt --output-file=po/nl/html.mo po/nl/html.po
-msgfmt-en:
-	msgfmt --output-file=po/en/html.mo po/en/html.po
+	msgfmt --output-file=locale/${BYGGSTEG_LOCALE}/LC_MESSAGES/byggsteg.mo po/byggsteg.nl.po
+
+i18n: xgettext msginit msgmerge msgfmt
+

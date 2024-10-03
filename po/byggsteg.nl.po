@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-03 13:50+0200\n"
-"PO-Revision-Date: 2024-10-03 13:55+0200\n"
+"POT-Creation-Date: 2024-10-03 19:15+0200\n"
+"PO-Revision-Date: 2024-10-03 19:15+0200\n"
 "Last-Translator: Joe <jjbigorra@gmail.com>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -17,10 +17,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: byggsteg/html.scm:107
+#: src/html.scm:107
 msgid "adding profile"
 msgstr "profiel toevoegen"
 
-#: byggsteg/html.scm:100
+#: src/html.scm:100
 msgid "requesting job run"
-msgstr "job aanvraag"
+msgstr "taak aanvragen"
