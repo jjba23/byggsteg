@@ -78,12 +78,12 @@
 
 (define-public (job-submit-api request body)
   (let* ((kv (read-url-encoded-body body))
-         (job-code (car (assoc-ref kv "job-code")))
+         (job-code (url-decode (car (assoc-ref kv "job-code"))))
          (kvv (eval-string job-code))
          (project (assoc-ref kvv 'project))
          (clone-url (assoc-ref kvv 'clone-url))
          (branch-name (assoc-ref kvv 'branch-name))
-         (task (assoc-ref kv 'task))
+         (task (assoc-ref kvv 'task))
          (log-filename (new-project-log-filename project))
          (only-filename (string-replace-substring log-filename job-log-location ""))
          (public-log-filename (base-16-encode only-filename))
@@ -91,19 +91,9 @@
          (json (format #f
                        (string-append
                         "{"
-                        "\"project\": \"~a\","
-                        "\"task\": \"~a\","
-                        "\"clone-url\": \"~a\","
-                        "\"branch-name\": \"~a\","
-                        "\"log-filename\": \"~a\","
-                        "\"public-log-filename\": \"~a\""
+                        "\"log-filename\": \"~a\""
                         "}"
                         )
-                       project
-                       task
-                       clone-url
-                       branch-name
-                       only-filename
                        public-log-filename
                        )))
 

@@ -62,17 +62,16 @@ Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code
 #+end_src
 
 You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
-You could do this  for example from a GitHub action pipeline:
 
-#+begin_src  json
-  {
-    "project": "free-alacarte",
-    "task": "stack-test",
-    "clone-url": "https://github.com/jjba23/free-alacarte",
-    "branch-name": "trunk",
-    "log-filename": "free-alacarte__2024-09-29__11:54:43.byggsteg.log",
-   "public-log-filename": "667265652d616c6163"
-  }
+You could do this  for example from your favourite system programatically, or via cURL:
+
+#+begin_src sh
+  curl 'http://localhost:50023/api/jobs/submit' -X POST --data-urlencode \
+     'job-code=`((project . "free-alacarte") (task . "stack-test") (branch-name . "trunk") (clone-url . "https://github.com/jjba23/free-alacarte"))'
+  
+#  {
+#    "log-filename": "667265652d616c6163"
+#  }
 #+end_src
 
 You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
@@ -102,11 +101,12 @@ You can query for the job status via the UI or also via the REST API. You could 
 
 **** TODO Improve JSON support
 
-**** TODO Allow user to send Guile Scheme over the wire and define his/her own pipeline in a ~progn~ fashion.
-
 **** TODO Add REPL interface via website, to allow hot-modifications
 
 ** ✅ Work done
+
+**** DONE Allow user to send Guile Scheme over the wire and define his/her own pipeline in a ~progn~ fashion.
+CLOSED: [2024-10-03 do 13:24]
 
 **** DONE Concurrency primitives and usage
 CLOSED: [2024-10-01 di 00:23]
