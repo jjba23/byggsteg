@@ -14,5 +14,5 @@ jobs:
            curl 'https://byggsteg.jointhefreeworld.org/api/jobs/submit' \
                -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
                -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
-               --data-urlencode "job-code=\`((project . \byggsteg\")(branch-name . \"trunk\")(task . \"byggsteg-version\")(clone-url . \"https://github.com/jjba23/byggsteg\"))"
+               --data-urlencode "job-code=\`((project . \"byggsteg\")(branch-name . \"trunk\")(task . \"byggsteg-version\")(clone-url . \"https://github.com/jjba23/byggsteg\"))"
 
