@@ -22,14 +22,11 @@
 (use-modules (ice-9 iconv))
 (use-modules (web server))
 
-(setlocale LC_ALL "")
-(textdomain "byggsteg")
-
-
 (define source-files
   ;; byggsteg source code ordered list of modules to be loaded.
   ;; please ensure that load order is respected.
   '("preferences.scm"
+    "prelude.scm"
     "process.scm"
     "base16.scm"
     "url.scm"

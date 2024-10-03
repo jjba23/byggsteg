@@ -23,6 +23,7 @@
   #:use-module (byggsteg-job)
   #:use-module (byggsteg-log)
   #:use-module (byggsteg-tailwind)
+  #:use-module (byggsteg-prelude)
   #:use-module (web server)
   #:use-module (web request)             
   #:use-module (web response)
@@ -97,14 +98,14 @@
 (define-public (job-request-form-page)
   (respond
    #f
-   `((h2 (@(class ,h2-class)) (gettext "requesting job run"))
+   `((h2 (@(class ,h2-class)) (G_ "requesting job run"))
      ,(job-form "/jobs/submit" #f)
      )))
 
 (define-public (add-profile-form-page)
   (respond
    #f
-   `((h2 (@(class ,h2-class)) (gettext "adding profile"))
+   `((h2 (@(class ,h2-class)) (G_ "adding profile"))
      ,(job-form "/profiles/submit" #t)
      )))
 
@@ -283,6 +284,7 @@
 (define-public (welcome-page)
   (let* ((jobs (get-file-list job-log-location))
          (jobs-html (map make-job-link jobs)))
+
     (respond
      #t
      `((h2 (@(class ,h2-class)) "jobs")

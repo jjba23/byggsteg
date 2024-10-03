@@ -19,8 +19,8 @@ msgstr ""
 
 #: src/html.scm:107
 msgid "adding profile"
-msgstr "adding profile"
+msgstr "adding profile+"
 
 #: src/html.scm:100
 msgid "requesting job run"
-msgstr "requesting job run"
+msgstr "requesting job run+"
