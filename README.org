@@ -7,7 +7,7 @@ This is a simple CI/CD system written in Guile Scheme.
 ~byggsteg~ uses plain Guile with almost no dependencies to function, SXML, and some basic POSIX / UNIX utilities. 
 
 #+begin_html
-<img src="./resources/combined_image.png"/>
+<img src="./resources/Schermafdruk_2024-10-03_23-37-14.png"/>
 #+end_html
 
 ** What is byggsteg ?
@@ -66,8 +66,10 @@ You can use the UI and visit ~/jobs/request~ or you can also invoke this via the
 You could do this  for example from your favourite system programatically, or via cURL:
 
 #+begin_src sh
-  curl 'http://localhost:50023/api/jobs/submit' -X POST --data-urlencode \
-     'job-code=`((project . "free-alacarte") (task . "stack-test") (branch-name . "trunk") (clone-url . "https://github.com/jjba23/free-alacarte"))'
+curl 'https://byggsteg.jointhefreeworld.org/api/jobs/submit' \
+    -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
+    -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
+    --data-urlencode "job-code=\`((project . \"free-alacarte\")(branch-name . \"trunk\")(task . \"stack-test\")(clone-url . \"https://github.com/jjba23/free-alacarte\"))"
   
 #  {
 #    "log-filename": "667265652d616c6163"
