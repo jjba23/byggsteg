@@ -22,13 +22,19 @@
 (use-modules (ice-9 iconv))
 (use-modules (web server))
 
+(define i18n-files
+  '(
+    "en.scm"
+    "nl.scm"
+    ))
+
+(display i18n-files)
+(for-each (lambda(file) (load (format #f "src/i18n/~a" file))) i18n-files)
+
 (define source-files
   ;; byggsteg source code ordered list of modules to be loaded.
   ;; please ensure that load order is respected.
   '("preferences.scm"
-    
-    "i18n/en.scm"
-    "i18n/nl.scm"
     
     "prelude.scm"
     "process.scm"
@@ -42,9 +48,12 @@
     "server.scm"
     "rest.scm"
     "main.scm"))
+(display source-files)
 (for-each (lambda(file) (load (format #f "src/~a" file))) source-files)
 
 (use-modules (byggsteg-main))
+
 (run-server byggsteg-http-server 'http '(#:port 50023))
+
 
 

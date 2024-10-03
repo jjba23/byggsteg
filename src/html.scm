@@ -98,14 +98,14 @@
 (define-public (job-request-form-page)
   (respond
    #f
-   `((h2 (@(class ,h2-class)) (i 'run-job-title))
+   `((h2 (@(class ,h2-class)) ,(ii 'run-job-title))
      ,(job-form "/jobs/submit" #f)
      )))
 
 (define-public (add-profile-form-page)
   (respond
    #f
-   `((h2 (@(class ,h2-class)) "adding profile")
+   `((h2 (@(class ,h2-class)) ,(ii 'add-profile-title))
      ,(job-form "/profiles/submit" #t)
      )))
 
@@ -247,9 +247,9 @@
     
     (respond
      #f
-     `((h3 (@(class "text-stone-200 text-2xl my-4")) ,profile-name)
-       (div (@(class "flex flex-row flex-wrap align-center gap-6"))
-            (h2 (@(class ,h2-class)) "viewing profile"))
+     `((div (@(class "flex flex-row flex-wrap align-center gap-6"))
+            (h2 (@(class ,h2-class)) ,(ii 'viewing-profile-title))
+            (h3 (@(class "text-stone-200 text-2xl my-4")) ,profile-name))
        
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/profiles/delete"))
              (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
@@ -257,39 +257,47 @@
              (button (@(type "submit")
                       (class ,danger-button-class)) "delete"))
 
-       (pre
-        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll"))
-        ,profile-data)
+       (form (@(method "POST")
+              (enctype "application/x-www-form-urlencoded")
+              (action "/profiles/submit"))
+             (input (@(hidden "")(name "profile-name")(value ,profile-name)))
+             (textarea
+              (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll w-full min-h-64")
+               (name "job-code"))
+              ,profile-data)
+             (button (@(type "submit")
+                      (class ,button-class)) "save")
+             )
+       
 
        (form
         (@(method "POST")
          (action "/jobs/submit")
          (enctype "application/x-www-form-urlencoded")
          (charset "utf-8"))
-        
-        (input (@(id "job-code")
-                (name "job-code")
-                (value ,profile-data)
-                (required "")
-                (hidden "")))
+
+        (textarea (@(id "job-code")
+                   (name "job-code")
+                   (required "")
+                   (hidden "")) ,profile-data)        
+
+
         
         (button (@(type "submit")
                  (class ,button-class))
                 "start new job"))
+       )
+     )))
 
-       
-       
-       ))))
+  (define-public (welcome-page)
+    (let* ((jobs (get-file-list job-log-location))
+           (jobs-html (map make-job-link jobs)))
 
-(define-public (welcome-page)
-  (let* ((jobs (get-file-list job-log-location))
-         (jobs-html (map make-job-link jobs)))
-
-    (respond
-     #t
-     `((h2 (@(class ,h2-class)) "jobs")
-       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
-            ,jobs-html)))))
+      (respond
+       #t
+       `((h2 (@(class ,h2-class)) "jobs")
+         (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
+              ,jobs-html)))))
 
 (define-public (make-job-link log-filename)
   (let* (
@@ -354,16 +362,21 @@
 (define-public (page-footer)
   `((div (@(class "block text-center"))
          (hr (@(class ,hr-class)))
-         (p (@(class "text-lg text-stone-200")) "byggsteg is the hackable Guile CI/CD system.")
-         (p (@(class "text-lg text-stone-200")) "byggsteg is free software, available under the GNU General Public License v3 or newer.")
+         (p (@(class "text-lg text-stone-200")) ,(ii 'byggsteg-hackable))
+         (p (@(class "text-lg text-stone-200")) ,(ii 'byggsteg-license))
          
          (div (@(class "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@(class "text-sm text-stone-300")) "find the source code here:")
               (a (@(class "text-orange-400 font-bold cursor-pointer text-sm")
-                  (href "https://github.com/jjba23/byggsteg")) "https://github.com/jjba23/byggsteg")
+                  (href "https://github.com/jjba23/byggsteg"))
+                 "https://github.com/jjba23/byggsteg")
               )
-         (p (@(class "mt-4")) (em (@(class "text-lg text-stone-200")) "Copyright 2024 - Free Software Foundation, Inc."))
-         (p (@(class "mt-4")) (span (@(class "text-sm text-stone-200")) "byggsteg means “build step” in the Norwegian language."))
+         (p (@(class "mt-4"))
+            (em (@(class "text-lg text-stone-200"))
+                "Copyright 2024 - Free Software Foundation, Inc."))
+         (p (@(class "mt-4"))
+            (span (@(class "text-sm text-stone-200"))
+                  ,(ii 'byggsteg-word-meaning)))
          )))
 
 

@@ -13,10 +13,11 @@
 (define-public locale (car (string-split (getenv "LANG") #\_) ))
 
 
-(define-public (i sym)
+(define-public (ii sym)
   (cond
-   ((equal? locale "nl")(assoc-ref dict-nl 'sym))
-   (else (assoc-ref dict-en 'sym))
+   ((equal? locale "nl")
+    (assoc-ref dict-nl sym))
+   (else (assoc-ref dict-en sym))
    )
   )
 
