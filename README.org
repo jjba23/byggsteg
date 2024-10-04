@@ -7,7 +7,7 @@ This is a simple CI/CD system written in Guile Scheme.
 ~byggsteg~ uses plain Guile with almost no dependencies to function, SXML, and some basic POSIX / UNIX utilities. 
 
 #+begin_html
-<img src="./resources/Schermafdruk_2024-10-03_23-36-39.png"/>
+<img src="./resources/Schermafdruk_2024-10-04_23-28-46.png"/>
 #+end_html
 
 ** What is byggsteg ?

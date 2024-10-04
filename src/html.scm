@@ -285,7 +285,7 @@
               (action "/profiles/submit"))
              (input (@(hidden "")(name "profile-name")(value ,profile-name)))
              (textarea
-              (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll w-full min-h-64")
+              (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll w-full min-h-64 font-mono")
                (name "job-code"))
               ,profile-data)
              (button (@(type "submit")
