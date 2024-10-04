@@ -339,7 +339,7 @@
     `((div
        (@(class "flex flex-col gap-2"))
        (a (@(class ,dash-link-face)
-           (href ,profiles-link)) ,profile-name)
+           (href ,profiles-link)) ,(string-append "~>  " profile-name))
        ))
     ))
 
