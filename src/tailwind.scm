@@ -95,6 +95,7 @@
      "border-stone-500"
      "p-2"
      "ml-6"
+     "w-full"
      "text-lg"
      "bg-stone-800"
      "font-mono"

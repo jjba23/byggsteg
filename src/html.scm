@@ -285,7 +285,7 @@
               (action "/profiles/submit"))
              (input (@(hidden "")(name "profile-name")(value ,profile-name)))
              (textarea
-              (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll w-full min-h-64 font-mono")
+              (@(class ,textarea-class)
                (name "job-code"))
               ,profile-data)
              (button (@(type "submit")
@@ -320,7 +320,7 @@
     `((div
        (@(class "flex flex-col gap-2"))
        (a (@(class ,dash-link-face)
-           (href ,logs-link)) ,log-filename)
+           (href ,logs-link)) ,(string-append "~>  " log-filename))
        (div (@(class "p-2 text-xl")) ,job-status)))))
 
 (define-public (profile-list-page)
