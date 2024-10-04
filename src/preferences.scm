@@ -28,3 +28,5 @@
 (define-public job-detail-location "/var/log/byggsteg/job-detail/")
 
 (define-public profile-location "/var/log/byggsteg/profile/")
+
+(define-public job-time-format "%H:%M:%S__%d-%m-%Y")

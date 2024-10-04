@@ -28,7 +28,7 @@
 (define (get-log-current-date-time)
   "Get current timestamp string formatted to contain only dashes."
   (let ((now (localtime (current-time))))
-    (strftime "%Y-%m-%d__%H:%M:%S" now)))
+    (strftime job-time-format now)))
 
 
 (define-public (new-project-log-filename project)

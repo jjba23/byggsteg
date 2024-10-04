@@ -2,9 +2,9 @@ tailwind.config={
     darkMode:"media",
     theme:{
         fontFamily:{
-            sans:["Iosevka","ui-sans-serif","system-ui","sans-serif"],
-            serif:["Iosevka","serif"],
-            mono:["Iosevka","monospace"]
+            sans:["Roboto Condensed","ui-sans-serif","system-ui","sans-serif"],
+            serif:["Roboto Slab","serif"],
+            mono:["Roboto Mono","monospace"]
         }
     }
 }

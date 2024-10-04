@@ -60,7 +60,7 @@
 (define-public (maybe-profile-name is-profile)
   (cond
    ((equal? is-profile #t)
-    `((label (@(for "profile-name")(class "text-stone-200 font-bold")) "profile name:")
+    `((label (@(for "profile-name")(class "text-stone-300 font-bold")) "profile name:")
       (input (@(id "profile-name")(name "profile-name")(required "")
               (class ,input-class)))
       )
@@ -82,11 +82,11 @@
 
     (p (@(class "flex flex-row flex-wrap gap-4"))
        (span (@(class "text-stone-400 text-sm")) "learn writing code for a job: ")
-       (a (@(class "text-orange-500 text-sm")(href "https://github.com/jjba23/byggsteg")) "https://github.com/jjba23/byggsteg"))
+       (a (@(class "text-green-500 text-sm")(href "https://github.com/jjba23/byggsteg")) "https://github.com/jjba23/byggsteg"))
 
 
     
-    (label (@(for "job-code")(class "text-stone-200 font-bold")) "job code:")
+    (label (@(for "job-code")(class "text-stone-300 font-bold")) "job code:")
     (textarea (@(id "job-code")(name "job-code")(required "")
                (class ,textarea-class)) "")
     
@@ -208,15 +208,16 @@
        (failure (read-job-failure log-filename))
        (job-status
         (cond
-         ((equal? success #t) `(h2 (@(class "text-2xl text-green-700")) "job succeeded"))
-         ((equal? failure #t) `(h2 (@(class "text-2xl text-red-700")) "job failed"))
-         (else `(h2 (@(class "text-2xl text-sky-700")) "job in progress")))))
+         ((equal? success #t) `(h2 (@(class "text-2xl text-green-700 my-4")) "job succeeded"))
+         ((equal? failure #t) `(h2 (@(class "text-2xl text-red-700 my-4")) "job failed"))
+         (else `(h2 (@(class "text-2xl text-sky-700 my-4")) "job in progress")))))
     (respond
      #t
-     `((h3 (@(class "text-stone-200 text-2xl my-4")) ,log-filename)
-       (div (@(class "flex flex-row flex-wrap align-center gap-6"))
+     `(
+       (div (@(class "flex flex-row flex-wrap align-middle gap-6"))
             (h2 (@(class ,h2-class)) "viewing logs")
             ,job-status)
+       (h3 (@(class "text-stone-300 text-xl my-4")) ,log-filename)
        
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
              (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
@@ -225,10 +226,10 @@
                       (class ,danger-button-class)) "delete"))
 
        (pre
-        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll"))
+        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll"))
         ,detail-data)
        (pre
-        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll"))
+        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll"))
         ,log-data)))))
 
 
@@ -249,7 +250,7 @@
      #f
      `((div (@(class "flex flex-row flex-wrap align-center gap-6"))
             (h2 (@(class ,h2-class)) ,(ii 'viewing-profile-title))
-            (h3 (@(class "text-stone-200 text-2xl my-4")) ,profile-name))
+            (h3 (@(class "text-stone-300 text-2xl my-4")) ,profile-name))
 
 
        (div (@(class "flex flex-row flex-wrap gap-4"))
@@ -284,7 +285,7 @@
               (action "/profiles/submit"))
              (input (@(hidden "")(name "profile-name")(value ,profile-name)))
              (textarea
-              (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-200 white-space-pre overflow-x-scroll w-full min-h-64")
+              (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll w-full min-h-64")
                (name "job-code"))
               ,profile-data)
              (button (@(type "submit")
@@ -313,14 +314,14 @@
          (success (read-job-success log-filename))
          (failure (read-job-failure log-filename))
          (job-status (cond
-                      ((equal? success #t) `(h2 (@(class "text-sm text-green-700 text-lg")) "job succeeded"))
-                      ((equal? failure #t) `(h2 (@(class "text-sm text-red-700 text-lg")) "job failed"))
-                      (else `(h2 (@(class "text-sm text-sky-700 text-lg")) "job in progress")))))
+                      ((equal? success #t) `(h2 (@(class "text-sm text-green-700 text-xl ml-4")) "job succeeded"))
+                      ((equal? failure #t) `(h2 (@(class "text-sm text-red-700 text-xl ml-4")) "job failed"))
+                      (else `(h2 (@(class "text-sm text-sky-700 text-xl ml-4")) "job in progress")))))
     `((div
        (@(class "flex flex-col gap-2"))
-       (a (@(class "text-orange-400 font-bold cursor-pointer text-lg")
+       (a (@(class ,dash-link-face)
            (href ,logs-link)) ,log-filename)
-       (div (@(class "p-2 text-lg")) ,job-status)))))
+       (div (@(class "p-2 text-xl")) ,job-status)))))
 
 (define-public (profile-list-page)
   (let* ((profiles (get-file-list profile-location))
@@ -337,16 +338,16 @@
          )
     `((div
        (@(class "flex flex-col gap-2"))
-       (a (@(class "text-orange-400 font-bold cursor-pointer text-lg")
+       (a (@(class ,dash-link-face)
            (href ,profiles-link)) ,profile-name)
        ))
     ))
 
 (define-public (page-top)
-  `((div (@(class "flex flex-row flex-wrap gap-1"))
+  `((div (@(class "flex flex-row flex-wrap gap-1 my-6"))
          
-         (h1 (@(class "text-3xl text-orange-500 font-bold p-2 m-2"))
-             (a (@(href "/")) "byggsteg |"))
+         (h1 (@(class "text-3xl text-green-500 font-bold p-2 m-2"))
+             (a (@(href "/")) "byggsteg"))
          
          (div (@(class "flex flex-row flex-wrap items-center gap-1"))
               (a (@ (href "/")
@@ -369,20 +370,20 @@
 (define-public (page-footer)
   `((div (@(class "block text-center"))
          (hr (@(class ,hr-class)))
-         (p (@(class "text-lg text-stone-200")) ,(ii 'byggsteg-hackable))
-         (p (@(class "text-lg text-stone-200")) ,(ii 'byggsteg-license))
+         (p (@(class "text-lg text-stone-300")) ,(ii 'byggsteg-hackable))
+         (p (@(class "text-lg text-stone-300")) ,(ii 'byggsteg-license))
          
          (div (@(class "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@(class "text-sm text-stone-300")) "find the source code here:")
-              (a (@(class "text-orange-400 font-bold cursor-pointer text-sm")
+              (a (@(class "text-green-400 font-bold cursor-pointer text-sm")
                   (href "https://github.com/jjba23/byggsteg"))
                  "https://github.com/jjba23/byggsteg")
               )
          (p (@(class "mt-4"))
-            (em (@(class "text-lg text-stone-200"))
+            (em (@(class "text-lg text-stone-300"))
                 "Copyright 2024 - Free Software Foundation, Inc."))
          (p (@(class "mt-4"))
-            (span (@(class "text-sm text-stone-200"))
+            (span (@(class "text-sm text-stone-300"))
                   ,(ii 'byggsteg-word-meaning)))
          )))
 
@@ -398,8 +399,13 @@
     `(html
       (head
        (title ,title)
+
+       (link (@(rel "preconnect")(href "https://fonts.googleapis.com")))
+       (link (@(rel "preconnect")(href "https://fonts.gstatic.com")(crossorigin "")))
+       
        (link (@(rel "stylesheet")
-              (href "https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.1.0/400.min.css")))
+              (href "https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto+Slab:wght@100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap")))
+       
        ,maybe-auto-refresh
        (meta (@(name "viewport")
               (content "width=device-width, initial-scale=1.0")))

@@ -26,8 +26,8 @@
 
 (define-public button-class
   (string-join
-   '("bg-orange-500/75"
-     "text-stone-200"
+   '("bg-green-500/75"
+     "text-stone-300"
      "rounded-xl"
      "cursor-pointer"
      "p-2"
@@ -35,17 +35,19 @@
      "w-fit"
      "m-2"
      "text-lg"
+     "font-sans"
      "font-bold") " "))
 
 (define-public nav-button-class
   (string-join
    '(
-     "text-orange-500/75"
+     "text-green-500/75"
      "cursor-pointer"
      "p-2"
      "m-2"
      "border-b-2"
-     "border-b-orange-500"
+     "font-sans"
+     "border-b-green-500/25"
      "text-xl"
      "font-bold") " "))
 
@@ -53,13 +55,14 @@
   (string-join
    '("rounded-xl"
      "bg-red-700"
-     "text-stone-200"
+     "text-stone-300"
      "font-bold"
      "w-fit"
      "border"
      "text-lg"
      "cursor-pointer"
      "p-2"
+     "font-sans"
      "m-2") " "))
 
 (define-public input-class
@@ -71,7 +74,8 @@
      "ml-6"
      "text-lg"
      "bg-stone-800"
-     "text-stone-200"
+     "text-stone-300"
+     "font-mono"
      ) " "))
 
 (define-public hr-class
@@ -80,7 +84,7 @@
 
 (define-public h2-class
   (string-join
-   '("text-3xl" "text-stone-200" "my-4" "font-bold") " "))
+   '("text-3xl" "text-stone-300" "my-4" "font-bold" "font-sans") " "))
 
 
 
@@ -93,6 +97,9 @@
      "ml-6"
      "text-lg"
      "bg-stone-800"
-     "text-stone-200"
+     "font-mono"
+     "text-stone-300"
      "min-h-64"
      ) " "))
+
+(define-public dash-link-face "text-stone-300 font-bold cursor-pointer text-2xl")
