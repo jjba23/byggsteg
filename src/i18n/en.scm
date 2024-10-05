@@ -10,5 +10,10 @@
     (byggsteg-hackable . "byggsteg is the hackable Guile CI/CD system.")
     (byggsteg-license . "byggsteg is free software, available under the GNU GPL v3 or newer.")
     (viewing-profile-title . "profile details")
+    (submit . "submit")
+    (job-in-progress . "job in progress")
+    (job-succeeded . "job succeeded")
+    (job-failed . "job failed")
+    (profiles . "profiles")
     ))
 

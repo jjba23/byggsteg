@@ -39,7 +39,7 @@
 
 (define* (respond should-auto-refresh #:optional body #:key
                   (status 200)
-                  (title "Hello hello!")
+                  (title "byggsteg")
                   (doctype "<!DOCTYPE html>\n")
                   (content-type-params '((charset . "utf-8")))
                   (content-type 'text/html)
@@ -60,14 +60,14 @@
 (define-public (maybe-profile-name is-profile)
   (cond
    ((equal? is-profile #t)
-    `((label (@(for "profile-name")(class "text-stone-300 font-bold")) "profile name:")
-      (input (@(id "profile-name")(name "profile-name")(required "")
-              (class ,input-class)))
-      )
-    )
-   (else `())
-   )
-  )
+    `((label (@(for "profile-name")
+              (class "text-stone-300 font-bold"))
+             "profile name:")
+      (input (@(id "profile-name")
+              (name "profile-name")
+              (required "")
+              (class ,input-class)))))
+   (else `())))
 
 (define-public (job-form route is-profile)
   `(form
@@ -81,33 +81,35 @@
 
 
     (p (@(class "flex flex-row flex-wrap gap-4"))
-       (span (@(class "text-stone-400 text-sm")) "learn writing code for a job: ")
-       (a (@(class "text-green-500 text-sm")(href "https://github.com/jjba23/byggsteg")) "https://github.com/jjba23/byggsteg"))
+       (span (@(class "text-stone-400 text-sm"))
+             "learn writing code for a job: ")
+       (a (@(class "text-green-500 text-sm")
+           (href "https://github.com/jjba23/byggsteg"))
+          "https://github.com/jjba23/byggsteg"))
 
-
-    
-    (label (@(for "job-code")(class "text-stone-300 font-bold")) "job code:")
-    (textarea (@(id "job-code")(name "job-code")(required "")
+    (label (@(for "job-code")
+            (class "text-stone-300 font-bold"))
+           "job code:")
+    (textarea (@(id "job-code")
+               (name "job-code")
+               (required "")
                (class ,textarea-class)) "")
     
     (button (@(type "submit")
              (class ,button-class))
-            "submit"))
-  )
+            ,(ii 'submit))))
 
 (define-public (job-request-form-page)
   (respond
    #f
    `((h2 (@(class ,h2-class)) ,(ii 'run-job-title))
-     ,(job-form "/jobs/submit" #f)
-     )))
+     ,(job-form "/jobs/submit" #f))))
 
 (define-public (add-profile-form-page)
   (respond
    #f
    `((h2 (@(class ,h2-class)) ,(ii 'add-profile-title))
-     ,(job-form "/profiles/submit" #t)
-     )))
+     ,(job-form "/profiles/submit" #t))))
 
 (define-public (job-delete-endpoint request body)
   (let* ((kv (read-url-encoded-body body))
@@ -121,10 +123,7 @@
     (respond #f
              `()
              #:status 302
-             #:extra-headers `((Location . "/"))
-             )
-    
-    ))
+             #:extra-headers `((Location . "/")))))
 
 (define-public (profile-delete-endpoint request body)
   (let* ((kv (read-url-encoded-body body))
@@ -135,10 +134,7 @@
     (respond #f
              `()
              #:status 302
-             #:extra-headers `((Location . "/profiles"))
-             )
-    
-    ))
+             #:extra-headers `((Location . "/profiles")))))
 
 
 
@@ -160,17 +156,13 @@
     (create-empty-file (string-append job-log-location log-filename))
     (create-empty-file (string-append job-detail-location log-filename))
     (with-output-to-file (string-append job-detail-location log-filename)
-      (lambda ()
-        (display job-code)
-        ))
+      (lambda () (display job-code)))
     (async-job-pipeline log-filename project branch-name clone-url task)
 
     (respond #f
              `()
              #:status 302
-             #:extra-headers `((Location . ,logs-link)))
-    
-    ))
+             #:extra-headers `((Location . ,logs-link)))))
 
 (define-public (profile-submit-endpoint request body)
   (let*
@@ -185,15 +177,11 @@
        (profile-link (format #f "/profiles/~a" profile-name)))
     
     (with-output-to-file (string-append profile-location profile-name)
-      (lambda ()
-        (display profile-code)
-        )
-      )
+      (lambda () (display profile-code)))
     (respond #f
              `()
              #:status 302
-             #:extra-headers `((Location . ,profile-link))
-             )))
+             #:extra-headers `((Location . ,profile-link)))))
 
 
 
@@ -208,9 +196,15 @@
        (failure (read-job-failure log-filename))
        (job-status
         (cond
-         ((equal? success #t) `(h2 (@(class "text-2xl text-green-700 my-4")) "job succeeded"))
-         ((equal? failure #t) `(h2 (@(class "text-2xl text-red-700 my-4")) "job failed"))
-         (else `(h2 (@(class "text-2xl text-sky-700 my-4")) "job in progress")))))
+         ((equal? success #t)
+          `(h2 (@(class "text-2xl text-green-700 my-4"))
+               ,(ii 'job-succeeded)))
+         ((equal? failure #t)
+          `(h2 (@(class "text-2xl text-red-700 my-4"))
+               ,(ii 'job-failed)))
+         (else
+          `(h2 (@(class "text-2xl text-sky-700 my-4"))
+               ,(ii 'job-in-progress))))))
     (respond
      #t
      `(
@@ -242,8 +236,7 @@
        (project (assoc-ref kv 'project))
        (clone-url (assoc-ref kv 'clone-url))
        (branch-name (assoc-ref kv 'branch-name))
-       (task (assoc-ref kv 'task))
-       )
+       (task (assoc-ref kv 'task)))
 
     
     (respond
@@ -273,29 +266,21 @@
                   (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
                           (class "rounded-xl border font-sans p-2")))
                   (button (@(type "submit")
-                           (class ,danger-button-class)) "delete"))
-            )
-
-
-
+                           (class ,danger-button-class)) "delete")))
        
 
        (form (@(method "POST")
               (enctype "application/x-www-form-urlencoded")
               (action "/profiles/submit"))
-             (input (@(hidden "")(name "profile-name")(value ,profile-name)))
+             (input (@(hidden "")(name "profile-name")
+                     (value ,profile-name)))
              (textarea
               (@(class ,textarea-class)
                (name "job-code"))
               ,profile-data)
              (button (@(type "submit")
-                      (class ,button-class)) "save")
-             )
-       
-
-
-       )
-     )))
+                      (class ,button-class))
+                     "save"))))))
 
 (define-public (welcome-page)
   (let* ((jobs (get-file-list job-log-location))
@@ -313,10 +298,17 @@
          (logs-link (format #f "/logs/~a" public-log-filename))
          (success (read-job-success log-filename))
          (failure (read-job-failure log-filename))
-         (job-status (cond
-                      ((equal? success #t) `(h2 (@(class "text-sm text-green-700 text-xl ml-4")) "job succeeded"))
-                      ((equal? failure #t) `(h2 (@(class "text-sm text-red-700 text-xl ml-4")) "job failed"))
-                      (else `(h2 (@(class "text-sm text-sky-700 text-xl ml-4")) "job in progress")))))
+         (job-status
+          (cond
+           ((equal? success #t)
+            `(h2 (@(class "text-sm text-green-700 text-xl ml-4"))
+                 ,(ii 'job-succeeded)))
+           ((equal? failure #t)
+            `(h2 (@(class "text-sm text-red-700 text-xl ml-4"))
+                 ,(ii 'job-failed)))
+           (else
+            `(h2 (@(class "text-sm text-sky-700 text-xl ml-4"))
+                 ,(ii 'job-in-progress))))))
     `((div
        (@(class "flex flex-col gap-2"))
        (a (@(class ,dash-link-face)
@@ -328,7 +320,7 @@
          (profiles-html (map make-profile-link profiles)))
     (respond
      #f
-     `((h2 (@(class ,h2-class)) "profiles")
+     `((h2 (@(class ,h2-class)) ,(ii 'profiles))
        (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))            
             ,profiles-html)))))
 
@@ -339,16 +331,13 @@
     `((div
        (@(class "flex flex-col gap-2"))
        (a (@(class ,dash-link-face)
-           (href ,profiles-link)) ,(string-append "~>  " profile-name))
-       ))
-    ))
+           (href ,profiles-link))
+          ,(string-append "~>  " profile-name))))))
 
 (define-public (page-top)
   `((div (@(class "flex flex-row flex-wrap gap-1 my-6"))
-         
          (h1 (@(class "text-3xl text-green-500 font-bold p-2 m-2"))
-             (a (@(href "/")) "byggsteg"))
-         
+             (a (@(href "/")) "byggsteg"))         
          (div (@(class "flex flex-row flex-wrap items-center gap-1"))
               (a (@ (href "/")
                     (class ,nav-button-class))
@@ -358,12 +347,10 @@
                  "+ new job run")
               (a (@ (href "/profiles")
                     (class ,nav-button-class))
-                 "profiles")
+                 ,(ii 'profiles))
               (a (@ (href "/profiles/new")
                     (class ,nav-button-class))
-                 "+ new profile")))
-    ;;(hr (@(class ,hr-class)))
-    ))
+                 "+ new profile")))))
 
 
 
@@ -372,7 +359,6 @@
          (hr (@(class ,hr-class)))
          (p (@(class "text-lg text-stone-300")) ,(ii 'byggsteg-hackable))
          (p (@(class "text-lg text-stone-300")) ,(ii 'byggsteg-license))
-         
          (div (@(class "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@(class "text-sm text-stone-300")) "find the source code here:")
               (a (@(class "text-green-400 font-bold cursor-pointer text-sm")
@@ -384,8 +370,7 @@
                 "Copyright 2024 - Free Software Foundation, Inc."))
          (p (@(class "mt-4"))
             (span (@(class "text-sm text-stone-300"))
-                  ,(ii 'byggsteg-word-meaning)))
-         )))
+                  ,(ii 'byggsteg-word-meaning))))))
 
 
 
@@ -393,27 +378,28 @@
   (let
       ((maybe-auto-refresh
         (cond
-         ((equal? should-auto-refresh #t) `(meta(@(content "10")(http-equiv "refresh")) ()))
+         ((equal? should-auto-refresh #t)
+          `(meta(@(content "10")(http-equiv "refresh")) ()))
          (else `()))))
 
     `(html
       (head
        (title ,title)
-
-       (link (@(rel "preconnect")(href "https://fonts.googleapis.com")))
-       (link (@(rel "preconnect")(href "https://fonts.gstatic.com")(crossorigin "")))
-       
+       (link (@(rel "preconnect")
+              (href "https://fonts.googleapis.com")))
+       (link (@(rel "preconnect")
+              (href "https://fonts.gstatic.com")(crossorigin "")))
        (link (@(rel "stylesheet")
               (href "https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto+Slab:wght@100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap")))
-       
-       ,maybe-auto-refresh
-       (meta (@(name "viewport")
-              (content "width=device-width, initial-scale=1.0")))
-       (script (@(src "https://cdn.tailwindcss.com")) "")
-       (script (@(src "/resources/js/tailwind.config.js")) ()))
-      (body (@(class "bg-stone-900"))
-            (div (@(class "container mx-auto my-4"))
-                 ,(page-top)
-                 ,@body
-                 ,(page-footer))))))
+              
+              ,maybe-auto-refresh
+              (meta (@(name "viewport")
+                     (content "width=device-width, initial-scale=1.0")))
+              (script (@(src "https://cdn.tailwindcss.com")) "")
+              (script (@(src "/resources/js/tailwind.config.js")) ()))
+    (body (@(class "bg-stone-900"))
+          (div (@(class "container mx-auto my-4"))
+               ,(page-top)
+               ,@body
+               ,(page-footer))))))
 
