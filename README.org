@@ -95,13 +95,11 @@ You can query for the job status via the UI or also via the REST API. You could 
 
 ** Ongoing efforts
 
-**** WIP Implement gettext internationalization
+**** WIP Feature parity (cleanup HTML and bring all functionalities to REST JSON)
 
 ** Project management - backlog
 
 **** TODO Hot reload server
-
-**** TODO Feature parity (currently HTML has more functionalities than JSON)
 
 **** TODO Improve JSON support
 
@@ -117,3 +115,6 @@ CLOSED: [2024-10-01 di 00:23]
 
 **** DONE Split codebase into separate modules
 CLOSED: [2024-09-28 za 12:17]
+
+**** DONE Implement basic internationalization
+CLOSED: [2024-10-05 za 14:34]
