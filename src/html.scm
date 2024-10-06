@@ -33,6 +33,7 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
+  #:use-module (oop goops)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads))
@@ -146,9 +147,13 @@
        (project (assoc-ref kvv 'project))       
        (clone-url (assoc-ref kvv 'clone-url))
        (branch-name (assoc-ref kvv 'branch-name))
-       (task (assoc-ref kvv 'task))       
+       (task (assoc-ref kvv 'task))
+       (job-before-create-hook (assoc-ref kvv 'job-before-create-hook))
+       (the-job-before-create-hook (cdr job-before-create-hook))
+       (job-after-run-hook (assoc-ref kvv 'job-after-run-hook))
        (log-filename (new-project-log-filename project))
        (only-filename (string-replace-substring log-filename job-log-location ""))
+       
        (public-log-filename (base-16-encode only-filename))
        (logs-link (format #f "/logs/~a" public-log-filename))
        )
@@ -157,7 +162,20 @@
     (create-empty-file (string-append job-detail-location log-filename))
     (with-output-to-file (string-append job-detail-location log-filename)
       (lambda () (display job-code)))
-    (async-job-pipeline log-filename project branch-name clone-url task)
+
+    (display job-before-create-hook)
+    (display (class-of the-job-before-create-hook) )
+
+    (cond
+     ((procedure? the-job-before-create-hook) (the-job-before-create-hook))
+     (else #f))
+
+    (async-job-pipeline log-filename
+                        project
+                        branch-name
+                        clone-url
+                        task
+                        job-after-run-hook)
 
     (respond #f
              `()

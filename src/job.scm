@@ -132,12 +132,9 @@
             (format #f "cd ~a && git pull" clone-dir))))))
 
 
-(define-public (async-job-pipeline log-filename project branch-name clone-url task)
+(define-public (async-job-pipeline log-filename project branch-name clone-url task job-after-run-hook)
   (call-with-new-thread
    (lambda ()     
-     (syscall-to-log-file
-      log-filename
-      (format #f "echo '~a'" "\nstarting new job...\n"))
      
      (clone-repo-step project branch-name clone-url log-filename)
      

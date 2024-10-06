@@ -84,6 +84,8 @@
          (clone-url (assoc-ref kvv 'clone-url))
          (branch-name (assoc-ref kvv 'branch-name))
          (task (assoc-ref kvv 'task))
+         (job-before-create-hook (assoc-ref kvv 'job-before-create-hook))
+         (job-after-run-hook (assoc-ref kvv 'job-after-run-hook))
          (log-filename (new-project-log-filename project))
          (only-filename (string-replace-substring log-filename job-log-location ""))
          (public-log-filename (base-16-encode only-filename))
@@ -103,6 +105,19 @@
       (lambda ()
         (display job-code)
         ))
-    (async-job-pipeline log-filename project branch-name clone-url task)
+    (with-output-to-file (string-append job-log-location log-filename) job-before-create-hook)
+    (async-job-pipeline log-filename
+                        project
+                        branch-name
+                        clone-url
+                        task
+                        job-after-run-hook)
     
     (respond-json json)))
+
+
+
+
+
+
+
