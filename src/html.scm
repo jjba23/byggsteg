@@ -381,7 +381,7 @@
          ((equal? should-auto-refresh #t)
           `(meta(@(content "10")(http-equiv "refresh")) ()))
          (else `()))))
-
+    
     `(html
       (head
        (title ,title)
@@ -390,16 +390,19 @@
        (link (@(rel "preconnect")
               (href "https://fonts.gstatic.com")(crossorigin "")))
        (link (@(rel "stylesheet")
-              (href "https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto+Slab:wght@100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap")))
-              
-              ,maybe-auto-refresh
-              (meta (@(name "viewport")
-                     (content "width=device-width, initial-scale=1.0")))
-              (script (@(src "https://cdn.tailwindcss.com")) "")
-              (script (@(src "/resources/js/tailwind.config.js")) ()))
-    (body (@(class "bg-stone-900"))
-          (div (@(class "container mx-auto my-4"))
-               ,(page-top)
-               ,@body
-               ,(page-footer))))))
+              (href "https://fonts.cdnfonts.com/css/liberation-sans")
+              ))
+       (link (@(rel "stylesheet")
+              (href "/resources/css/fonts.css")))
+       
+       ,maybe-auto-refresh
+       (meta (@(name "viewport")
+              (content "width=device-width, initial-scale=1.0")))
+       (script (@(src "https://cdn.tailwindcss.com")) "")
+       (script (@(src "/resources/js/tailwind.config.js")) ()))
+      (body (@(class "bg-stone-900"))
+            (div (@(class "container mx-auto my-4"))
+                 ,(page-top)
+                 ,@body
+                 ,(page-footer))))))
 

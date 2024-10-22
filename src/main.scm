@@ -70,6 +70,10 @@
       (log-api-page path ))
      ((and (equal? path '("resources" "js" "tailwind.config.js")) (equal? (request-method request) 'GET))
       (respond-static-file "./resources/js/tailwind.config.js" 'text/javascript))
+     ((and (equal? path '("resources" "css" "fonts.css")) (equal? (request-method request) 'GET))
+      (respond-static-file "./resources/css/fonts.css" 'text/css))
+     ((and (equal? path '("resources" "ttf" "IntelOneMono-Regular.ttf")) (equal? (request-method request) 'GET))
+      (respond-static-file "./resources/ttf/IntelOneMono-Regular.ttf" 'application/ttf))
      (else (not-found request)))))
 
 
