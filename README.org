@@ -41,6 +41,8 @@ An example shepherd service for byggsteg could look like this:
   (use-modules (gnu)
                (gnu services shepherd))
 
+  ;; ...............
+
   (define (byggsteg-service config)
     (list
      (shepherd-service
@@ -69,6 +71,8 @@ An example shepherd service for byggsteg could look like this:
              byggsteg-service)))
      (default-value '())
      ))
+
+  ;; then load it with (service byggsteg-service-type)
 #+end_src
 
 
