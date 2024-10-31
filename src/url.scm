@@ -42,7 +42,7 @@
 
 (define-public (url-decode str)
   (let ((cmd (string-append
-              "python -c 'print(input().replace(\"+\", \" \").replace(\"%\", \"\\\\x\").encode().decode(\"unicode_escape\"))' <<< '"
+              "python3 -c 'print(input().replace(\"+\", \" \").replace(\"%\", \"\\\\x\").encode().decode(\"unicode_escape\"))' <<< '"
               str
               "'")))
     (display cmd)
