@@ -34,7 +34,41 @@ And thus, I set out to build a CI/CD system, that on command can:
 
 You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root directory. Refer to the ~Makefile~ for more convenient commands and variations.
 
-~byggsteg~ exposes an HTML frontend (server-side-rendered SSR) and a REST API.
+~byggsteg~ exposes an HTML frontend (server-side-rendered SSR) and a REST API, and should e compatible with most UNIX like systems, but is best experiences with GNU Guix.
+
+An example shepherd service for byggsteg could look like this:
+#+begin_src scheme
+    (define (byggsteg-service config)
+    (list
+     (shepherd-service
+      (documentation "Run byggsteg as a daemon")
+      (provision '(byggsteg))
+      (requirement '())
+      (start #~(make-forkexec-constructor
+                '("make" "server")
+                #:directory "/var/log/byggsteg/job-clone/byggsteg/trunk"
+                #:environment-variables
+                (list
+                 "PATH=/run/privileged/bin:/run/current-system/profile/bin:/run/current-system/profile/sbin"
+                 "LANG=nl_NL.UTF-8")))
+      (stop #~(make-kill-destructor))
+      (auto-start? #t)
+      (respawn? #t)
+      )))
+
+  (define byggsteg-service-type
+    (service-type
+     (name 'byggsteg)
+     (description "Run byggsteg as a daemon")
+     (extensions
+      (list (service-extension
+             shepherd-root-service-type
+             byggsteg-service)))
+     (default-value '())
+     ))
+#+end_src
+
+
 
 *** Types of jobs
 
