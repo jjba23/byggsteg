@@ -64,7 +64,7 @@
        (syscall-to-log-file
         log-filename
         (format #f
-                (string-append "cd ~a" " && systemctl restart byggsteg")
+                (string-append "cd ~a" " && sudo herd restart byggsteg")
                 clone-dir)))
      
      )
@@ -77,7 +77,7 @@
     (syscall-to-log-file
      log-filename
      (format #f
-             (string-append "cd ~a" " && systemctl restart ~a")
+             (string-append "cd ~a" " && sudo herd restart ~a")
              clone-dir
              project))
     

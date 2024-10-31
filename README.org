@@ -85,9 +85,9 @@ An example shepherd service for byggsteg could look like this:
 
 ~nix-build~ - Nix build (flake)
 
-~byggsteg-version~ - Byggsteg pull and restart systemd of itself
+~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself
 
-~pull-and-restart~ - Git pull and restart wanted systemd service
+~pull-and-restart~ - Git pull and restart wanted shepherd service
 
 ~sbt-test~ - Scala project test with SBT
 
