@@ -59,15 +59,11 @@
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
 
-    (call-with-new-thread
-     (lambda ()
-       (syscall-to-log-file
-        log-filename
-        (format #f
-                (string-append "cd ~a" " && sudo herd restart byggsteg")
-                clone-dir)))
-     
-     )
+    (syscall-to-log-file
+     log-filename
+     (format #f
+             (string-append "cd ~a" " && sudo herd restart byggsteg")
+             clone-dir))
     (create-empty-file (string-append job-success-location log-filename))))
 
 (define-public (pull-and-restart-step project branch-name clone-url log-filename)
