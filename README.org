@@ -38,7 +38,10 @@ You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root di
 
 An example shepherd service for byggsteg could look like this:
 #+begin_src scheme
-    (define (byggsteg-service config)
+  (use-modules (gnu)
+               (gnu services shepherd))
+
+  (define (byggsteg-service config)
     (list
      (shepherd-service
       (documentation "Run byggsteg as a daemon")
