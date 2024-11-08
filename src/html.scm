@@ -211,7 +211,7 @@
        (div (@(class "flex flex-row flex-wrap align-middle gap-6"))
             (h2 (@(class ,h2-class)) "viewing logs")
             ,job-status)
-       (h3 (@(class "text-stone-300 text-xl my-4")) ,log-filename)
+       (h3 (@(class "text-stone-300 text-xl my-4 font-mono")) ,log-filename)
        
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
              (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
