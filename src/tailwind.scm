@@ -104,4 +104,4 @@
      ) " "))
 
 (define-public dash-link-face
-  "text-stone-300 font-bold cursor-pointer text-2xl font-mono")
+  "text-stone-300 font-bold cursor-pointer text-xl font-mono")

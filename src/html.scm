@@ -197,13 +197,13 @@
        (job-status
         (cond
          ((equal? success #t)
-          `(h2 (@(class "text-2xl text-green-700 my-4"))
+          `(h2 (@(class "text-xl text-green-700 my-4"))
                ,(ii 'job-succeeded)))
          ((equal? failure #t)
-          `(h2 (@(class "text-2xl text-red-700 my-4"))
+          `(h2 (@(class "text-xl text-red-700 my-4"))
                ,(ii 'job-failed)))
          (else
-          `(h2 (@(class "text-2xl text-sky-700 my-4"))
+          `(h2 (@(class "text-xl text-sky-700 my-4"))
                ,(ii 'job-in-progress))))))
     (respond
      #t
@@ -243,7 +243,7 @@
      #f
      `((div (@(class "flex flex-row flex-wrap align-center gap-6"))
             (h2 (@(class ,h2-class)) ,(ii 'viewing-profile-title))
-            (h3 (@(class "text-stone-300 text-2xl my-4")) ,profile-name))
+            (h3 (@(class "text-stone-300 text-xl my-4")) ,profile-name))
 
 
        (div (@(class "flex flex-row flex-wrap gap-4"))
