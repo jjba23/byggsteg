@@ -83,6 +83,18 @@
     
     (create-empty-file (string-append job-success-location log-filename))))
 
+(define-public (pull-and-deploy-step project branch-name clone-url log-filename)
+  (let* ((clone-dir
+          (string-append job-clone-location project "/" branch-name)))
+
+    (syscall-to-log-file
+     log-filename
+     (format #f
+             (string-append "cd ~a" " && sudo make deploy")
+             clone-dir))
+    
+    (create-empty-file (string-append job-success-location log-filename))))
+
 (define-public (make-build-step project branch-name clone-url log-filename)
   (let* ((clone-dir
           (string-append job-clone-location project "/" branch-name)))
@@ -173,6 +185,12 @@
                       clone-url
                       log-filename)
        (create-empty-file (string-append job-success-location log-filename)))
+
+      ((equal? task "pull-and-deploy")
+       (pull-and-deploy-step project
+                             branch-name
+                             clone-url
+                             log-filename))
       
       (else
        (make-build-step project branch-name clone-url log-filename))))))
