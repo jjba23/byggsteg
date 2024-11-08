@@ -301,13 +301,13 @@
          (job-status
           (cond
            ((equal? success #t)
-            `(h2 (@(class "text-sm text-green-700 text-xl ml-4"))
+            `(h2 (@(class "text-sm text-green-700 text-xl ml-4 font-mono"))
                  ,(ii 'job-succeeded)))
            ((equal? failure #t)
-            `(h2 (@(class "text-sm text-red-700 text-xl ml-4"))
+            `(h2 (@(class "text-sm text-red-700 text-xl ml-4 font-mono"))
                  ,(ii 'job-failed)))
            (else
-            `(h2 (@(class "text-sm text-sky-700 text-xl ml-4"))
+            `(h2 (@(class "text-sm text-sky-700 text-xl ml-4 font-mono"))
                  ,(ii 'job-in-progress))))))
     `((div
        (@(class "flex flex-col gap-2"))
@@ -336,7 +336,7 @@
 
 (define-public (page-top)
   `((div (@(class "flex flex-row flex-wrap gap-1 my-6"))
-         (h1 (@(class "text-3xl text-green-500 font-bold p-2 m-2"))
+         (h1 (@(class "text-3xl text-green-500 font-bold p-2 m-2 font-mono"))
              (a (@(href "/")) "byggsteg"))         
          (div (@(class "flex flex-row flex-wrap items-center gap-1"))
               (a (@ (href "/")
@@ -355,7 +355,7 @@
 
 
 (define-public (page-footer)
-  `((div (@(class "block text-center"))
+  `((div (@(class "block text-center font-mono"))
          (hr (@(class ,hr-class)))
          (p (@(class "text-lg text-stone-300")) ,(ii 'byggsteg-hackable))
          (p (@(class "text-lg text-stone-300")) ,(ii 'byggsteg-license))
