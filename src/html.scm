@@ -215,7 +215,7 @@
        
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
              (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
-                     (class "rounded-xl border font-sans p-2")))
+                     (class "rounded-xl border font-mono p-2")))
              (button (@(type "submit")
                       (class ,danger-button-class)) "delete"))
 
@@ -264,7 +264,7 @@
             
             (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/profiles/delete"))
                   (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
-                          (class "rounded-xl border font-sans p-2")))
+                          (class "rounded-xl border font-mono p-2")))
                   (button (@(type "submit")
                            (class ,danger-button-class)) "delete")))
        

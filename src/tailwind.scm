@@ -35,7 +35,7 @@
      "w-fit"
      "m-2"
      "text-lg"
-     "font-sans"
+     "font-mono"
      "font-bold") " "))
 
 (define-public nav-button-class
@@ -46,7 +46,7 @@
      "p-2"
      "m-2"
      "border-b-2"
-     "font-sans"
+     "font-mono"
      "border-b-green-500/25"
      "text-xl"
      "font-bold") " "))
@@ -62,7 +62,7 @@
      "text-lg"
      "cursor-pointer"
      "p-2"
-     "font-sans"
+     "font-mono"
      "m-2") " "))
 
 (define-public input-class
@@ -84,7 +84,7 @@
 
 (define-public h2-class
   (string-join
-   '("text-3xl" "text-stone-300" "my-4" "font-bold" "font-sans") " "))
+   '("text-3xl" "text-stone-300" "my-4" "font-bold" "font-mono") " "))
 
 
 
