@@ -103,4 +103,5 @@
      "min-h-64"
      ) " "))
 
-(define-public dash-link-face "text-stone-300 font-bold cursor-pointer text-2xl")
+(define-public dash-link-face
+  "text-stone-300 font-bold cursor-pointer text-2xl font-mono")
