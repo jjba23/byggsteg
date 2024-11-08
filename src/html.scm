@@ -197,13 +197,13 @@
        (job-status
         (cond
          ((equal? success #t)
-          `(h2 (@(class "text-xl text-green-700 my-4"))
+          `(h2 (@(class "text-xl text-green-700 my-4 font-mono"))
                ,(ii 'job-succeeded)))
          ((equal? failure #t)
-          `(h2 (@(class "text-xl text-red-700 my-4"))
+          `(h2 (@(class "text-xl text-red-700 my-4 font-mono"))
                ,(ii 'job-failed)))
          (else
-          `(h2 (@(class "text-xl text-sky-700 my-4"))
+          `(h2 (@(class "text-xl text-sky-700 my-4 font-mono"))
                ,(ii 'job-in-progress))))))
     (respond
      #t
