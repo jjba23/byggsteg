@@ -3,6 +3,8 @@
 ;; This file is generated automatically by GNU Artanis.
 (define-restful-api v1) ; DO NOT REMOVE THIS LINE!!!
 
+(import (byggsteg rest))
+
 (post "/api/v1/jobs/submit"
   #:mime 'json
   (lambda (rc)

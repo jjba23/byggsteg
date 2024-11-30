@@ -73,15 +73,7 @@
          (log-filename (new-project-log-filename project))
          (only-filename (string-replace-substring log-filename job-log-location ""))
          (public-log-filename (base-16-encode only-filename))
-         (logs-link (format #f "/logs/~a" public-log-filename))
-         (json (format #f
-                       (string-append
-                        "{"
-                        "\"log-filename\": \"~a\""
-                        "}"
-                        )
-                       public-log-filename
-                       )))
+         (logs-link (format #f "/logs/~a" public-log-filename)))
 
     (create-empty-file (string-append job-log-location log-filename))
     (create-empty-file (string-append job-detail-location log-filename))
