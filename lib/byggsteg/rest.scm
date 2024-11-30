@@ -25,7 +25,7 @@
   #:use-module (byggsteg log)
   #:use-module (byggsteg url)
   #:use-module (web server)
-  #:use-module (web request)             
+  #:use-module (web request)
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (ice-9 popen)
@@ -34,12 +34,10 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 threads)
-  )
-
+  #:use-module (ice-9 threads))
 
 (define-public (log-api-page path)
-  (let* ((log-filename (base-16-decode (car (cdr (cdr path)))))
+  (let* ((log-filename (base-16-decode path))
          (file-path (string-append job-log-location log-filename))
          (file (open-input-file file-path))
          (log-data (get-string-all file))
@@ -56,28 +54,16 @@
           (cond
            ((equal? (and (not (equal? success "true")) (not (equal? failure "true"))) #t) "true" )
            (else "false")
-           ))
-         (json (format #f
-                       (string-append
-                        "{"
-                        "\"success\": ~a,"
-                        "\"failure\": ~a,"
-                        "\"in-progress\": ~a,"
-                        "\"log-filename\": \"~a\","
-                        "\"log-data\": \"~a\""
-                        "}"
-                        )
-                       success
-                       failure
-                       in-progress
-                       log-filename
-                       (base-16-encode log-data)
-                       )))
-    (respond-json json)
-    ))
+           )))
+    `((success . ,success)
+      (failure . ,failure)
+      (in-progress . ,in-progress)
+      (log-filename . ,log-filename)
+      (log-data . ,(base-16-encode log-data)))))
 
-(define-public (job-submit-api request body)
-  (let* ((kv (read-url-encoded-body body))
+(define-public (job-submit-api rc)
+  (let* ((body (rc-body rc))
+         (kv (read-url-encoded-body body))
          (job-code (url-decode (car (assoc-ref kv "job-code"))))
          (kvv (eval-string job-code))
          (project (assoc-ref kvv 'project))
@@ -104,5 +90,5 @@
         (display job-code)
         ))
     (async-job-pipeline log-filename project branch-name clone-url task)
-    
-    (respond-json json)))
+    ;; return sxml for generating json later
+    `((log-filename . ,public-log-filename))))

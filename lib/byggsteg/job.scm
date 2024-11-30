@@ -38,13 +38,15 @@
    ((file-exists? (string-append job-failure-location log-filename)) #t)
    (else #f)))
 
-(define-public (get-file-list dir)  
+(define-public (get-file-list dir)
   (string-split
    (syscall-silent (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
 
 
 (define-public (create-empty-file filename)
   "Create an empty file."
+  (when (file-exists? filename)
+    (delete-file filename))
   (with-output-to-file filename (lambda () (display ""))))
 
 
@@ -66,7 +68,7 @@
         (format #f
                 (string-append "cd ~a" " && sudo herd restart byggsteg")
                 clone-dir)))
-     
+
      )
     (create-empty-file (string-append job-success-location log-filename))))
 
@@ -80,7 +82,7 @@
              (string-append "cd ~a" " && sudo herd restart ~a")
              clone-dir
              project))
-    
+
     (create-empty-file (string-append job-success-location log-filename))))
 
 (define-public (pull-and-deploy-step project branch-name clone-url log-filename)
@@ -92,7 +94,7 @@
      (format #f
              (string-append "cd ~a" " && sudo make deploy")
              clone-dir))
-    
+
     (create-empty-file (string-append job-success-location log-filename))))
 
 (define-public (make-build-step project branch-name clone-url log-filename)
@@ -126,7 +128,7 @@
 (define-public (clone-repo-step project branch-name clone-url log-filename)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
          (should-clone (not (file-exists? clone-dir))))
-    
+
     (cond
      (should-clone
       (syscall-to-log-file
@@ -134,7 +136,7 @@
        (format #f
                (string-append
                 "mkdir -p ~a"
-                " && git clone -b ~a ~a ~a || true")                      
+                " && git clone -b ~a ~a ~a || true")
                clone-dir
                branch-name
                clone-url
@@ -146,13 +148,13 @@
 
 (define-public (async-job-pipeline log-filename project branch-name clone-url task)
   (call-with-new-thread
-   (lambda ()     
+   (lambda ()
      (syscall-to-log-file
       log-filename
       (format #f "echo '~a'" "\nstarting new job...\n"))
-     
+
      (clone-repo-step project branch-name clone-url log-filename)
-     
+
      (cond
       ((equal? task "stack-test")
        (stack-step project branch-name clone-url log-filename "test")
@@ -191,6 +193,6 @@
                              branch-name
                              clone-url
                              log-filename))
-      
+
       (else
        (make-build-step project branch-name clone-url log-filename))))))

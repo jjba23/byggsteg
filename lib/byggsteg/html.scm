@@ -17,6 +17,7 @@
 
 (define-module (byggsteg html)
   #:use-module (artanis artanis)
+  #:use-module (artanis route)
   #:use-module (byggsteg base16)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
@@ -113,15 +114,22 @@
             ,(ii 'submit))))
 
 (define-public (job-request-form-page)
-  `((h2 (@(class ,h2-class)) ,(ii 'run-job-title))
-    ,(job-form "/jobs/submit" #f)))
+  (byggsteg-html-template
+   "byggsteg"
+   `((h2 (@(class ,h2-class)) ,(ii 'run-job-title))
+     ,(job-form "/jobs/submit" #f))
+   #f))
 
 (define-public (add-profile-form-page)
-  `((h2 (@(class ,h2-class)) ,(ii 'add-profile-title))
-    ,(job-form "/profiles/submit" #t)))
+  (byggsteg-html-template
+   "byggsteg"
+   `((h2 (@(class ,h2-class)) ,(ii 'add-profile-title))
+     ,(job-form "/profiles/submit" #t))
+   #f))
 
-(define-public (job-delete-endpoint rc request body)
-  (let* ((kv (read-url-encoded-body body))
+(define-public (job-delete-endpoint rc)
+  (let* ((body (rc-body rc))
+         (kv (read-url-encoded-body body))
          (log-filename (url-decode (car (assoc-ref kv "log-filename")))))
 
     (syscall (format #f "rm -rfv ~a" (string-append job-log-location log-filename)))
@@ -130,27 +138,27 @@
     (syscall (format #f "rm -rfv ~a" (string-append job-detail-location log-filename)))
     (redirect-to rc "/")))
 
-(define-public (profile-delete-endpoint rc request body)
-  (let* ((kv (read-url-encoded-body body))
+(define-public (profile-delete-endpoint rc)
+  (let* ((body (rc-body rc))
+         (kv (read-url-encoded-body body))
          (profile-name (url-decode (car (assoc-ref kv "profile-name")))))
 
     (syscall (format #f "rm -rfv ~a" (string-append profile-location profile-name)))
     (redirect-to rc "/profiles")))
 
-(define-public (job-submit-endpoint rc request body)
-  (let*
-      ((kv (read-url-encoded-body body))
-       (job-code (url-decode (car (assoc-ref kv "job-code"))))
-       (kvv (eval-string job-code))
-       (project (assoc-ref kvv 'project))
-       (clone-url (assoc-ref kvv 'clone-url))
-       (branch-name (assoc-ref kvv 'branch-name))
-       (task (assoc-ref kvv 'task))
-       (log-filename (new-project-log-filename project))
-       (only-filename (string-replace-substring log-filename job-log-location ""))
-       (public-log-filename (base-16-encode only-filename))
-       (logs-link (format #f "/logs/~a" public-log-filename))
-       )
+(define-public (job-submit-endpoint rc)
+  (let* ((body (rc-body rc))
+         (kv (pk 'body (read-url-encoded-body body)))
+         (job-code (url-decode (car (assoc-ref kv "job-code"))))
+         (kvv (eval-string job-code))
+         (project (assoc-ref kvv 'project))
+         (clone-url (assoc-ref kvv 'clone-url))
+         (branch-name (assoc-ref kvv 'branch-name))
+         (task (assoc-ref kvv 'task))
+         (log-filename (new-project-log-filename project))
+         (only-filename (string-replace-substring log-filename job-log-location ""))
+         (public-log-filename (base-16-encode only-filename))
+         (logs-link (format #f "/logs/~a" public-log-filename)))
 
     (create-empty-file (string-append job-log-location log-filename))
     (create-empty-file (string-append job-detail-location log-filename))
@@ -160,24 +168,22 @@
     (redirect-to rc logs-link)))
 
 (define-public (profile-submit-endpoint rc request body)
-  (let*
-      ((kv (read-url-encoded-body body))
-       (profile-code (url-decode (car (assoc-ref kv "job-code"))))
-       (kvv (eval-string profile-code))
-       (project (assoc-ref kvv 'project))
-       (clone-url (assoc-ref kvv 'clone-url))
-       (branch-name (assoc-ref kvv 'branch-name))
-       (task (assoc-ref kvv 'task))
-       (profile-name (car (assoc-ref kv "profile-name")))
-       (profile-link (format #f "/profiles/~a" profile-name)))
-
+  (let* ((kv (read-url-encoded-body body))
+         (profile-code (url-decode (car (assoc-ref kv "job-code"))))
+         (kvv (eval-string profile-code))
+         (project (assoc-ref kvv 'project))
+         (clone-url (assoc-ref kvv 'clone-url))
+         (branch-name (assoc-ref kvv 'branch-name))
+         (task (assoc-ref kvv 'task))
+         (profile-name (car (assoc-ref kv "profile-name")))
+         (profile-link (format #f "/profiles/~a" profile-name)))
     (with-output-to-file (string-append profile-location profile-name)
       (lambda () (display profile-code)))
     (redirect-to rc profile-link)))
 
-(define-public (log-page path)
+(define-public (log-page id)
   (let*
-      ((log-filename (base-16-decode (car (cdr path))))
+      ((log-filename (base-16-decode id))
        (file (open-input-file (string-append job-log-location log-filename)))
        (log-data (get-string-all file))
        (detail-file (open-input-file (string-append job-detail-location log-filename)))
@@ -195,74 +201,77 @@
          (else
           `(h2 (@(class "text-xl text-sky-700 my-4 font-mono"))
                ,(ii 'job-in-progress))))))
-    `(
-      (div (@(class "flex flex-row flex-wrap align-middle gap-6"))
-           (h2 (@(class ,h2-class)) "viewing logs")
-           ,job-status)
-      (h3 (@(class "text-stone-300 text-xl my-4 font-mono")) ,log-filename)
+    (byggsteg-html-template
+     "byggsteg"
+     `((div (@(class "flex flex-row flex-wrap align-middle gap-6"))
+            (h2 (@(class ,h2-class)) "viewing logs")
+            ,job-status)
+       (h3 (@(class "text-stone-300 text-xl my-4 font-mono")) ,log-filename)
 
-      (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
-            (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
-                    (class "rounded-xl border font-mono p-2")))
-            (button (@(type "submit")
-                     (class ,danger-button-class)) "delete"))
+       (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
+             (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
+                     (class "rounded-xl border font-mono p-2")))
+             (button (@(type "submit")
+                      (class ,danger-button-class)) "delete"))
 
-      (pre
-       (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll"))
-       ,detail-data)
-      (pre
-       (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll"))
-       ,log-data))))
+       (pre
+        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll"))
+        ,detail-data)
+       (pre
+        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll"))
+        ,log-data))
+     #t)))
 
 (define-public (profile-page path)
-  (let*
-      ((profile-name (car (cdr path)))
-       (file (open-input-file (string-append profile-location profile-name)))
-       (profile-data (get-string-all file))
-       (kv (eval-string profile-data))
-       (project (assoc-ref kv 'project))
-       (clone-url (assoc-ref kv 'clone-url))
-       (branch-name (assoc-ref kv 'branch-name))
-       (task (assoc-ref kv 'task)))
-    `((div (@(class "flex flex-row flex-wrap align-center gap-6"))
-           (h2 (@(class ,h2-class)) ,(ii 'viewing-profile-title))
-           (h3 (@(class "text-stone-300 text-xl my-4")) ,profile-name))
+  (let* ((profile-name path)
+	 (file (open-input-file (string-append profile-location profile-name)))
+	 (profile-data (get-string-all file))
+	 (kv (eval-string profile-data))
+	 (project (assoc-ref kv 'project))
+	 (clone-url (assoc-ref kv 'clone-url))
+	 (branch-name (assoc-ref kv 'branch-name))
+	 (task (assoc-ref kv 'task)))
+    (byggsteg-html-template
+     "byggsteg"
+     `((div (@(class "flex flex-row flex-wrap align-center gap-6"))
+            (h2 (@(class ,h2-class)) ,(ii 'viewing-profile-title))
+            (h3 (@(class "text-stone-300 text-xl my-4")) ,profile-name))
 
-      (div (@(class "flex flex-row flex-wrap gap-4"))
-           (form
-            (@(method "POST")
-             (action "/jobs/submit")
-             (enctype "application/x-www-form-urlencoded")
-             (charset "utf-8"))
+       (div (@(class "flex flex-row flex-wrap gap-4"))
+            (form
+             (@(method "POST")
+              (action "/jobs/submit")
+              (enctype "application/x-www-form-urlencoded")
+              (charset "utf-8"))
 
-            (textarea (@(id "job-code")
-                       (name "job-code")
-                       (required "")
-                       (hidden "")) ,profile-data)
+             (textarea (@(id "job-code")
+                        (name "job-code")
+                        (required "")
+                        (hidden "")) ,profile-data)
 
-            (button (@(type "submit")
-                     (class ,button-class))
-                    "start new job"))
+             (button (@(type "submit")
+                      (class ,button-class))
+                     "start new job"))
 
-           (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/profiles/delete"))
-                 (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
-                         (class "rounded-xl border font-mono p-2")))
-                 (button (@(type "submit")
-                          (class ,danger-button-class)) "delete")))
+            (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/profiles/delete"))
+                  (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
+                          (class "rounded-xl border font-mono p-2")))
+                  (button (@(type "submit")
+                           (class ,danger-button-class)) "delete")))
 
-
-      (form (@(method "POST")
-             (enctype "application/x-www-form-urlencoded")
-             (action "/profiles/submit"))
-            (input (@(hidden "")(name "profile-name")
-                    (value ,profile-name)))
-            (textarea
-             (@(class ,textarea-class)
-              (name "job-code"))
-             ,profile-data)
-            (button (@(type "submit")
-                     (class ,button-class))
-                    "save")))))
+       (form (@(method "POST")
+              (enctype "application/x-www-form-urlencoded")
+              (action "/profiles/submit"))
+             (input (@(hidden "")(name "profile-name")
+                     (value ,profile-name)))
+             (textarea
+              (@(class ,textarea-class)
+               (name "job-code"))
+              ,profile-data)
+             (button (@(type "submit")
+                      (class ,button-class))
+                     "save")))
+     #f)))
 
 (define-public (welcome-page)
   (let* ((jobs (get-file-list job-log-location))
@@ -300,9 +309,12 @@
 (define-public (profile-list-page)
   (let* ((profiles (get-file-list profile-location))
          (profiles-html (map make-profile-link profiles)))
-    `((h2 (@(class ,h2-class)) ,(ii 'profiles))
-      (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
-           ,profiles-html))))
+    (byggsteg-html-template
+     "byggsteg"
+     `((h2 (@(class ,h2-class)) ,(ii 'profiles))
+       (div (@(class "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
+            ,profiles-html))
+     #f)))
 
 (define-public (make-profile-link profile-name)
   (let* (

@@ -17,7 +17,7 @@
 
 (define-module (byggsteg url)
   #:use-module (byggsteg process)
-  #:use-module (web request)             
+  #:use-module (web request)
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (sxml simple)
@@ -35,18 +35,7 @@
 (define-public (read-url-encoded-body body)
   (let* ((str (bytevector->string body "utf-8"))
          (raw-kv-pairs (string-split str #\&))
-         (xss (map unsafe-mk-alist (map at-eq raw-kv-pairs))))    
+         (xss (map unsafe-mk-alist (map at-eq raw-kv-pairs))))
     xss))
 
-
-
-(define-public (url-decode str)
-  (let ((cmd (string-append
-              "python3 -c 'print(input().replace(\"+\", \" \").replace(\"%\", \"\\\\x\").encode().decode(\"unicode_escape\"))' <<< '"
-              str
-              "'")))
-    (display cmd)
-    (syscall cmd)
-    )
-  
-  )
+(define-public (url-decode str) (uri-decode str))
