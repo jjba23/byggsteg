@@ -55,7 +55,7 @@
           (string-append job-clone-location project "/" branch-name)))
     (syscall-to-log-file
      log-filename
-     (format #f (string-append "cd ~a" " && stack ~a") clone-dir stack-task))))
+     (format #f (string-append "cd ~a" " && stack --nix ~a") clone-dir stack-task))))
 
 (define-public (byggsteg-version-step project branch-name clone-url log-filename)
   (let* ((clone-dir
