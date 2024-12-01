@@ -64,7 +64,7 @@
 (define-public (job-submit-api rc)
   (let* ((body (rc-body rc))
          (kv (read-url-encoded-body body))
-         (job-code (url-decode (car (assoc-ref kv "job-code"))))
+         (job-code (uri-decode (car (assoc-ref kv "job-code"))))
          (kvv (eval-string job-code))
          (project (assoc-ref kvv 'project))
          (clone-url (assoc-ref kvv 'clone-url))

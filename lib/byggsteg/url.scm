@@ -37,5 +37,3 @@
          (raw-kv-pairs (string-split str #\&))
          (xss (map unsafe-mk-alist (map at-eq raw-kv-pairs))))
     xss))
-
-(define-public (url-decode str) (uri-decode str))

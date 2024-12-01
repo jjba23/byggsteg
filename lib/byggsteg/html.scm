@@ -130,7 +130,7 @@
 (define-public (job-delete-endpoint rc)
   (let* ((body (rc-body rc))
          (kv (read-url-encoded-body body))
-         (log-filename (url-decode (car (assoc-ref kv "log-filename")))))
+         (log-filename (uri-decode (car (assoc-ref kv "log-filename")))))
 
     (syscall (format #f "rm -rfv ~a" (string-append job-log-location log-filename)))
     (syscall (format #f "rm -rfv ~a" (string-append job-failure-location log-filename)))
@@ -141,7 +141,7 @@
 (define-public (profile-delete-endpoint rc)
   (let* ((body (rc-body rc))
          (kv (read-url-encoded-body body))
-         (profile-name (url-decode (car (assoc-ref kv "profile-name")))))
+         (profile-name (uri-decode (car (assoc-ref kv "profile-name")))))
 
     (syscall (format #f "rm -rfv ~a" (string-append profile-location profile-name)))
     (redirect-to rc "/profiles")))
@@ -149,7 +149,7 @@
 (define-public (job-submit-endpoint rc)
   (let* ((body (rc-body rc))
          (kv (pk 'body (read-url-encoded-body body)))
-         (job-code (url-decode (car (assoc-ref kv "job-code"))))
+         (job-code (uri-decode (car (assoc-ref kv "job-code"))))
          (kvv (eval-string job-code))
          (project (assoc-ref kvv 'project))
          (clone-url (assoc-ref kvv 'clone-url))
@@ -169,7 +169,7 @@
 
 (define-public (profile-submit-endpoint rc request body)
   (let* ((kv (read-url-encoded-body body))
-         (profile-code (url-decode (car (assoc-ref kv "job-code"))))
+         (profile-code (uri-decode (car (assoc-ref kv "job-code"))))
          (kvv (eval-string profile-code))
          (project (assoc-ref kvv 'project))
          (clone-url (assoc-ref kvv 'clone-url))
