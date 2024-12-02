@@ -63,10 +63,10 @@ You can use the UI and visit ~/jobs/request~ or you can also invoke this via the
 You could do this  for example from your favourite system programatically, or via cURL:
 
 #+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/jobs/submit' \
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
     -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
     -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
-    --data-urlencode "job-code=\`((project . \"free-alacarte\")(branch-name . \"trunk\")(task . \"stack-test\")(clone-url . \"https://codeberg.org/jjba23/free-alacarte\"))"
+    --data-urlencode 'job-code=`((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte"))'
   
 #  {
 #    "log-filename": "667265652d616c6163"
@@ -76,7 +76,7 @@ curl 'https://byggsteg.jointhefreeworld.org/api/jobs/submit' \
 You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
 
 #+begin_src  shell
-  curl 'http://localhost:50023/api/logs/667265652d616c6163'
+  curl 'http://localhost:3000/api/v1/logs/667265652d616c6163'
   #
   # {"success": true,
   #  "failure": false,

@@ -5,7 +5,7 @@
 
 (import (byggsteg rest))
 
-(post "/api/v1/jobs/submit"
+(post "/api/v1/jobs/manage/submit"
   #:mime 'json
   (lambda (rc)
     (:mime rc (scm->json-string (job-submit-api rc)))))

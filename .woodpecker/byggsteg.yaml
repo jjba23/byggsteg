@@ -12,5 +12,5 @@ steps:
         -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
         -H 'Authorization: Basic $BYGGSTEG_KEY' \
         --data-urlencode \
-        'job-code=\`((project . "byggsteg")(branch-name . "trunk")(task . "byggsteg-version")(clone-url . "https://codeberg.org/jjba23/byggsteg"))'
+        'job-code=`((project . "byggsteg")(branch-name . "trunk")(task . "byggsteg-version")(clone-url . "https://codeberg.org/jjba23/byggsteg"))'
 
