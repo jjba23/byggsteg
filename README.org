@@ -141,16 +141,19 @@ byggsteg is licensed under the GNU GPL v3 License or newer.
 
 **** WIP Feature parity (cleanup HTML and bring all functionalities to REST JSON)
 
-**** WIP Migration to GNU Artanis
-
 
 ** Project management - backlog
+
+**** TODO Move to using base64 for URLs and payloads instead of base16
 
 **** TODO Hot reload server
 
 **** TODO Improve JSON support
 
 **** TODO Add REPL interface via website, to allow hot-modifications
+
+**** WIP Migration to GNU Artanis
+
 
 ** ✅ Work done
 
