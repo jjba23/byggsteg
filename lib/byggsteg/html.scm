@@ -117,14 +117,14 @@
   (byggsteg-html-template
    "byggsteg"
    `((h2 (@(class ,h2-class)) ,(ii 'run-job-title))
-     ,(job-form "/jobs/submit" #f))
+     ,(job-form "/jobs/manage/submit" #f))
    #f))
 
 (define-public (add-profile-form-page)
   (byggsteg-html-template
    "byggsteg"
    `((h2 (@(class ,h2-class)) ,(ii 'add-profile-title))
-     ,(job-form "/profiles/submit" #t))
+     ,(job-form "/profiles/manage/submit" #t))
    #f))
 
 (define-public (job-delete-endpoint rc)
@@ -167,8 +167,9 @@
     (async-job-pipeline log-filename project branch-name clone-url task)
     (redirect-to rc logs-link)))
 
-(define-public (profile-submit-endpoint rc request body)
-  (let* ((kv (read-url-encoded-body body))
+(define-public (profile-submit-endpoint rc)
+  (let* ((body (rc-body rc))
+         (kv (pk 'body (read-url-encoded-body body)))
          (profile-code (uri-decode (car (assoc-ref kv "job-code"))))
          (kvv (eval-string profile-code))
          (project (assoc-ref kvv 'project))
@@ -208,8 +209,10 @@
             ,job-status)
        (h3 (@(class "text-stone-300 text-xl my-4 font-mono")) ,log-filename)
 
-       (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/jobs/delete"))
-             (input (@(id "log-filename")(name "log-filename")(required "")(hidden "")(value ,log-filename)
+       (form (@(method "POST") (enctype "application/x-www-form-urlencoded")
+              (action "/jobs/manage/delete"))
+             (input (@(id "log-filename")(name "log-filename")(required "")
+                     (hidden "")(value ,log-filename)
                      (class "rounded-xl border font-mono p-2")))
              (button (@(type "submit")
                       (class ,danger-button-class)) "delete"))
@@ -240,7 +243,7 @@
        (div (@(class "flex flex-row flex-wrap gap-4"))
             (form
              (@(method "POST")
-              (action "/jobs/submit")
+              (action "/jobs/manage/submit")
               (enctype "application/x-www-form-urlencoded")
               (charset "utf-8"))
 
@@ -253,15 +256,17 @@
                       (class ,button-class))
                      "start new job"))
 
-            (form (@(method "POST") (enctype "application/x-www-form-urlencoded") (action "/profiles/delete"))
-                  (input (@(id "profile-name")(name "profile-name")(required "")(hidden "")(value ,profile-name)
+            (form (@(method "POST") (enctype "application/x-www-form-urlencoded")
+                   (action "/profiles/manage/delete"))
+                  (input (@(id "profile-name")(name "profile-name")
+                          (required "")(hidden "")(value ,profile-name)
                           (class "rounded-xl border font-mono p-2")))
                   (button (@(type "submit")
                            (class ,danger-button-class)) "delete")))
 
        (form (@(method "POST")
               (enctype "application/x-www-form-urlencoded")
-              (action "/profiles/submit"))
+              (action "/profiles/manage/submit"))
              (input (@(hidden "")(name "profile-name")
                      (value ,profile-name)))
              (textarea
@@ -340,7 +345,7 @@
               (a (@ (href "/profiles")
                     (class ,nav-button-class))
                  ,(ii 'profiles))
-              (a (@ (href "/profiles/new")
+              (a (@ (href "/profiles/manage/create")
                     (class ,nav-button-class))
                  "+ new profile")))))
 

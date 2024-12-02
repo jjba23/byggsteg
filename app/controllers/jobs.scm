@@ -1,7 +1,21 @@
-;; Controller jobs definition of byggsteg
-;; Please add your license header here.
-;; This file is generated automatically by GNU Artanis.
-(define-artanis-controller jobs) ; DO NOT REMOVE THIS LINE!!!
+;;; jobs.scm
+
+;; Copyright (C) 2024 Free Software Foundation, Inc.
+
+;; byggsteg is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; byggsteg is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
+
+(define-artanis-controller jobs)
 
 (import (byggsteg html))
 
@@ -10,6 +24,6 @@
   (lambda (rc)
     (response-emit (:mime rc (job-request-form-page)))))
 
-(post "/jobs/submit" job-submit-endpoint)
+(post "/jobs/manage/submit" job-submit-endpoint)
 
-(post "/jobs/delete" profile-delete-endpoint)
+(post "/jobs/manage/delete" job-delete-endpoint)
