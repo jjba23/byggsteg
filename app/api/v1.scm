@@ -8,9 +8,9 @@
 (post "/api/v1/jobs/manage/submit"
   #:mime 'json
   (lambda (rc)
-    (:mime rc (scm->json-string (job-submit-api rc)))))
+    (:mime rc (job-submit-api rc))))
 
 (post "/api/v1/logs/:path"
   #:mime 'json
   (lambda (rc)
-    (:mime rc (scm->json-string (log-api-page (params rc "path"))))))
+    (:mime rc (log-api-page (params rc "path")))))
