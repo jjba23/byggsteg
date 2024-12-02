@@ -1,23 +1,22 @@
-* byggsteg
+#+title: byggsteg
 
 /byggsteg/ means "build step" in the Norwegian language.
 
 This is a simple CI/CD system written in Guile Scheme.
 
-~byggsteg~ uses plain Guile with almost no dependencies to function, SXML, and some basic POSIX / UNIX utilities. 
+byggsteg uses plain Guile, SXML, and some basic POSIX / UNIX utilities. It is built with the might GNU Artanis web-framework.
 
-#+begin_html
-<img src="./resources/Schermafdruk_2024-10-04_23-28-46.png"/>
-#+end_html
+[[./pub/img/Schermafdruk_2024-10-04_23-28-46.png]]
+
 
 ** What is byggsteg ?
 
-~byggsteg~ is a free software project with the aim of developing a suite of functionalities to allow engineers to deliver software quicker and with less friction.
+byggsteg is a free software project with the aim of developing a suite of functionalities to allow engineers to deliver software quicker and with less friction.
 
 The aim of byggsteg is to release you from your dependency on proprietary systems like GitHub actions.
 This allows you to create continuous integration and continuous delivery (CI & CD) pipelines in an easy way that are tailored to your needs and which you fully control.
 
-My initial idea when developing ~byggsteg~ revolves around my Haskell projects, which are hosted on GitHub and deployed to Amazon AWS EC2 compute.
+My initial idea when developing byggsteg revolves around my Haskell projects, which are hosted on Codeberg and deployed to my private VPS.
 
 I don't mind having the software building and testing happening in the same machine as where I run the production workloads, since I am looking for supreme cost-efficiency, but it's highly recommended that you do separate these things, if you can afford it.
 
@@ -28,13 +27,70 @@ And thus, I set out to build a CI/CD system, that on command can:
 - record job in progress, success or failure
 - show dashboard with job statuses
 
-~byggsteg~ is a deploy-your-own type tool, but if enough community interest is shown a SaaS offering in freedom might be a really good thing.
+byggsteg is a deploy-your-own type tool, but if enough community interest is shown a SaaS offering in freedom might be a really good thing.
+
+byggsteg is built using the GNU Artanis web-framework. Make sure you install it before you proceed with using byggsteg.
+
+Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manual/manual.html][here]] .
+
+** Types of jobs
+
+~stack-test~ - Haskell project build and test with Stack + Hackage bundle
+
+~stack-build~ - Haskell project build with Stack + Hackage bundle
+
+~nix-build~ - Nix build (flake)
+
+~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself
+
+~pull-and-restart~ - Git pull and restart wanted shepherd service
+
+~sbt-test~ - Scala project test with SBT
+
+** Starting a job
+
+Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, for example :
+#+begin_src  scheme
+  `((project . "free-alacarte")
+    (branch-name . "trunk")
+    (task . "stack-test")
+    (clone-url . "https://codeberg.org/jjba23/free-alacarte")
+    )
+#+end_src
+
+You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
+
+You could do this  for example from your favourite system programatically, or via cURL:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
+    -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
+    -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
+    --data-urlencode 'job-code=`((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte"))'
+  
+#  {
+#    "log-filename": "667265652d616c6163"
+#  }
+#+end_src
+
+You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
+
+#+begin_src  shell
+  curl 'http://localhost:3000/api/v1/logs/667265652d616c6163'
+  #
+  # {"success": true,
+  #  "failure": false,
+  #  "in-progress": false,
+  #  "log-filename": "free-alacarte__2024-09-28__15:21:07.byggsteg.log",
+  #  "log-data": "31353a32313a30372e627......."
+  # }
+#+end_src
 
 ** Using
 
-You can run ~byggsteg~ server by calling ~guile run-server.scm~ from the root directory. Refer to the ~Makefile~ for more convenient commands and variations.
+You can run byggsteg server by calling ~art work~ from the root directory. Refer to the ~Makefile~ for more convenient commands and variations.
 
-~byggsteg~ exposes an HTML frontend (server-side-rendered SSR) and a REST API, and should e compatible with most UNIX like systems, but is best experiences with GNU Guix.
+byggsteg exposes an HTML frontend (server-side-rendered SSR) and a REST API, and should be compatible with most UNIX like systems, but is best experiences with GNU Guix.
 
 An example shepherd service for byggsteg could look like this:
 #+begin_src scheme
@@ -77,74 +133,27 @@ An example shepherd service for byggsteg could look like this:
 
 
 
-*** Types of jobs
-
-~stack-test~ - Haskell project build and test with Stack + Hackage bundle
-
-~stack-build~ - Haskell project build with Stack + Hackage bundle
-
-~nix-build~ - Nix build (flake)
-
-~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself
-
-~pull-and-restart~ - Git pull and restart wanted shepherd service
-
-~sbt-test~ - Scala project test with SBT
-
-*** Starting a job
-
-Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, for example :
-#+begin_src  scheme
-  `((project . "free-alacarte")
-    (branch-name . "trunk")
-    (task . "stack-test")
-    (clone-url . "https://github.com/jjba23/free-alacarte")
-    )
-#+end_src
-
-You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
-
-You could do this  for example from your favourite system programatically, or via cURL:
-
-#+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/jobs/submit' \
-    -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
-    -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
-    --data-urlencode "job-code=\`((project . \"free-alacarte\")(branch-name . \"trunk\")(task . \"stack-test\")(clone-url . \"https://github.com/jjba23/free-alacarte\"))"
-  
-#  {
-#    "log-filename": "667265652d616c6163"
-#  }
-#+end_src
-
-You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
-
-#+begin_src  shell
-  curl 'http://localhost:50023/api/logs/667265652d616c6163'
-  #
-  # {"success": true,
-  #  "failure": false,
-  #  "in-progress": false,
-  #  "log-filename": "free-alacarte__2024-09-28__15:21:07.byggsteg.log",
-  #  "log-data": "31353a32313a30372e627......."
-  # }
-#+end_src
-
 ** Licensing
 
-~byggsteg~ is licensed under the GNU GPL v3 License or newer.
+byggsteg is licensed under the GNU GPL v3 License or newer.
 
 ** Ongoing efforts
 
 **** WIP Feature parity (cleanup HTML and bring all functionalities to REST JSON)
 
+
 ** Project management - backlog
+
+**** TODO Move to using base64 for URLs and payloads instead of base16
 
 **** TODO Hot reload server
 
 **** TODO Improve JSON support
 
 **** TODO Add REPL interface via website, to allow hot-modifications
+
+
+
 
 ** ✅ Work done
 
@@ -159,3 +168,6 @@ CLOSED: [2024-09-28 za 12:17]
 
 **** DONE Implement basic internationalization
 CLOSED: [2024-10-05 za 14:34]
+
+**** DONE Migration to GNU Artanis
+CLOSED: [2024-12-02 ma 14:24]

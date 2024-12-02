@@ -1,2 +1,3 @@
 *.byggsteg.log
 .guix
+*~

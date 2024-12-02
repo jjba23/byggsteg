@@ -1,3 +1,4 @@
+.PHONY: prepare-dirs clean-dirs create server
 
 prepare-dirs:
 	mkdir -p /var/log/byggsteg || true
@@ -8,7 +9,9 @@ prepare-dirs:
 	mkdir -p /var/log/byggsteg/job-detail || true
 	mkdir -p /var/log/byggsteg/profile || true
 clean-dirs:
-	sudo rm -rfv /var/log/byggsteg/* || true
+	rm -rfv /var/log/byggsteg/* || true
+create:
+	sudo mkdir /var/log/byggsteg || true
+	sudo chown $(whoami) /var/log/byggsteg	
 server:
-	GUILE_AUTO_COMPILE=0 guile run-server.scm
-
+	art work
