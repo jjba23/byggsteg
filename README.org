@@ -16,7 +16,7 @@ byggsteg is a free software project with the aim of developing a suite of functi
 The aim of byggsteg is to release you from your dependency on proprietary systems like GitHub actions.
 This allows you to create continuous integration and continuous delivery (CI & CD) pipelines in an easy way that are tailored to your needs and which you fully control.
 
-My initial idea when developing byggsteg revolves around my Haskell projects, which are hosted on GitHub and deployed to Amazon AWS EC2 compute.
+My initial idea when developing byggsteg revolves around my Haskell projects, which are hosted on Codeberg and deployed to my private VPS.
 
 I don't mind having the software building and testing happening in the same machine as where I run the production workloads, since I am looking for supreme cost-efficiency, but it's highly recommended that you do separate these things, if you can afford it.
 
@@ -54,7 +54,7 @@ Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code
   `((project . "free-alacarte")
     (branch-name . "trunk")
     (task . "stack-test")
-    (clone-url . "https://github.com/jjba23/free-alacarte")
+    (clone-url . "https://codeberg.org/jjba23/free-alacarte")
     )
 #+end_src
 
@@ -66,7 +66,7 @@ You could do this  for example from your favourite system programatically, or vi
 curl 'https://byggsteg.jointhefreeworld.org/api/jobs/submit' \
     -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
     -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
-    --data-urlencode "job-code=\`((project . \"free-alacarte\")(branch-name . \"trunk\")(task . \"stack-test\")(clone-url . \"https://github.com/jjba23/free-alacarte\"))"
+    --data-urlencode "job-code=\`((project . \"free-alacarte\")(branch-name . \"trunk\")(task . \"stack-test\")(clone-url . \"https://codeberg.org/jjba23/free-alacarte\"))"
   
 #  {
 #    "log-filename": "667265652d616c6163"
