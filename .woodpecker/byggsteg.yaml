@@ -8,7 +8,7 @@ steps:
     commands: |
       apt update && apt upgrade -y
       apt install -y curl
-      curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/submit' \
+      curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
         -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
         -H 'Authorization: Basic $BYGGSTEG_KEY' \
         --data-urlencode \
