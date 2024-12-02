@@ -18,7 +18,6 @@
 (define-module (byggsteg rest)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg process)
-  #:use-module (byggsteg server)
   #:use-module (byggsteg job)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg base16)
