@@ -1,12 +1,13 @@
 #+title: byggsteg
+#+options: toc:nil num:nil
 
 /byggsteg/ means "build step" in the Norwegian language.
 
 This is a simple CI/CD system written in Guile Scheme.
 
-byggsteg uses plain Guile, SXML, and some basic POSIX / UNIX utilities. It is built with the might GNU Artanis web-framework.
+byggsteg uses plain Guile, SXML, and some basic POSIX / UNIX utilities.
 
-[[./pub/img/Schermafdruk_2024-10-04_23-28-46.png]]
+It is built with the mighty GNU Artanis web-framework.
 
 
 ** What is byggsteg ?
@@ -32,6 +33,8 @@ byggsteg is a deploy-your-own type tool, but if enough community interest is sho
 byggsteg is built using the GNU Artanis web-framework. Make sure you install it before you proceed with using byggsteg.
 
 Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manual/manual.html][here]] .
+
+[[./pub/img/Schermafdruk_2024-10-04_23-28-46.png]]
 
 ** Types of jobs
 
@@ -148,8 +151,6 @@ byggsteg is licensed under the GNU GPL v3 License or newer.
 
 **** TODO Hot reload server
 
-**** TODO Improve JSON support
-
 **** TODO Add REPL interface via website, to allow hot-modifications
 
 
@@ -171,3 +172,6 @@ CLOSED: [2024-10-05 za 14:34]
 
 **** DONE Migration to GNU Artanis
 CLOSED: [2024-12-02 ma 14:24]
+
+**** DONE Improve JSON support
+CLOSED: [2024-12-02 ma 17:07]
