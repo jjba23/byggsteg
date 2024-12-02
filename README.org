@@ -152,7 +152,7 @@ byggsteg is licensed under the GNU GPL v3 License or newer.
 
 **** TODO Add REPL interface via website, to allow hot-modifications
 
-**** WIP Migration to GNU Artanis
+
 
 
 ** ✅ Work done
@@ -168,3 +168,6 @@ CLOSED: [2024-09-28 za 12:17]
 
 **** DONE Implement basic internationalization
 CLOSED: [2024-10-05 za 14:34]
+
+**** DONE Migration to GNU Artanis
+CLOSED: [2024-12-02 ma 14:24]
