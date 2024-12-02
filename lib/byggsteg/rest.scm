@@ -33,7 +33,8 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 threads))
+  #:use-module (ice-9 threads)
+  #:use-module (artanis route))
 
 (define-public (log-api-page path)
   (let* ((log-filename (base-16-decode path))
