@@ -140,12 +140,32 @@ An example shepherd service for byggsteg could look like this:
 
 byggsteg is licensed under the GNU GPL v3 License or newer.
 
+** Code owners
+
+The project's main branch is ~trunk~. Find a list of roles and people involved in the project.
+
+*** BDFL (Benevolent Dictator For Life)
+@jjba23 - Josep Bigorra <jjbigorra@gmail.com>
+
+Only BDFL can merge PRs.
+Only BDFL is allowed to push directly to ~trunk~ in case a quick fix is needed.
+
+*** MFL (Maintainer For Life)
+@NalaGinrut - Roy Mu <NalaGinrut@hardenedlinux.org>
+
+MFL can ascend to BDFL after extensive productive collaboration.
+MFL has write permissions to all branches (except trunk) and can open PRs.
+
+*** Other contributors
+Other contributors must fork byggsteg and create a pull request to contribute back.
+After productive collaboration other kinds of roles can be added and assigned.
+
 ** Ongoing efforts
 
 **** WIP Feature parity (cleanup HTML and bring all functionalities to REST JSON)
 
 
-** Project management - backlog
+** Project backlog
 
 **** TODO Move to using base64 for URLs and payloads instead of base16
 
