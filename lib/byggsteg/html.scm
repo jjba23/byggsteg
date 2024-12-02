@@ -148,7 +148,7 @@
 
 (define-public (job-submit-endpoint rc)
   (let* ((body (rc-body rc))
-         (kv (pk 'body (read-url-encoded-body body)))
+         (kv (read-url-encoded-body body))
          (job-code (uri-decode (car (assoc-ref kv "job-code"))))
          (kvv (eval-string job-code))
          (project (assoc-ref kvv 'project))
@@ -227,13 +227,13 @@
 
 (define-public (profile-page path)
   (let* ((profile-name path)
-	 (file (open-input-file (string-append profile-location profile-name)))
-	 (profile-data (get-string-all file))
-	 (kv (eval-string profile-data))
-	 (project (assoc-ref kv 'project))
-	 (clone-url (assoc-ref kv 'clone-url))
-	 (branch-name (assoc-ref kv 'branch-name))
-	 (task (assoc-ref kv 'task)))
+         (file (open-input-file (string-append profile-location profile-name)))
+         (profile-data (get-string-all file))
+         (kv (eval-string profile-data))
+         (project (assoc-ref kv 'project))
+         (clone-url (assoc-ref kv 'clone-url))
+         (branch-name (assoc-ref kv 'branch-name))
+         (task (assoc-ref kv 'task)))
     (byggsteg-html-template
      "byggsteg"
      `((div (@(class "flex flex-row flex-wrap align-center gap-6"))
