@@ -81,6 +81,6 @@
       (lambda ()
         (display job-code)
         ))
-    (async-job-pipeline log-filename project branch-name clone-url task)
+    (async-job-pipeline log-filename project branch-name clone-url (string->symbol task))
     ;; return sxml for generating json later
     `((log-filename . ,public-log-filename))))

@@ -164,7 +164,7 @@
     (create-empty-file (string-append job-detail-location log-filename))
     (with-output-to-file (string-append job-detail-location log-filename)
       (lambda () (display job-code)))
-    (async-job-pipeline log-filename project branch-name clone-url task)
+    (async-job-pipeline log-filename project branch-name clone-url (string->symbol task))
     (redirect-to rc logs-link)))
 
 (define-public (profile-submit-endpoint rc)

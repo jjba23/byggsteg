@@ -50,12 +50,14 @@
   (with-output-to-file filename (lambda () (display ""))))
 
 
-(define-public (stack-step project branch-name clone-url log-filename stack-task)
-  (let* ((clone-dir
-          (string-append job-clone-location project "/" branch-name)))
-    (syscall-to-log-file
-     log-filename
-     (format #f (string-append "cd ~a" " && stack --nix ~a") clone-dir stack-task))))
+(begin
+  (define* (stack-step #:key project branch-name clone-url log-filename stack-task)
+    (let* ((clone-dir
+            (string-append job-clone-location project "/" branch-name)))
+      (syscall-to-log-file
+       log-filename
+       (format #f (string-append "cd ~a" " && stack --nix ~a") clone-dir stack-task))))
+  (export stack-step))
 
 (define-public (byggsteg-version-step project branch-name clone-url log-filename)
   (let* ((clone-dir
@@ -156,43 +158,68 @@
      (clone-repo-step project branch-name clone-url log-filename)
 
      (cond
-      ((equal? task "stack-test")
-       (stack-step project branch-name clone-url log-filename "test")
-       (stack-step project branch-name clone-url log-filename "sdist --tar-dir .")
+      ;; Stack tests
+      ((equal? task 'stack-test)
+       (stack-step
+        #:project project
+        #:branch-name branch-name
+        #:clone-url clone-url
+        #:log-filename log-filename
+        #:stack-task "test")
+       (stack-step
+        #:project project
+        #:branch-name branch-name
+        #:clone-url clone-url
+        #:log-filename log-filename
+        #:stack-task "sdist --tar-dir .")
        (create-empty-file (string-append job-success-location log-filename))
        )
-      ((equal? task "stack-build")
-       (stack-step project branch-name clone-url log-filename "build")
-       (stack-step project branch-name clone-url log-filename "sdist --tar-dir .")
+      ;; Stack builds
+      ((equal? task 'stack-build)
+       (stack-step
+        #:project project
+        #:branch-name branch-name
+        #:clone-url clone-url
+        #:log-filename log-filename
+        #:stack-task "build")
+       (stack-step
+        #:project project
+        #:branch-name branch-name
+        #:clone-url clone-url
+        #:log-filename log-filename
+        #:stack-task "sdist --tar-dir .")
        (create-empty-file (string-append job-success-location log-filename))
        )
-      ((equal? task "byggsteg-version")
+      ;; Byggsteg version update
+      ((equal? task 'byggsteg-version)
        (byggsteg-version-step project
                               branch-name
                               clone-url
                               log-filename))
-      ((equal? task "nix-build")
+      ;; Nix generic build
+      ((equal? task 'nix-build)
        (nix-build-step project
                        branch-name
                        clone-url
                        log-filename))
-      ((equal? task "pull-and-restart")
+      ;; Herd pull and restart
+      ((equal? task 'pull-and-restart)
        (pull-and-restart-step project
                               branch-name
                               clone-url
                               log-filename))
-      ((equal? task "sbt-test")
+      ;; Scala SBT test
+      ((equal? task 'sbt-test)
        (sbt-test-step project
                       branch-name
                       clone-url
                       log-filename)
        (create-empty-file (string-append job-success-location log-filename)))
-
-      ((equal? task "pull-and-deploy")
+      ;; Pull and make deploy
+      ((equal? task 'pull-and-deploy)
        (pull-and-deploy-step project
                              branch-name
                              clone-url
                              log-filename))
-
       (else
        (make-build-step project branch-name clone-url log-filename))))))
