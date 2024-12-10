@@ -34,7 +34,7 @@ byggsteg is built using the GNU Artanis web-framework. Make sure you install it 
 
 Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manual/manual.html][here]] .
 
-[[./pub/img/Schermafdruk_2024-10-04_23-28-46.png]]
+[[./pub/img/Schermafdruk_2024-12-10.png]]
 
 ** Types of jobs
 

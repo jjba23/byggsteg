@@ -214,7 +214,7 @@
      `((div (@(class "flex flex-row flex-wrap align-middle gap-6"))
             (h2 (@(class ,h2-class)) "viewing logs")
             ,job-status)
-       (h3 (@(class "text-stone-300 text-xl my-4 font-mono")) ,log-filename)
+       (h3 (@(class "text-stone-300 text-lg my-4 font-mono")) ,log-filename)
 
        (form (@(method "POST") (enctype "application/x-www-form-urlencoded")
               (action "/jobs/manage/delete"))
@@ -225,10 +225,10 @@
                       (class ,danger-button-class)) "delete"))
 
        (pre
-        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll"))
+        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
         ,detail-data)
        (pre
-        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-lg text-stone-300 white-space-pre overflow-x-scroll"))
+        (@(class "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
         ,log-data))
      #t)))
 
@@ -304,19 +304,19 @@
          (job-status
           (cond
            ((equal? success #t)
-            `(h2 (@(class "text-sm text-green-700 text-xl ml-4 font-mono"))
+            `(h2 (@(class "text-green-700 text-sm ml-4 font-mono"))
                  ,(ii 'job-succeeded)))
            ((equal? failure #t)
-            `(h2 (@(class "text-sm text-red-700 text-xl ml-4 font-mono"))
+            `(h2 (@(class "text-red-700 text-sm ml-4 font-mono"))
                  ,(ii 'job-failed)))
            (else
-            `(h2 (@(class "text-sm text-sky-700 text-xl ml-4 font-mono"))
+            `(h2 (@(class "text-sky-700 text-sm ml-4 font-mono"))
                  ,(ii 'job-in-progress))))))
     `((div
        (@(class "flex flex-col gap-2"))
        (a (@(class ,dash-link-face)
            (href ,logs-link)) ,(string-append "~>  " log-filename))
-       (div (@(class "p-2 text-xl")) ,job-status)))))
+       (div (@(class "p-2")) ,job-status)))))
 
 (define-public (profile-list-page)
   (let* ((profiles (get-file-list profile-location))
@@ -340,7 +340,7 @@
 
 (define-public (page-top)
   `((div (@(class "flex flex-row flex-wrap gap-1 my-6"))
-         (h1 (@(class "text-3xl text-green-500 font-bold p-2 m-2 font-mono"))
+         (h1 (@(class "text-2xl text-green-500 font-bold p-2 m-2 font-mono"))
              (a (@(href "/")) "byggsteg"))
          (div (@(class "flex flex-row flex-wrap items-center gap-1"))
               (a (@ (href "/")
@@ -359,8 +359,8 @@
 (define-public (page-footer)
   `((div (@(class "block text-center font-mono"))
          (hr (@(class ,hr-class)))
-         (p (@(class "text-lg text-stone-300")) ,(ii 'byggsteg-hackable))
-         (p (@(class "text-lg text-stone-300")) ,(ii 'byggsteg-license))
+         (p (@(class "text-md text-stone-300")) ,(ii 'byggsteg-hackable))
+         (p (@(class "text-md text-stone-300")) ,(ii 'byggsteg-license))
          (div (@(class "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@(class "text-sm text-stone-300")) "find the source code here:")
               (a (@(class "text-green-400 font-bold cursor-pointer text-sm")
@@ -368,7 +368,7 @@
                  "https://codeberg.org/jjba23/byggsteg")
               )
          (p (@(class "mt-4"))
-            (em (@(class "text-lg text-stone-300"))
+            (em (@(class "text-md text-stone-300"))
                 "Copyright 2024 - Josep Bigorra"))
          (p (@(class "mt-4"))
             (span (@(class "text-sm text-stone-300"))
