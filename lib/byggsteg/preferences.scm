@@ -1,6 +1,7 @@
-;;; preferences.scm
+;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright © 2024 Josep Bigorra
+;; Copyright © 2024 Roy Mu
 
 ;; byggsteg is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -18,8 +19,7 @@
 (define-module (byggsteg preferences)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
-  #:use-module (ice-9 string-fun)
-  )
+  #:use-module (ice-9 string-fun))
 
 (define-public job-failure-location "/var/log/byggsteg/job-failure/")
 (define-public job-success-location "/var/log/byggsteg/job-success/")

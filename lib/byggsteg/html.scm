@@ -1,6 +1,7 @@
-;;; html.scm
+;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright © 2024 Josep Bigorra
+;; Copyright © 2024 Roy Mu
 
 ;; byggsteg is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -362,7 +363,7 @@
               )
          (p (@(class "mt-4"))
             (em (@(class "text-lg text-stone-300"))
-                "Copyright 2024 - Free Software Foundation, Inc."))
+                "Copyright 2024 - Josep Bigorra"))
          (p (@(class "mt-4"))
             (span (@(class "text-sm text-stone-300"))
                   ,(ii 'byggsteg-word-meaning))))))
