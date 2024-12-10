@@ -1,6 +1,7 @@
-;;; tailwind.scm
+;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright © 2024 Josep Bigorra
+;; Copyright © 2024 Roy Mu
 
 ;; byggsteg is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -34,7 +35,7 @@
      "border"
      "w-fit"
      "m-2"
-     "text-lg"
+     "text-md"
      "font-mono"
      "font-bold") " "))
 
@@ -48,7 +49,7 @@
      "border-b-2"
      "font-mono"
      "border-b-green-500/25"
-     "text-xl"
+     "text-md"
      "font-bold") " "))
 
 (define-public danger-button-class
@@ -59,7 +60,7 @@
      "font-bold"
      "w-fit"
      "border"
-     "text-lg"
+     "text-md"
      "cursor-pointer"
      "p-2"
      "font-mono"
@@ -72,7 +73,7 @@
      "border-stone-500"
      "p-2"
      "ml-6"
-     "text-lg"
+     "text-md"
      "bg-stone-800"
      "text-stone-300"
      "font-mono"
@@ -84,8 +85,7 @@
 
 (define-public h2-class
   (string-join
-   '("text-3xl" "text-stone-300" "my-4" "font-bold" "font-mono") " "))
-
+   '("text-2xl" "text-stone-300" "my-4" "font-bold" "font-mono") " "))
 
 
 (define-public textarea-class
@@ -96,7 +96,7 @@
      "p-2"
      "ml-6"
      "w-full"
-     "text-lg"
+     "text-md"
      "bg-stone-800"
      "font-mono"
      "text-stone-300"
@@ -104,4 +104,4 @@
      ) " "))
 
 (define-public dash-link-face
-  "text-stone-300 font-bold cursor-pointer text-xl font-mono")
+  "text-stone-300 font-bold cursor-pointer text-md font-mono")
