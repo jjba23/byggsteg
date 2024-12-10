@@ -177,6 +177,12 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 **** TODO Hot reload server
 
+**** TODO Add correct copyright and license header to all source code files
+
+**** TODO Be explicit about other projects/libraries used to make byggsteg and their licenses
+
+**** TODO Consider using gettext for internationalization and localization, or improve existing setup
+
 **** TODO Add REPL interface via website, to allow hot-modifications
 
 
