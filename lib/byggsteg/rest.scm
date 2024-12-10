@@ -19,7 +19,8 @@
 (define-module (byggsteg rest)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg process)
-  #:use-module (byggsteg job)
+  #:use-module (byggsteg job pipeline)
+  #:use-module (byggsteg job utils)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg base16)
   #:use-module (byggsteg log)
@@ -82,6 +83,11 @@
       (lambda ()
         (display job-code)
         ))
-    (async-job-pipeline log-filename project branch-name clone-url (string->symbol task))
+    (async-job-pipeline
+     #:log-filename log-filename
+     #:project project
+     #:branch-name branch-name
+     #:clone-url clone-url
+     #:task (string->symbol task))
     ;; return sxml for generating json later
     `((log-filename . ,public-log-filename))))

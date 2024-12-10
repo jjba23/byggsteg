@@ -23,7 +23,8 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
-  #:use-module (byggsteg job)
+  #:use-module (byggsteg job pipeline)
+  #:use-module (byggsteg job utils)
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg prelude)
@@ -165,7 +166,12 @@
     (create-empty-file (string-append job-detail-location log-filename))
     (with-output-to-file (string-append job-detail-location log-filename)
       (lambda () (display job-code)))
-    (async-job-pipeline log-filename project branch-name clone-url (string->symbol task))
+    (async-job-pipeline
+     #:log-filename log-filename
+     #:project project
+     #:branch-name branch-name
+     #:clone-url clone-url
+     #:task (string->symbol task))
     (redirect-to rc logs-link)))
 
 (define-public (profile-submit-endpoint rc)

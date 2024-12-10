@@ -38,17 +38,21 @@ Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manua
 
 ** Types of jobs
 
-~stack-test~ - Haskell project build and test with Stack + Hackage bundle
+~stack-test~ - Haskell project build and test with Stack + Hackage bundle.
 
-~stack-build~ - Haskell project build with Stack + Hackage bundle
+~stack-build~ - Haskell project build with Stack + Hackage bundle.
 
-~nix-build~ - Nix build (flake)
+~nix-build~ - Nix build (flake).
 
-~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself
+~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself.
 
-~pull-and-restart~ - Git pull and restart wanted shepherd service
+~pull-and-restart~ - Git pull and restart wanted shepherd service.
 
-~sbt-test~ - Scala project test with SBT
+~pull-and-deploy~ - Git pull and run a ~make deploy~.
+
+~sbt-test~ - Scala project test with SBT.
+
+As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
 
 ** Starting a job
 
@@ -167,13 +171,13 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 ** Project backlog
 
+**** TODO Add notifications upon success or errors as balloons/banners via URL params
+
 **** TODO Move to using base64 for URLs and payloads instead of base16
 
 **** TODO Hot reload server
 
 **** TODO Add REPL interface via website, to allow hot-modifications
-
-
 
 
 ** ✅ Work done

@@ -17,21 +17,18 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (byggsteg job pipeline)
-  #:use-module (byggsteg base16)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg process)
   #:use-module (byggsteg job steps)
-  #:use-module (ice-9 popen)
-  #:use-module (ice-9 textual-ports)
-  #:use-module (ice-9 time)
-  #:use-module (ice-9 format)
-  #:use-module (ice-9 string-fun)
-  #:use-module (ice-9 iconv)
+  #:use-module (byggsteg job utils)
   #:use-module (ice-9 threads)
   )
 
 (begin
   (define* (async-job-pipeline #:key log-filename project branch-name clone-url task)
+    (define (register-success)
+      (create-empty-file (string-append job-success-location log-filename)))
+    
     (call-with-new-thread
      (lambda ()
        (syscall-to-log-file
@@ -55,7 +52,7 @@
           #:clone-url clone-url
           #:log-filename log-filename
           #:stack-task "sdist --tar-dir .")
-         (create-empty-file (string-append job-success-location log-filename)))
+         (register-success))
         
         ;; Stack build + sdist
         ((eq? task 'stack-build)
@@ -71,9 +68,11 @@
           #:clone-url clone-url
           #:log-filename log-filename
           #:stack-task "sdist --tar-dir .")
-         (create-empty-file (string-append job-success-location log-filename)))
+         (register-success))
         
         ;; Byggsteg version update
+        ;; note: (register-success) will be called inside
+        ;; the byggsteg-version step due to race conditions
         ((eq? task 'byggsteg-version)
          (byggsteg-version-step
           #:project project
@@ -87,7 +86,8 @@
           #:project project
           #:branch-name branch-name
           #:clone-url clone-url
-          #:log-filename log-filename))
+          #:log-filename log-filename)
+         (register-success))
         
         ;; Herd pull and restart
         ((eq? task 'pull-and-restart)
@@ -95,7 +95,8 @@
           #:project project
           #:branch-name branch-name
           #:clone-url clone-url
-          #:log-iflename log-filename))
+          #:log-iflename log-filename)
+         (register-success))
         
         ;; Scala SBT test
         ((eq? task 'sbt-test)
@@ -104,7 +105,7 @@
           #:branch-name branch-name
           #:clone-url clone-url
           #:log-filename log-filename)
-         (create-empty-file (string-append job-success-location log-filename)))
+         (register-success))
         
         ;; Pull and make deploy
         ((eq? task 'pull-and-deploy)
@@ -112,12 +113,16 @@
           #:project project
           #:branch-name branch-name
           #:clone-url clone-url
-          #:log-filename log-filename))
+          #:log-filename log-filename)
+         (register-success))
+
+        ;; Otherwise attempt generic `make build'
         (else
          (make-build-step
           #:project project
           #:branch-name branch-name
           #:clone-url clone-url
-          #:log-filename log-filename))))))
+          #:log-filename log-filename)
+         (register-success))))))
 
   (export async-job-pipeline))

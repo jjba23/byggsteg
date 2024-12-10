@@ -17,16 +17,8 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (byggsteg job utils)
-  ;; #:use-module (byggsteg base16)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg process)
-  ;; #:use-module (ice-9 popen)
-  ;; #:use-module (ice-9 textual-ports)
-  ;; #:use-module (ice-9 time)
-  ;; #:use-module (ice-9 format)
-  ;; #:use-module (ice-9 string-fun)
-  ;; #:use-module (ice-9 iconv)
-  ;; #:use-module (ice-9 threads)
   )
 
 (define-public (read-job-success log-filename)

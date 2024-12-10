@@ -17,22 +17,19 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (byggsteg job steps)
-  #:use-module (byggsteg base16)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg process)
-  #:use-module (ice-9 popen)
+  #:use-module (byggsteg job utils)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
-  #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads)
   )
 
 (begin
   (define* (stack-step #:key project branch-name clone-url log-filename stack-task)
-    (let ((clone-dir
-           (string-append job-clone-location project "/" branch-name)))
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
        (format #f (string-append "cd ~a" " && stack --nix ~a") clone-dir stack-task))))
@@ -40,81 +37,58 @@
 
 (begin
   (define* (byggsteg-version-step #:key project branch-name clone-url log-filename)
-    (let ((clone-dir
-           (string-append job-clone-location project "/" branch-name)))
-
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (call-with-new-thread
        (lambda ()
          (syscall-to-log-file
           log-filename
           (format #f
-                  (string-append "cd ~a" " && sudo herd restart byggsteg")
-                  clone-dir)))
-
-       )
+                  (string-append "cd ~a && sudo herd restart byggsteg")
+                  clone-dir))))
       (create-empty-file (string-append job-success-location log-filename))))
   (export byggsteg-version-step))
 
 (begin
   (define* (pull-and-restart-step project branch-name clone-url log-filename)
-    (let ((clone-dir
-           (string-append job-clone-location project "/" branch-name)))
-
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
        (format #f
                (string-append "cd ~a" " && sudo herd restart ~a")
                clone-dir
-               project))
-
-      (create-empty-file (string-append job-success-location log-filename))))
+               project))))
   (export pull-and-restart-step))
 
 (begin
   (define* (pull-and-deploy-step project branch-name clone-url log-filename)
-    (let ((clone-dir
-           (string-append job-clone-location project "/" branch-name)))
-
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
-       (format #f
-               (string-append "cd ~a" " && sudo make deploy")
-               clone-dir))
-
-      (create-empty-file (string-append job-success-location log-filename))))
+       (format #f (string-append "cd ~a" " && sudo make deploy") clone-dir))))
   (export pull-and-deploy-step))
 
 (begin
   (define* (make-build-step project branch-name clone-url log-filename)
-    (let ((clone-dir
-           (string-append job-clone-location project "/" branch-name)))
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
-       (format #f
-               (string-append "cd ~a" " && make build")
-               clone-dir))))
+       (format #f (string-append "cd ~a" " && make build") clone-dir))))
   (export make-build-step))
 
 (begin
   (define* (nix-build-step project branch-name clone-url log-filename)
-    (let ((clone-dir
-           (string-append job-clone-location project "/" branch-name)))
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
-       (format #f
-               (string-append "cd ~a" " && nix build")
-               clone-dir))))
+       (format #f (string-append "cd ~a" " && nix build") clone-dir))))
   (export nix-build-step))
 
 (begin
   (define* (sbt-test-step project branch-name clone-url log-filename)
-    (let ((clone-dir
-           (string-append job-clone-location project "/" branch-name)))
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
-       (format #f
-               (string-append "cd ~a" " && sbt test")
-               clone-dir))))
+       (format #f (string-append "cd ~a" " && sbt test") clone-dir))))
   (export sbt-test-step))
 
 
@@ -122,7 +96,6 @@
   (define (clone-repo-step project branch-name clone-url log-filename)
     (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
            (should-clone (not (file-exists? clone-dir))))
-
       (cond
        (should-clone
         (syscall-to-log-file
