@@ -49,7 +49,7 @@
   (export byggsteg-version-step))
 
 (begin
-  (define* (pull-and-restart-step project branch-name clone-url log-filename)
+  (define* (pull-and-restart-step #:key project branch-name clone-url log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
@@ -60,7 +60,7 @@
   (export pull-and-restart-step))
 
 (begin
-  (define* (pull-and-deploy-step project branch-name clone-url log-filename)
+  (define* (pull-and-deploy-step #:key project branch-name clone-url log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
@@ -68,7 +68,7 @@
   (export pull-and-deploy-step))
 
 (begin
-  (define* (make-build-step project branch-name clone-url log-filename)
+  (define* (make-build-step #:key project branch-name clone-url log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
@@ -76,7 +76,7 @@
   (export make-build-step))
 
 (begin
-  (define* (nix-build-step project branch-name clone-url log-filename)
+  (define* (nix-build-step #:key project branch-name clone-url log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
@@ -84,7 +84,7 @@
   (export nix-build-step))
 
 (begin
-  (define* (sbt-test-step project branch-name clone-url log-filename)
+  (define* (sbt-test-step #:key project branch-name clone-url log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall-to-log-file
        log-filename
@@ -93,7 +93,7 @@
 
 
 (begin
-  (define (clone-repo-step project branch-name clone-url log-filename)
+  (define* (clone-repo-step #:key project branch-name clone-url log-filename)
     (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
            (should-clone (not (file-exists? clone-dir))))
       (cond

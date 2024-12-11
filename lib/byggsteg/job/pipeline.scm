@@ -35,7 +35,11 @@
         log-filename
         (format #f "echo '~a'" "\nstarting new job...\n"))
 
-       (clone-repo-step project branch-name clone-url log-filename)
+       (clone-repo-step
+        #:project project
+        #:branch-name branch-name
+        #:clone-url clone-url
+        #:log-filename log-filename)
 
        (cond
         ;; Stack test + sdist
