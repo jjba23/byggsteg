@@ -21,9 +21,10 @@
 (import (byggsteg html))
 
 (get "/jobs/request"
-  #:mime 'xml
-  (lambda (rc)
-    (response-emit (:mime rc (job-request-form-page)))))
+     #:mime 'xml
+     (lambda (rc)
+       (response-emit (:mime rc
+                             (job-request-form-page)))))
 
 (post "/jobs/manage/submit" job-submit-endpoint)
 

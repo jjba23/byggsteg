@@ -26,82 +26,67 @@
   #:use-module (ice-9 futures))
 
 (define-public button-class
-  (string-join
-   '("bg-green-500/75"
-     "text-stone-300"
-     "rounded-xl"
-     "cursor-pointer"
-     "p-2"
-     "border"
-     "w-fit"
-     "m-2"
-     "text-md"
-     "font-mono"
-     "font-bold") " "))
+  (string-join '("bg-green-500/75" "text-stone-300"
+                 "rounded-xl"
+                 "cursor-pointer"
+                 "p-2"
+                 "border"
+                 "w-fit"
+                 "m-2"
+                 "text-md"
+                 "font-mono"
+                 "font-bold") " "))
 
 (define-public nav-button-class
-  (string-join
-   '(
-     "text-green-500/75"
-     "cursor-pointer"
-     "p-2"
-     "m-2"
-     "border-b-2"
-     "font-mono"
-     "border-b-green-500/25"
-     "text-md"
-     "font-bold") " "))
+  (string-join '("text-green-500/75" "cursor-pointer"
+                 "p-2"
+                 "m-2"
+                 "border-b-2"
+                 "font-mono"
+                 "border-b-green-500/25"
+                 "text-md"
+                 "font-bold") " "))
 
 (define-public danger-button-class
-  (string-join
-   '("rounded-xl"
-     "bg-red-700"
-     "text-stone-300"
-     "font-bold"
-     "w-fit"
-     "border"
-     "text-md"
-     "cursor-pointer"
-     "p-2"
-     "font-mono"
-     "m-2") " "))
+  (string-join '("rounded-xl" "bg-red-700"
+                 "text-stone-300"
+                 "font-bold"
+                 "w-fit"
+                 "border"
+                 "text-md"
+                 "cursor-pointer"
+                 "p-2"
+                 "font-mono"
+                 "m-2") " "))
 
 (define-public input-class
-  (string-join
-   '("rounded-xl"
-     "border"
-     "border-stone-500"
-     "p-2"
-     "ml-6"
-     "text-md"
-     "bg-stone-800"
-     "text-stone-300"
-     "font-mono"
-     ) " "))
+  (string-join '("rounded-xl" "border"
+                 "border-stone-500"
+                 "p-2"
+                 "ml-6"
+                 "text-md"
+                 "bg-stone-800"
+                 "text-stone-300"
+                 "font-mono") " "))
 
 (define-public hr-class
-  (string-join
-   '("my-6" "border-t-2" "border-t-stone-600") " "))
+  (string-join '("my-6" "border-t-2" "border-t-stone-600") " "))
 
 (define-public h2-class
-  (string-join
-   '("text-2xl" "text-stone-300" "my-4" "font-bold" "font-mono") " "))
-
+  (string-join '("text-2xl" "text-stone-300" "my-4" "font-bold" "font-mono")
+               " "))
 
 (define-public textarea-class
-  (string-join
-   '("rounded-xl"
-     "border"
-     "border-stone-500"
-     "p-2"
-     "ml-6"
-     "w-full"
-     "text-md"
-     "bg-stone-800"
-     "font-mono"
-     "text-stone-300"
-     "min-h-64"
-     ) " "))
+  (string-join '("rounded-xl" "border"
+                 "border-stone-500"
+                 "p-2"
+                 "ml-6"
+                 "w-full"
+                 "text-md"
+                 "bg-stone-800"
+                 "font-mono"
+                 "text-stone-300"
+                 "min-h-64") " "))
 
 (define-public dash-link-face
   "text-stone-300 font-bold cursor-pointer text-md font-mono")

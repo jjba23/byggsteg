@@ -16,7 +16,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-
 (define-module (byggsteg base16)
   #:use-module (byggsteg process)
   #:use-module (byggsteg preferences)
@@ -24,9 +23,10 @@
   #:use-module (ice-9 format))
 
 (define-public (base-16-encode str)
-  (string-replace-substring
-   (syscall-silent (format #f "echo \"~a\" | xxd -p" str)) "\n" ""))
+  (string-replace-substring (syscall-silent (format #f "echo \"~a\" | xxd -p"
+                                                    str)) "\n" ""))
 
 (define-public (base-16-decode str)
-  (string-replace-substring
-   (syscall-silent (format #f "echo \"~a\" | xxd -p -r" str)) "\n" ""))
+  (string-replace-substring (syscall-silent (format #f
+                                                    "echo \"~a\" | xxd -p -r"
+                                                    str)) "\n" ""))

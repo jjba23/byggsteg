@@ -18,28 +18,29 @@
 
 (define-module (byggsteg job utils)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg process)
-  )
+  #:use-module (byggsteg process))
 
 (define-public (read-job-success log-filename)
   (cond
-   ((file-exists? (string-append job-success-location log-filename)) #t)
-   (else #f)))
+    ((file-exists? (string-append job-success-location log-filename))
+     #t)
+    (else #f)))
 
 (define-public (read-job-failure log-filename)
   (cond
-   ((file-exists? (string-append job-failure-location log-filename)) #t)
-   (else #f)))
+    ((file-exists? (string-append job-failure-location log-filename))
+     #t)
+    (else #f)))
 
 (define-public (get-file-list dir)
-  (string-split
-   (syscall-silent (format #f "ls -1 --sort=time ~a" dir)) #\newline ))
-
+  (string-split (syscall-silent (format #f "ls -1 --sort=time ~a" dir))
+                #\newline))
 
 (define-public (create-empty-file filename)
   "Create an empty file."
   (when (file-exists? filename)
     (delete-file filename))
-  (with-output-to-file filename (lambda () (display ""))))
-
+  (with-output-to-file filename
+    (lambda ()
+      (display ""))))
 

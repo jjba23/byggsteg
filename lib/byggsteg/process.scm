@@ -24,22 +24,18 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 threads)
-  )
+  #:use-module (ice-9 threads))
 
 (define-public (syscall cmd)
   (let* ((process (open-input-pipe cmd))
          (process-output (get-string-all process)))
     (close-pipe process)
-    (display process-output)
-    process-output))
+    (display process-output) process-output))
 
 (define-public (syscall-silent cmd)
   (let* ((process (open-input-pipe cmd))
          (process-output (get-string-all process)))
-    (close-pipe process)
-    process-output))
-
+    (close-pipe process) process-output))
 
 (define-public (syscall-to-log-file log-filename cmd)
   (syscall-to-file log-filename cmd job-log-location))
@@ -51,9 +47,8 @@
   (syscall-to-file log-filename cmd job-detail-location))
 
 (define-public (syscall-to-file log-filename cmd location)
-  (let*
-      ((log-file-port
-        (open-file (string-append location log-filename) "a")))
+  (let* ((log-file-port (open-file (string-append location log-filename) "a")))
     (with-output-to-port log-file-port
-      (lambda () (syscall cmd)))
+                         (lambda ()
+                           (syscall cmd)))
     (close log-file-port)))

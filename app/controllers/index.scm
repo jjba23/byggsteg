@@ -21,6 +21,7 @@
 (import (byggsteg html))
 
 (get "/"
-  #:mime 'xml
-  (lambda (rc)
-    (response-emit (:mime rc (welcome-page)))))
+     #:mime 'xml
+     (lambda (rc)
+       (response-emit (:mime rc
+                             (welcome-page)))))

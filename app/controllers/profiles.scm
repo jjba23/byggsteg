@@ -23,17 +23,20 @@
 (get "/profiles"
      #:mime 'xml
      (lambda (rc)
-       (response-emit (:mime rc (profile-list-page)))))
+       (response-emit (:mime rc
+                             (profile-list-page)))))
 
 (get "/profiles/:path"
      #:mime 'xml
      (lambda (rc)
-       (response-emit (:mime rc (profile-page (params rc "path"))))))
+       (response-emit (:mime rc
+                             (profile-page (params rc "path"))))))
 
 (get "/profiles/manage/create"
      #:mime 'xml
      (lambda (rc)
-       (response-emit (:mime rc (add-profile-form-page)))))
+       (response-emit (:mime rc
+                             (add-profile-form-page)))))
 
 (post "/profiles/manage/submit" profile-submit-endpoint)
 

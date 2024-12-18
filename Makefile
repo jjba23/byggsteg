@@ -15,3 +15,5 @@ create:
 	sudo chown $(whoami) /var/log/byggsteg	
 server:
 	art work
+fmt:
+	find . -maxdepth 4 -name "*.scm" -type f -exec guix style -f {} \;

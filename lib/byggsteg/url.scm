@@ -29,12 +29,15 @@
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv))
 
-
-(define (at-eq x) (string-split x #\=))
-(define (unsafe-mk-alist x) (cons (car x) (cdr x)))
+(define (at-eq x)
+  (string-split x #\=))
+(define (unsafe-mk-alist x)
+  (cons (car x)
+        (cdr x)))
 
 (define-public (read-url-encoded-body body)
   (let* ((str (bytevector->string body "utf-8"))
          (raw-kv-pairs (string-split str #\&))
-         (xss (map unsafe-mk-alist (map at-eq raw-kv-pairs))))
+         (xss (map unsafe-mk-alist
+                   (map at-eq raw-kv-pairs))))
     xss))

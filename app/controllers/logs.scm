@@ -21,6 +21,7 @@
 (import (byggsteg html))
 
 (get "/logs/:id"
-  #:mime 'xml
-  (lambda (rc)
-    (response-emit (:mime rc (log-page (params rc "id"))))))
+     #:mime 'xml
+     (lambda (rc)
+       (response-emit (:mime rc
+                             (log-page (params rc "id"))))))
