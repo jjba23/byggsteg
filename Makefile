@@ -12,7 +12,7 @@ clean-dirs:
 	rm -rfv /var/log/byggsteg/* || true
 create:
 	sudo mkdir /var/log/byggsteg || true
-	sudo chown $(whoami) /var/log/byggsteg	
+	sudo chown $(shell whoami) /var/log/byggsteg
 server:
 	art work
 fmt:
