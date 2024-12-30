@@ -17,9 +17,7 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (byggsteg html)
-  #:use-module (artanis artanis)
-  #:use-module (artanis route)
-  #:use-module (byggsteg base16)
+  #:use-module (byggsteg base64)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
@@ -28,10 +26,6 @@
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg prelude)
-  #:use-module (web server)
-  #:use-module (web request)
-  #:use-module (web response)
-  #:use-module (web uri)
   #:use-module (sxml simple)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
@@ -41,7 +35,7 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads))
 
-(define (byggsteg-html-template title body should-auto-refresh)
+(define-public (byggsteg-html-template title body should-auto-refresh)
   (let ((maybe-auto-refresh (cond
                               ((equal? should-auto-refresh #t)
                                `(meta (@ (content "10")
@@ -70,6 +64,42 @@
                       ,(page-top)
                       ,@body
                       ,(page-footer))))))
+
+(define-public (page-top)
+  `((div (@ (class "flex flex-row flex-wrap gap-1 my-6"))
+         (h1 (@ (class "text-2xl text-green-500 font-bold p-2 m-2 font-mono"))
+             (a (@ (href "/")) "byggsteg"))
+         (div (@ (class "flex flex-row flex-wrap items-center gap-1"))
+              (a (@ (href "/")
+                    (class ,nav-button-class)) "jobs")
+              (a (@ (href "/jobs/request")
+                    (class ,nav-button-class)) "+ new job run")
+              (a (@ (href "/profiles")
+                    (class ,nav-button-class))
+                 ,(ii 'profiles))
+              (a (@ (href "/profiles/manage/create")
+                    (class ,nav-button-class)) "+ new profile")))))
+
+(define-public (page-footer)
+  `((div (@ (class "block text-center font-mono"))
+         (hr (@ (class ,hr-class)))
+         (p (@ (class "text-md text-stone-300"))
+            ,(ii 'byggsteg-hackable))
+         (p (@ (class "text-md text-stone-300"))
+            ,(ii 'byggsteg-license))
+         (div (@ (class
+                  "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
+              (p (@ (class "text-sm text-stone-300"))
+                 "find the source code here:")
+              (a (@ (class "text-green-400 font-bold cursor-pointer text-sm")
+                    (href "https://codeberg.org/jjba23/byggsteg"))
+                 "https://codeberg.org/jjba23/byggsteg"))
+         (p (@ (class "mt-4"))
+            (em (@ (class "text-md text-stone-300"))
+                "Copyright 2024 - Josep Bigorra"))
+         (p (@ (class "mt-4"))
+            (span (@ (class "text-sm text-stone-300"))
+                  ,(ii 'byggsteg-word-meaning))))))
 
 (define-public (maybe-profile-name is-profile)
   (cond
@@ -109,291 +139,3 @@
                     (class ,button-class))
                  ,(ii 'submit))))
 
-(define-public (job-request-form-page)
-  (byggsteg-html-template "byggsteg"
-                          `((h2 (@ (class ,h2-class))
-                                ,(ii 'run-job-title))
-                            ,(job-form "/jobs/manage/submit" #f)) #f))
-
-(define-public (add-profile-form-page)
-  (byggsteg-html-template "byggsteg"
-                          `((h2 (@ (class ,h2-class))
-                                ,(ii 'add-profile-title))
-                            ,(job-form "/profiles/manage/submit" #t)) #f))
-
-(define-public (job-delete-endpoint rc)
-  (let* ((body (rc-body rc))
-         (kv (read-url-encoded-body body))
-         (log-filename (uri-decode (car (assoc-ref kv "log-filename")))))
-    
-    (syscall (format #f "rm -rfv ~a"
-                     (string-append job-log-location log-filename)))
-    (syscall (format #f "rm -rfv ~a"
-                     (string-append job-failure-location log-filename)))
-    (syscall (format #f "rm -rfv ~a"
-                     (string-append job-success-location log-filename)))
-    (syscall (format #f "rm -rfv ~a"
-                     (string-append job-detail-location log-filename)))
-    (redirect-to rc "/")))
-
-(define-public (profile-delete-endpoint rc)
-  (let* ((body (rc-body rc))
-         (kv (read-url-encoded-body body))
-         (profile-name (uri-decode (car (assoc-ref kv "profile-name")))))
-    
-    (syscall (format #f "rm -rfv ~a"
-                     (string-append profile-location profile-name)))
-    (redirect-to rc "/profiles")))
-
-(define-public (job-submit-endpoint rc)
-  (let* ((body (rc-body rc))
-         (kv (read-url-encoded-body body))
-         (job-code (uri-decode (car (assoc-ref kv "job-code"))))
-         (kvv (eval-string job-code))
-         (project (assoc-ref kvv
-                             'project))
-         (clone-url (assoc-ref kvv
-                               'clone-url))
-         (branch-name (assoc-ref kvv
-                                 'branch-name))
-         (task (assoc-ref kvv
-                          'task))
-         (log-filename (new-project-log-filename project))
-         (only-filename (string-replace-substring log-filename
-                                                  job-log-location ""))
-         (public-log-filename (base-16-encode only-filename))
-         (logs-link (format #f "/logs/~a" public-log-filename)))
-    
-    (create-empty-file (string-append job-log-location log-filename))
-    (create-empty-file (string-append job-detail-location log-filename))
-    (with-output-to-file (string-append job-detail-location log-filename)
-      (lambda ()
-        (display job-code)))
-    (async-job-pipeline #:log-filename log-filename
-                        #:project project
-                        #:branch-name branch-name
-                        #:clone-url clone-url
-                        #:task (string->symbol task))
-    (redirect-to rc logs-link)))
-
-(define-public (profile-submit-endpoint rc)
-  (let* ((body (rc-body rc))
-         (kv (pk 'body
-                 (read-url-encoded-body body)))
-         (profile-code (uri-decode (car (assoc-ref kv "job-code"))))
-         (kvv (eval-string profile-code))
-         (project (assoc-ref kvv
-                             'project))
-         (clone-url (assoc-ref kvv
-                               'clone-url))
-         (branch-name (assoc-ref kvv
-                                 'branch-name))
-         (task (assoc-ref kvv
-                          'task))
-         (profile-name (car (assoc-ref kv "profile-name")))
-         (profile-link (format #f "/profiles/~a" profile-name)))
-    (with-output-to-file (string-append profile-location profile-name)
-      (lambda ()
-        (display profile-code)))
-    (redirect-to rc profile-link)))
-
-(define-public (log-page id)
-  (let* ((log-filename (base-16-decode id))
-         (file (open-input-file (string-append job-log-location log-filename)))
-         (log-data (get-string-all file))
-         (detail-file (open-input-file (string-append job-detail-location
-                                                      log-filename)))
-         (detail-data (get-string-all detail-file))
-         (success (read-job-success log-filename))
-         (failure (read-job-failure log-filename))
-         (job-status (cond
-                       ((equal? success #t)
-                        `(h2 (@ (class "text-xl text-green-700 my-4 font-mono"))
-                             ,(ii 'job-succeeded)))
-                       ((equal? failure #t)
-                        `(h2 (@ (class "text-xl text-red-700 my-4 font-mono"))
-                             ,(ii 'job-failed)))
-                       (else `(h2 (@ (class
-                                      "text-xl text-sky-700 my-4 font-mono"))
-                                  ,(ii 'job-in-progress))))))
-    (byggsteg-html-template "byggsteg"
-                            `((div (@ (class
-                                       "flex flex-row flex-wrap align-middle gap-6"))
-                                   (h2 (@ (class ,h2-class)) "viewing logs")
-                                   ,job-status)
-                              (h3 (@ (class
-                                      "text-stone-300 text-lg my-4 font-mono"))
-                                  ,log-filename)
-
-                              (form (@ (method "POST")
-                                       (enctype
-                                        "application/x-www-form-urlencoded")
-                                       (action "/jobs/manage/delete"))
-                                    (input (@ (id "log-filename")
-                                              (name "log-filename")
-                                              (required "")
-                                              (hidden "")
-                                              (value ,log-filename)
-                                              (class
-                                               "rounded-xl border font-mono p-2")))
-                                    (button (@ (type "submit")
-                                               (class ,danger-button-class))
-                                            "delete"))
-
-                              (pre (@ (class
-                                       "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
-                                   ,detail-data)
-                              (pre (@ (class
-                                       "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
-                                   ,log-data)) #t)))
-
-(define-public (profile-page path)
-  (let* ((profile-name path)
-         (file (open-input-file (string-append profile-location profile-name)))
-         (profile-data (get-string-all file))
-         (kv (eval-string profile-data))
-         (project (assoc-ref kv
-                             'project))
-         (clone-url (assoc-ref kv
-                               'clone-url))
-         (branch-name (assoc-ref kv
-                                 'branch-name))
-         (task (assoc-ref kv
-                          'task)))
-    (byggsteg-html-template "byggsteg"
-                            `((div (@ (class
-                                       "flex flex-row flex-wrap align-center gap-6"))
-                                   (h2 (@ (class ,h2-class))
-                                       ,(ii 'viewing-profile-title))
-                                   (h3 (@ (class "text-stone-300 text-xl my-4"))
-                                       ,profile-name))
-                              
-                              (div (@ (class "flex flex-row flex-wrap gap-4"))
-                                   (form (@ (method "POST")
-                                            (action "/jobs/manage/submit")
-                                            (enctype
-                                             "application/x-www-form-urlencoded")
-                                            (charset "utf-8"))
-
-                                         (textarea (@ (id "job-code")
-                                                      (name "job-code")
-                                                      (required "")
-                                                      (hidden ""))
-                                                   ,profile-data)
-
-                                         (button (@ (type "submit")
-                                                    (class ,button-class))
-                                                 "start new job"))
-
-                                   (form (@ (method "POST")
-                                            (enctype
-                                             "application/x-www-form-urlencoded")
-                                            (action "/profiles/manage/delete"))
-                                         (input (@ (id "profile-name")
-                                                   (name "profile-name")
-                                                   (required "")
-                                                   (hidden "")
-                                                   (value ,profile-name)
-                                                   (class
-                                                    "rounded-xl border font-mono p-2")))
-                                         (button (@ (type "submit")
-                                                    (class ,danger-button-class))
-                                                 "delete")))
-
-                              (form (@ (method "POST")
-                                       (enctype
-                                        "application/x-www-form-urlencoded")
-                                       (action "/profiles/manage/submit"))
-                                    (input (@ (hidden "")
-                                              (name "profile-name")
-                                              (value ,profile-name)))
-                                    (textarea (@ (class ,textarea-class)
-                                                 (name "job-code"))
-                                              ,profile-data)
-                                    (button (@ (type "submit")
-                                               (class ,button-class)) "save")))
-                            #f)))
-
-(define-public (welcome-page)
-  (let* ((jobs (get-file-list job-log-location))
-         (jobs-html (map make-job-link jobs)))
-    (byggsteg-html-template "byggsteg"
-                            `(html (h2 (@ (class ,h2-class)) "jobs")
-                                   (div (@ (class
-                                            "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
-                                        ,jobs-html)) #t)))
-
-(define-public (make-job-link log-filename)
-  (let* ((public-log-filename (base-16-encode log-filename))
-         (logs-link (format #f "/logs/~a" public-log-filename))
-         (success (read-job-success log-filename))
-         (failure (read-job-failure log-filename))
-         (job-status (cond
-                       ((equal? success #t)
-                        `(h2 (@ (class "text-green-700 text-sm ml-4 font-mono"))
-                             ,(ii 'job-succeeded)))
-                       ((equal? failure #t)
-                        `(h2 (@ (class "text-red-700 text-sm ml-4 font-mono"))
-                             ,(ii 'job-failed)))
-                       (else `(h2 (@ (class
-                                      "text-sky-700 text-sm ml-4 font-mono"))
-                                  ,(ii 'job-in-progress))))))
-    `((div (@ (class "flex flex-col gap-2"))
-           (a (@ (class ,dash-link-face)
-                 (href ,logs-link))
-              ,(string-append "~>  " log-filename))
-           (div (@ (class "p-2"))
-                ,job-status)))))
-
-(define-public (profile-list-page)
-  (let* ((profiles (get-file-list profile-location))
-         (profiles-html (map make-profile-link profiles)))
-    (byggsteg-html-template "byggsteg"
-                            `((h2 (@ (class ,h2-class))
-                                  ,(ii 'profiles))
-                              (div (@ (class
-                                       "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
-                                   ,profiles-html)) #f)))
-
-(define-public (make-profile-link profile-name)
-  (let* ((profiles-link (format #f "/profiles/~a" profile-name)))
-    `((div (@ (class "flex flex-col gap-2"))
-           (a (@ (class ,dash-link-face)
-                 (href ,profiles-link))
-              ,(string-append "~>  " profile-name))))))
-
-(define-public (page-top)
-  `((div (@ (class "flex flex-row flex-wrap gap-1 my-6"))
-         (h1 (@ (class "text-2xl text-green-500 font-bold p-2 m-2 font-mono"))
-             (a (@ (href "/")) "byggsteg"))
-         (div (@ (class "flex flex-row flex-wrap items-center gap-1"))
-              (a (@ (href "/")
-                    (class ,nav-button-class)) "jobs")
-              (a (@ (href "/jobs/request")
-                    (class ,nav-button-class)) "+ new job run")
-              (a (@ (href "/profiles")
-                    (class ,nav-button-class))
-                 ,(ii 'profiles))
-              (a (@ (href "/profiles/manage/create")
-                    (class ,nav-button-class)) "+ new profile")))))
-
-(define-public (page-footer)
-  `((div (@ (class "block text-center font-mono"))
-         (hr (@ (class ,hr-class)))
-         (p (@ (class "text-md text-stone-300"))
-            ,(ii 'byggsteg-hackable))
-         (p (@ (class "text-md text-stone-300"))
-            ,(ii 'byggsteg-license))
-         (div (@ (class
-                  "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
-              (p (@ (class "text-sm text-stone-300"))
-                 "find the source code here:")
-              (a (@ (class "text-green-400 font-bold cursor-pointer text-sm")
-                    (href "https://codeberg.org/jjba23/byggsteg"))
-                 "https://codeberg.org/jjba23/byggsteg"))
-         (p (@ (class "mt-4"))
-            (em (@ (class "text-md text-stone-300"))
-                "Copyright 2024 - Josep Bigorra"))
-         (p (@ (class "mt-4"))
-            (span (@ (class "text-sm text-stone-300"))
-                  ,(ii 'byggsteg-word-meaning))))))

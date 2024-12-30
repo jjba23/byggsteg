@@ -1,4 +1,4 @@
-;;; index.scm
+;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
 ;; Copyright © 2024 "Josep Bigorra" known as "jjba23" <jjbigorra@gmail.com>
 ;; Copyright © 2024 "Mu Lei" known as "NalaGinrut" <NalaGinrut@gmail.com>
@@ -16,12 +16,19 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-(define-artanis-controller index)
+(define-module (byggsteg base64)
+  #:use-module (artanis security nss))
 
-(import (byggsteg html))
+(define-public (safe-base64-encode s)
+  (cond
+    ((and (not (equal? "" s))
+          (not (null? s)))
+     (nss:base64-encode s))
+    (else s)))
 
-(get "/"
-     #:mime 'xml
-     (lambda (rc)
-       (response-emit (:mime rc
-                             (welcome-page)))))
+(define-public (safe-base64-decode s)
+  (cond
+    ((and (not (equal? "" s))
+          (not (null? s)))
+     (nss:base64-decode s))
+    (else s)))

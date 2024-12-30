@@ -1,4 +1,4 @@
-;;; logs.scm
+;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
 ;; Copyright © 2024 "Josep Bigorra" known as "jjba23" <jjbigorra@gmail.com>
 ;; Copyright © 2024 "Mu Lei" known as "NalaGinrut" <NalaGinrut@gmail.com>
@@ -18,7 +18,15 @@
 
 (define-artanis-controller logs)
 
-(import (byggsteg html))
+(import (byggsteg html)
+        (byggsteg url)
+        (app views logs))
+
+(get "/"
+     #:mime 'xml
+     (lambda (rc)
+       (response-emit (:mime rc
+                             (welcome-page)))))
 
 (get "/logs/:id"
      #:mime 'xml

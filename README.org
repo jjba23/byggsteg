@@ -76,20 +76,20 @@ curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
     --data-urlencode 'job-code=`((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte"))'
   
 #  {
-#    "log-filename": "667265652d616c6163"
+#    "log-filename": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
 #  }
 #+end_src
 
 You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
 
 #+begin_src  shell
-  curl 'http://localhost:3000/api/v1/logs/667265652d616c6163'
+  curl 'http://localhost:3000/api/v1/logs/ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n'
   #
   # {"success": true,
   #  "failure": false,
   #  "in-progress": false,
-  #  "log-filename": "free-alacarte__2024-09-28__15:21:07.byggsteg.log",
-  #  "log-data": "31353a32313a30372e627......."
+  #  "log-filename": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
+  #  "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
   # }
 #+end_src
 
@@ -166,16 +166,13 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 ** Ongoing efforts
 
-**** WIP Feature parity (cleanup HTML and bring all functionalities to REST JSON)
-
+**** WIP Feature parity (bring all functionalities to REST JSON)
 
 ** Project backlog
 
+**** TODO Migrate to SQLite
+
 **** TODO Add notifications upon success or errors as balloons/banners via URL params
-
-**** TODO Move to using base64 for URLs and payloads instead of base16
-
-**** TODO Hot reload server
 
 **** TODO Add correct copyright and license header to all source code files
 
@@ -187,6 +184,12 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 
 ** ✅ Work done
+
+**** DONE Hot reload server
+CLOSED: [2024-12-30 ma 14:55]
+
+**** DONE Move to using base64 for URLs and payloads instead of base16
+CLOSED: [2024-12-30 ma 14:55]
 
 **** DONE Allow user to send Guile Scheme over the wire and define his/her own pipeline in a ~progn~ fashion.
 CLOSED: [2024-10-03 do 13:24]

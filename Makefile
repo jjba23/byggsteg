@@ -13,7 +13,9 @@ clean-dirs:
 create:
 	sudo mkdir /var/log/byggsteg || true
 	sudo chown $(shell whoami) /var/log/byggsteg
+dev:
+	watchexec -i "dist/**" -r -e scm,css,js -- "make server"
 server:
 	art work
 fmt:
-	find . -maxdepth 4 -name "*.scm" -type f -exec guix style -f {} \;
+	find . -maxdepth 8 -name "*.scm" -type f -exec guix style -f {} \;
