@@ -22,6 +22,7 @@
         (byggsteg url)
         (byggsteg preferences)
         (byggsteg base64)
+        (byggsteg process)
         (byggsteg job pipeline)
         (byggsteg job utils)
         (byggsteg log)

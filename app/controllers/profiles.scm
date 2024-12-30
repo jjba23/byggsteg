@@ -20,6 +20,7 @@
 
 (import (byggsteg html)
         (byggsteg url)
+        (byggsteg process)
         (byggsteg preferences)
         (app views profiles))
 
