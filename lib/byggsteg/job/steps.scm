@@ -33,10 +33,9 @@
                        log-filename
                        stack-task)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall
-       (format #f
-               (string-append "cd ~a" " && stack --nix ~a")
-               clone-dir stack-task))))
+      (syscall (format #f
+                       (string-append "cd ~a" " && stack --nix ~a") clone-dir
+                       stack-task))))
   (export stack-step))
 
 (begin
@@ -44,11 +43,10 @@
                                   log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (call-with-new-thread (lambda ()
-                              (syscall
-                               (format #f
-                                       (string-append
-                                        "cd ~a && sudo herd restart byggsteg")
-                                       clone-dir))))
+                              (syscall (format #f
+                                               (string-append
+                                                "cd ~a && sudo herd restart byggsteg")
+                                               clone-dir))))
       (create-empty-file (string-append job-success-location log-filename))))
   (export byggsteg-version-step))
 
@@ -56,49 +54,39 @@
   (define* (pull-and-restart-step #:key project branch-name clone-url
                                   log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall
-       (format #f
-               (string-append "cd ~a"
-                              " && sudo herd restart ~a")
-               clone-dir project))))
+      (syscall (format #f
+                       (string-append "cd ~a" " && sudo herd restart ~a")
+                       clone-dir project))))
   (export pull-and-restart-step))
 
 (begin
   (define* (pull-and-deploy-step #:key project branch-name clone-url
                                  log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall
-       (format #f
-               (string-append "cd ~a"
-                              " && sudo make deploy")
-               clone-dir))))
+      (syscall (format #f
+                       (string-append "cd ~a" " && sudo make deploy")
+                       clone-dir))))
   (export pull-and-deploy-step))
 
 (begin
   (define* (make-build-step #:key project branch-name clone-url log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall
-       (format #f
-               (string-append "cd ~a" " && make build")
-               clone-dir))))
+      (syscall (format #f
+                       (string-append "cd ~a" " && make build") clone-dir))))
   (export make-build-step))
 
 (begin
   (define* (nix-build-step #:key project branch-name clone-url log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall
-       (format #f
-               (string-append "cd ~a" " && nix build")
-               clone-dir))))
+      (syscall (format #f
+                       (string-append "cd ~a" " && nix build") clone-dir))))
   (export nix-build-step))
 
 (begin
   (define* (sbt-test-step #:key project branch-name clone-url log-filename)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall
-       (format #f
-               (string-append "cd ~a" " && sbt test")
-               clone-dir))))
+      (syscall (format #f
+                       (string-append "cd ~a" " && sbt test") clone-dir))))
   (export sbt-test-step))
 
 (begin
@@ -107,16 +95,13 @@
                                      branch-name))
            (should-clone (not (file-exists? clone-dir))))
       (cond
-       (should-clone (syscall
-                      (format #f
-                              (string-append
-                               "mkdir -p ~a"
-                               " && git clone -b ~a ~a ~a || true")
-                              clone-dir
-                              branch-name
-                              clone-url
-                              clone-dir)))
-       (else (syscall
-              (format #f "cd ~a && git pull" clone-dir))))))
+        (should-clone (syscall (format #f
+                                       (string-append "mkdir -p ~a"
+                                        " && git clone -b ~a ~a ~a || true")
+                                       clone-dir
+                                       branch-name
+                                       clone-url
+                                       clone-dir)))
+        (else (syscall (format #f "cd ~a && git pull" clone-dir))))))
   (export clone-repo-step))
 

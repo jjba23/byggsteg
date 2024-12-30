@@ -59,7 +59,7 @@
                               #:clone-url clone-url
                               #:task (string->symbol task))
           (:mime rc
-           `((log-filename unquote public-log-filename))))))
+                 `((log-filename unquote public-log-filename))))))
 
 (get "/api/v1/logs/:path"
      #:mime 'json
@@ -70,25 +70,25 @@
               (file (open-input-file file-path))
               (log-data (get-string-all file))
               (detail-file (open-input-file (string-append job-detail-location
-                                                           (safe-base64-decode log-filename))))
+                                             (safe-base64-decode log-filename))))
               (detail-data (get-string-all detail-file))
               (success (cond
-                        ((equal? (read-job-success log-filename) #t)
-                         "true")
-                        (else "false")))
+                         ((equal? (read-job-success log-filename) #t)
+                          "true")
+                         (else "false")))
               (failure (cond
-                        ((equal? (read-job-failure log-filename) #t)
-                         "true")
-                        (else "false")))
+                         ((equal? (read-job-failure log-filename) #t)
+                          "true")
+                         (else "false")))
               (in-progress (cond
-                            ((equal? (and (not (equal? success "true"))
-                                          (not (equal? failure "true"))) #t)
-                             "true")
-                            (else "false"))))
+                             ((equal? (and (not (equal? success "true"))
+                                           (not (equal? failure "true"))) #t)
+                              "true")
+                             (else "false"))))
          (:mime rc
-          `((success unquote success)
-            (failure unquote failure)
-            (in-progress unquote in-progress)
-            (log-filename unquote log-filename)
-            (log-data unquote log-data)
-            (detail-data unquote detail-data))))))
+                `((success unquote success)
+                  (failure unquote failure)
+                  (in-progress unquote in-progress)
+                  (log-filename unquote log-filename)
+                  (log-data unquote log-data)
+                  (detail-data unquote detail-data))))))
