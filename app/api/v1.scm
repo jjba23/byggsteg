@@ -7,6 +7,7 @@
         (byggsteg job utils)
         (byggsteg url)
         (byggsteg log)
+        (ice-9 textual-ports)
         (byggsteg job pipeline))
 
 (post "/api/v1/jobs/manage/submit"
@@ -41,14 +42,13 @@
                               #:clone-url clone-url
                               #:task (string->symbol task))
           (:mime rc
-           `((log-filename unquote public-log-filename))))))
+                 `((log-filename unquote public-log-filename))))))
 
 (get "/api/v1/logs/:path"
      #:mime 'json
      (lambda (rc)
-       (let* ((path (params rc "path"))
-              (log-filename (safe-base64-decode path))
-              (file-path (string-append job-log-location log-filename))
+       (let* ((log-filename (params rc "path"))
+              (file-path (string-append job-log-location (safe-base64-decode log-filename)))
               (file (open-input-file file-path))
               (log-data (get-string-all file))
               (success (cond

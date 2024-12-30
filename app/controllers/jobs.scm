@@ -16,7 +16,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-
 (define-artanis-controller jobs)
 
 (import (byggsteg html)

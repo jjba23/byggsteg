@@ -88,7 +88,7 @@
          (p (@ (class "text-md text-stone-300"))
             ,(ii 'byggsteg-license))
          (div (@ (class
-                   "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
+                  "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@ (class "text-sm text-stone-300"))
                  "find the source code here:")
               (a (@ (class "text-green-400 font-bold cursor-pointer text-sm")
@@ -103,15 +103,14 @@
 
 (define-public (maybe-profile-name is-profile)
   (cond
-   ((equal? is-profile #t)
-    `((label (@ (for "profile-name")
-                (class "text-stone-300 font-bold")) "profile name:")
-      (input (@ (id "profile-name")
-                (name "profile-name")
-                (required "")
-                (class ,input-class)))))
-   (else `())))
-
+    ((equal? is-profile #t)
+     `((label (@ (for "profile-name")
+                 (class "text-stone-300 font-bold")) "profile name:")
+       (input (@ (id "profile-name")
+                 (name "profile-name")
+                 (required "")
+                 (class ,input-class)))))
+    (else `())))
 
 (define-public (job-form route is-profile)
   `(form (@ (method "POST")

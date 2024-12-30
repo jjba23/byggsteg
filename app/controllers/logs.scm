@@ -16,7 +16,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-
 (define-artanis-controller logs)
 
 (import (byggsteg html)
@@ -27,10 +26,10 @@
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                       (welcome-page)))))
+                             (welcome-page)))))
 
 (get "/logs/:id"
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                       (log-page (params rc "id"))))))
+                             (log-page (params rc "id"))))))

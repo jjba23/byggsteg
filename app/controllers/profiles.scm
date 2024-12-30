@@ -16,7 +16,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-
 (define-artanis-controller profiles)
 
 (import (byggsteg html)
@@ -42,32 +41,34 @@
        (response-emit (:mime rc
                              (add-profile-form-page)))))
 
-(post "/profiles/manage/submit" (lambda(rc)
-                                  (let* ((body (rc-body rc))
-                                         (kv (pk 'body
-                                                 (read-url-encoded-body body)))
-                                         (profile-code (uri-decode (car (assoc-ref kv "job-code"))))
-                                         (kvv (eval-string profile-code))
-                                         (project (assoc-ref kvv
-                                                             'project))
-                                         (clone-url (assoc-ref kvv
-                                                               'clone-url))
-                                         (branch-name (assoc-ref kvv
-                                                                 'branch-name))
-                                         (task (assoc-ref kvv
-                                                          'task))
-                                         (profile-name (car (assoc-ref kv "profile-name")))
-                                         (profile-link (format #f "/profiles/~a" profile-name)))
-                                    (with-output-to-file (string-append profile-location profile-name)
-                                      (lambda ()
-                                        (display profile-code)))
-                                    (redirect-to rc profile-link))))
+(post "/profiles/manage/submit"
+      (lambda (rc)
+        (let* ((body (rc-body rc))
+               (kv (pk 'body
+                       (read-url-encoded-body body)))
+               (profile-code (uri-decode (car (assoc-ref kv "job-code"))))
+               (kvv (eval-string profile-code))
+               (project (assoc-ref kvv
+                                   'project))
+               (clone-url (assoc-ref kvv
+                                     'clone-url))
+               (branch-name (assoc-ref kvv
+                                       'branch-name))
+               (task (assoc-ref kvv
+                                'task))
+               (profile-name (car (assoc-ref kv "profile-name")))
+               (profile-link (format #f "/profiles/~a" profile-name)))
+          (with-output-to-file (string-append profile-location profile-name)
+            (lambda ()
+              (display profile-code)))
+          (redirect-to rc profile-link))))
 
-(post "/profiles/manage/delete" (lambda(rc)
-                                  (let* ((body (rc-body rc))
-                                         (kv (read-url-encoded-body body))
-                                         (profile-name (uri-decode (car (assoc-ref kv "profile-name")))))
-                                    
-                                    (syscall (format #f "rm -rfv ~a"
-                                                     (string-append profile-location profile-name)))
-                                    (redirect-to rc "/profiles"))))
+(post "/profiles/manage/delete"
+      (lambda (rc)
+        (let* ((body (rc-body rc))
+               (kv (read-url-encoded-body body))
+               (profile-name (uri-decode (car (assoc-ref kv "profile-name")))))
+          
+          (syscall (format #f "rm -rfv ~a"
+                           (string-append profile-location profile-name)))
+          (redirect-to rc "/profiles"))))
