@@ -39,22 +39,22 @@
          (success (read-job-success log-filename))
          (failure (read-job-failure log-filename))
          (job-status (cond
-                       ((equal? success #t)
-                        `(h2 (@ (class "text-xl text-green-700 my-4 font-mono"))
-                             ,(ii 'job-succeeded)))
-                       ((equal? failure #t)
-                        `(h2 (@ (class "text-xl text-red-700 my-4 font-mono"))
-                             ,(ii 'job-failed)))
-                       (else `(h2 (@ (class
+                      ((equal? success #t)
+                       `(h2 (@ (class "text-xl text-green-700 my-4 font-mono"))
+                            ,(ii 'job-succeeded)))
+                      ((equal? failure #t)
+                       `(h2 (@ (class "text-xl text-red-700 my-4 font-mono"))
+                            ,(ii 'job-failed)))
+                      (else `(h2 (@ (class
                                       "text-xl text-sky-700 my-4 font-mono"))
-                                  ,(ii 'job-in-progress))))))
+                                 ,(ii 'job-in-progress))))))
     (byggsteg-html-template "byggsteg"
                             `((div (@ (class
-                                       "flex flex-row flex-wrap align-middle gap-6"))
+                                        "flex flex-row flex-wrap align-middle gap-6"))
                                    (h2 (@ (class ,h2-class)) "viewing logs")
                                    ,job-status)
                               (h3 (@ (class
-                                      "text-stone-300 text-lg my-4 font-mono"))
+                                       "text-stone-300 text-lg my-4 font-mono"))
                                   ,log-filename)
 
                               (form (@ (method "POST")
@@ -67,17 +67,17 @@
                                               (hidden "")
                                               (value ,log-filename)
                                               (class
-                                               "rounded-xl border font-mono p-2")))
+                                                "rounded-xl border font-mono p-2")))
                                     (button (@ (type "submit")
                                                (class ,danger-button-class))
                                             "delete"))
 
                               (pre (@ (class
-                                       "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
-                                   ,detail-data)
+                                        "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
+                                   ,(safe-base64-decode detail-data))
                               (pre (@ (class
-                                       "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
-                                   ,log-data)) #t)))
+                                        "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
+                                   ,(safe-base64-decode log-data))) #t)))
 
 (define-public (make-job-link log-filename)
   (let* ((public-log-filename (safe-base64-encode log-filename))

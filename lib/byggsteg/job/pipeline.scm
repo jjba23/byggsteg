@@ -32,104 +32,139 @@
     (define (register-success)
       (create-empty-file (string-append job-success-location log-filename)))
 
+    (define (run-pipeline)
+      (display "\nstarting new job...\n")
+
+      (clone-repo-step
+       #:project project
+       #:branch-name
+       branch-name
+       #:clone-url clone-url
+       #:log-filename
+       log-filename)
+
+      (cond
+       ;; Stack test + sdist
+       ((eq? task
+             'stack-test)
+        (stack-step #:project
+                    project
+                    #:branch-name
+                    branch-name
+                    #:clone-url clone-url
+                    #:log-filename
+                    log-filename
+                    #:stack-task "test")
+        (stack-step #:project
+                    project
+                    #:branch-name
+                    branch-name
+                    #:clone-url clone-url
+                    #:log-filename
+                    log-filename
+                    #:stack-task
+                    "sdist --tar-dir .")
+        (register-success))
+
+       ;; Stack build + sdist
+       ((eq? task
+             'stack-build)
+        (stack-step #:project
+                    project
+                    #:branch-name
+                    branch-name
+                    #:clone-url clone-url
+                    #:log-filename
+                    log-filename
+                    #:stack-task "build")
+        (stack-step #:project
+                    project
+                    #:branch-name
+                    branch-name
+                    #:clone-url clone-url
+                    #:log-filename
+                    log-filename
+                    #:stack-task
+                    "sdist --tar-dir .")
+        (register-success))
+
+       ;; Byggsteg version update
+       ;; note: (register-success) will be called inside
+       ;; the byggsteg-version step due to race conditions
+       ((eq? task
+             'byggsteg-version)
+        (byggsteg-version-step
+         #:project project
+         #:branch-name
+         branch-name
+         #:clone-url clone-url
+         #:log-filename
+         log-filename))
+
+       ;; Nix generic build
+       ((eq? task
+             'nix-build)
+        (nix-build-step
+         #:project project
+         #:branch-name
+         branch-name
+         #:clone-url clone-url
+         #:log-filename
+         log-filename)
+        (register-success))
+
+       ;; Herd pull and restart
+       ((eq? task
+             'pull-and-restart)
+        (pull-and-restart-step
+         #:project project
+         #:branch-name
+         branch-name
+         #:clone-url clone-url
+         #:log-iflename
+         log-filename)
+        (register-success))
+
+       ;; Scala SBT test
+       ((eq? task
+             'sbt-test)
+        (sbt-test-step
+         #:project project
+         #:branch-name
+         branch-name
+         #:clone-url clone-url
+         #:log-filename
+         log-filename)
+        (register-success))
+
+       ;; Pull and make deploy
+       ((eq? task
+             'pull-and-deploy)
+        (pull-and-deploy-step
+         #:project project
+         #:branch-name
+         branch-name
+         #:clone-url clone-url
+         #:log-filename
+         log-filename)
+        (register-success))
+
+       ;; Otherwise attempt generic `make build'
+       (else (make-build-step
+              #:project
+              project
+              #:branch-name
+              branch-name
+              #:clone-url
+              clone-url
+              #:log-filename
+              log-filename)
+             (register-success))))
+
     (call-with-new-thread (lambda ()
-                            (syscall-to-log-file log-filename
-                                                 (format #f "echo '~a'"
-                                                  "\nstarting new job...\n"))
-
-                            (clone-repo-step #:project project
-                                             #:branch-name branch-name
-                                             #:clone-url clone-url
-                                             #:log-filename log-filename)
-
-                            (cond
-                              ;; Stack test + sdist
-                              ((eq? task
-                                    'stack-test)
-                               (stack-step #:project project
-                                           #:branch-name branch-name
-                                           #:clone-url clone-url
-                                           #:log-filename log-filename
-                                           #:stack-task "test")
-                               (stack-step #:project project
-                                           #:branch-name branch-name
-                                           #:clone-url clone-url
-                                           #:log-filename log-filename
-                                           #:stack-task "sdist --tar-dir .")
-                               (register-success))
-
-                              ;; Stack build + sdist
-                              ((eq? task
-                                    'stack-build)
-                               (stack-step #:project project
-                                           #:branch-name branch-name
-                                           #:clone-url clone-url
-                                           #:log-filename log-filename
-                                           #:stack-task "build")
-                               (stack-step #:project project
-                                           #:branch-name branch-name
-                                           #:clone-url clone-url
-                                           #:log-filename log-filename
-                                           #:stack-task "sdist --tar-dir .")
-                               (register-success))
-
-                              ;; Byggsteg version update
-                              ;; note: (register-success) will be called inside
-                              ;; the byggsteg-version step due to race conditions
-                              ((eq? task
-                                    'byggsteg-version)
-                               (byggsteg-version-step #:project project
-                                                      #:branch-name
-                                                      branch-name
-                                                      #:clone-url clone-url
-                                                      #:log-filename
-                                                      log-filename))
-
-                              ;; Nix generic build
-                              ((eq? task
-                                    'nix-build)
-                               (nix-build-step #:project project
-                                               #:branch-name branch-name
-                                               #:clone-url clone-url
-                                               #:log-filename log-filename)
-                               (register-success))
-
-                              ;; Herd pull and restart
-                              ((eq? task
-                                    'pull-and-restart)
-                               (pull-and-restart-step #:project project
-                                                      #:branch-name
-                                                      branch-name
-                                                      #:clone-url clone-url
-                                                      #:log-iflename
-                                                      log-filename)
-                               (register-success))
-
-                              ;; Scala SBT test
-                              ((eq? task
-                                    'sbt-test)
-                               (sbt-test-step #:project project
-                                              #:branch-name branch-name
-                                              #:clone-url clone-url
-                                              #:log-filename log-filename)
-                               (register-success))
-
-                              ;; Pull and make deploy
-                              ((eq? task
-                                    'pull-and-deploy)
-                               (pull-and-deploy-step #:project project
-                                                     #:branch-name branch-name
-                                                     #:clone-url clone-url
-                                                     #:log-filename
-                                                     log-filename)
-                               (register-success))
-
-                              ;; Otherwise attempt generic `make build'
-                              (else (make-build-step #:project project
-                                                     #:branch-name branch-name
-                                                     #:clone-url clone-url
-                                                     #:log-filename
-                                                     log-filename)
-                                    (register-success))))))
+                            (let ((o (with-output-to-string (lambda ()
+                                                              (run-pipeline)
+                                                              ))))
+                              (create-file-with (string-append job-log-location log-filename) o)))))
 
   (export async-job-pipeline))

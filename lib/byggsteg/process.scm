@@ -20,6 +20,7 @@
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg base64)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)

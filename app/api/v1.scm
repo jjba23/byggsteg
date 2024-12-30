@@ -52,22 +52,26 @@
           (create-empty-file (string-append job-detail-location log-filename))
           (with-output-to-file (string-append job-detail-location log-filename)
             (lambda ()
-              (display job-code)))
+              (display (safe-base64-encode job-code))))
           (async-job-pipeline #:log-filename log-filename
                               #:project project
                               #:branch-name branch-name
                               #:clone-url clone-url
                               #:task (string->symbol task))
           (:mime rc
-                 `((log-filename unquote public-log-filename))))))
+           `((log-filename unquote public-log-filename))))))
 
 (get "/api/v1/logs/:path"
      #:mime 'json
      (lambda (rc)
        (let* ((log-filename (params rc "path"))
-              (file-path (string-append job-log-location (safe-base64-decode log-filename)))
+              (file-path (string-append job-log-location
+                                        (safe-base64-decode log-filename)))
               (file (open-input-file file-path))
               (log-data (get-string-all file))
+              (detail-file (open-input-file (string-append job-detail-location
+                                                           (safe-base64-decode log-filename))))
+              (detail-data (get-string-all detail-file))
               (success (cond
                         ((equal? (read-job-success log-filename) #t)
                          "true")
@@ -86,5 +90,5 @@
             (failure unquote failure)
             (in-progress unquote in-progress)
             (log-filename unquote log-filename)
-            (log-data unquote
-                      (safe-base64-encode log-data)))))))
+            (log-data unquote log-data)
+            (detail-data unquote detail-data))))))

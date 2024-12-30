@@ -59,7 +59,7 @@
           (create-empty-file (string-append job-detail-location log-filename))
           (with-output-to-file (string-append job-detail-location log-filename)
             (lambda ()
-              (display job-code)))
+              (display (safe-base64-encode job-code))))
           (async-job-pipeline #:log-filename log-filename
                               #:project project
                               #:branch-name branch-name

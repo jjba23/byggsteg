@@ -18,6 +18,7 @@
 
 (define-module (byggsteg job utils)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg base64)
   #:use-module (byggsteg process))
 
 (define-public (read-job-success log-filename)
@@ -43,4 +44,12 @@
   (with-output-to-file filename
     (lambda ()
       (display ""))))
+
+(define-public (create-file-with filename data)
+  "Create a file with."
+  (when (file-exists? filename)
+    (delete-file filename))
+  (with-output-to-file filename
+    (lambda ()
+      (display (safe-base64-encode data)))))
 
