@@ -23,12 +23,13 @@
         (byggsteg process)
         (byggsteg preferences)
         (app views profiles)
-        (app models profile))
+        ;;(app models profile)
+        )
 
 (get "/profiles"
      #:mime 'xml
      (lambda (rc)
-       (display ($profile 'get #:order-by "human_id ASC"))
+       ;; (display ($profile 'get #:order-by "human_id ASC"))
        (response-emit (:mime rc
                        (profile-list-page '())))))
 
