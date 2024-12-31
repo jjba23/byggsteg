@@ -81,7 +81,7 @@
                 `((success unquote
                            (assoc-ref (car j) "job_success"))
                   (failure unquote
-                           (assoc-ref (car j) "job_failure"))
+                           (assoc-ref (car j) "job_failed"))
                   (in-progress unquote
                                (assoc-ref (car j) "job_in_progress"))
                   (log-id unquote

@@ -147,7 +147,18 @@
                                                `((log_data ,(safe-base64-encode
                                                              new-log-data))
                                                  (updated_at ,(current-time)))
-                                               (where #:id log-uuid)))))))
+                                               (where #:id log-uuid)))
+
+                              (DB-query (DB-open rc)
+                                        (->sql update
+                                               'job set
+                                               `((job_success 1)
+                                                 (job_in_progress 0)
+                                                 (job_failed 0)
+                                                 (updated_at ,(current-time)))
+                                               (where #:id job-uuid)))
+
+                              ))))
 
   (export async-job-pipeline))
 

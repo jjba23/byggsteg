@@ -24,6 +24,7 @@
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg prelude)
+  #:use-module (byggsteg debug)
   #:use-module (web uri)
   #:use-module (artanis artanis)
   #:use-module (byggsteg job utils)
@@ -39,7 +40,7 @@
          (detail-data (safe-base64-decode (assoc-ref job "job_data")))
          (success (assoc-ref job "job_success"))
          (in_progress (assoc-ref job "job_in_progress"))
-         (failure (assoc-ref job "job_failure"))
+         (failure (assoc-ref job "job_failed"))
          (job-status (cond
                        ((equal? success 1)
                         `(h2 (@ (class "text-xl text-green-700 my-4 font-mono"))
@@ -86,18 +87,17 @@
                                    ,log-data)) #t)))
 
 (define-public (make-job-link job log)
-  (write log)
   (let* ((log-filename (safe-base64-decode (assoc-ref log "human_id")))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
                             (assoc-ref log "id")))
-         (success (assoc-ref job "job_success"))
-         (failure (assoc-ref job "job_failure"))
+         (success (assoc-ref (car job) "job_success"))
+         (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
-                       ((equal? success #t)
+                       ((equal? success 1)
                         `(h2 (@ (class "text-green-700 text-sm ml-4 font-mono"))
                              ,(ii 'job-succeeded)))
-                       ((equal? failure #t)
+                       ((equal? failure 1)
                         `(h2 (@ (class "text-red-700 text-sm ml-4 font-mono"))
                              ,(ii 'job-failed)))
                        (else `(h2 (@ (class
@@ -112,9 +112,9 @@
 
 (define-public (welcome-page jobs-of-logs logs)
   (let* ((jobs-html (map (lambda (l)
-                           (make-job-link (assoc-ref jobs-of-logs
-                                                     (assoc-ref l "id")) l))
-                         logs)))
+                           (make-job-link (car (assoc-ref jobs-of-logs
+                                                          (assoc-ref l "id")))
+                                          l)) logs)))
     (byggsteg-html-template "byggsteg"
                             `(html (h2 (@ (class ,h2-class)) "jobs")
                                    (div (@ (class

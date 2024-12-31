@@ -48,9 +48,6 @@
                                                     (assoc-ref l "job_id"))))
                                  logs)))
          
-         (debug-print (list logs job-ids jobs))
-         (debug-print (list job-map jobs-of-logs))
-
          (response-emit (:mime rc
                                (welcome-page jobs-of-logs logs))))))
 
