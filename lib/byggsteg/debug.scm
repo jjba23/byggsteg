@@ -23,10 +23,10 @@
   #:use-module (ice-9 iconv))
 
 (define-public (debug-print xs)
-  (newline)
+  (newline)(newline)
   (display "======================")
   (newline)
   (for-each (lambda(x) (write x)(newline)) xs)
   (newline)
   (display "======================")
-  (newline))
+  (newline)(newline))

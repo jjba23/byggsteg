@@ -30,8 +30,16 @@
      (lambda (rc)
        (let* ((logs ($log 'get #:ret 'all #:order-by "created_at DESC"))
               (job-ids (map (lambda(l) (assoc-ref l "job_id")) logs))
-              (jobs ($job 'get #:ret 'all #:condition (where #:id job-ids))))
-         (debug-print (list logs job-ids jobs))
+              (jobs ($job 'get #:ret 'all #:condition (where #:id job-ids)))
+              (job-map (map (lambda(j) (list (assoc-ref j "id")
+                                        j)) jobs))
+              
+              (jobs-of-logs (map (lambda(l) (list (assoc-ref l "id")
+                                             (assoc-ref job-map (assoc-ref l "job_id")))) logs)))
+         
+         (debug-print (list logs job-ids jobs ))
+         (debug-print (list job-map jobs-of-logs))
+         
          (response-emit (:mime rc
                          (welcome-page jobs-of-logs logs))))))
 

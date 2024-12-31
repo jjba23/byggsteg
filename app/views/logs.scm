@@ -83,8 +83,8 @@
 
 (define-public (make-job-link job log)
   (write log)
-  (let* ((public-log-filename (safe-base64-decode (assoc-ref log "human_id")))
-         (logs-link (string->uri (format #f "~a/logs/~a" (current-myhost) public-log-filename)))
+  (let* ((log-filename (safe-base64-decode (assoc-ref log "human_id")))
+         (logs-link  (format #f "~a/logs/~a" (current-myhost) (assoc-ref log "id")))
          (success (assoc-ref job "job_success"))
          (failure (assoc-ref job "job_failure"))
          (job-status (cond
