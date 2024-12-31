@@ -175,8 +175,6 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 **** TODO Add notifications upon success or errors as balloons/banners via URL params
 
-**** TODO Add correct copyright and license header to all source code files
-
 **** TODO Be explicit about other projects/libraries used to make byggsteg and their licenses
 
 **** TODO Consider using gettext for internationalization and localization, or improve existing setup
@@ -187,6 +185,9 @@ After productive collaboration other kinds of roles can be added and assigned.
 ** ✅ Work done
 
 **** DONE Migrate to SQLite
+CLOSED: [2024-12-31 di 15:19]
+
+**** DONE Add correct copyright and license header to all source code files
 CLOSED: [2024-12-31 di 15:19]
 
 **** DONE Hot reload server
