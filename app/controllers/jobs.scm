@@ -30,6 +30,7 @@
         (byggsteg log)
         (ice-9 string-fun)
         (app models job)
+        (app models log)
         (app views jobs))
 
 (get "/jobs/request"
@@ -46,29 +47,31 @@
                (kvv (eval-string job-code))
                (project (assoc-ref kvv
                                    'project))
-               (clone-url (assoc-ref kvv
-                                     'clone-url))
-               (branch-name (assoc-ref kvv
-                                       'branch-name))
-               (task (assoc-ref kvv
-                                'task))
+               (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
+               (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
                (log-filename (new-project-log-filename project))
-               (only-filename (string-replace-substring log-filename
-                                                        job-log-location ""))
-               (public-log-filename (safe-base64-encode only-filename))
-               (logs-link (format #f "/logs/~a" public-log-filename)))
+               (logs-link (format #f "~a/logs/~a" (current-myhost) new-log-uuid)))
+
+          ($job 'set
+                #:id new-job-uuid
+                #:human_id (safe-base64-encode log-filename)
+                #:job_data (safe-base64-encode job-code)
+                #:job_success 0
+                #:job_in_progress 1
+                #:job_failed 0
+                #:created_at (current-time))
           
-          (create-empty-file (string-append job-log-location log-filename))
-          (create-empty-file (string-append job-detail-location log-filename))
-          (with-output-to-file (string-append job-detail-location log-filename)
-            (lambda ()
-              (display (safe-base64-encode job-code))))
-          (async-job-pipeline #:log-filename log-filename
-                              #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url
-                              #:task (string->symbol task))
-          (redirect-to rc logs-link))))
+          ($log 'set
+                #:id new-log-uuid
+                #:human_id (safe-base64-encode log-filename)
+                #:job_id new-job-uuid
+                #:log_data ""
+                #:created_at (current-time))
+
+          (async-job-pipeline #:job-uuid new-job-uuid
+                              #:log-uuid new-log-uuid)
+          
+          (redirect-to rc (string->uri logs-link)))))
 
 (post "/jobs/manage/delete"
       (lambda (rc)

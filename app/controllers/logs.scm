@@ -20,16 +20,24 @@
 
 (import (byggsteg html)
         (byggsteg url)
-        (app views logs))
+        (app views logs)
+        (app models job)
+        (app models log))
 
 (get "/"
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                             (welcome-page)))))
+                       (welcome-page ($log 'get #:ret 'all #:order-by "created_at DESC"))))))
 
 (get "/logs/:id"
      #:mime 'xml
      (lambda (rc)
-       (response-emit (:mime rc
-                             (log-page (params rc "id"))))))
+       (let* ((l ($log 'get
+                       #:ret 'top
+                       #:condition (where #:id (params rc "id"))))
+              (j ($job 'get
+                       #:ret 'top
+                       #:condition (where #:id (assoc-ref (car l) "job_id")))))
+         (response-emit (:mime rc
+                         (log-page (car j) (car l)))))))
