@@ -70,26 +70,29 @@ You can use the UI and visit ~/jobs/request~ or you can also invoke this via the
 You could do this  for example from your favourite system programatically, or via cURL:
 
 #+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
-    -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
-    -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
-    --data-urlencode 'job-code=`((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte"))'
+  curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
+      -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
+      -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
+      --data-urlencode 'job-code=`((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte"))'
   
-#  {
-#    "log-filename": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
-#  }
+  #  {
+  #    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
+  #    "human-id": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
+  #  }
 #+end_src
 
 You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until succeess or failure is true.
 
 #+begin_src  shell
-  curl 'http://localhost:3000/api/v1/logs/ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n'
+  curl 'http://localhost:3000/api/v1/logs/ce24da08-1833-4821-b7e3-e2bacaa79326'
   #
-  # {"success": true,
-  #  "failure": false,
-  #  "in-progress": false,
-  #  "log-filename": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
-  #  "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
+  # {
+  #   "success": 1,
+  #   "failure": 0,
+  #   "in-progress": 0,
+  #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",  
+  #   "human-id": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
+  #   "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
   # }
 #+end_src
 
@@ -170,8 +173,6 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 ** Project backlog
 
-**** TODO Migrate to SQLite
-
 **** TODO Add notifications upon success or errors as balloons/banners via URL params
 
 **** TODO Add correct copyright and license header to all source code files
@@ -184,6 +185,9 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 
 ** ✅ Work done
+
+**** DONE Migrate to SQLite
+CLOSED: [2024-12-31 di 15:19]
 
 **** DONE Hot reload server
 CLOSED: [2024-12-30 ma 14:55]
