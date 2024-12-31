@@ -33,11 +33,8 @@
   #:use-module (ice-9 threads))
 
 (begin
-  (define* (async-job-pipeline #:key
-                               rc
-                               job-uuid
-                               log-uuid)
-
+  (define* (async-job-pipeline #:key rc job-uuid log-uuid)
+    
     (define* (run-pipeline #:key project branch-name clone-url task)
       (display "\nstarting new job...\n")
 
@@ -46,95 +43,111 @@
                        #:clone-url clone-url)
 
       (cond
-       ;; Stack test + sdist
-       ((eq? task
-             'stack-test)
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "test")
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "sdist --tar-dir ."))
+        ;; Stack test + sdist
+        ((eq? task
+              'stack-test)
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "test")
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "sdist --tar-dir ."))
 
-       ;; Stack build + sdist
-       ((eq? task
-             'stack-build)
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "build")
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "sdist --tar-dir ."))
+        ;; Stack build + sdist
+        ((eq? task
+              'stack-build)
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "build")
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "sdist --tar-dir ."))
 
-       ;; Byggsteg version update
-       ((eq? task
-             'byggsteg-version)
-        (byggsteg-version-step #:project project
-                               #:branch-name branch-name
-                               #:clone-url clone-url))
+        ;; Byggsteg version update
+        ((eq? task
+              'byggsteg-version)
+         (byggsteg-version-step #:project project
+                                #:branch-name branch-name
+                                #:clone-url clone-url))
 
-       ;; Nix generic build
-       ((eq? task
-             'nix-build)
-        (nix-build-step #:project project
+        ;; Nix generic build
+        ((eq? task
+              'nix-build)
+         (nix-build-step #:project project
+                         #:branch-name branch-name
+                         #:clone-url clone-url))
+
+        ;; Herd pull and restart
+        ((eq? task
+              'pull-and-restart)
+         (pull-and-restart-step #:project project
+                                #:branch-name branch-name
+                                #:clone-url clone-url))
+
+        ;; Scala SBT test
+        ((eq? task
+              'sbt-test)
+         (sbt-test-step #:project project
                         #:branch-name branch-name
                         #:clone-url clone-url))
 
-       ;; Herd pull and restart
-       ((eq? task
-             'pull-and-restart)
-        (pull-and-restart-step #:project project
+        ;; Pull and make deploy
+        ((eq? task
+              'pull-and-deploy)
+         (pull-and-deploy-step #:project project
                                #:branch-name branch-name
                                #:clone-url clone-url))
 
-       ;; Scala SBT test
-       ((eq? task
-             'sbt-test)
-        (sbt-test-step #:project project
-                       #:branch-name branch-name
-                       #:clone-url clone-url))
-
-       ;; Pull and make deploy
-       ((eq? task
-             'pull-and-deploy)
-        (pull-and-deploy-step #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url))
-
-       ;; Otherwise attempt generic `make build'
-       (else (make-build-step #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url))))
+        ;; Otherwise attempt generic `make build'
+        (else (make-build-step #:project project
+                               #:branch-name branch-name
+                               #:clone-url clone-url))))
 
     (call-with-new-thread (lambda ()
-                            (let* ((j (car ($job 'get #:ret 'top #:condition (where #:id job-uuid))))
-                                   (l (car ($log 'get #:ret 'top #:condition (where #:id log-uuid))))
-                                   (old-log-data (safe-base64-decode (assoc-ref l "log_data")))
-                                   (kv (eval-string (safe-base64-decode (assoc-ref j "job_data"))))
-                                   (project (assoc-ref kv 'project))
-                                   (branch-name (assoc-ref kv 'branch-name))
-                                   (clone-url (assoc-ref kv 'clone-url))
-                                   (task (string->symbol (assoc-ref kv 'task)))
+                            (let* ((j (car ($job 'get
+                                                 #:ret 'top
+                                                 #:condition (where #:id
+                                                                    job-uuid))))
+                                   (l (car ($log 'get
+                                                 #:ret 'top
+                                                 #:condition (where #:id
+                                                                    log-uuid))))
+                                   (old-log-data (safe-base64-decode (assoc-ref
+                                                                      l
+                                                                      "log_data")))
+                                   (kv (eval-string (safe-base64-decode (assoc-ref
+                                                                         j
+                                                                         "job_data"))))
+                                   (project (assoc-ref kv
+                                                       'project))
+                                   (branch-name (assoc-ref kv
+                                                           'branch-name))
+                                   (clone-url (assoc-ref kv
+                                                         'clone-url))
+                                   (task (string->symbol (assoc-ref kv
+                                                                    'task)))
                                    (o (with-output-to-string (lambda ()
-                                                               (run-pipeline #:project project
-                                                                             #:branch-name branch-name
-                                                                             #:clone-url clone-url
-                                                                             #:task task)
-                                                               )))
-                                   (new-log-data (string-append old-log-data "\n" o)))
+                                                               (run-pipeline
+                                                                #:project
+                                                                project
+                                                                #:branch-name
+                                                                branch-name
+                                                                #:clone-url
+                                                                clone-url
+                                                                #:task task))))
+                                   (new-log-data (string-append old-log-data
+                                                                "\n" o)))
                               (DB-query (DB-open rc)
                                         (->sql update
                                                'log set
                                                `((log_data ,(safe-base64-encode
                                                              new-log-data))
                                                  (updated_at ,(current-time)))
-                                               (where #:id log-uuid)))
-                              ))))
+                                               (where #:id log-uuid)))))))
 
   (export async-job-pipeline))
 
-  
