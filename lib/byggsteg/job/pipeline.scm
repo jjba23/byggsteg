@@ -22,17 +22,15 @@
   #:use-module (byggsteg job steps)
   #:use-module (byggsteg job utils)
   #:use-module (byggsteg uuid)
+  #:use-module (artanis artanis)
+  #:use-module (app models log)
+  #:use-module (app models job)
   #:use-module (byggsteg base64)
+  #:use-module (byggsteg debug)
   #:use-module (app models job)
   #:use-module (app models log)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads))
-
-;; #:log-filename log-filename
-;; #:project project
-;; #:branch-name branch-name
-;; #:clone-url clone-url
-;; #:task (string->symbol task)
 
 (begin
   (define* (async-job-pipeline #:key
@@ -112,14 +110,20 @@
                               #:clone-url clone-url))))
 
     (call-with-new-thread (lambda ()
-                            (let ((j (car ($job 'get #:ret 'top #:condition (where #:id job-uuid))))
-                                  (l (car ($log 'get #:ret 'top #:condition (where #:id log-uuid))))
-                                  (kv (eval-string (safe-base64-decode (assoc-ref j "job_code"))))
-                                  (o (with-output-to-string (lambda ()
-                                                              (run-pipeline #:project project
-                                                                            #:branch-name branch-name
-                                                                            #:clone-url clone-url
-                                                                            #:task task)))))
+                            (let* ((j (car ($job 'get #:ret 'top #:condition (where #:id job-uuid))))
+                                   (l (car ($log 'get #:ret 'top #:condition (where #:id log-uuid))))
+                                   (kv (eval-string (safe-base64-decode (assoc-ref j "job_data"))))
+                                   (project (assoc-ref kv 'project))
+                                   (branch-name (assoc-ref kv 'branch-name))
+                                   (clone-url (assoc-ref kv 'clone-url))
+                                   (task (string->symbol (assoc-ref kv 'task)))
+                                   (o (with-output-to-string (lambda ()
+                                                               (run-pipeline #:project project
+                                                                             #:branch-name branch-name
+                                                                             #:clone-url clone-url
+                                                                             #:task task)
+
+                                                               ))))
                               (display o)))))
 
   (export async-job-pipeline))
