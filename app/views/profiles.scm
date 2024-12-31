@@ -61,11 +61,11 @@
                                             (enctype
                                              "application/x-www-form-urlencoded")
                                             (action "/profiles/manage/delete"))
-                                         (input (@ (id "profile-name")
-                                                   (name "profile-name")
+                                         (input (@ (id "profile-id")
+                                                   (name "profile-id")
                                                    (required "")
                                                    (hidden "")
-                                                   (value ,profile-name)
+                                                   (value ,(assoc-ref p "id"))
                                                    (class
                                                      "rounded-xl border font-mono p-2")))
                                          (button (@ (type "submit")

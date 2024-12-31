@@ -20,6 +20,7 @@
 
 (import (byggsteg html)
         (byggsteg url)
+        (web uri)
         (byggsteg process)
         (byggsteg uuid)
         (byggsteg base64)
@@ -69,7 +70,7 @@
                              `((profile_data ,(safe-base64-encode profile-data))
                                (updated_at ,(current-time)))
                              (where #:human_id (safe-base64-encode profile-name))))
-            (redirect-to rc (format #f "/profiles/~a" (assoc-ref found-profile "id")))
+            (redirect-to rc (string->uri (format #f "~a/profiles/~a" (current-myhost) (assoc-ref found-profile "id"))))
             )
            (else
             ($profile 'set
@@ -77,7 +78,7 @@
                       #:human_id (safe-base64-encode profile-name)
                       #:profile_data (safe-base64-encode profile-data)
                       #:created_at (current-time))
-            (redirect-to rc (format #f "/profiles/~a" new-uuid))
+            (redirect-to rc (string->uri (format #f "~a/profiles/~a" (current-myhost) new-uuid)))
             )))))
 
 (post "/profiles/manage/delete"
@@ -89,6 +90,6 @@
           (DB-query (DB-open rc)
                     (->sql delete from
                            'profile
-                           (where #:id id)))
+                           (where #:id profile-id)))
 
-          (redirect-to rc "/profiles"))))
+          (redirect-to rc (string->uri (format #f "~a/profiles" (current-myhost)))))))
