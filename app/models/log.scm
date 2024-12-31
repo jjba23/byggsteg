@@ -5,7 +5,7 @@
                       (id char-field
                           (#:primary-key #:maxlen 36))
                       (job_id char-field
-                              (#:not-null #:unique #:maxlen 36))
+                              (#:not-null #:maxlen 36))
                       (log_data char-field
                                 (#:not-null #:maxlen 16384))
                       (created_at date-field
