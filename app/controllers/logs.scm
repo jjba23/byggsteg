@@ -20,6 +20,7 @@
 
 (import (byggsteg html)
         (byggsteg url)
+        (byggsteg debug)
         (app views logs)
         (app models job)
         (app models log))
@@ -27,8 +28,12 @@
 (get "/"
      #:mime 'xml
      (lambda (rc)
-       (response-emit (:mime rc
-                       (welcome-page ($log 'get #:ret 'all #:order-by "created_at DESC"))))))
+       (let* ((logs ($log 'get #:ret 'all #:order-by "created_at DESC"))
+              (job-ids (map (lambda(l) (assoc-ref l "job_id")) logs))
+              (jobs ($job 'get #:ret 'all #:condition (where #:id job-ids))))
+         (debug-print (list logs job-ids jobs))
+         (response-emit (:mime rc
+                         (welcome-page jobs-of-logs logs))))))
 
 (get "/logs/:id"
      #:mime 'xml
