@@ -82,15 +82,9 @@
                (kv (read-url-encoded-body body))
                (job-id (uri-decode (car (assoc-ref kv "job-id"))))
                (log-id (uri-decode (car (assoc-ref kv "log-id")))))
-          
-          (DB-query (DB-open rc)
-                    (->sql delete from
-                           'job
-                           (where #:id job-id)))
-          (DB-query (DB-open rc)
-                    (->sql delete from
-                           'log
-                           (where #:id log-id)))
+
+          ($job 'mod 'row-delete (where #:id job-id))
+          ($log 'mod 'row-delete (where #:id log-id))
 
           (redirect-to rc
                        (string->uri (format #f "~a/"

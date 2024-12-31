@@ -93,11 +93,8 @@
         (let* ((body (rc-body rc))
                (kv (read-url-encoded-body body))
                (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
-          
-          (DB-query (DB-open rc)
-                    (->sql delete from
-                           'profile
-                           (where #:id profile-id)))
+
+          ($profile 'mod 'row-delete (where #:id profile-id))
 
           (redirect-to rc
                        (string->uri (format #f "~a/profiles"
