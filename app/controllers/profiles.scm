@@ -22,19 +22,21 @@
         (byggsteg url)
         (byggsteg process)
         (byggsteg preferences)
-        (app views profiles))
+        (app views profiles)
+        (app models profile))
 
 (get "/profiles"
      #:mime 'xml
      (lambda (rc)
+       (display ($profile 'get #:order-by "human_id ASC"))
        (response-emit (:mime rc
-                             (profile-list-page)))))
+                       (profile-list-page '())))))
 
 (get "/profiles/:path"
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                             (profile-page (params rc "path"))))))
+                       (profile-page (params rc "path"))))))
 
 (get "/profiles/manage/create"
      #:mime 'xml

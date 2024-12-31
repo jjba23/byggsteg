@@ -102,18 +102,17 @@
                                 ,(ii 'add-profile-title))
                             ,(job-form "/profiles/manage/submit" #t)) #f))
 
-(define-public (profile-list-page)
-  (let* ((profiles (get-file-list profile-location))
-         (profiles-html (map make-profile-link profiles)))
+(define-public (profile-list-page profiles)
+  (let* ((profiles-html (map make-profile-link profiles)))
     (byggsteg-html-template "byggsteg"
                             `((h2 (@ (class ,h2-class))
                                   ,(ii 'profiles))
                               (div (@ (class
-                                       "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
+                                        "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
                                    ,profiles-html)) #f)))
 
-(define-public (make-profile-link profile-name)
-  (let* ((profiles-link (format #f "/profiles/~a" profile-name)))
+(define-public (make-profile-link profile)
+  (let* ((profiles-link (format #f "/profiles/~a" (assoc-ref profile-name "human_id"))))
     `((div (@ (class "flex flex-col gap-2"))
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
