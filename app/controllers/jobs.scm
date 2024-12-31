@@ -27,6 +27,7 @@
         (byggsteg job utils)
         (byggsteg log)
         (ice-9 string-fun)
+        (app models job)
         (app views jobs))
 
 (get "/jobs/request"
