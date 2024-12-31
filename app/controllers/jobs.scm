@@ -82,9 +82,13 @@
                (kv (read-url-encoded-body body))
                (job-id (uri-decode (car (assoc-ref kv "job-id"))))
                (log-id (uri-decode (car (assoc-ref kv "log-id")))))
-
-          ($job 'mod 'row-delete (where #:id job-id))
-          ($log 'mod 'row-delete (where #:id log-id))
+          
+          ($job 'mod
+                'row-delete
+                (where #:id job-id))
+          ($log 'mod
+                'row-delete
+                (where #:id log-id))
 
           (redirect-to rc
                        (string->uri (format #f "~a/"
