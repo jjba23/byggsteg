@@ -30,7 +30,11 @@
      (lambda (rc)
        (let* ((logs ($log 'get #:ret 'all #:order-by "created_at DESC"))
               (job-ids (map (lambda(l) (assoc-ref l "job_id")) logs))
-              (jobs ($job 'get #:ret 'all #:condition (where #:id job-ids)))
+              (jobs (cond
+                     ((not (nil? job-ids))
+                      ($job 'get #:ret 'all #:condition (where #:id job-ids)))
+                     (else '())
+                     ))
               (job-map (map (lambda(j) (list (assoc-ref j "id")
                                         j)) jobs))
               

@@ -77,12 +77,17 @@
       (lambda (rc)
         (let* ((body (rc-body rc))
                (kv (read-url-encoded-body body))
-               (job-id (uri-decode (car (assoc-ref kv "job-id")))))
+               (job-id (uri-decode (car (assoc-ref kv "job-id"))))
+               (log-id (uri-decode (car (assoc-ref kv "log-id")))))
           
           (DB-query (DB-open rc)
                     (->sql delete from
                            'job
                            (where #:id job-id)))
+          (DB-query (DB-open rc)
+                    (->sql delete from
+                           'log
+                           (where #:id log-id)))
 
           (redirect-to rc
                        (string->uri (format #f "~a/"

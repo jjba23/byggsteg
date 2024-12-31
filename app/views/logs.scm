@@ -33,7 +33,9 @@
 
 
 (define-public (log-page job log)
-  (let* ((log-filename (safe-base64-decode (assoc-ref log "human_id")))
+  (let* ((log-id (assoc-ref log "id"))
+         (job-id (assoc-ref job "id"))
+         (log-filename (safe-base64-decode (assoc-ref log "human_id")))
          (log-data (safe-base64-decode (assoc-ref log "log_data")))
          (detail-data (safe-base64-decode (assoc-ref job "job_data")))
          (success (assoc-ref job "job_success"))
@@ -63,13 +65,16 @@
                                        (enctype
                                         "application/x-www-form-urlencoded")
                                        (action "/jobs/manage/delete"))
-                                    (input (@ (id "log-filename")
-                                              (name "log-filename")
+                                    (input (@ (id "log-id")
+                                              (name "log-id")
                                               (required "")
                                               (hidden "")
-                                              (value ,log-filename)
-                                              (class
-                                                "rounded-xl border font-mono p-2")))
+                                              (value ,log-id)))
+                                    (input (@ (id "job-id")
+                                              (name "job-id")
+                                              (required "")
+                                              (hidden "")
+                                              (value ,job-id)))
                                     (button (@ (type "submit")
                                                (class ,danger-button-class))
                                             "delete"))
