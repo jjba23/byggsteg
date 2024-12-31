@@ -27,14 +27,15 @@
         (byggsteg preferences)
         (app views profiles)
         (app models profile)
-        (ice-9 string-fun)
-        )
+        (ice-9 string-fun))
 
 (get "/profiles"
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                       (profile-list-page ($profile 'get #:order-by "human_id ASC"))))))
+                             (profile-list-page ($profile 'get
+                                                          #:order-by
+                                                          "human_id ASC"))))))
 
 (get "/profiles/:id"
      #:mime 'xml
@@ -43,13 +44,13 @@
                           #:ret 'top
                           #:condition (where #:id (params rc "id")))))
          (response-emit (:mime rc
-                         (profile-page (car p)))))))
+                               (profile-page (car p)))))))
 
 (get "/profiles/manage/create"
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                       (add-profile-form-page)))))
+                             (add-profile-form-page)))))
 
 (post "/profiles/manage/submit"
       (lambda (rc)
@@ -59,37 +60,45 @@
                (profile-data (uri-decode (car (assoc-ref kv "job-code"))))
                (profile-name (car (assoc-ref kv "profile-name")))
                (new-uuid (string-replace-substring (uuidgen) "\n" ""))
-               (found-profile ($profile 'get #:ret 'top
-                                        #:condition (where #:human_id (safe-base64-encode profile-name)))))
-
+               (found-profile ($profile 'get
+                                        #:ret 'top
+                                        #:condition (where #:human_id (safe-base64-encode
+                                                                       profile-name)))))
+          
           (cond
-           ((not (nil? found-profile))
-            (DB-query (DB-open rc)
-                      (->sql update
-                             'profile set
-                             `((profile_data ,(safe-base64-encode profile-data))
-                               (updated_at ,(current-time)))
-                             (where #:human_id (safe-base64-encode profile-name))))
-            (redirect-to rc (string->uri (format #f "~a/profiles/~a" (current-myhost) (assoc-ref found-profile "id"))))
-            )
-           (else
-            ($profile 'set
-                      #:id new-uuid
-                      #:human_id (safe-base64-encode profile-name)
-                      #:profile_data (safe-base64-encode profile-data)
-                      #:created_at (current-time))
-            (redirect-to rc (string->uri (format #f "~a/profiles/~a" (current-myhost) new-uuid)))
-            )))))
+            ((not (nil? found-profile))
+             (DB-query (DB-open rc)
+                       (->sql update
+                              'profile set
+                              `((profile_data ,(safe-base64-encode
+                                                profile-data))
+                                (updated_at ,(current-time)))
+                              (where #:human_id (safe-base64-encode
+                                                 profile-name))))
+             (redirect-to rc
+                          (string->uri (format #f "~a/profiles/~a"
+                                               (current-myhost)
+                                               (assoc-ref found-profile "id")))))
+            (else ($profile 'set
+                            #:id new-uuid
+                            #:human_id (safe-base64-encode profile-name)
+                            #:profile_data (safe-base64-encode profile-data)
+                            #:created_at (current-time))
+                  (redirect-to rc
+                               (string->uri (format #f "~a/profiles/~a"
+                                                    (current-myhost) new-uuid))))))))
 
 (post "/profiles/manage/delete"
       (lambda (rc)
         (let* ((body (rc-body rc))
                (kv (read-url-encoded-body body))
                (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
-
+          
           (DB-query (DB-open rc)
                     (->sql delete from
                            'profile
                            (where #:id profile-id)))
 
-          (redirect-to rc (string->uri (format #f "~a/profiles" (current-myhost)))))))
+          (redirect-to rc
+                       (string->uri (format #f "~a/profiles"
+                                            (current-myhost)))))))

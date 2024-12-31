@@ -34,7 +34,7 @@
          (profile-data (safe-base64-decode (assoc-ref p "profile_data"))))
     (byggsteg-html-template "byggsteg"
                             `((div (@ (class
-                                        "flex flex-row flex-wrap align-center gap-6"))
+                                       "flex flex-row flex-wrap align-center gap-6"))
                                    (h2 (@ (class ,h2-class))
                                        ,(ii 'viewing-profile-title))
                                    (h3 (@ (class "text-stone-300 text-xl my-4"))
@@ -67,7 +67,7 @@
                                                    (hidden "")
                                                    (value ,(assoc-ref p "id"))
                                                    (class
-                                                     "rounded-xl border font-mono p-2")))
+                                                    "rounded-xl border font-mono p-2")))
                                          (button (@ (type "submit")
                                                     (class ,danger-button-class))
                                                  "delete")))
@@ -98,12 +98,15 @@
                             `((h2 (@ (class ,h2-class))
                                   ,(ii 'profiles))
                               (div (@ (class
-                                        "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
+                                       "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
                                    ,profiles-html)) #f)))
 
 (define-public (make-profile-link profile)
-  (let* ((profiles-link (format #f "/profiles/~a" (assoc-ref profile "id"))))
+  (let* ((profiles-link (format #f "/profiles/~a"
+                                (assoc-ref profile "id"))))
     `((div (@ (class "flex flex-col gap-2"))
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
-              ,(string-append "~>  " (safe-base64-decode (assoc-ref profile "human_id"))))))))
+              ,(string-append "~>  "
+                              (safe-base64-decode (assoc-ref profile
+                                                             "human_id"))))))))

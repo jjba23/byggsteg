@@ -20,9 +20,11 @@
 
 (import (byggsteg html)
         (byggsteg url)
+        (web uri)
         (byggsteg preferences)
         (byggsteg base64)
         (byggsteg process)
+        (byggsteg uuid)
         (byggsteg job pipeline)
         (byggsteg job utils)
         (byggsteg log)
@@ -72,14 +74,13 @@
       (lambda (rc)
         (let* ((body (rc-body rc))
                (kv (read-url-encoded-body body))
-               (log-filename (uri-decode (car (assoc-ref kv "log-filename")))))
+               (job-id (uri-decode (car (assoc-ref kv "job-id")))))
           
-          (syscall (format #f "rm -rfv ~a"
-                           (string-append job-log-location log-filename)))
-          (syscall (format #f "rm -rfv ~a"
-                           (string-append job-failure-location log-filename)))
-          (syscall (format #f "rm -rfv ~a"
-                           (string-append job-success-location log-filename)))
-          (syscall (format #f "rm -rfv ~a"
-                           (string-append job-detail-location log-filename)))
-          (redirect-to rc "/"))))
+          (DB-query (DB-open rc)
+                    (->sql delete from
+                           'job
+                           (where #:id job-id)))
+
+          (redirect-to rc
+                       (string->uri (format #f "~a/"
+                                            (current-myhost)))))))
