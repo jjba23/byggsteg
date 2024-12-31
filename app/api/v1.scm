@@ -42,7 +42,7 @@
                (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
                (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
                (log-filename (new-project-log-filename project)))
-
+          
           ($job 'set
                 #:id new-job-uuid
                 #:human_id (safe-base64-encode log-filename)
@@ -51,20 +51,22 @@
                 #:job_in_progress 1
                 #:job_failed 0
                 #:created_at (current-time))
-          
+
           ($log 'set
                 #:id new-log-uuid
                 #:human_id (safe-base64-encode log-filename)
                 #:job_id new-job-uuid
                 #:log_data ""
                 #:created_at (current-time))
-          
-          (async-job-pipeline #:job-uuid new-job-uuid
+
+          (async-job-pipeline #:rc rc
+                              #:job-uuid new-job-uuid
                               #:log-uuid new-log-uuid)
-          
+
           (:mime rc
-           `((log-id unquote new-log-uuid)
-             (human-id unquote (safe-base64-encode log-filename)))))))
+                 `((log-id unquote new-log-uuid)
+                   (human-id unquote
+                             (safe-base64-encode log-filename)))))))
 
 (get "/api/v1/logs/:id"
      #:mime 'json
@@ -76,10 +78,17 @@
                        #:ret 'top
                        #:condition (where #:id (assoc-ref (car l) "job_id")))))
          (:mime rc
-          `((success unquote (assoc-ref (car j) "job_success"))
-            (failure unquote (assoc-ref (car j) "job_failure"))
-            (in-progress unquote (assoc-ref (car j) "job_in_progress"))
-            (log-id unquote (assoc-ref (car l) "id"))
-            (human-id unquote (assoc-ref (car l) "human_id"))
-            (log-data unquote (assoc-ref (car l) "log_data"))
-            (job-data unquote (assoc-ref (car j) "job_data")))))))
+                `((success unquote
+                           (assoc-ref (car j) "job_success"))
+                  (failure unquote
+                           (assoc-ref (car j) "job_failure"))
+                  (in-progress unquote
+                               (assoc-ref (car j) "job_in_progress"))
+                  (log-id unquote
+                          (assoc-ref (car l) "id"))
+                  (human-id unquote
+                            (assoc-ref (car l) "human_id"))
+                  (log-data unquote
+                            (assoc-ref (car l) "log_data"))
+                  (job-data unquote
+                            (assoc-ref (car j) "job_data")))))))

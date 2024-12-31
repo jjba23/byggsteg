@@ -27,10 +27,7 @@
   #:use-module (ice-9 threads))
 
 (begin
-  (define* (stack-step #:key project
-                       branch-name
-                       clone-url
-                       stack-task)
+  (define* (stack-step #:key project branch-name clone-url stack-task)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall (format #f
                        (string-append "cd ~a" " && stack --nix ~a") clone-dir
@@ -91,13 +88,13 @@
                                      branch-name))
            (should-clone (not (file-exists? clone-dir))))
       (cond
-       (should-clone (syscall (format #f
-                                      (string-append "mkdir -p ~a"
-                                                     " && git clone -b ~a ~a ~a || true")
-                                      clone-dir
-                                      branch-name
-                                      clone-url
-                                      clone-dir)))
-       (else (syscall (format #f "cd ~a && git pull" clone-dir))))))
+        (should-clone (syscall (format #f
+                                       (string-append "mkdir -p ~a"
+                                        " && git clone -b ~a ~a ~a || true")
+                                       clone-dir
+                                       branch-name
+                                       clone-url
+                                       clone-dir)))
+        (else (syscall (format #f "cd ~a && git pull" clone-dir))))))
   (export clone-repo-step))
 

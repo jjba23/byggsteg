@@ -34,6 +34,7 @@
 
 (begin
   (define* (async-job-pipeline #:key
+                               rc
                                job-uuid
                                log-uuid)
 
@@ -112,6 +113,7 @@
     (call-with-new-thread (lambda ()
                             (let* ((j (car ($job 'get #:ret 'top #:condition (where #:id job-uuid))))
                                    (l (car ($log 'get #:ret 'top #:condition (where #:id log-uuid))))
+                                   (old-log-data (safe-base64-decode (assoc-ref l "log_data")))
                                    (kv (eval-string (safe-base64-decode (assoc-ref j "job_data"))))
                                    (project (assoc-ref kv 'project))
                                    (branch-name (assoc-ref kv 'branch-name))
@@ -122,8 +124,17 @@
                                                                              #:branch-name branch-name
                                                                              #:clone-url clone-url
                                                                              #:task task)
-
-                                                               ))))
-                              (display o)))))
+                                                               )))
+                                   (new-log-data (string-append old-log-data "\n" o)))
+                              (DB-query (DB-open rc)
+                                        (->sql update
+                                               'log set
+                                               `((log_data ,(safe-base64-encode
+                                                             new-log-data))
+                                                 (updated_at ,(current-time)))
+                                               (where #:id log-uuid)))
+                              ))))
 
   (export async-job-pipeline))
+
+  

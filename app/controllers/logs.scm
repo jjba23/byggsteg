@@ -28,24 +28,31 @@
 (get "/"
      #:mime 'xml
      (lambda (rc)
-       (let* ((logs ($log 'get #:ret 'all #:order-by "created_at DESC"))
-              (job-ids (map (lambda(l) (assoc-ref l "job_id")) logs))
+       (let* ((logs ($log 'get
+                          #:ret 'all
+                          #:order-by "created_at DESC"))
+              (job-ids (map (lambda (l)
+                              (assoc-ref l "job_id")) logs))
               (jobs (cond
-                     ((not (nil? job-ids))
-                      ($job 'get #:ret 'all #:condition (where #:id job-ids)))
-                     (else '())
-                     ))
-              (job-map (map (lambda(j) (list (assoc-ref j "id")
-                                        j)) jobs))
-              
-              (jobs-of-logs (map (lambda(l) (list (assoc-ref l "id")
-                                             (assoc-ref job-map (assoc-ref l "job_id")))) logs)))
+                      ((not (nil? job-ids))
+                       ($job 'get
+                             #:ret 'all
+                             #:condition (where #:id job-ids)))
+                      (else '())))
+              (job-map (map (lambda (j)
+                              (list (assoc-ref j "id") j)) jobs))
+
+              (jobs-of-logs (map (lambda (l)
+                                   (list (assoc-ref l "id")
+                                         (assoc-ref job-map
+                                                    (assoc-ref l "job_id"))))
+                                 logs)))
          
-         (debug-print (list logs job-ids jobs ))
+         (debug-print (list logs job-ids jobs))
          (debug-print (list job-map jobs-of-logs))
-         
+
          (response-emit (:mime rc
-                         (welcome-page jobs-of-logs logs))))))
+                               (welcome-page jobs-of-logs logs))))))
 
 (get "/logs/:id"
      #:mime 'xml
@@ -57,4 +64,5 @@
                        #:ret 'top
                        #:condition (where #:id (assoc-ref (car l) "job_id")))))
          (response-emit (:mime rc
-                         (log-page (car j) (car l)))))))
+                               (log-page (car j)
+                                         (car l)))))))

@@ -50,8 +50,9 @@
                (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
                (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
                (log-filename (new-project-log-filename project))
-               (logs-link (format #f "~a/logs/~a" (current-myhost) new-log-uuid)))
-
+               (logs-link (format #f "~a/logs/~a"
+                                  (current-myhost) new-log-uuid)))
+          
           ($job 'set
                 #:id new-job-uuid
                 #:human_id (safe-base64-encode log-filename)
@@ -60,7 +61,7 @@
                 #:job_in_progress 1
                 #:job_failed 0
                 #:created_at (current-time))
-          
+
           ($log 'set
                 #:id new-log-uuid
                 #:human_id (safe-base64-encode log-filename)
@@ -68,10 +69,12 @@
                 #:log_data ""
                 #:created_at (current-time))
 
-          (async-job-pipeline #:job-uuid new-job-uuid
+          (async-job-pipeline #:rc rc
+                              #:job-uuid new-job-uuid
                               #:log-uuid new-log-uuid)
-          
-          (redirect-to rc (string->uri logs-link)))))
+
+          (redirect-to rc
+                       (string->uri logs-link)))))
 
 (post "/jobs/manage/delete"
       (lambda (rc)
