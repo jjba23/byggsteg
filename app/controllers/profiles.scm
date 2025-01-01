@@ -33,9 +33,8 @@
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                             (profile-list-page ($profile 'get
-                                                          #:order-by
-                                                          "human_id ASC"))))))
+                       (profile-list-page ($profile 'get
+                                                    #:order-by '(human_id asc)))))))
 
 (get "/profiles/:id"
      #:mime 'xml
