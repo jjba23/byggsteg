@@ -36,6 +36,7 @@
   (define* (async-job-pipeline #:key rc job-uuid log-uuid)
     (debug-print rc)
     (debug-print `((job-uuid unquote job-uuid) (log-uuid unquote log-uuid)))
+    
     (define* (run-pipeline #:key project branch-name clone-url task)
       (display "\nstarting new job...\n")
 
@@ -107,6 +108,9 @@
        (else (make-build-step #:project project
                               #:branch-name branch-name
                               #:clone-url clone-url))))
+
+
+    (debug-print "Before calling new thread")
 
     (call-with-new-thread (lambda ()
                             (let* ((j (car ($job 'get
