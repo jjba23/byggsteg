@@ -41,8 +41,7 @@
                               (syscall (format #f
                                                (string-append
                                                 "cd ~a && sudo herd restart byggsteg")
-                                               clone-dir))))
-      (create-empty-file (string-append job-success-location log-filename))))
+                                               clone-dir))))))
   (export byggsteg-version-step))
 
 (begin
