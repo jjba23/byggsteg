@@ -23,9 +23,12 @@
         (byggsteg preferences)
         (byggsteg job utils)
         (byggsteg url)
+        (byggsteg uuid)
         (byggsteg log)
         (ice-9 textual-ports)
-        (byggsteg job pipeline))
+        (byggsteg job pipeline)
+        (app models job)
+        (app models log))
 
 (post "/api/v1/jobs/manage/submit"
       #:mime 'json
@@ -36,59 +39,56 @@
                (kvv (eval-string job-code))
                (project (assoc-ref kvv
                                    'project))
-               (clone-url (assoc-ref kvv
-                                     'clone-url))
-               (branch-name (assoc-ref kvv
-                                       'branch-name))
-               (task (assoc-ref kvv
-                                'task))
-               (log-filename (new-project-log-filename project))
-               (only-filename (string-replace-substring log-filename
-                                                        job-log-location ""))
-               (public-log-filename (safe-base64-encode only-filename))
-               (logs-link (format #f "/logs/~a" public-log-filename)))
+               (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
+               (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
+               (log-filename (new-project-log-filename project)))
           
-          (create-empty-file (string-append job-log-location log-filename))
-          (create-empty-file (string-append job-detail-location log-filename))
-          (with-output-to-file (string-append job-detail-location log-filename)
-            (lambda ()
-              (display (safe-base64-encode job-code))))
-          (async-job-pipeline #:log-filename log-filename
-                              #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url
-                              #:task (string->symbol task))
-          (:mime rc
-                 `((log-filename unquote public-log-filename))))))
+          ($job 'set
+                #:id new-job-uuid
+                #:human_id (safe-base64-encode log-filename)
+                #:job_data (safe-base64-encode job-code)
+                #:job_success 0
+                #:job_in_progress 1
+                #:job_failed 0
+                #:created_at (current-time))
 
-(get "/api/v1/logs/:path"
+          ($log 'set
+                #:id new-log-uuid
+                #:human_id (safe-base64-encode log-filename)
+                #:job_id new-job-uuid
+                #:log_data ""
+                #:created_at (current-time))
+
+          (async-job-pipeline #:rc rc
+                              #:job-uuid new-job-uuid
+                              #:log-uuid new-log-uuid)
+
+          (:mime rc
+                 `((log-id unquote new-log-uuid)
+                   (human-id unquote
+                             (safe-base64-encode log-filename)))))))
+
+(get "/api/v1/logs/:id"
      #:mime 'json
      (lambda (rc)
-       (let* ((log-filename (params rc "path"))
-              (file-path (string-append job-log-location
-                                        (safe-base64-decode log-filename)))
-              (file (open-input-file file-path))
-              (log-data (get-string-all file))
-              (detail-file (open-input-file (string-append job-detail-location
-                                             (safe-base64-decode log-filename))))
-              (detail-data (get-string-all detail-file))
-              (success (cond
-                         ((equal? (read-job-success log-filename) #t)
-                          "true")
-                         (else "false")))
-              (failure (cond
-                         ((equal? (read-job-failure log-filename) #t)
-                          "true")
-                         (else "false")))
-              (in-progress (cond
-                             ((equal? (and (not (equal? success "true"))
-                                           (not (equal? failure "true"))) #t)
-                              "true")
-                             (else "false"))))
+       (let* ((l ($log 'get
+                       #:ret 'top
+                       #:condition (where #:id (params rc "id"))))
+              (j ($job 'get
+                       #:ret 'top
+                       #:condition (where #:id (assoc-ref (car l) "job_id")))))
          (:mime rc
-                `((success unquote success)
-                  (failure unquote failure)
-                  (in-progress unquote in-progress)
-                  (log-filename unquote log-filename)
-                  (log-data unquote log-data)
-                  (detail-data unquote detail-data))))))
+                `((success unquote
+                           (assoc-ref (car j) "job_success"))
+                  (failure unquote
+                           (assoc-ref (car j) "job_failed"))
+                  (in-progress unquote
+                               (assoc-ref (car j) "job_in_progress"))
+                  (log-id unquote
+                          (assoc-ref (car l) "id"))
+                  (human-id unquote
+                            (assoc-ref (car l) "human_id"))
+                  (log-data unquote
+                            (assoc-ref (car l) "log_data"))
+                  (job-data unquote
+                            (assoc-ref (car j) "job_data")))))))

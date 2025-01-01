@@ -29,19 +29,9 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 
-(define-public (profile-page path)
-  (let* ((profile-name path)
-         (file (open-input-file (string-append profile-location profile-name)))
-         (profile-data (get-string-all file))
-         (kv (eval-string profile-data))
-         (project (assoc-ref kv
-                             'project))
-         (clone-url (assoc-ref kv
-                               'clone-url))
-         (branch-name (assoc-ref kv
-                                 'branch-name))
-         (task (assoc-ref kv
-                          'task)))
+(define-public (profile-page p)
+  (let* ((profile-name (safe-base64-decode (assoc-ref p "human_id")))
+         (profile-data (safe-base64-decode (assoc-ref p "profile_data"))))
     (byggsteg-html-template "byggsteg"
                             `((div (@ (class
                                        "flex flex-row flex-wrap align-center gap-6"))
@@ -71,11 +61,11 @@
                                             (enctype
                                              "application/x-www-form-urlencoded")
                                             (action "/profiles/manage/delete"))
-                                         (input (@ (id "profile-name")
-                                                   (name "profile-name")
+                                         (input (@ (id "profile-id")
+                                                   (name "profile-id")
                                                    (required "")
                                                    (hidden "")
-                                                   (value ,profile-name)
+                                                   (value ,(assoc-ref p "id"))
                                                    (class
                                                     "rounded-xl border font-mono p-2")))
                                          (button (@ (type "submit")
@@ -102,9 +92,8 @@
                                 ,(ii 'add-profile-title))
                             ,(job-form "/profiles/manage/submit" #t)) #f))
 
-(define-public (profile-list-page)
-  (let* ((profiles (get-file-list profile-location))
-         (profiles-html (map make-profile-link profiles)))
+(define-public (profile-list-page profiles)
+  (let* ((profiles-html (map make-profile-link profiles)))
     (byggsteg-html-template "byggsteg"
                             `((h2 (@ (class ,h2-class))
                                   ,(ii 'profiles))
@@ -112,9 +101,12 @@
                                        "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
                                    ,profiles-html)) #f)))
 
-(define-public (make-profile-link profile-name)
-  (let* ((profiles-link (format #f "/profiles/~a" profile-name)))
+(define-public (make-profile-link profile)
+  (let* ((profiles-link (format #f "/profiles/~a"
+                                (assoc-ref profile "id"))))
     `((div (@ (class "flex flex-col gap-2"))
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
-              ,(string-append "~>  " profile-name))))))
+              ,(string-append "~>  "
+                              (safe-base64-decode (assoc-ref profile
+                                                             "human_id"))))))))

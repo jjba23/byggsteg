@@ -21,24 +21,26 @@
   #:use-module (byggsteg process)
   #:use-module (byggsteg job steps)
   #:use-module (byggsteg job utils)
+  #:use-module (byggsteg uuid)
+  #:use-module (artanis artanis)
+  #:use-module (app models log)
+  #:use-module (app models job)
+  #:use-module (byggsteg base64)
+  #:use-module (byggsteg debug)
+  #:use-module (app models job)
+  #:use-module (app models log)
+  #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads))
 
 (begin
-  (define* (async-job-pipeline #:key log-filename
-                               project
-                               branch-name
-                               clone-url
-                               task)
-    (define (register-success)
-      (create-empty-file (string-append job-success-location log-filename)))
-
-    (define (run-pipeline)
+  (define* (async-job-pipeline #:key rc job-uuid log-uuid)
+    
+    (define* (run-pipeline #:key project branch-name clone-url task)
       (display "\nstarting new job...\n")
 
       (clone-repo-step #:project project
                        #:branch-name branch-name
-                       #:clone-url clone-url
-                       #:log-filename log-filename)
+                       #:clone-url clone-url)
 
       (cond
         ;; Stack test + sdist
@@ -47,14 +49,11 @@
          (stack-step #:project project
                      #:branch-name branch-name
                      #:clone-url clone-url
-                     #:log-filename log-filename
                      #:stack-task "test")
          (stack-step #:project project
                      #:branch-name branch-name
                      #:clone-url clone-url
-                     #:log-filename log-filename
-                     #:stack-task "sdist --tar-dir .")
-         (register-success))
+                     #:stack-task "sdist --tar-dir ."))
 
         ;; Stack build + sdist
         ((eq? task
@@ -62,73 +61,104 @@
          (stack-step #:project project
                      #:branch-name branch-name
                      #:clone-url clone-url
-                     #:log-filename log-filename
                      #:stack-task "build")
          (stack-step #:project project
                      #:branch-name branch-name
                      #:clone-url clone-url
-                     #:log-filename log-filename
-                     #:stack-task "sdist --tar-dir .")
-         (register-success))
+                     #:stack-task "sdist --tar-dir ."))
 
         ;; Byggsteg version update
-        ;; note: (register-success) will be called inside
-        ;; the byggsteg-version step due to race conditions
         ((eq? task
               'byggsteg-version)
          (byggsteg-version-step #:project project
                                 #:branch-name branch-name
-                                #:clone-url clone-url
-                                #:log-filename log-filename))
+                                #:clone-url clone-url))
 
         ;; Nix generic build
         ((eq? task
               'nix-build)
          (nix-build-step #:project project
                          #:branch-name branch-name
-                         #:clone-url clone-url
-                         #:log-filename log-filename)
-         (register-success))
+                         #:clone-url clone-url))
 
         ;; Herd pull and restart
         ((eq? task
               'pull-and-restart)
          (pull-and-restart-step #:project project
                                 #:branch-name branch-name
-                                #:clone-url clone-url
-                                #:log-iflename log-filename)
-         (register-success))
+                                #:clone-url clone-url))
 
         ;; Scala SBT test
         ((eq? task
               'sbt-test)
          (sbt-test-step #:project project
                         #:branch-name branch-name
-                        #:clone-url clone-url
-                        #:log-filename log-filename)
-         (register-success))
+                        #:clone-url clone-url))
 
         ;; Pull and make deploy
         ((eq? task
               'pull-and-deploy)
          (pull-and-deploy-step #:project project
                                #:branch-name branch-name
-                               #:clone-url clone-url
-                               #:log-filename log-filename)
-         (register-success))
+                               #:clone-url clone-url))
 
         ;; Otherwise attempt generic `make build'
         (else (make-build-step #:project project
                                #:branch-name branch-name
-                               #:clone-url clone-url
-                               #:log-filename log-filename)
-              (register-success))))
+                               #:clone-url clone-url))))
 
     (call-with-new-thread (lambda ()
-                            (let ((o (with-output-to-string (lambda ()
-                                                              (run-pipeline)))))
-                              (create-file-with (string-append
-                                                 job-log-location log-filename)
-                                                o)))))
+                            (let* ((j (car ($job 'get
+                                                 #:ret 'top
+                                                 #:condition (where #:id
+                                                                    job-uuid))))
+                                   (l (car ($log 'get
+                                                 #:ret 'top
+                                                 #:condition (where #:id
+                                                                    log-uuid))))
+                                   (old-log-data (safe-base64-decode (assoc-ref
+                                                                      l
+                                                                      "log_data")))
+                                   (kv (eval-string (safe-base64-decode (assoc-ref
+                                                                         j
+                                                                         "job_data"))))
+                                   (project (assoc-ref kv
+                                                       'project))
+                                   (branch-name (assoc-ref kv
+                                                           'branch-name))
+                                   (clone-url (assoc-ref kv
+                                                         'clone-url))
+                                   (task (string->symbol (assoc-ref kv
+                                                                    'task)))
+                                   (o (with-output-to-string (lambda ()
+                                                               (run-pipeline
+                                                                #:project
+                                                                project
+                                                                #:branch-name
+                                                                branch-name
+                                                                #:clone-url
+                                                                clone-url
+                                                                #:task task))))
+                                   (new-log-data (string-append old-log-data
+                                                                "\n" o)))
+                              (DB-query (DB-open rc)
+                                        (->sql update
+                                               'log set
+                                               `((log_data ,(safe-base64-encode
+                                                             new-log-data))
+                                                 (updated_at ,(current-time)))
+                                               (where #:id log-uuid)))
+
+                              (DB-query (DB-open rc)
+                                        (->sql update
+                                               'job set
+                                               `((job_success 1)
+                                                 (job_in_progress 0)
+                                                 (job_failed 0)
+                                                 (updated_at ,(current-time)))
+                                               (where #:id job-uuid)))
+
+                              ))))
 
   (export async-job-pipeline))
+

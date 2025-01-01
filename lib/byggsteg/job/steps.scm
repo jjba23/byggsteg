@@ -27,11 +27,7 @@
   #:use-module (ice-9 threads))
 
 (begin
-  (define* (stack-step #:key project
-                       branch-name
-                       clone-url
-                       log-filename
-                       stack-task)
+  (define* (stack-step #:key project branch-name clone-url stack-task)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall (format #f
                        (string-append "cd ~a" " && stack --nix ~a") clone-dir
@@ -39,8 +35,7 @@
   (export stack-step))
 
 (begin
-  (define* (byggsteg-version-step #:key project branch-name clone-url
-                                  log-filename)
+  (define* (byggsteg-version-step #:key project branch-name clone-url)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (call-with-new-thread (lambda ()
                               (syscall (format #f
@@ -51,8 +46,7 @@
   (export byggsteg-version-step))
 
 (begin
-  (define* (pull-and-restart-step #:key project branch-name clone-url
-                                  log-filename)
+  (define* (pull-and-restart-step #:key project branch-name clone-url)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall (format #f
                        (string-append "cd ~a" " && sudo herd restart ~a")
@@ -60,8 +54,7 @@
   (export pull-and-restart-step))
 
 (begin
-  (define* (pull-and-deploy-step #:key project branch-name clone-url
-                                 log-filename)
+  (define* (pull-and-deploy-step #:key project branch-name clone-url)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall (format #f
                        (string-append "cd ~a" " && sudo make deploy")
@@ -69,28 +62,28 @@
   (export pull-and-deploy-step))
 
 (begin
-  (define* (make-build-step #:key project branch-name clone-url log-filename)
+  (define* (make-build-step #:key project branch-name clone-url)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall (format #f
                        (string-append "cd ~a" " && make build") clone-dir))))
   (export make-build-step))
 
 (begin
-  (define* (nix-build-step #:key project branch-name clone-url log-filename)
+  (define* (nix-build-step #:key project branch-name clone-url)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall (format #f
                        (string-append "cd ~a" " && nix build") clone-dir))))
   (export nix-build-step))
 
 (begin
-  (define* (sbt-test-step #:key project branch-name clone-url log-filename)
+  (define* (sbt-test-step #:key project branch-name clone-url)
     (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
       (syscall (format #f
                        (string-append "cd ~a" " && sbt test") clone-dir))))
   (export sbt-test-step))
 
 (begin
-  (define* (clone-repo-step #:key project branch-name clone-url log-filename)
+  (define* (clone-repo-step #:key project branch-name clone-url)
     (let* ((clone-dir (string-append job-clone-location project "/"
                                      branch-name))
            (should-clone (not (file-exists? clone-dir))))

@@ -20,21 +20,30 @@
 
 (import (byggsteg html)
         (byggsteg url)
+        (web uri)
         (byggsteg process)
+        (byggsteg uuid)
+        (byggsteg base64)
         (byggsteg preferences)
-        (app views profiles))
+        (app views profiles)
+        (app models profile)
+        (ice-9 string-fun))
 
 (get "/profiles"
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                             (profile-list-page)))))
+                       (profile-list-page ($profile 'get
+                                                    #:order-by '(human_id asc)))))))
 
-(get "/profiles/:path"
+(get "/profiles/:id"
      #:mime 'xml
      (lambda (rc)
-       (response-emit (:mime rc
-                             (profile-page (params rc "path"))))))
+       (let ((p ($profile 'get
+                          #:ret 'top
+                          #:condition (where #:id (params rc "id")))))
+         (response-emit (:mime rc
+                               (profile-page (car p)))))))
 
 (get "/profiles/manage/create"
      #:mime 'xml
@@ -47,29 +56,47 @@
         (let* ((body (rc-body rc))
                (kv (pk 'body
                        (read-url-encoded-body body)))
-               (profile-code (uri-decode (car (assoc-ref kv "job-code"))))
-               (kvv (eval-string profile-code))
-               (project (assoc-ref kvv
-                                   'project))
-               (clone-url (assoc-ref kvv
-                                     'clone-url))
-               (branch-name (assoc-ref kvv
-                                       'branch-name))
-               (task (assoc-ref kvv
-                                'task))
+               (profile-data (uri-decode (car (assoc-ref kv "job-code"))))
                (profile-name (car (assoc-ref kv "profile-name")))
-               (profile-link (format #f "/profiles/~a" profile-name)))
-          (with-output-to-file (string-append profile-location profile-name)
-            (lambda ()
-              (display profile-code)))
-          (redirect-to rc profile-link))))
+               (new-uuid (string-replace-substring (uuidgen) "\n" ""))
+               (found-profile ($profile 'get
+                                        #:ret 'top
+                                        #:condition (where #:human_id (safe-base64-encode
+                                                                       profile-name)))))
+          
+          (cond
+            ((not (nil? found-profile))
+             (DB-query (DB-open rc)
+                       (->sql update
+                              'profile set
+                              `((profile_data ,(safe-base64-encode
+                                                profile-data))
+                                (updated_at ,(current-time)))
+                              (where #:human_id (safe-base64-encode
+                                                 profile-name))))
+             (redirect-to rc
+                          (string->uri (format #f "~a/profiles/~a"
+                                               (current-myhost)
+                                               (assoc-ref found-profile "id")))))
+            (else ($profile 'set
+                            #:id new-uuid
+                            #:human_id (safe-base64-encode profile-name)
+                            #:profile_data (safe-base64-encode profile-data)
+                            #:created_at (current-time))
+                  (redirect-to rc
+                               (string->uri (format #f "~a/profiles/~a"
+                                                    (current-myhost) new-uuid))))))))
 
 (post "/profiles/manage/delete"
       (lambda (rc)
         (let* ((body (rc-body rc))
                (kv (read-url-encoded-body body))
-               (profile-name (uri-decode (car (assoc-ref kv "profile-name")))))
+               (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
           
-          (syscall (format #f "rm -rfv ~a"
-                           (string-append profile-location profile-name)))
-          (redirect-to rc "/profiles"))))
+          ($profile 'mod
+                    'row-delete
+                    (where #:id profile-id))
+
+          (redirect-to rc
+                       (string->uri (format #f "~a/profiles"
+                                            (current-myhost)))))))
