@@ -34,7 +34,8 @@
 
 (begin
   (define* (async-job-pipeline #:key rc job-uuid log-uuid)
-    
+    (debug-print rc)
+    (debug-print `((job-uuid unquote job-uuid) (log-uuid unquote log-uuid)))
     (define* (run-pipeline #:key project branch-name clone-url task)
       (display "\nstarting new job...\n")
 
@@ -43,69 +44,69 @@
                        #:clone-url clone-url)
 
       (cond
-        ;; Stack test + sdist
-        ((eq? task
-              'stack-test)
-         (stack-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url
-                     #:stack-task "test")
-         (stack-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url
-                     #:stack-task "sdist --tar-dir ."))
+       ;; Stack test + sdist
+       ((eq? task
+             'stack-test)
+        (stack-step #:project project
+                    #:branch-name branch-name
+                    #:clone-url clone-url
+                    #:stack-task "test")
+        (stack-step #:project project
+                    #:branch-name branch-name
+                    #:clone-url clone-url
+                    #:stack-task "sdist --tar-dir ."))
 
-        ;; Stack build + sdist
-        ((eq? task
-              'stack-build)
-         (stack-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url
-                     #:stack-task "build")
-         (stack-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url
-                     #:stack-task "sdist --tar-dir ."))
+       ;; Stack build + sdist
+       ((eq? task
+             'stack-build)
+        (stack-step #:project project
+                    #:branch-name branch-name
+                    #:clone-url clone-url
+                    #:stack-task "build")
+        (stack-step #:project project
+                    #:branch-name branch-name
+                    #:clone-url clone-url
+                    #:stack-task "sdist --tar-dir ."))
 
-        ;; Byggsteg version update
-        ((eq? task
-              'byggsteg-version)
-         (byggsteg-version-step #:project project
-                                #:branch-name branch-name
-                                #:clone-url clone-url))
-
-        ;; Nix generic build
-        ((eq? task
-              'nix-build)
-         (nix-build-step #:project project
-                         #:branch-name branch-name
-                         #:clone-url clone-url))
-
-        ;; Herd pull and restart
-        ((eq? task
-              'pull-and-restart)
-         (pull-and-restart-step #:project project
-                                #:branch-name branch-name
-                                #:clone-url clone-url))
-
-        ;; Scala SBT test
-        ((eq? task
-              'sbt-test)
-         (sbt-test-step #:project project
-                        #:branch-name branch-name
-                        #:clone-url clone-url))
-
-        ;; Pull and make deploy
-        ((eq? task
-              'pull-and-deploy)
-         (pull-and-deploy-step #:project project
+       ;; Byggsteg version update
+       ((eq? task
+             'byggsteg-version)
+        (byggsteg-version-step #:project project
                                #:branch-name branch-name
                                #:clone-url clone-url))
 
-        ;; Otherwise attempt generic `make build'
-        (else (make-build-step #:project project
+       ;; Nix generic build
+       ((eq? task
+             'nix-build)
+        (nix-build-step #:project project
+                        #:branch-name branch-name
+                        #:clone-url clone-url))
+
+       ;; Herd pull and restart
+       ((eq? task
+             'pull-and-restart)
+        (pull-and-restart-step #:project project
                                #:branch-name branch-name
-                               #:clone-url clone-url))))
+                               #:clone-url clone-url))
+
+       ;; Scala SBT test
+       ((eq? task
+             'sbt-test)
+        (sbt-test-step #:project project
+                       #:branch-name branch-name
+                       #:clone-url clone-url))
+
+       ;; Pull and make deploy
+       ((eq? task
+             'pull-and-deploy)
+        (pull-and-deploy-step #:project project
+                              #:branch-name branch-name
+                              #:clone-url clone-url))
+
+       ;; Otherwise attempt generic `make build'
+       (else (make-build-step #:project project
+                              #:branch-name branch-name
+                              #:clone-url clone-url))))
 
     (call-with-new-thread (lambda ()
                             (let* ((j (car ($job 'get
