@@ -135,24 +135,15 @@
                                                          'clone-url))
                                    (task (string->symbol (assoc-ref kv
                                                                     'task)))
-                                   ;; (o (with-output-to-string (lambda ()
-                                   ;;                             (run-pipeline
-                                   ;;                              #:project
-                                   ;;                              project
-                                   ;;                              #:branch-name
-                                   ;;                              branch-name
-                                   ;;                              #:clone-url
-                                   ;;                              clone-url
-                                   ;;                              #:task task))))
-                                   (o
-                                    (run-pipeline
-                                     #:project
-                                     project
-                                     #:branch-name
-                                     branch-name
-                                     #:clone-url
-                                     clone-url
-                                     #:task task))
+                                   (o (with-output-to-string (lambda ()
+                                                               (run-pipeline
+                                                                #:project
+                                                                project
+                                                                #:branch-name
+                                                                branch-name
+                                                                #:clone-url
+                                                                clone-url
+                                                                #:task task))))
                                    (new-log-data (string-append old-log-data
                                                                 "\n" o)))
                               (display o)
