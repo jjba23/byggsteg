@@ -73,7 +73,8 @@
                   #:created_at (current-time))
 
             (redirect-to rc
-                         (string->uri logs-link))))
+                         (string->uri logs-link)
+                         #:status 307)))
         (cond
           ((:session rc
                      'check)
@@ -84,7 +85,8 @@
            (do-submit))
           (else (redirect-to rc
                              (string->uri (format #f "~a/login"
-                                                  (current-myhost))))))))
+                                                  (current-myhost)))
+                             #:status 307)))))
 
 (post "/jobs/manage/delete"
       #:auth '(table user "username" "password")
@@ -105,7 +107,8 @@
 
             (redirect-to rc
                          (string->uri (format #f "~a/"
-                                              (current-myhost))))))
+                                              (current-myhost)))
+                         #:status 307)))
         (cond
           ((:session rc
                      'check)
@@ -116,4 +119,5 @@
            (do-delete))
           (else (redirect-to rc
                              (string->uri (format #f "~a/login"
-                                                  (current-myhost))))))))
+                                                  (current-myhost)))
+                             #:status 307)))))
