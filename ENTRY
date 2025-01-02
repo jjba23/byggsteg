@@ -1,12 +1,25 @@
 ;; This an Artanis ENTRY file, don't remove it!
 
- (use-modules (artanis artanis)
-              ;; Put modules you want to be imported here
-              ;; only for this file, not controllers/views
+(use-modules (artanis artanis)
+             ;; Put modules you want to be imported here
+             ;; only for this file, not controllers/views
+             (ice-9 threads)
+             (artanis utils))
+;; Put whatever you want to be called before server initilization here
 
-              (artanis utils))
- ;; Put whatever you want to be called before server initilization here
+(init-server #:statics '(png gif jpg jpeg ico html js json csv xml css woff woff2 ttf))
+(add-to-load-path (string-append (current-toplevel) "/lib"))
+;; Put whatever you want to be called before server running here
 
- (init-server #:statics '(png gif jpg jpeg ico html js json csv xml css woff woff2 ttf))
- (add-to-load-path (string-append (current-toplevel) "/lib"))
- ;; Put whatever you want to be called before server running here
+(define is-worker-running #f)
+
+(define (worker)
+  (unless is-worker-running
+    (call-with-new-thread (lambda()
+                            (sleep 3) ; delay worker start
+                            (display "\nINITIALIZING BYGGSTEG PIPELINE WORKER\n")
+                            (set! is-worker-running #t)
+                            (use-modules (byggsteg job pipeline))
+                            (while #t (do-pip))))))
+
+(run-before-run! worker)
