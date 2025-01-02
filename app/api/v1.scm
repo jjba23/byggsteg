@@ -59,14 +59,14 @@
                 #:log_data ""
                 #:created_at (current-time))
 
-          (async-job-pipeline #:rc rc
-                              #:job-uuid new-job-uuid
-                              #:log-uuid new-log-uuid)
+          ;; (async-job-pipeline #:rc rc
+          ;;                     #:job-uuid new-job-uuid
+          ;;                     #:log-uuid new-log-uuid)
 
           (:mime rc
-                 `((log-id unquote new-log-uuid)
-                   (human-id unquote
-                             (safe-base64-encode log-filename)))))))
+           `((log-id unquote new-log-uuid)
+             (human-id unquote
+                       (safe-base64-encode log-filename)))))))
 
 (get "/api/v1/logs/:id"
      #:mime 'json

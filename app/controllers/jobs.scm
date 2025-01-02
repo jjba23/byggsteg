@@ -69,9 +69,9 @@
                 #:log_data ""
                 #:created_at (current-time))
 
-          (async-job-pipeline #:rc rc
-                              #:job-uuid new-job-uuid
-                              #:log-uuid new-log-uuid)
+          ;; (async-job-pipeline #:rc rc
+          ;;                     #:job-uuid new-job-uuid
+          ;;                     #:log-uuid new-log-uuid)
 
           (redirect-to rc
                        (string->uri logs-link)))))

@@ -33,6 +33,12 @@
   #:use-module (ice-9 threads))
 
 (begin
+  (define (byggsteg-worker)
+    (call-with-new-thread (lambda() (debug-print "WORKER")))
+    )
+  (export byggsteg-worker))
+
+(begin
   (define* (async-job-pipeline #:key rc job-uuid log-uuid)
     (debug-print rc)
     (debug-print `((job-uuid unquote job-uuid) (log-uuid unquote log-uuid)))
