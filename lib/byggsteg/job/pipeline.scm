@@ -34,7 +34,7 @@
 
 (begin
   (define* (do-pip)
-    (let* ((jobs-in-progress ($job 'get #:ret 'all #:condition (where #:job_in_progress 1)))
+    (let* ((jobs-in-progress ($job 'get #:ret 'all #:condition (where #:job_in_progress 1) #:order-by '(created_at asc)))
            (logs-of-in-progress (cond
                                  ((nil? jobs-in-progress) '())
                                  (else ($log 'get #:ret 'all #:condition
