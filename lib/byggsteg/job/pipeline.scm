@@ -33,16 +33,29 @@
   #:use-module (ice-9 threads))
 
 (begin
-  (define (byggsteg-worker)
-    (call-with-new-thread (lambda() (debug-print "WORKER")))
-    )
-  (export byggsteg-worker))
+  (define* (do-pip)
+    (let* ((jobs-in-progress ($job 'get #:ret 'all #:condition (where #:job_in_progress 1)))
+           (logs-of-in-progress (cond
+                                 ((nil? jobs-in-progress) '())
+                                 (else ($log 'get #:ret 'all #:condition
+                                             (where #:job_id (map (lambda(j) (assoc-ref j "id")) jobs-in-progress))))
+                                 ))
+           (job-log-map (map (lambda(l) `(,(assoc-ref l "job_id") . ,l)) logs-of-in-progress))
+           )
+      (debug-print jobs-in-progress)
+      (debug-print logs-of-in-progress)
+      (debug-print job-log-map)
+      (for-each (lambda(j)
+                  (async-job-pipeline #:job-uuid (assoc-ref j "id")
+                                      #:log-uuid (assoc-ref (assoc-ref job-log-map (assoc-ref j "id")) "id"))
+                  ) jobs-in-progress)
+      (display "\nWORKER SLEEPING\n")
+      (sleep 12)
+      ))
+  (export do-pip))
 
 (begin
-  (define* (async-job-pipeline #:key rc job-uuid log-uuid)
-    (debug-print rc)
-    (debug-print `((job-uuid unquote job-uuid) (log-uuid unquote log-uuid)))
-    
+  (define* (async-job-pipeline #:key job-uuid log-uuid)
     (define* (run-pipeline #:key project branch-name clone-url task)
       (display "\nstarting new job...\n")
 
@@ -115,65 +128,60 @@
                               #:branch-name branch-name
                               #:clone-url clone-url))))
 
+    
+    (let* ((j (car ($job 'get
+                         #:ret 'top
+                         #:condition (where #:id
+                                            job-uuid))))
+           (l (car ($log 'get
+                         #:ret 'top
+                         #:condition (where #:id
+                                            log-uuid))))
+           (old-log-data (safe-base64-decode (assoc-ref
+                                              l
+                                              "log_data")))
+           (kv (eval-string (safe-base64-decode (assoc-ref
+                                                 j
+                                                 "job_data"))))
+           (project (assoc-ref kv
+                               'project))
+           (branch-name (assoc-ref kv
+                                   'branch-name))
+           (clone-url (assoc-ref kv
+                                 'clone-url))
+           (task (string->symbol (assoc-ref kv
+                                            'task)))
+           (o (with-output-to-string (lambda ()
+                                       (run-pipeline
+                                        #:project
+                                        project
+                                        #:branch-name
+                                        branch-name
+                                        #:clone-url
+                                        clone-url
+                                        #:task task))))
+           (new-log-data (string-append old-log-data
+                                        "\n" o)))
+      (display o)
+      
+      (DB-query (get-conn-from-pool!)
+                (->sql update
+                       'log set
+                       `((log_data ,(safe-base64-encode
+                                     new-log-data))
+                         (updated_at ,(current-time)))
+                       (where #:id log-uuid)))
 
-    (debug-print "Before calling new thread")
+      (DB-query (get-conn-from-pool!)
+                (->sql update
+                       'job set
+                       `((job_success 1)
+                         (job_in_progress 0)
+                         (job_failed 0)
+                         (updated_at ,(current-time)))
+                       (where #:id job-uuid)))
 
-    (call-with-new-thread (lambda ()                            
-                            (let* ((j (car ($job 'get
-                                                 #:ret 'top
-                                                 #:condition (where #:id
-                                                                    job-uuid))))
-                                   (l (car ($log 'get
-                                                 #:ret 'top
-                                                 #:condition (where #:id
-                                                                    log-uuid))))
-                                   (old-log-data (safe-base64-decode (assoc-ref
-                                                                      l
-                                                                      "log_data")))
-                                   (kv (eval-string (safe-base64-decode (assoc-ref
-                                                                         j
-                                                                         "job_data"))))
-                                   (project (assoc-ref kv
-                                                       'project))
-                                   (branch-name (assoc-ref kv
-                                                           'branch-name))
-                                   (clone-url (assoc-ref kv
-                                                         'clone-url))
-                                   (task (string->symbol (assoc-ref kv
-                                                                    'task)))
-                                   (o (with-output-to-string (lambda ()
-                                                               (run-pipeline
-                                                                #:project
-                                                                project
-                                                                #:branch-name
-                                                                branch-name
-                                                                #:clone-url
-                                                                clone-url
-                                                                #:task task))))
-                                   (new-log-data (string-append old-log-data
-                                                                "\n" o)))
-                              (display o)
-                              
-                              (DB-query (DB-open rc)
-                                        (->sql update
-                                               'log set
-                                               `((log_data ,(safe-base64-encode
-                                                             new-log-data))
-                                                 (updated_at ,(current-time)))
-                                               (where #:id log-uuid)))
-
-                              (DB-query (DB-open rc)
-                                        (->sql update
-                                               'job set
-                                               `((job_success 1)
-                                                 (job_in_progress 0)
-                                                 (job_failed 0)
-                                                 (updated_at ,(current-time)))
-                                               (where #:id job-uuid)))
-
-                              )
-                            ))
-    )
+      ))
 
   (export async-job-pipeline))
 
