@@ -46,16 +46,16 @@
       (debug-print logs-of-in-progress)
       (debug-print job-log-map)
       (for-each (lambda(j)
-                  (async-job-pipeline #:job-uuid (assoc-ref j "id")
-                                      #:log-uuid (assoc-ref (assoc-ref job-log-map (assoc-ref j "id")) "id"))
-                  ) jobs-in-progress)
+                  (job-pipeline #:job j
+                                #:log (assoc-ref job-log-map (assoc-ref j "id"))))
+                jobs-in-progress)
       (display "\nWORKER SLEEPING\n")
       (sleep 12)
       ))
   (export do-pip))
 
 (begin
-  (define* (async-job-pipeline #:key job-uuid log-uuid)
+  (define* (job-pipeline #:key job log)
     (define* (run-pipeline #:key project branch-name clone-url task)
       (display "\nstarting new job...\n")
 
@@ -129,19 +129,11 @@
                               #:clone-url clone-url))))
 
     
-    (let* ((j (car ($job 'get
-                         #:ret 'top
-                         #:condition (where #:id
-                                            job-uuid))))
-           (l (car ($log 'get
-                         #:ret 'top
-                         #:condition (where #:id
-                                            log-uuid))))
-           (old-log-data (safe-base64-decode (assoc-ref
-                                              l
+    (let* ((old-log-data (safe-base64-decode (assoc-ref
+                                              log
                                               "log_data")))
            (kv (eval-string (safe-base64-decode (assoc-ref
-                                                 j
+                                                 job
                                                  "job_data"))))
            (project (assoc-ref kv
                                'project))
@@ -170,7 +162,7 @@
                        `((log_data ,(safe-base64-encode
                                      new-log-data))
                          (updated_at ,(current-time)))
-                       (where #:id log-uuid)))
+                       (where #:id (assoc-ref log "id"))))
 
       (DB-query (get-conn-from-pool!)
                 (->sql update
@@ -179,7 +171,7 @@
                          (job_in_progress 0)
                          (job_failed 0)
                          (updated_at ,(current-time)))
-                       (where #:id job-uuid)))
+                       (where #:id (assoc-ref job "id"))))
 
       ))
 
