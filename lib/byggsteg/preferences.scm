@@ -21,19 +21,8 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun))
 
-(define-public job-failure-location
-  "/var/log/byggsteg/job-failure/")
-(define-public job-success-location
-  "/var/log/byggsteg/job-success/")
 (define-public job-clone-location
   "/var/log/byggsteg/job-clone/")
-(define-public job-log-location
-  "/var/log/byggsteg/job-log/")
-(define-public job-detail-location
-  "/var/log/byggsteg/job-detail/")
-
-(define-public profile-location
-  "/var/log/byggsteg/profile/")
 
 (define-public job-time-format
   "%H:%M:%S__%d-%m-%Y")

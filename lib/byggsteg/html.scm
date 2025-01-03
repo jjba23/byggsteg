@@ -78,7 +78,9 @@
                     (class ,nav-button-class))
                  ,(ii 'profiles))
               (a (@ (href "/profiles/manage/create")
-                    (class ,nav-button-class)) "+ new profile")))))
+                    (class ,nav-button-class)) "+ new profile")
+              (a (@ (href "/login")
+                    (class ,nav-button-class)) "login")))))
 
 (define-public (page-footer)
   `((div (@ (class "block text-center font-mono"))

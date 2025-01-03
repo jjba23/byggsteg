@@ -40,52 +40,63 @@
                              (job-request-form-page)))))
 
 (post "/jobs/manage/submit"
+      #:session #t
       (lambda (rc)
-        (let* ((body (rc-body rc))
-               (kv (read-url-encoded-body body))
-               (job-code (uri-decode (car (assoc-ref kv "job-code"))))
-               (kvv (eval-string job-code))
-               (project (assoc-ref kvv
-                                   'project))
-               (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
-               (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
-               (log-filename (new-project-log-filename project))
-               (logs-link (format #f "~a/logs/~a"
-                                  (current-myhost) new-log-uuid)))
-          
-          ($job 'set
-                #:id new-job-uuid
-                #:human_id (safe-base64-encode log-filename)
-                #:job_data (safe-base64-encode job-code)
-                #:job_success 0
-                #:job_in_progress 1
-                #:job_failed 0
-                #:created_at (current-time))
+        (cond
+         ((:session rc 'check)
+          (let* ((body (rc-body rc))
+                 (kv (read-url-encoded-body body))
+                 (job-code (uri-decode (car (assoc-ref kv "job-code"))))
+                 (kvv (eval-string job-code))
+                 (project (assoc-ref kvv
+                                     'project))
+                 (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
+                 (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
+                 (log-filename (new-project-log-filename project))
+                 (logs-link (format #f "~a/logs/~a"
+                                    (current-myhost) new-log-uuid)))
+            
+            ($job 'set
+                  #:id new-job-uuid
+                  #:human_id (safe-base64-encode log-filename)
+                  #:job_data (safe-base64-encode job-code)
+                  #:job_success 0
+                  #:job_in_progress 1
+                  #:job_failed 0
+                  #:created_at (current-time))
 
-          ($log 'set
-                #:id new-log-uuid
-                #:human_id (safe-base64-encode log-filename)
-                #:job_id new-job-uuid
-                #:log_data ""
-                #:created_at (current-time))
+            ($log 'set
+                  #:id new-log-uuid
+                  #:human_id (safe-base64-encode log-filename)
+                  #:job_id new-job-uuid
+                  #:log_data ""
+                  #:created_at (current-time))
 
-          (redirect-to rc
-                       (string->uri logs-link)))))
+            (redirect-to rc
+                         (string->uri logs-link))))
+         (else (redirect-to rc
+                            (string->uri (format #f "~a/login" (current-myhost))))
+               ))))
 
 (post "/jobs/manage/delete"
+      #:session #t
       (lambda (rc)
-        (let* ((body (rc-body rc))
-               (kv (read-url-encoded-body body))
-               (job-id (uri-decode (car (assoc-ref kv "job-id"))))
-               (log-id (uri-decode (car (assoc-ref kv "log-id")))))
-          
-          ($job 'mod
-                'row-delete
-                (where #:id job-id))
-          ($log 'mod
-                'row-delete
-                (where #:id log-id))
+        (cond
+         ((:session rc 'check)
+          (let* ((body (rc-body rc))
+                 (kv (read-url-encoded-body body))
+                 (job-id (uri-decode (car (assoc-ref kv "job-id"))))
+                 (log-id (uri-decode (car (assoc-ref kv "log-id")))))
+            
+            ($job 'mod
+                  'row-delete
+                  (where #:id job-id))
+            ($log 'mod
+                  'row-delete
+                  (where #:id log-id))
 
-          (redirect-to rc
-                       (string->uri (format #f "~a/"
-                                            (current-myhost)))))))
+            (redirect-to rc
+                         (string->uri (format #f "~a/"
+                                              (current-myhost))))))
+         (else (redirect-to rc
+                            (string->uri (format #f "~a/login" (current-myhost))))))))
