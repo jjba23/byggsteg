@@ -11,6 +11,6 @@ steps:
       curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
         -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
         --data-urlencode 'username=Joe' \
-        --data-urlencode 'password=$BYGGSTEG_KEY' \
+        --data-urlencode "password=$BYGGSTEG_KEY" \
         --data-urlencode 'job-code=`((project . "byggsteg")(branch-name . "trunk")(task . "byggsteg-version")(clone-url . "https://codeberg.org/jjba23/byggsteg"))'
 
