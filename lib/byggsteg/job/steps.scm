@@ -88,13 +88,13 @@
                                      branch-name))
            (should-clone (not (file-exists? clone-dir))))
       (cond
-       (should-clone (syscall (format #f
-                                      (string-append "mkdir -p ~a"
-                                                     " && git clone -b ~a ~a ~a || true")
-                                      clone-dir
-                                      branch-name
-                                      clone-url
-                                      clone-dir)))
-       (else (syscall (format #f "cd ~a && git pull" clone-dir))))))
+        (should-clone (syscall (format #f
+                                       (string-append "mkdir -p ~a"
+                                        " && git clone -b ~a ~a ~a || true")
+                                       clone-dir
+                                       branch-name
+                                       clone-url
+                                       clone-dir)))
+        (else (syscall (format #f "cd ~a && git pull" clone-dir))))))
   (export clone-repo-step))
 
