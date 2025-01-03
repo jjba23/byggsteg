@@ -5,12 +5,12 @@
         #:username name
         #:email email
         #:password real-pass
-        #:salt salt))
+        #:salt salt)))
 
-  (migrate-up
-   (display "Adding user...")
-   (add-test-user! #:name "Joe"
-                   #:email "jjbigorra@gmail.com"
-                   #:password ""
-                   #:salt "asdf")
-   (display "done.\n"))
+(migrate-up
+ (display "Adding user...")
+ (add-test-user! #:name "Joe"
+                 #:email "jjbigorra@gmail.com"
+                 #:password ""
+                 #:salt "asdf")
+ (display "done.\n"))
