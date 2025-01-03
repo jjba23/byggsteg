@@ -84,20 +84,17 @@
 
 (begin
   (define* (clone-repo-step #:key project branch-name clone-url)
-    (debug-print `((project unquote project)
-                   (branch-name unquote branch-name)
-                   (clone-url unquote clone-url)))
     (let* ((clone-dir (string-append job-clone-location project "/"
                                      branch-name))
            (should-clone (not (file-exists? clone-dir))))
       (cond
-        (should-clone (syscall (format #f
-                                       (string-append "mkdir -p ~a"
-                                        " && git clone -b ~a ~a ~a || true")
-                                       clone-dir
-                                       branch-name
-                                       clone-url
-                                       clone-dir)))
-        (else (syscall (format #f "cd ~a && git pull" clone-dir))))))
+       (should-clone (syscall (format #f
+                                      (string-append "mkdir -p ~a"
+                                                     " && git clone -b ~a ~a ~a || true")
+                                      clone-dir
+                                      branch-name
+                                      clone-url
+                                      clone-dir)))
+       (else (syscall (format #f "cd ~a && git pull" clone-dir))))))
   (export clone-repo-step))
 
