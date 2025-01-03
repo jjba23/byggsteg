@@ -100,7 +100,7 @@
             "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")
          (p (@ (class "mt-4"))
             (em (@ (class "text-md text-stone-300"))
-                "Copyright 2025 - Josep Bigorra & Mu Lei"))
+                "Copyright © 2025 - Josep Bigorra & Mu Lei"))
          (p (@ (class "mt-4"))
             (span (@ (class "text-sm text-stone-300"))
                   ,(ii 'byggsteg-word-meaning))))))
