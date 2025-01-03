@@ -29,16 +29,20 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 
-
 (define-public (login-page)
   (byggsteg-html-template "byggsteg"
-                          `((h2 (@ (class ,h2-class))
-                                "login to byggsteg")
+                          `((h2 (@ (class ,h2-class)) "login to byggsteg")
                             (div (@ (class
-                                      "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
-                                 (form (@(action "/login")(method "POST"))
-                                       (input (@(type "text")(class ,input-class)(name "username")) "")
-                                       (input (@(type "password")(class ,input-class)(name "password")) "")
-                                       (button (@(type "submit")(class ,button-class)) "login"))
-                                 )) #f))
+                                     "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
+                                 (form (@ (action "/login")
+                                          (method "POST"))
+                                       (input (@ (type "text")
+                                                 (class ,input-class)
+                                                 (name "username")) "")
+                                       (input (@ (type "password")
+                                                 (class ,input-class)
+                                                 (name "password")) "")
+                                       (button (@ (type "submit")
+                                                  (class ,button-class))
+                                               "login")))) #f))
 

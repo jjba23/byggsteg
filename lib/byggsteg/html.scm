@@ -90,7 +90,7 @@
          (p (@ (class "text-sm text-stone-300"))
             ,(ii 'byggsteg-license))
          (div (@ (class
-                   "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
+                  "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@ (class "text-sm text-stone-300"))
                  "find the source code here:")
               (a (@ (class "text-green-400 font-bold cursor-pointer text-sm")

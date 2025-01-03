@@ -32,37 +32,53 @@
 
 (post "/api/v1/jobs/manage/submit"
       #:mime 'json
+      #:auth '(table user "username" "password")
+      #:session #t
       (lambda (rc)
-        (let* ((body (rc-body rc))
-               (kv (read-url-encoded-body body))
-               (job-code (uri-decode (car (assoc-ref kv "job-code"))))
-               (kvv (eval-string job-code))
-               (project (assoc-ref kvv
-                                   'project))
-               (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
-               (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
-               (log-filename (new-project-log-filename project)))
-          
-          ($job 'set
-                #:id new-job-uuid
-                #:human_id (safe-base64-encode log-filename)
-                #:job_data (safe-base64-encode job-code)
-                #:job_success 0
-                #:job_in_progress 1
-                #:job_failed 0
-                #:created_at (current-time))
+        (define (do-submit)
+          (let* ((body (rc-body rc))
+                 (kv (read-url-encoded-body body))
+                 (job-code (uri-decode (car (assoc-ref kv "job-code"))))
+                 (kvv (eval-string job-code))
+                 (project (assoc-ref kvv
+                                     'project))
+                 (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
+                 (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
+                 (log-filename (new-project-log-filename project)))
+            
+            ($job 'set
+                  #:id new-job-uuid
+                  #:human_id (safe-base64-encode log-filename)
+                  #:job_data (safe-base64-encode job-code)
+                  #:job_success 0
+                  #:job_in_progress 1
+                  #:job_failed 0
+                  #:created_at (current-time))
 
-          ($log 'set
-                #:id new-log-uuid
-                #:human_id (safe-base64-encode log-filename)
-                #:job_id new-job-uuid
-                #:log_data ""
-                #:created_at (current-time))
+            ($log 'set
+                  #:id new-log-uuid
+                  #:human_id (safe-base64-encode log-filename)
+                  #:job_id new-job-uuid
+                  #:log_data ""
+                  #:created_at (current-time))
 
-          (:mime rc
-           `((log-id unquote new-log-uuid)
-             (human-id unquote
-                       (safe-base64-encode log-filename)))))))
+            (:mime rc
+                   `((log-id unquote new-log-uuid)
+                     (human-id unquote
+                               (safe-base64-encode log-filename))))))
+
+        (cond
+          ((:session rc
+                     'check)
+           (do-submit))
+          ((:auth rc)
+           (:session rc
+                     'spawn)
+           (do-submit))
+          (else (:mime rc
+                       '((error . "You must be authenticated to use this API endpoint")))))
+
+        ))
 
 (get "/api/v1/logs/:id"
      #:mime 'json

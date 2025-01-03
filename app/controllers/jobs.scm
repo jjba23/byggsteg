@@ -75,14 +75,16 @@
             (redirect-to rc
                          (string->uri logs-link))))
         (cond
-         ((:session rc 'check)
-          (do-submit))
-         ((:auth rc)
-          (:session rc 'spawn)
-          (do-submit))
-         (else (redirect-to rc
-                            (string->uri (format #f "~a/login" (current-myhost))))
-               ))))
+          ((:session rc
+                     'check)
+           (do-submit))
+          ((:auth rc)
+           (:session rc
+                     'spawn)
+           (do-submit))
+          (else (redirect-to rc
+                             (string->uri (format #f "~a/login"
+                                                  (current-myhost))))))))
 
 (post "/jobs/manage/delete"
       #:auth '(table user "username" "password")
@@ -105,10 +107,13 @@
                          (string->uri (format #f "~a/"
                                               (current-myhost))))))
         (cond
-         ((:session rc 'check)
-          (do-delete))
-         ((:auth rc)
-          (:session rc 'spawn)
-          (do-delete))
-         (else (redirect-to rc
-                            (string->uri (format #f "~a/login" (current-myhost))))))))
+          ((:session rc
+                     'check)
+           (do-delete))
+          ((:auth rc)
+           (:session rc
+                     'spawn)
+           (do-delete))
+          (else (redirect-to rc
+                             (string->uri (format #f "~a/login"
+                                                  (current-myhost))))))))

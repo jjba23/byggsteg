@@ -34,24 +34,35 @@
 
 (begin
   (define* (do-pip)
-    (let* ((jobs-in-progress ($job 'get #:ret 'all #:condition (where #:job_in_progress 1) #:order-by '(created_at asc)))
+    (let* ((jobs-in-progress ($job 'get
+                                   #:ret 'all
+                                   #:condition (where #:job_in_progress 1)
+                                   #:order-by '(created_at asc)))
            (logs-of-in-progress (cond
-                                 ((nil? jobs-in-progress) '())
-                                 (else ($log 'get #:ret 'all #:condition
-                                             (where #:job_id (map (lambda(j) (assoc-ref j "id")) jobs-in-progress))))
-                                 ))
-           (job-log-map (map (lambda(l) `(,(assoc-ref l "job_id") . ,l)) logs-of-in-progress))
-           )
+                                  ((nil? jobs-in-progress)
+                                   '())
+                                  (else ($log 'get
+                                              #:ret 'all
+                                              #:condition (where #:job_id (map (lambda 
+                                                                                       (j)
+                                                                                 
+                                                                                 (assoc-ref
+                                                                                  j
+                                                                                  "id"))
+                                                                           jobs-in-progress))))))
+           (job-log-map (map (lambda (l)
+                               `(,(assoc-ref l "job_id") unquote l))
+                             logs-of-in-progress)))
       (debug-print jobs-in-progress)
       (debug-print logs-of-in-progress)
       (debug-print job-log-map)
-      (for-each (lambda(j)
+      (for-each (lambda (j)
                   (job-pipeline #:job j
-                                #:log (assoc-ref job-log-map (assoc-ref j "id"))))
+                                #:log (assoc-ref job-log-map
+                                                 (assoc-ref j "id"))))
                 jobs-in-progress)
       (display "\nWORKER SLEEPING\n")
-      (sleep 12)
-      ))
+      (sleep 12)))
   (export do-pip))
 
 (begin
@@ -64,77 +75,72 @@
                        #:clone-url clone-url)
 
       (cond
-       ;; Stack test + sdist
-       ((eq? task
-             'stack-test)
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "test")
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "sdist --tar-dir ."))
+        ;; Stack test + sdist
+        ((eq? task
+              'stack-test)
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "test")
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "sdist --tar-dir ."))
 
-       ;; Stack build + sdist
-       ((eq? task
-             'stack-build)
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "build")
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "sdist --tar-dir ."))
+        ;; Stack build + sdist
+        ((eq? task
+              'stack-build)
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "build")
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "sdist --tar-dir ."))
 
-       ;; Byggsteg version update
-       ((eq? task
-             'byggsteg-version)
-        (byggsteg-version-step #:project project
-                               #:branch-name branch-name
-                               #:clone-url clone-url))
+        ;; Byggsteg version update
+        ((eq? task
+              'byggsteg-version)
+         (byggsteg-version-step #:project project
+                                #:branch-name branch-name
+                                #:clone-url clone-url))
 
-       ;; Nix generic build
-       ((eq? task
-             'nix-build)
-        (nix-build-step #:project project
+        ;; Nix generic build
+        ((eq? task
+              'nix-build)
+         (nix-build-step #:project project
+                         #:branch-name branch-name
+                         #:clone-url clone-url))
+
+        ;; Herd pull and restart
+        ((eq? task
+              'pull-and-restart)
+         (pull-and-restart-step #:project project
+                                #:branch-name branch-name
+                                #:clone-url clone-url))
+
+        ;; Scala SBT test
+        ((eq? task
+              'sbt-test)
+         (sbt-test-step #:project project
                         #:branch-name branch-name
                         #:clone-url clone-url))
 
-       ;; Herd pull and restart
-       ((eq? task
-             'pull-and-restart)
-        (pull-and-restart-step #:project project
+        ;; Pull and make deploy
+        ((eq? task
+              'pull-and-deploy)
+         (pull-and-deploy-step #:project project
                                #:branch-name branch-name
                                #:clone-url clone-url))
 
-       ;; Scala SBT test
-       ((eq? task
-             'sbt-test)
-        (sbt-test-step #:project project
-                       #:branch-name branch-name
-                       #:clone-url clone-url))
+        ;; Otherwise attempt generic `make build'
+        (else (make-build-step #:project project
+                               #:branch-name branch-name
+                               #:clone-url clone-url))))
 
-       ;; Pull and make deploy
-       ((eq? task
-             'pull-and-deploy)
-        (pull-and-deploy-step #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url))
-
-       ;; Otherwise attempt generic `make build'
-       (else (make-build-step #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url))))
-
-    
-    (let* ((old-log-data (safe-base64-decode (assoc-ref
-                                              log
-                                              "log_data")))
-           (kv (eval-string (safe-base64-decode (assoc-ref
-                                                 job
-                                                 "job_data"))))
+    (let* ((old-log-data (safe-base64-decode (assoc-ref log "log_data")))
+           (kv (eval-string (safe-base64-decode (assoc-ref job "job_data"))))
            (project (assoc-ref kv
                                'project))
            (branch-name (assoc-ref kv
@@ -144,23 +150,17 @@
            (task (string->symbol (assoc-ref kv
                                             'task)))
            (o (with-output-to-string (lambda ()
-                                       (run-pipeline
-                                        #:project
-                                        project
-                                        #:branch-name
-                                        branch-name
-                                        #:clone-url
-                                        clone-url
-                                        #:task task))))
-           (new-log-data (string-append old-log-data
-                                        "\n" o)))
+                                       (run-pipeline #:project project
+                                                     #:branch-name branch-name
+                                                     #:clone-url clone-url
+                                                     #:task task))))
+           (new-log-data (string-append old-log-data "\n" o)))
       (display o)
-      
+
       (DB-query (get-conn-from-pool!)
                 (->sql update
                        'log set
-                       `((log_data ,(safe-base64-encode
-                                     new-log-data))
+                       `((log_data ,(safe-base64-encode new-log-data))
                          (updated_at ,(current-time)))
                        (where #:id (assoc-ref log "id"))))
 

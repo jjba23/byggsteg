@@ -31,17 +31,25 @@
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                       (login-page)))))
+                             (login-page)))))
 
 (post "/login"
       #:auth '(table user "username" "password")
       #:session #t
       (lambda (rc)
         (cond
-         ((:session rc 'check)
-          (redirect-to rc (string->uri (format #f "~a/?login_succeeded=true" (current-myhost)))))
-         ((:auth rc)
-          (:session rc 'spawn)
-          (redirect-to rc (string->uri (format #f "~a/?login_succeeded=true" (current-myhost)))))
-         (else (redirect-to rc
-                            (string->uri (format #f "~a/login?login_failed=true" (current-myhost))))))))
+          ((:session rc
+                     'check)
+           (redirect-to rc
+                        (string->uri (format #f "~a/?login_succeeded=true"
+                                             (current-myhost)))))
+          ((:auth rc)
+           (:session rc
+                     'spawn)
+           (redirect-to rc
+                        (string->uri (format #f "~a/?login_succeeded=true"
+                                             (current-myhost)))))
+          (else (redirect-to rc
+                             (string->uri (format #f
+                                           "~a/login?login_failed=true"
+                                           (current-myhost))))))))

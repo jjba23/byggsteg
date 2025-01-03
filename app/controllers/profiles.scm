@@ -33,8 +33,9 @@
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                       (profile-list-page ($profile 'get
-                                                    #:order-by '(human_id asc)))))))
+                             (profile-list-page ($profile 'get
+                                                          #:order-by '(human_id
+                                                                       asc)))))))
 
 (get "/profiles/:id"
      #:mime 'xml
@@ -68,36 +69,40 @@
                                                                          profile-name)))))
             
             (cond
-             ((not (nil? found-profile))
-              (DB-query (DB-open rc)
-                        (->sql update
-                               'profile set
-                               `((profile_data ,(safe-base64-encode
-                                                 profile-data))
-                                 (updated_at ,(current-time)))
-                               (where #:human_id (safe-base64-encode
-                                                  profile-name))))
-              (redirect-to rc
-                           (string->uri (format #f "~a/profiles/~a"
-                                                (current-myhost)
-                                                (assoc-ref found-profile "id")))))
-             (else ($profile 'set
-                             #:id new-uuid
-                             #:human_id (safe-base64-encode profile-name)
-                             #:profile_data (safe-base64-encode profile-data)
-                             #:created_at (current-time))
-                   (redirect-to rc
-                                (string->uri (format #f "~a/profiles/~a"
-                                                     (current-myhost) new-uuid)))))))
-        
+              ((not (nil? found-profile))
+               (DB-query (DB-open rc)
+                         (->sql update
+                                'profile set
+                                `((profile_data ,(safe-base64-encode
+                                                  profile-data))
+                                  (updated_at ,(current-time)))
+                                (where #:human_id (safe-base64-encode
+                                                   profile-name))))
+               (redirect-to rc
+                            (string->uri (format #f "~a/profiles/~a"
+                                                 (current-myhost)
+                                                 (assoc-ref found-profile "id")))))
+              (else ($profile 'set
+                              #:id new-uuid
+                              #:human_id (safe-base64-encode profile-name)
+                              #:profile_data (safe-base64-encode profile-data)
+                              #:created_at (current-time))
+                    (redirect-to rc
+                                 (string->uri (format #f "~a/profiles/~a"
+                                                      (current-myhost)
+                                                      new-uuid)))))))
+
         (cond
-         ((:session rc 'check)
-          (do-submit))
-         ((:auth rc)
-          (:session rc 'spawn)
-          (do-submit))
-         (else (redirect-to rc
-                            (string->uri (format #f "~a/login" (current-myhost))))))))
+          ((:session rc
+                     'check)
+           (do-submit))
+          ((:auth rc)
+           (:session rc
+                     'spawn)
+           (do-submit))
+          (else (redirect-to rc
+                             (string->uri (format #f "~a/login"
+                                                  (current-myhost))))))))
 
 (post "/profiles/manage/delete"
       #:auth '(table user "username" "password")
@@ -116,10 +121,13 @@
                          (string->uri (format #f "~a/profiles"
                                               (current-myhost))))))
         (cond
-         ((:session rc 'check)
-          (do-delete))
-         ((:auth rc)
-          (:session rc 'spawn)
-          (do-delete))
-         (else (redirect-to rc
-                            (string->uri (format #f "~a/login" (current-myhost))))))))
+          ((:session rc
+                     'check)
+           (do-delete))
+          ((:auth rc)
+           (:session rc
+                     'spawn)
+           (do-delete))
+          (else (redirect-to rc
+                             (string->uri (format #f "~a/login"
+                                                  (current-myhost))))))))
