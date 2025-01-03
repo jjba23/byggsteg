@@ -34,35 +34,35 @@
 
 (begin
   (define* (do-pip)
-    (let* ((jobs-in-progress ($job 'get
+    (let* ((sleep-seconds 12)
+           (jobs-in-progress ($job 'get
                                    #:ret 'all
                                    #:condition (where #:job_in_progress 1)
                                    #:order-by '(created_at asc)))
            (logs-of-in-progress (cond
-                                  ((nil? jobs-in-progress)
-                                   '())
-                                  (else ($log 'get
-                                              #:ret 'all
-                                              #:condition (where #:job_id (map (lambda 
-                                                                                       (j)
-                                                                                 
-                                                                                 (assoc-ref
-                                                                                  j
-                                                                                  "id"))
-                                                                           jobs-in-progress))))))
+                                 ((nil? jobs-in-progress)
+                                  '())
+                                 (else ($log 'get
+                                             #:ret 'all
+                                             #:condition (where #:job_id (map (lambda 
+                                                                                  (j)
+                                                                                
+                                                                                (assoc-ref
+                                                                                 j
+                                                                                 "id"))
+                                                                              jobs-in-progress))))))
            (job-log-map (map (lambda (l)
                                `(,(assoc-ref l "job_id") unquote l))
                              logs-of-in-progress)))
-      (debug-print jobs-in-progress)
-      (debug-print logs-of-in-progress)
-      (debug-print job-log-map)
+
       (for-each (lambda (j)
+                  (debug-print j)
                   (job-pipeline #:job j
                                 #:log (assoc-ref job-log-map
                                                  (assoc-ref j "id"))))
                 jobs-in-progress)
-      (display "\nWORKER SLEEPING\n")
-      (sleep 12)))
+      (display (format #f "\nbyggsteg worker will sleep for ~a seconds\n" sleep-seconds))
+      (sleep sleep-seconds)))
   (export do-pip))
 
 (begin

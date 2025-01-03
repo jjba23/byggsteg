@@ -17,7 +17,7 @@
   (unless is-worker-running
     (call-with-new-thread (lambda()
                             (sleep 3) ; delay worker start
-                            (display "\nINITIALIZING BYGGSTEG PIPELINE WORKER\n")
+                            (display "\ninitializing byggsteg queue worker\n")
                             (set! is-worker-running #t)
                             (use-modules (byggsteg job pipeline))
                             (while #t (do-pip))))))

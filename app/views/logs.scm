@@ -42,15 +42,15 @@
          (in_progress (assoc-ref job "job_in_progress"))
          (failure (assoc-ref job "job_failed"))
          (job-status (cond
-                       ((equal? success 1)
-                        `(h2 (@ (class "text-xl text-green-700 my-4 font-mono"))
-                             ,(ii 'job-succeeded)))
-                       ((equal? failure 1)
-                        `(h2 (@ (class "text-xl text-red-700 my-4 font-mono"))
-                             ,(ii 'job-failed)))
-                       (else `(h2 (@ (class
+                      ((equal? success 1)
+                       `(h2 (@ (class "text-xl text-green-700 my-4 font-mono"))
+                            ,(ii 'job-succeeded)))
+                      ((equal? failure 1)
+                       `(h2 (@ (class "text-xl text-red-700 my-4 font-mono"))
+                            ,(ii 'job-failed)))
+                      (else `(h2 (@ (class
                                       "text-xl text-sky-700 my-4 font-mono"))
-                                  ,(ii 'job-in-progress)))))
+                                 ,(ii 'job-in-progress)))))
          (delete-button `(form (@ (method "POST")
                                   (enctype "application/x-www-form-urlencoded")
                                   (action "/jobs/manage/delete"))
@@ -67,36 +67,43 @@
                                (button (@ (type "submit")
                                           (class ,danger-button-class))
                                        "delete"))))
-    
+
     (byggsteg-html-template "byggsteg"
                             `((div (@ (class
-                                       "flex flex-row flex-wrap align-middle gap-6"))
+                                        "flex flex-row flex-wrap align-middle gap-6"))
                                    (h2 (@ (class ,h2-class)) "viewing logs")
                                    ,job-status)
                               (h3 (@ (class
-                                      "text-stone-300 text-lg my-4 font-mono"))
+                                       "text-stone-300 text-lg my-4 font-mono"))
                                   ,log-filename)
 
-                              (small (@ (class
-                                         "text-stone-500 text-sm my-2 font-mono"))
-                                     ,(format #f "job started at: ~a"
-                                              (assoc-ref job "created_at")))
-                              (div (@ (class
-                                       "flex flex-wrap flex-row gap-6 my-3"))
+                              (div (@(class "flex flex-wrap flex-row gap-6 my-3"))
                                    (small (@ (class
-                                              "text-stone-500 text-sm my-2 font-mono"))
+                                               "text-stone-500 text-sm my-2 font-mono"))
+                                          ,(format #f "job started at: ~a" (strftime "%c" (localtime (assoc-ref job "created_at")))))
+                                   ,(cond
+                                     ((equal? (assoc-ref job "updated_at") #f) '())
+                                     (else `(small (@ (class
+                                                        "text-stone-500 text-sm my-2 font-mono"))
+                                                   ,(format #f "job last updated at: ~a" (strftime "%c" (localtime (assoc-ref job "updated_at")))))))
+                                   )
+                              
+                              (div (@ (class
+                                        "flex flex-wrap flex-row gap-6 my-3"))
+                                   (small (@ (class
+                                               "text-stone-500 text-sm my-2 font-mono"))
                                           ,(format #f "job uuid: ~a" job-id))
                                    (small (@ (class
-                                              "text-stone-500 text-sm my-2 font-mono"))
+                                               "text-stone-500 text-sm my-2 font-mono"))
                                           ,(format #f "log uuid: ~a" log-id)))
 
                               ,delete-button
 
                               (pre (@ (class
-                                       "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
+                                        "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
                                    ,detail-data)
                               (pre (@ (class
-                                       "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
+                                        "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
                                    ,log-data)) #t)))
 
 (define-public (make-job-link job log)
