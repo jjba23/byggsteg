@@ -52,51 +52,61 @@
                              (add-profile-form-page)))))
 
 (post "/profiles/manage/submit"
+      #:session #t
       (lambda (rc)
-        (let* ((body (rc-body rc))
-               (kv (pk 'body
-                       (read-url-encoded-body body)))
-               (profile-data (uri-decode (car (assoc-ref kv "job-code"))))
-               (profile-name (car (assoc-ref kv "profile-name")))
-               (new-uuid (string-replace-substring (uuidgen) "\n" ""))
-               (found-profile ($profile 'get
-                                        #:ret 'top
-                                        #:condition (where #:human_id (safe-base64-encode
-                                                                       profile-name)))))
-          
-          (cond
-            ((not (nil? found-profile))
-             (DB-query (DB-open rc)
-                       (->sql update
-                              'profile set
-                              `((profile_data ,(safe-base64-encode
-                                                profile-data))
-                                (updated_at ,(current-time)))
-                              (where #:human_id (safe-base64-encode
-                                                 profile-name))))
-             (redirect-to rc
-                          (string->uri (format #f "~a/profiles/~a"
-                                               (current-myhost)
-                                               (assoc-ref found-profile "id")))))
-            (else ($profile 'set
-                            #:id new-uuid
-                            #:human_id (safe-base64-encode profile-name)
-                            #:profile_data (safe-base64-encode profile-data)
-                            #:created_at (current-time))
-                  (redirect-to rc
-                               (string->uri (format #f "~a/profiles/~a"
-                                                    (current-myhost) new-uuid))))))))
+        (cond
+         ((:session 'check)
+          (let* ((body (rc-body rc))
+                 (kv (pk 'body
+                         (read-url-encoded-body body)))
+                 (profile-data (uri-decode (car (assoc-ref kv "job-code"))))
+                 (profile-name (car (assoc-ref kv "profile-name")))
+                 (new-uuid (string-replace-substring (uuidgen) "\n" ""))
+                 (found-profile ($profile 'get
+                                          #:ret 'top
+                                          #:condition (where #:human_id (safe-base64-encode
+                                                                         profile-name)))))
+            
+            (cond
+             ((not (nil? found-profile))
+              (DB-query (DB-open rc)
+                        (->sql update
+                               'profile set
+                               `((profile_data ,(safe-base64-encode
+                                                 profile-data))
+                                 (updated_at ,(current-time)))
+                               (where #:human_id (safe-base64-encode
+                                                  profile-name))))
+              (redirect-to rc
+                           (string->uri (format #f "~a/profiles/~a"
+                                                (current-myhost)
+                                                (assoc-ref found-profile "id")))))
+             (else ($profile 'set
+                             #:id new-uuid
+                             #:human_id (safe-base64-encode profile-name)
+                             #:profile_data (safe-base64-encode profile-data)
+                             #:created_at (current-time))
+                   (redirect-to rc
+                                (string->uri (format #f "~a/profiles/~a"
+                                                     (current-myhost) new-uuid)))))))
+         (else (redirect-to rc
+                            (string->uri (format #f "~a/login" (current-myhost))))))))
 
 (post "/profiles/manage/delete"
+      #:session #t
       (lambda (rc)
-        (let* ((body (rc-body rc))
-               (kv (read-url-encoded-body body))
-               (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
-          
-          ($profile 'mod
-                    'row-delete
-                    (where #:id profile-id))
+        (cond
+         ((:session 'check)
+          (let* ((body (rc-body rc))
+                 (kv (read-url-encoded-body body))
+                 (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
+            
+            ($profile 'mod
+                      'row-delete
+                      (where #:id profile-id))
 
-          (redirect-to rc
-                       (string->uri (format #f "~a/profiles"
-                                            (current-myhost)))))))
+            (redirect-to rc
+                         (string->uri (format #f "~a/profiles"
+                                              (current-myhost))))))
+         (else (redirect-to rc
+                            (string->uri (format #f "~a/login" (current-myhost))))))))
