@@ -52,10 +52,10 @@
                              (add-profile-form-page)))))
 
 (post "/profiles/manage/submit"
+      #:auth '(table user "username" "password")
       #:session #t
       (lambda (rc)
-        (cond
-         ((:session rc 'check)
+        (define (do-submit)
           (let* ((body (rc-body rc))
                  (kv (pk 'body
                          (read-url-encoded-body body)))
@@ -89,14 +89,21 @@
                    (redirect-to rc
                                 (string->uri (format #f "~a/profiles/~a"
                                                      (current-myhost) new-uuid)))))))
+        
+        (cond
+         ((:session rc 'check)
+          (do-submit))
+         ((:auth rc)
+          (:session rc 'spawn)
+          (do-submit))
          (else (redirect-to rc
                             (string->uri (format #f "~a/login" (current-myhost))))))))
 
 (post "/profiles/manage/delete"
+      #:auth '(table user "username" "password")
       #:session #t
       (lambda (rc)
-        (cond
-         ((:session rc 'check)
+        (define (do-delete)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
                  (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
@@ -108,5 +115,11 @@
             (redirect-to rc
                          (string->uri (format #f "~a/profiles"
                                               (current-myhost))))))
+        (cond
+         ((:session rc 'check)
+          (do-delete))
+         ((:auth rc)
+          (:session rc 'spawn)
+          (do-delete))
          (else (redirect-to rc
                             (string->uri (format #f "~a/login" (current-myhost))))))))

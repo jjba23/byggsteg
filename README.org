@@ -38,6 +38,15 @@ Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manua
 
 [[./pub/img/Schermafdruk_2024-12-10.png]]
 
+Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, for example :
+#+begin_src  scheme
+  `((project . "free-alacarte")
+    (branch-name . "trunk")
+    (task . "stack-test")
+    (clone-url . "https://codeberg.org/jjba23/free-alacarte")
+    )
+#+end_src
+
 ** Types of jobs
 
 ~stack-test~ - Haskell project build and test with Stack + Hackage bundle.
@@ -56,26 +65,26 @@ Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manua
 
 As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
 
+** Auth
+
+Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles.
+
+Upon starting a blank new byggsteg deployment you will have no users in the database.
+
+Refer to [[file:db/migration/user_20250103093008.scm]] and edit the password field, or add more users. An important note is that currently authentication works by using the username (NOT email) and the passwords should NOT contain any special characters.
+
+Then do a ~art migrate up user~ to add your users.
+
 ** Starting a job
 
-Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, for example :
-#+begin_src  scheme
-  `((project . "free-alacarte")
-    (branch-name . "trunk")
-    (task . "stack-test")
-    (clone-url . "https://codeberg.org/jjba23/free-alacarte")
-    )
-#+end_src
+After logging in, you can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
 
-You can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
-
-You could do this  for example from your favourite system programatically, or via cURL:
+You could also do this for example from your favourite system programatically, or via cURL:
 
 #+begin_src sh
   curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
       -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
-      -H 'Authorization: Basic ${{secrets.BYGGSTEG_KEY}}' \
-      --data-urlencode 'job-code=`((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte"))'
+      --data-urlencode 'username=myuser&password=mypassword&job-code=`((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte"))'
   
   #  {
   #    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",

@@ -40,10 +40,10 @@
                              (job-request-form-page)))))
 
 (post "/jobs/manage/submit"
+      #:auth '(table user "username" "password")
       #:session #t
       (lambda (rc)
-        (cond
-         ((:session rc 'check)
+        (define (do-submit)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
                  (job-code (uri-decode (car (assoc-ref kv "job-code"))))
@@ -74,15 +74,21 @@
 
             (redirect-to rc
                          (string->uri logs-link))))
+        (cond
+         ((:session rc 'check)
+          (do-submit))
+         ((:auth rc)
+          (:session rc 'spawn)
+          (do-submit))
          (else (redirect-to rc
                             (string->uri (format #f "~a/login" (current-myhost))))
                ))))
 
 (post "/jobs/manage/delete"
+      #:auth '(table user "username" "password")
       #:session #t
       (lambda (rc)
-        (cond
-         ((:session rc 'check)
+        (define (do-delete)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
                  (job-id (uri-decode (car (assoc-ref kv "job-id"))))
@@ -98,5 +104,11 @@
             (redirect-to rc
                          (string->uri (format #f "~a/"
                                               (current-myhost))))))
+        (cond
+         ((:session rc 'check)
+          (do-delete))
+         ((:auth rc)
+          (:session rc 'spawn)
+          (do-delete))
          (else (redirect-to rc
                             (string->uri (format #f "~a/login" (current-myhost))))))))
