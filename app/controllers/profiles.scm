@@ -55,7 +55,7 @@
       #:session #t
       (lambda (rc)
         (cond
-         ((:session 'check)
+         ((:session rc 'check)
           (let* ((body (rc-body rc))
                  (kv (pk 'body
                          (read-url-encoded-body body)))
@@ -96,7 +96,7 @@
       #:session #t
       (lambda (rc)
         (cond
-         ((:session 'check)
+         ((:session rc 'check)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
                  (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
