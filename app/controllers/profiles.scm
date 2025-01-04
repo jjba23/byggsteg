@@ -82,7 +82,7 @@
                             (string->uri (format #f "~a/profiles/~a"
                                                  (current-myhost)
                                                  (assoc-ref found-profile "id")))
-                            #:status 307))
+                            #:status 302))
               (else ($profile 'set
                               #:id new-uuid
                               #:human_id (safe-base64-encode profile-name)
@@ -92,7 +92,7 @@
                                  (string->uri (format #f "~a/profiles/~a"
                                                       (current-myhost)
                                                       new-uuid))
-                                 #:status 307)))))
+                                 #:status 302)))))
 
         (cond
           ((:session rc
@@ -105,7 +105,7 @@
           (else (redirect-to rc
                              (string->uri (format #f "~a/login"
                                                   (current-myhost)))
-                             #:status 307)))))
+                             #:status 302)))))
 
 (post "/profiles/manage/delete"
       #:auth '(table user "username" "password")
@@ -123,7 +123,7 @@
             (redirect-to rc
                          (string->uri (format #f "~a/profiles"
                                               (current-myhost)))
-                         #:status 307)))
+                         #:status 302)))
         (cond
           ((:session rc
                      'check)
@@ -135,4 +135,4 @@
           (else (redirect-to rc
                              (string->uri (format #f "~a/login"
                                                   (current-myhost)))
-                             #:status 307)))))
+                             #:status 302)))))

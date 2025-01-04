@@ -74,7 +74,7 @@
 
             (redirect-to rc
                          (string->uri logs-link)
-                         #:status 307)))
+                         #:status 302)))
         (cond
           ((:session rc
                      'check)
@@ -86,7 +86,7 @@
           (else (redirect-to rc
                              (string->uri (format #f "~a/login"
                                                   (current-myhost)))
-                             #:status 307)))))
+                             #:status 302)))))
 
 (post "/jobs/manage/delete"
       #:auth '(table user "username" "password")
@@ -108,7 +108,7 @@
             (redirect-to rc
                          (string->uri (format #f "~a/"
                                               (current-myhost)))
-                         #:status 307)))
+                         #:status 302)))
         (cond
           ((:session rc
                      'check)
@@ -120,4 +120,4 @@
           (else (redirect-to rc
                              (string->uri (format #f "~a/login"
                                                   (current-myhost)))
-                             #:status 307)))))
+                             #:status 302)))))

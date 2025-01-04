@@ -43,16 +43,16 @@
            (redirect-to rc
                         (string->uri (format #f "~a/?login_succeeded=true"
                                              (current-myhost)))
-                        #:status 307))
+                        #:status 302))
           ((:auth rc)
            (:session rc
                      'spawn)
            (redirect-to rc
                         (string->uri (format #f "~a/?login_succeeded=true"
                                              (current-myhost)))
-                        #:status 307))
+                        #:status 302))
           (else (redirect-to rc
                              (string->uri (format #f
                                            "~a/login?login_failed=true"
                                            (current-myhost)))
-                             #:status 307)))))
+                             #:status 302)))))
