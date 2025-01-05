@@ -45,6 +45,18 @@ Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code
       (clone-url . "https://codeberg.org/jjba23/free-alacarte")))
 #+end_src
 
+Sending things in thunk form allows one to execute any code arbitrarily, inside the lambda expression. Be responsible and wary of who you give access to your byggsteg instance.
+
+#+begin_src scheme
+  (lambda()
+    (define my-project-name "wikimusic-api")
+
+    `((project . ,my-project-name)
+      (branch-name . "trunk")
+      (task . "stack-test")
+      (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
+#+end_src
+
 ** Types of jobs
 
 ~stack-test~ - Haskell project build and test with Stack + Hackage bundle.
