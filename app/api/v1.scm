@@ -38,7 +38,8 @@
         (define (do-submit)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
-                 (job-code (uri-decode (car (assoc-ref kv "job-code"))))
+                 (job-code-thunk (uri-decode (car (assoc-ref kv "job-code"))))
+                 (job-code (job-code-thunk))
                  (kvv (eval-string job-code))
                  (project (assoc-ref kvv
                                      'project))
@@ -63,20 +64,20 @@
                   #:created_at (current-time))
 
             (:mime rc
-                   `((log-id unquote new-log-uuid)
-                     (human-id unquote
-                               (safe-base64-encode log-filename))))))
+             `((log-id unquote new-log-uuid)
+               (human-id unquote
+                         (safe-base64-encode log-filename))))))
 
         (cond
-          ((:session rc
-                     'check)
-           (do-submit))
-          ((:auth rc)
-           (:session rc
-                     'spawn)
-           (do-submit))
-          (else (:mime rc
-                       '((error . "You must be authenticated to use this API endpoint")))))
+         ((:session rc
+           'check)
+          (do-submit))
+         ((:auth rc)
+          (:session rc
+           'spawn)
+          (do-submit))
+         (else (:mime rc
+                '((error . "You must be authenticated to use this API endpoint")))))
 
         ))
 
