@@ -106,7 +106,7 @@
                   (where #:id log-id))
 
             (redirect-to rc
-                         (string->uri (format #f "~a/"
+                         (string->uri (format #f "~a/logs"
                                               (current-myhost)))
                          #:status 302)))
         (cond
