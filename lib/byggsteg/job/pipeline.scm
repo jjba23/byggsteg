@@ -79,72 +79,73 @@ byggsteg worker will sleep for ~a seconds
                        #:clone-url clone-url)
 
       (cond
-       ;; Stack test + sdist
-       ((eq? task
-             'stack-test)
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "test")
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "sdist --tar-dir ."))
+        ;; Stack test + sdist
+        ((eq? task
+              'stack-test)
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "test")
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "sdist --tar-dir ."))
 
-       ;; Stack build + sdist
-       ((eq? task
-             'stack-build)
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "build")
-        (stack-step #:project project
-                    #:branch-name branch-name
-                    #:clone-url clone-url
-                    #:stack-task "sdist --tar-dir ."))
+        ;; Stack build + sdist
+        ((eq? task
+              'stack-build)
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "build")
+         (stack-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url
+                     #:stack-task "sdist --tar-dir ."))
 
-       ;; Byggsteg version update
-       ((eq? task
-             'byggsteg-version)
-        (byggsteg-version-step #:project project
-                               #:branch-name branch-name
-                               #:clone-url clone-url))
+        ;; Byggsteg version update
+        ((eq? task
+              'byggsteg-version)
+         (byggsteg-version-step #:project project
+                                #:branch-name branch-name
+                                #:clone-url clone-url))
 
-       ;; Nix generic build
-       ((eq? task
-             'nix-build)
-        (nix-build-step #:project project
+        ;; Nix generic build
+        ((eq? task
+              'nix-build)
+         (nix-build-step #:project project
+                         #:branch-name branch-name
+                         #:clone-url clone-url))
+
+        ;; Herd pull and restart
+        ((eq? task
+              'pull-and-restart)
+         (pull-and-restart-step #:project project
+                                #:branch-name branch-name
+                                #:clone-url clone-url))
+
+        ;; Scala SBT test
+        ((eq? task
+              'sbt-test)
+         (sbt-test-step #:project project
                         #:branch-name branch-name
                         #:clone-url clone-url))
 
-       ;; Herd pull and restart
-       ((eq? task
-             'pull-and-restart)
-        (pull-and-restart-step #:project project
+        ;; Pull and make deploy
+        ((eq? task
+              'pull-and-deploy)
+         (pull-and-deploy-step #:project project
                                #:branch-name branch-name
                                #:clone-url clone-url))
 
-       ;; Scala SBT test
-       ((eq? task
-             'sbt-test)
-        (sbt-test-step #:project project
-                       #:branch-name branch-name
-                       #:clone-url clone-url))
-
-       ;; Pull and make deploy
-       ((eq? task
-             'pull-and-deploy)
-        (pull-and-deploy-step #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url))
-
-       ;; Otherwise attempt generic `make build'
-       (else (make-build-step #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url))))
+        ;; Otherwise attempt generic `make build'
+        (else (make-build-step #:project project
+                               #:branch-name branch-name
+                               #:clone-url clone-url))))
 
     (let* ((old-log-data (safe-base64-decode (assoc-ref log "log_data")))
-           (kv-thunk (eval-string (safe-base64-decode (assoc-ref job "job_data"))))
+           (kv-thunk (eval-string (safe-base64-decode (assoc-ref job
+                                                                 "job_data"))))
            (kv (kv-thunk))
            (project (assoc-ref kv
                                'project))

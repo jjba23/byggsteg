@@ -64,20 +64,20 @@
                   #:created_at (current-time))
 
             (:mime rc
-             `((log-id unquote new-log-uuid)
-               (human-id unquote
-                         (safe-base64-encode log-filename))))))
+                   `((log-id unquote new-log-uuid)
+                     (human-id unquote
+                               (safe-base64-encode log-filename))))))
 
         (cond
-         ((:session rc
-           'check)
-          (do-submit))
-         ((:auth rc)
-          (:session rc
-           'spawn)
-          (do-submit))
-         (else (:mime rc
-                '((error . "You must be authenticated to use this API endpoint")))))
+          ((:session rc
+                     'check)
+           (do-submit))
+          ((:auth rc)
+           (:session rc
+                     'spawn)
+           (do-submit))
+          (else (:mime rc
+                       '((error . "You must be authenticated to use this API endpoint")))))
 
         ))
 

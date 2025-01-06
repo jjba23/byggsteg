@@ -77,17 +77,17 @@
                          (string->uri logs-link)
                          #:status 302)))
         (cond
-         ((:session rc
-           'check)
-          (do-submit))
-         ((:auth rc)
-          (:session rc
-           'spawn)
-          (do-submit))
-         (else (redirect-to rc
-                            (string->uri (format #f "~a/login"
-                                                 (current-myhost)))
-                            #:status 302)))))
+          ((:session rc
+                     'check)
+           (do-submit))
+          ((:auth rc)
+           (:session rc
+                     'spawn)
+           (do-submit))
+          (else (redirect-to rc
+                             (string->uri (format #f "~a/login"
+                                                  (current-myhost)))
+                             #:status 302)))))
 
 (post "/jobs/manage/delete"
       #:auth '(table user "username" "password")
