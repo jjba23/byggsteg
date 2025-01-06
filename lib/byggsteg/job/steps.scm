@@ -27,74 +27,98 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads))
 
+(define-public (display-cmd cmd)
+  (display (format #f "\n- running command: ~a\n")))
+
 (begin
   (define* (stack-step #:key project branch-name clone-url stack-task)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall (format #f
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
+          (cmd (format #f
                        (string-append "cd ~a" " && stack --nix ~a") clone-dir
-                       stack-task))))
+                       stack-task)))
+      (display-cmd cmd)
+      (syscall cmd)))
   (export stack-step))
 
 (begin
   (define* (byggsteg-version-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
+          (cmd (format #f
+                       (string-append
+                        "cd ~a && sudo herd restart byggsteg")
+                       clone-dir)))
       (call-with-new-thread (lambda ()
-                              (syscall (format #f
-                                               (string-append
-                                                "cd ~a && sudo herd restart byggsteg")
-                                               clone-dir))))))
+                              (display-cmd cmd)
+                              (sleep 2)
+                              (syscall cmd)))))
   (export byggsteg-version-step))
 
 (begin
   (define* (pull-and-restart-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall (format #f
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
+          (cmd (format #f
                        (string-append "cd ~a" " && sudo herd restart ~a")
-                       clone-dir project))))
+                       clone-dir project)))
+      (display-cmd cmd)
+      (syscall cmd)))
   (export pull-and-restart-step))
 
 (begin
   (define* (pull-and-deploy-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall (format #f
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
+          (cmd (format #f
                        (string-append "cd ~a" " && sudo make deploy")
-                       clone-dir))))
+                       clone-dir)))
+      (display-cmd cmd)
+      (syscall cmd)))
   (export pull-and-deploy-step))
 
 (begin
   (define* (make-build-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall (format #f
-                       (string-append "cd ~a" " && make build") clone-dir))))
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
+          (cmd (format #f
+                       (string-append "cd ~a" " && make build") clone-dir)))
+      (display-cmd cmd)
+      (syscall cmd)))
   (export make-build-step))
 
 (begin
   (define* (nix-build-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall (format #f
-                       (string-append "cd ~a" " && nix build") clone-dir))))
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
+          (cmd (format #f
+                       (string-append "cd ~a" " && nix build") clone-dir)))
+      (display-cmd cmd)
+      (syscall cmd)))
   (export nix-build-step))
 
 (begin
   (define* (sbt-test-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name)))
-      (syscall (format #f
-                       (string-append "cd ~a" " && sbt test") clone-dir))))
+    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
+          (cmd (format #f
+                       (string-append "cd ~a" " && sbt test") clone-dir)))
+      (display-cmd cmd)
+      (syscall cmd)))
   (export sbt-test-step))
 
 (begin
   (define* (clone-repo-step #:key project branch-name clone-url)
     (let* ((clone-dir (string-append job-clone-location project "/"
                                      branch-name))
-           (should-clone (not (file-exists? clone-dir))))
+           (should-clone (not (file-exists? clone-dir)))
+           (clone-cmd (format #f
+                              (string-append "mkdir -p ~a"
+                                             " && git clone -b ~a ~a ~a || true")
+                              clone-dir
+                              branch-name
+                              clone-url
+                              clone-dir))
+           (pull-cmd (format #f "cd ~a && git pull" clone-dir)))
       (cond
-        (should-clone (syscall (format #f
-                                       (string-append "mkdir -p ~a"
-                                        " && git clone -b ~a ~a ~a || true")
-                                       clone-dir
-                                       branch-name
-                                       clone-url
-                                       clone-dir)))
-        (else (syscall (format #f "cd ~a && git pull" clone-dir))))))
+       (should-clone
+        (display-cmd clone-cmd)
+        (syscall clone-cmd))
+       (else
+        (display-cmd pull-cmd)
+        (syscall pull-cmd)))))
   (export clone-repo-step))
 
