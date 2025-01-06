@@ -32,21 +32,21 @@
 
 (begin
   (define* (stack-step #:key project branch-name clone-url stack-task)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
-          (cmd (format #f
-                       (string-append "cd ~a" " && stack --nix ~a") clone-dir
-                       stack-task)))
+    (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+           (cmd (format #f
+                        (string-append "cd ~a" " && stack --nix ~a") clone-dir
+                        stack-task)))
       (display-cmd cmd)
       (syscall cmd)))
   (export stack-step))
 
 (begin
   (define* (byggsteg-version-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
-          (cmd (format #f
-                       (string-append
-                        "cd ~a && sudo herd restart byggsteg")
-                       clone-dir)))
+    (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+           (cmd (format #f
+                        (string-append
+                         "cd ~a && sudo herd restart byggsteg")
+                        clone-dir)))
       (call-with-new-thread (lambda ()
                               (display-cmd cmd)
                               (sleep 2)
@@ -55,47 +55,47 @@
 
 (begin
   (define* (pull-and-restart-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
-          (cmd (format #f
-                       (string-append "cd ~a" " && sudo herd restart ~a")
-                       clone-dir project)))
+    (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+           (cmd (format #f
+                        (string-append "cd ~a" " && sudo herd restart ~a")
+                        clone-dir project)))
       (display-cmd cmd)
       (syscall cmd)))
   (export pull-and-restart-step))
 
 (begin
   (define* (pull-and-deploy-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
-          (cmd (format #f
-                       (string-append "cd ~a" " && sudo make deploy")
-                       clone-dir)))
+    (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+           (cmd (format #f
+                        (string-append "cd ~a" " && sudo make deploy")
+                        clone-dir)))
       (display-cmd cmd)
       (syscall cmd)))
   (export pull-and-deploy-step))
 
 (begin
   (define* (make-build-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
-          (cmd (format #f
-                       (string-append "cd ~a" " && make build") clone-dir)))
+    (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+           (cmd (format #f
+                        (string-append "cd ~a" " && make build") clone-dir)))
       (display-cmd cmd)
       (syscall cmd)))
   (export make-build-step))
 
 (begin
   (define* (nix-build-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
-          (cmd (format #f
-                       (string-append "cd ~a" " && nix build") clone-dir)))
+    (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+           (cmd (format #f
+                        (string-append "cd ~a" " && nix build") clone-dir)))
       (display-cmd cmd)
       (syscall cmd)))
   (export nix-build-step))
 
 (begin
   (define* (sbt-test-step #:key project branch-name clone-url)
-    (let ((clone-dir (string-append job-clone-location project "/" branch-name))
-          (cmd (format #f
-                       (string-append "cd ~a" " && sbt test") clone-dir)))
+    (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+           (cmd (format #f
+                        (string-append "cd ~a" " && sbt test") clone-dir)))
       (display-cmd cmd)
       (syscall cmd)))
   (export sbt-test-step))
