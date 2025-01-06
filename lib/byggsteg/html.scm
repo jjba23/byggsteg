@@ -59,7 +59,7 @@
                           (content "width=device-width, initial-scale=1.0")))
                  (script (@ (src "https://cdn.tailwindcss.com")) "")
                  (script (@ (src "/js/tailwind.config.js")) ()))
-           (body (@ (class "bg-stone-900"))
+           (body (@ (class "bg-stone-900 mx-2 my-3"))
                  (div (@ (class "container mx-auto my-4"))
                       ,(page-top)
                       ,@body

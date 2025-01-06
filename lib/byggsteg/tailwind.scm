@@ -76,6 +76,10 @@
   (string-join '("text-2xl" "text-stone-300" "my-4" "font-bold" "font-mono")
                " "))
 
+(define-public h4-class
+  (string-join '("text-lg" "text-stone-400" "my-2" "font-bold" "font-mono")
+               " "))
+
 (define-public textarea-class
   (string-join '("rounded-xl" "border"
                  "border-stone-500"

@@ -26,5 +26,5 @@
 (get "/"
      #:mime 'xml
      (lambda (rc)
-       (response-emit (:mime rc (welcome-page)))
-       ))
+       (response-emit (:mime rc
+                             (welcome-page)))))
