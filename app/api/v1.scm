@@ -39,8 +39,8 @@
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
                  (job-code-thunk (uri-decode (car (assoc-ref kv "job-code"))))
-                 (job-code (job-code-thunk))
-                 (kvv (eval-string job-code))
+                 (kvv-thunk (eval-string job-code))
+                 (kvv (kvv-thunk))
                  (project (assoc-ref kvv
                                      'project))
                  (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
