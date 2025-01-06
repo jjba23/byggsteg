@@ -38,7 +38,7 @@
         (define (do-submit)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
-                 (job-code-thunk (uri-decode (car (assoc-ref kv "job-code"))))
+                 (job-code (uri-decode (car (assoc-ref kv "job-code"))))
                  (kvv-thunk (eval-string job-code))
                  (kvv (kvv-thunk))
                  (project (assoc-ref kvv
