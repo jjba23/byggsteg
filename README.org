@@ -34,7 +34,7 @@ byggsteg is built using the GNU Artanis web-framework. Make sure you install it 
 
 Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manual/manual.html][here]] .
 
-[[./pub/img/Schermafdruk_2024-12-10.png]]
+[[./pub/img/2025-01-06T18:13:00,308982761+01:00.png]]
 
 Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, in a thunk form, for example :
 #+begin_src  scheme
