@@ -70,7 +70,7 @@
          (h1 (@ (class "text-2xl text-green-500 font-bold p-2 m-2 font-mono"))
              (a (@ (href "/")) "byggsteg"))
          (div (@ (class "flex flex-row flex-wrap items-center gap-1"))
-              (a (@ (href "/")
+              (a (@ (href "/logs")
                     (class ,nav-button-class)) "jobs")
               (a (@ (href "/jobs/request")
                     (class ,nav-button-class)) "+ new job run")

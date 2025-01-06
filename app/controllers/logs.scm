@@ -25,7 +25,7 @@
         (app models job)
         (app models log))
 
-(get "/"
+(get "/logs"
      #:mime 'xml
      (lambda (rc)
        (let* ((logs ($log 'get
