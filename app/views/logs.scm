@@ -77,8 +77,7 @@
                                       "text-stone-300 text-lg my-4 font-mono"))
                                   ,log-filename)
 
-                              (div (@ (class
-                                       "flex flex-col gap-6 my-3"))
+                              (div (@ (class "flex flex-col gap-6 my-3"))
                                    ,(cond
                                       ((equal? (assoc-ref job "updated_at") #f)
                                        '())
@@ -103,11 +102,12 @@
                                       (else `(small (@ (class
                                                         "text-stone-400 text-sm font-mono"))
                                                     ,(format #f
-                                                      "updated at: ~a"
-                                                      (strftime "%c"
-                                                                (localtime (assoc-ref
-                                                                            job
-                                                                            "updated_at"))))))))
+                                                             "updated at: ~a"
+                                                             (strftime "%c"
+                                                                       (localtime
+                                                                        (assoc-ref
+                                                                         job
+                                                                         "updated_at"))))))))
 
                               (div (@ (class
                                        "flex flex-wrap flex-row gap-6 my-3"))

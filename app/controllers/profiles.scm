@@ -81,7 +81,8 @@
                (redirect-to rc
                             (string->uri (format #f "~a/profiles/~a"
                                                  (current-myhost)
-                                                 (assoc-ref found-profile "id")))))
+                                                 (assoc-ref found-profile "id")))
+                            #:status 302))
               (else ($profile 'set
                               #:id new-uuid
                               #:human_id (safe-base64-encode profile-name)
@@ -90,7 +91,8 @@
                     (redirect-to rc
                                  (string->uri (format #f "~a/profiles/~a"
                                                       (current-myhost)
-                                                      new-uuid)))))))
+                                                      new-uuid))
+                                 #:status 302)))))
 
         (cond
           ((:session rc
@@ -102,7 +104,8 @@
            (do-submit))
           (else (redirect-to rc
                              (string->uri (format #f "~a/login"
-                                                  (current-myhost))))))))
+                                                  (current-myhost)))
+                             #:status 302)))))
 
 (post "/profiles/manage/delete"
       #:auth '(table user "username" "password")
@@ -119,7 +122,8 @@
 
             (redirect-to rc
                          (string->uri (format #f "~a/profiles"
-                                              (current-myhost))))))
+                                              (current-myhost)))
+                         #:status 302)))
         (cond
           ((:session rc
                      'check)
@@ -130,4 +134,5 @@
            (do-delete))
           (else (redirect-to rc
                              (string->uri (format #f "~a/login"
-                                                  (current-myhost))))))))
+                                                  (current-myhost)))
+                             #:status 302)))))
