@@ -28,7 +28,7 @@
   #:use-module (ice-9 threads))
 
 (define-public (display-cmd cmd)
-  (display (format #f "\n- running command: ~a\n")))
+  (display (format #f "\n- running command: ~a\n" cmd)))
 
 (begin
   (define* (stack-step #:key project branch-name clone-url stack-task)
