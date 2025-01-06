@@ -1,11 +1,9 @@
 #+title: byggsteg
 #+options: toc:nil num:nil
 
-/byggsteg/ means "build step" in the Norwegian language.
+/byggsteg/ means "build step" in the Norwegian language, and is a CI/CD orchestrator written in Guile Scheme.
 
-This is a simple CI/CD system written in Guile Scheme.
-
-byggsteg uses plain Guile, SXML, and some basic POSIX / UNIX utilities.
+byggsteg uses plain Guile, SXML, SQLite3 and some basic POSIX / UNIX utilities.
 
 It is built with the mighty GNU Artanis web-framework.
 
@@ -38,13 +36,25 @@ Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manua
 
 [[./pub/img/Schermafdruk_2024-12-10.png]]
 
-Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, for example :
+Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, in a thunk form, for example :
 #+begin_src  scheme
-  `((project . "free-alacarte")
-    (branch-name . "trunk")
-    (task . "stack-test")
-    (clone-url . "https://codeberg.org/jjba23/free-alacarte")
-    )
+  (lambda()
+    `((project . "free-alacarte")
+      (branch-name . "trunk")
+      (task . "stack-test")
+      (clone-url . "https://codeberg.org/jjba23/free-alacarte")))
+#+end_src
+
+Sending things in thunk form allows one to execute any code arbitrarily, inside the lambda expression. Be responsible and wary of who you give access to your byggsteg instance.
+
+#+begin_src scheme
+  (lambda()
+    (define my-project-name "wikimusic-api")
+
+    `((project . ,my-project-name)
+      (branch-name . "trunk")
+      (task . "stack-test")
+      (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
 ** Types of jobs
@@ -86,7 +96,7 @@ You could also do this for example from your favourite system programatically, o
       -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
       --data-urlencode 'username=myuser' \
       --data-urlencode 'password=mypassword' \
-      --data-urlencode 'job-code=`((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte"))'
+      --data-urlencode 'job-code=(lambda() `((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte")))'
 
   #  {
   #    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
