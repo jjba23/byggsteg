@@ -129,7 +129,7 @@
          (p (@ (class "flex flex-row flex-wrap gap-4"))
             (span (@ (class "text-stone-400 text-sm"))
                   "learn writing code for a job: ")
-            (a (@ (class "text-green-500 text-sm")
+            (a (@ (class ,link-face)
                   (href "https://codeberg.org/jjba23/byggsteg"))
                "https://codeberg.org/jjba23/byggsteg"))
 
