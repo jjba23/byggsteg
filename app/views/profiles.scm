@@ -33,10 +33,10 @@
          (profile-data (safe-base64-decode (assoc-ref p "profile_data"))))
     (byggsteg-html-template "byggsteg"
                             `((div (@ (class
-                                       "flex flex-row flex-wrap align-center gap-6"))
+                                        "flex flex-row flex-wrap align-center gap-6"))
                                    (h2 (@ (class ,h2-face))
                                        ,(ii 'viewing-profile-title))
-                                   (h3 (@ (class "text-stone-300 text-xl my-4"))
+                                   (h3 (@ (class "text-stone-300 text-xl"))
                                        ,profile-name))
                               
                               (div (@ (class "flex flex-row flex-wrap gap-4"))
@@ -66,7 +66,7 @@
                                                    (hidden "")
                                                    (value ,(assoc-ref p "id"))
                                                    (class
-                                                    "rounded-xl border font-mono p-2")))
+                                                     "rounded-xl border font-mono p-2")))
                                          (button (@ (type "submit")
                                                     (class ,danger-button-face))
                                                  "delete")))
@@ -97,7 +97,7 @@
                             `((h2 (@ (class ,h2-face))
                                   ,(ii 'profiles))
                               (div (@ (class
-                                       "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
+                                       "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
                                    ,profiles-html)) #f)))
 
 (define-public (make-profile-link profile)

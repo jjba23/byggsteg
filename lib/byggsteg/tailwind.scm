@@ -25,6 +25,9 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 futures))
 
+;;
+;; Buttons
+;;
 (define base-button
   `("rounded-xl" "p-2" "w-fit" "text-md" "font-mono" "font-bold"))
 
@@ -48,14 +51,13 @@
                  "border-b-teal-600"
                  "text-md"
                  "font-bold") " "))
-
+;;
 ;; Forms
-
+;;
 (define-public input-face
   (string-join '("rounded-xl" "border"
                  "border-stone-500"
                  "p-2"
-                 "lg:ml-6"
                  "text-md"
                  "bg-stone-800"
                  "text-stone-300"
@@ -65,7 +67,6 @@
   (string-join '("rounded-xl" "border"
                  "border-stone-500"
                  "p-2"
-                 "lg:ml-6"
                  "w-full"
                  "text-md"
                  "bg-stone-800"
@@ -73,9 +74,15 @@
                  "text-stone-300"
                  "min-h-64") " "))
 
+(define-public label-face
+  (string-join '("text-stone-300" "text-sm" "font-bold") " "))
+
 (define-public hr-face
   (string-join '("my-6" "border-t-2" "border-t-stone-600") " "))
 
+;;
+;; Headers
+;;
 (define-public h2-face
   (string-join '("text-2xl" "text-stone-300" "font-bold" "font-mono") " "))
 
@@ -87,12 +94,14 @@
                  "hover:border-b-teal-400"
                  "hover:text-teal-400"
                  "font-bold"
-                 "py-2"
                  "font-mono") " "))
 
+;;
+;; Links
+;;
 (define-public dash-link-face
   (string-join '("text-stone-300" "font-bold" "cursor-pointer" "text-md"
                  "font-mono") " "))
 
 (define-public link-face
-  (string-join '("text-teal-700" "font-bold" "cursor-pointer" "text-sm") " "))
+  (string-join '("text-teal-500" "hover:text-teal-400" "font-bold" "cursor-pointer" "text-sm") " "))

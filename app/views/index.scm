@@ -32,7 +32,7 @@
   (byggsteg-html-template "byggsteg"
                           `((h2 (@ (class ,h2-face)) "welcome to byggsteg")
                             (div (@ (class
-                                     "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center my-6 mx-6"))
+                                     "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                  (div (@ (class "max-w-prose"))
                                       (span (@ (class "text-stone-300"))
                                        "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))

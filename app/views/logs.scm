@@ -42,13 +42,13 @@
          (failure (assoc-ref job "job_failed"))
          (job-status (cond
                        ((equal? success 1)
-                        `(h2 (@ (class "text-xl text-green-700 my-4 font-mono"))
+                        `(h2 (@ (class "text-xl text-green-700 font-mono"))
                              ,(ii 'job-succeeded)))
                        ((equal? failure 1)
-                        `(h2 (@ (class "text-xl text-red-700 my-4 font-mono"))
+                        `(h2 (@ (class "text-xl text-red-700 font-mono"))
                              ,(ii 'job-failed)))
                        (else `(h2 (@ (class
-                                      "text-xl text-sky-700 my-4 font-mono"))
+                                      "text-xl text-sky-600 font-mono"))
                                   ,(ii 'job-in-progress)))))
          (delete-button `(form (@ (method "POST")
                                   (enctype "application/x-www-form-urlencoded")
@@ -73,10 +73,10 @@
                                    (h2 (@ (class ,h2-face)) "viewing logs")
                                    ,job-status)
                               (h3 (@ (class
-                                      "text-stone-300 text-lg my-4 font-mono"))
+                                      "text-stone-300 text-lg font-mono"))
                                   ,log-filename)
 
-                              (div (@ (class "flex flex-col gap-6 my-3"))
+                              (div (@ (class "flex flex-col gap-6"))
                                    ,(cond
                                       ((equal? (assoc-ref job "updated_at") #f)
                                        '())
@@ -109,12 +109,12 @@
                                                                          "updated_at"))))))))
 
                               (div (@ (class
-                                       "flex flex-wrap flex-row gap-6 my-3"))
+                                       "flex flex-wrap flex-row gap-6"))
                                    (small (@ (class
-                                              "text-stone-400 text-sm my-2 font-mono"))
+                                              "text-stone-400 text-sm font-mono"))
                                           ,(format #f "uuid: ~a" job-id))
                                    (small (@ (class
-                                              "text-stone-400 text-sm my-2 font-mono"))
+                                              "text-stone-400 text-sm font-mono"))
                                           ,(format #f "log uuid: ~a" log-id)))
 
                               ,delete-button
@@ -135,13 +135,13 @@
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
                        ((equal? success 1)
-                        `(h2 (@ (class "text-green-700 text-sm ml-4 font-mono"))
+                        `(h2 (@ (class "text-green-700 text-sm font-mono"))
                              ,(ii 'job-succeeded)))
                        ((equal? failure 1)
-                        `(h2 (@ (class "text-red-700 text-sm ml-4 font-mono"))
+                        `(h2 (@ (class "text-red-700 text-sm font-mono"))
                              ,(ii 'job-failed)))
                        (else `(h2 (@ (class
-                                      "text-sky-700 text-sm ml-4 font-mono"))
+                                      "text-sky-600 text-sm font-mono"))
                                   ,(ii 'job-in-progress))))))
     `((div (@ (class "flex flex-col gap-2"))
            (a (@ (class ,dash-link-face)

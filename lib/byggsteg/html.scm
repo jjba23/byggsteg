@@ -67,7 +67,7 @@
                       ,(page-footer))))))
 
 (define-public (page-top)
-  `((div (@ (class "flex flex-row flex-wrap gap-4 my-6"))
+  `((div (@ (class "flex flex-row flex-wrap gap-4"))
          (h1 (@ (class ,brand-title-face))
              (a (@ (href "/")) "byggsteg"))
          (div (@ (class "flex flex-row flex-wrap items-center gap-4"))
@@ -141,6 +141,6 @@
                       (class ,textarea-face)) "")
 
          (button (@ (type "submit")
-                    (class ,button-class))
+                    (class ,button-face))
                  ,(ii 'submit))))
 
