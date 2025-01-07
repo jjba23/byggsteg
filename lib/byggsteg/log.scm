@@ -33,5 +33,5 @@
 (define-public (new-project-log-filename project)
   "Create a new name for a log file, based on the project and current timestamp."
   (string-append project "__"
-                 (get-log-current-date-time) ".byggsteg.log"))
+                 (get-log-current-date-time)))
 
