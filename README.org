@@ -204,6 +204,7 @@ After productive collaboration other kinds of roles can be added and assigned.
 **** TODO Add notifications upon success or errors as balloons/banners via URL params
 
 **** TODO Make certain values more configurable, like worker sleep time, etc.
+
 **** TODO Be explicit about other projects/libraries used to make byggsteg and their licenses
 
 **** TODO Consider using gettext for internationalization and localization, or improve existing setup, or wait for Artanis to provide i18n
