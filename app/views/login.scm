@@ -31,21 +31,23 @@
 (define-public (login-page)
   (byggsteg-html-template "byggsteg"
                           `((h2 (@ (class ,h2-face)) "login to byggsteg")
-                            (div (@ (class
-                                      "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
-                                 (form (@ (action "/login")
-                                          (method "POST"))
+                            (form (@ (action "/login")
+                                     (method "POST")
+                                     (class
+                                       "rounded-xl bg-stone-800 p-4"))
+                                  (div (@(class "grid grid-cols-1 sm:grid-cols-3 gap-x-4"))
                                        (div
-                                        (label (@(for "username")) "username:")
+                                        (label (@(class ,label-face)(for "username")) "username:")
                                         (input (@ (type "text")
                                                   (class ,input-face)
                                                   (name "username")) ""))
                                        (div
-                                        (label (@(for "password")) "password:")
+                                        (label (@(class ,label-face)(for "password")) "password:")
                                         (input (@ (type "password")
                                                   (class ,input-face)
-                                                  (name "password")) ""))
-                                       (button (@ (type "submit")
-                                                  (class ,button-face))
-                                               "login")))) #f))
+                                                  (name "password")) "")))
+                                  (button (@ (type "submit")
+                                             (class ,button-face))
+                                          "login"))
+                            ) #f))
 

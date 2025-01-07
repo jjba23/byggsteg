@@ -67,7 +67,7 @@
                       ,(page-footer))))))
 
 (define-public (page-top)
-  `((div (@ (class "flex flex-row flex-wrap gap-4"))
+  `((div (@ (class "flex flex-row flex-wrap gap-4 py-3 items-center"))
          (h1 (@ (class ,brand-title-face))
              (a (@ (href "/")) "byggsteg"))
          (div (@ (class "flex flex-row flex-wrap items-center gap-4"))

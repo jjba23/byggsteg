@@ -34,7 +34,7 @@
                             (div (@ (class
                                      "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                  (div (@ (class "max-w-prose"))
-                                      (span (@ (class "text-stone-300"))
+                                      (span (@ (class "text-stone-300 text-sm"))
                                        "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))
                                  (div (img (@ (class "w-36 h-auto")
                                               (src "/img/byggsteg.png")))))

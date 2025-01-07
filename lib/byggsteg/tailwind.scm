@@ -29,7 +29,7 @@
 ;; Buttons
 ;;
 (define base-button
-  `("rounded-xl" "p-2" "w-fit" "text-md" "font-mono" "font-bold"))
+  `("rounded-xl" "p-2" "w-fit" "text-sm" "font-mono" "font-bold"))
 
 (define-public button-face
   (string-join (append base-button
@@ -45,7 +45,7 @@
   (string-join '("text-teal-600" "hover:border-b-teal-400"
                  "hover:text-teal-400"
                  "cursor-pointer"
-                 "p-2"
+                 "p-1"
                  "border-b-2"
                  "font-mono"
                  "border-b-teal-600"
@@ -56,7 +56,7 @@
 ;;
 (define-public input-face
   (string-join '("rounded-xl" "border"
-                 "border-stone-500"
+                 "border-stone-600"
                  "p-2"
                  "text-md"
                  "bg-stone-800"
@@ -65,7 +65,7 @@
 
 (define-public textarea-face
   (string-join '("rounded-xl" "border"
-                 "border-stone-500"
+                 "border-stone-600"
                  "p-2"
                  "w-full"
                  "text-md"
@@ -100,7 +100,7 @@
 ;; Links
 ;;
 (define-public dash-link-face
-  (string-join '("text-stone-300" "font-bold" "cursor-pointer" "text-md"
+  (string-join '("text-stone-300" "hover:text-stone-100" "font-bold" "cursor-pointer" "text-md"
                  "font-mono") " "))
 
 (define-public link-face
