@@ -49,14 +49,14 @@
          (textarea (@ (id "job-code")
                       (name "job-code")
                       (required "")
-                      (class ,textarea-class)) "")
+                      (class ,textarea-face)) "")
 
          (button (@ (type "submit")
-                    (class ,button-class))
+                    (class ,button-face))
                  ,(ii 'submit))))
 
 (define-public (job-request-form-page)
   (byggsteg-html-template "byggsteg"
-                          `((h2 (@ (class ,h2-class))
+                          `((h2 (@ (class ,h2-face))
                                 ,(ii 'run-job-title))
                             ,(job-form "/jobs/manage/submit" #f)) #f))

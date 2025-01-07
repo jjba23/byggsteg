@@ -25,66 +25,47 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 futures))
 
-(define-public button-class
-  (string-join '("bg-green-500/75" "text-stone-300"
-                 "rounded-xl"
+(define base-button
+  `("rounded-xl" "p-2" "w-fit" "text-md" "font-mono" "font-bold"))
+
+(define-public button-face
+  (string-join (append base-button
+                       '("bg-teal-700" "hover:bg-teal-800"
+                         "active:bg-teal-800" "text-stone-300")) " "))
+
+(define-public danger-button-face
+  (string-join (append base-button
+                       '("bg-red-700" "hover:bg-red-800" "active:bg-red-800"
+                         "text-stone-300")) " "))
+
+(define-public nav-button-face
+  (string-join '("text-teal-600" "hover:border-b-teal-400"
+                 "hover:text-teal-400"
                  "cursor-pointer"
                  "p-2"
-                 "border"
-                 "w-fit"
-                 "m-2"
-                 "text-md"
-                 "font-mono"
-                 "font-bold") " "))
-
-(define-public nav-button-class
-  (string-join '("text-green-500/75" "cursor-pointer"
-                 "p-2"
-                 "m-2"
                  "border-b-2"
                  "font-mono"
-                 "border-b-green-500/25"
+                 "border-b-teal-600"
                  "text-md"
                  "font-bold") " "))
 
-(define-public danger-button-class
-  (string-join '("rounded-xl" "bg-red-700"
-                 "text-stone-300"
-                 "font-bold"
-                 "w-fit"
-                 "border"
-                 "text-md"
-                 "cursor-pointer"
-                 "p-2"
-                 "font-mono"
-                 "m-2") " "))
+;; Forms
 
-(define-public input-class
+(define-public input-face
   (string-join '("rounded-xl" "border"
                  "border-stone-500"
                  "p-2"
-                 "ml-6"
+                 "lg:ml-6"
                  "text-md"
                  "bg-stone-800"
                  "text-stone-300"
                  "font-mono") " "))
 
-(define-public hr-class
-  (string-join '("my-6" "border-t-2" "border-t-stone-600") " "))
-
-(define-public h2-class
-  (string-join '("text-2xl" "text-stone-300" "my-4" "font-bold" "font-mono")
-               " "))
-
-(define-public h4-class
-  (string-join '("text-lg" "text-stone-400" "my-2" "font-bold" "font-mono")
-               " "))
-
-(define-public textarea-class
+(define-public textarea-face
   (string-join '("rounded-xl" "border"
                  "border-stone-500"
                  "p-2"
-                 "ml-6"
+                 "lg:ml-6"
                  "w-full"
                  "text-md"
                  "bg-stone-800"
@@ -92,5 +73,26 @@
                  "text-stone-300"
                  "min-h-64") " "))
 
+(define-public hr-face
+  (string-join '("my-6" "border-t-2" "border-t-stone-600") " "))
+
+(define-public h2-face
+  (string-join '("text-2xl" "text-stone-300" "font-bold" "font-mono") " "))
+
+(define-public h4-face
+  (string-join '("text-lg" "text-stone-400" "font-bold" "font-mono") " "))
+
+(define-public brand-title-face
+  (string-join '("text-2xl" "text-teal-500"
+                 "hover:border-b-teal-400"
+                 "hover:text-teal-400"
+                 "font-bold"
+                 "py-2"
+                 "font-mono") " "))
+
 (define-public dash-link-face
-  "text-stone-300 font-bold cursor-pointer text-md font-mono")
+  (string-join '("text-stone-300" "font-bold" "cursor-pointer" "text-md"
+                 "font-mono") " "))
+
+(define-public link-face
+  (string-join '("text-teal-700" "font-bold" "cursor-pointer" "text-sm") " "))

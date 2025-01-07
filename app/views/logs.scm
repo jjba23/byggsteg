@@ -64,13 +64,13 @@
                                          (hidden "")
                                          (value ,job-id)))
                                (button (@ (type "submit")
-                                          (class ,danger-button-class))
+                                          (class ,danger-button-face))
                                        "delete"))))
     
     (byggsteg-html-template "byggsteg"
                             `((div (@ (class
                                        "flex flex-row flex-wrap align-middle gap-6"))
-                                   (h2 (@ (class ,h2-class)) "viewing logs")
+                                   (h2 (@ (class ,h2-face)) "viewing logs")
                                    ,job-status)
                               (h3 (@ (class
                                       "text-stone-300 text-lg my-4 font-mono"))
@@ -156,7 +156,7 @@
                                                           (assoc-ref l "id")))
                                           l)) logs)))
     (byggsteg-html-template "byggsteg"
-                            `(html (h2 (@ (class ,h2-class)) "jobs")
+                            `(html (h2 (@ (class ,h2-face)) "jobs")
                                    (div (@ (class
                                             "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center my-6"))
                                         ,jobs-html)) #t)))

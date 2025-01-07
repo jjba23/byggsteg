@@ -30,7 +30,7 @@
 
 (define-public (welcome-page)
   (byggsteg-html-template "byggsteg"
-                          `((h2 (@ (class ,h2-class)) "welcome to byggsteg")
+                          `((h2 (@ (class ,h2-face)) "welcome to byggsteg")
                             (div (@ (class
                                      "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center my-6 mx-6"))
                                  (div (@ (class "max-w-prose"))
@@ -39,7 +39,7 @@
                                  (div (img (@ (class "w-36 h-auto")
                                               (src "/img/byggsteg.png")))))
                             (div (@ (class "max-w-prose p-4"))
-                                 (h2 (@ (class ,h4-class))
+                                 (h4 (@ (class ,h4-face))
                                      "available job types")
                                  (dl (@ (class "p-4"))
                                      (dt (@ (class "text-stone-400 text-sm"))
