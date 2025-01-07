@@ -21,6 +21,7 @@
 (import (byggsteg html)
         (byggsteg url)
         (byggsteg debug)
+        (byggsteg auth)
         (app views logs)
         (app models job)
         (app models log))

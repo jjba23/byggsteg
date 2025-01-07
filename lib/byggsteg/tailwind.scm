@@ -90,18 +90,16 @@
   (string-join '("text-lg" "text-stone-400" "font-bold" "font-mono") " "))
 
 (define-public brand-title-face
-  (string-join '("text-2xl" "text-teal-500"
-                 "hover:border-b-teal-400"
-                 "hover:text-teal-400"
-                 "font-bold"
-                 "font-mono") " "))
+  (string-join '("text-2xl" "text-teal-500" "hover:border-b-teal-400"
+                 "hover:text-teal-400" "font-bold" "font-mono") " "))
 
 ;;
 ;; Links
 ;;
 (define-public dash-link-face
-  (string-join '("text-stone-300" "hover:text-stone-100" "font-bold" "cursor-pointer" "text-md"
-                 "font-mono") " "))
+  (string-join '("text-stone-300" "hover:text-stone-100" "font-bold"
+                 "cursor-pointer" "text-md" "font-mono") " "))
 
 (define-public link-face
-  (string-join '("text-teal-500" "hover:text-teal-400" "font-bold" "cursor-pointer" "text-sm") " "))
+  (string-join '("text-teal-500" "hover:text-teal-400" "font-bold"
+                 "cursor-pointer" "text-sm") " "))

@@ -23,6 +23,7 @@
         (web uri)
         (byggsteg base64)
         (byggsteg log)
+        (byggsteg auth)
         (ice-9 string-fun)
         (app models user)
         (app views login))

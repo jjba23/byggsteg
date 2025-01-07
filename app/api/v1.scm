@@ -21,6 +21,7 @@
 (import (ice-9 string-fun)
         (byggsteg base64)
         (byggsteg preferences)
+        (byggsteg auth)
         (byggsteg url)
         (byggsteg uuid)
         (byggsteg log)
@@ -67,18 +68,7 @@
                      (human-id unquote
                                (safe-base64-encode log-filename))))))
 
-        (cond
-          ((:session rc
-                     'check)
-           (do-submit))
-          ((:auth rc)
-           (:session rc
-                     'spawn)
-           (do-submit))
-          (else (:mime rc
-                       '((error . "You must be authenticated to use this API endpoint")))))
-
-        ))
+        (protected-api-endpoint rc do-submit)))
 
 (get "/api/v1/logs/:id"
      #:mime 'json

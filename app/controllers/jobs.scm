@@ -22,6 +22,7 @@
         (byggsteg url)
         (web uri)
         (byggsteg preferences)
+        (byggsteg auth)
         (byggsteg base64)
         (byggsteg process)
         (byggsteg uuid)
@@ -75,18 +76,7 @@
             (redirect-to rc
                          (string->uri logs-link)
                          #:status 302)))
-        (cond
-          ((:session rc
-                     'check)
-           (do-submit))
-          ((:auth rc)
-           (:session rc
-                     'spawn)
-           (do-submit))
-          (else (redirect-to rc
-                             (string->uri (format #f "~a/login"
-                                                  (current-myhost)))
-                             #:status 302)))))
+        (protected-endpoint rc do-submit)))
 
 (post "/jobs/manage/delete"
       #:auth '(table user "username" "password")
@@ -109,15 +99,4 @@
                          (string->uri (format #f "~a/logs"
                                               (current-myhost)))
                          #:status 302)))
-        (cond
-          ((:session rc
-                     'check)
-           (do-delete))
-          ((:auth rc)
-           (:session rc
-                     'spawn)
-           (do-delete))
-          (else (redirect-to rc
-                             (string->uri (format #f "~a/login"
-                                                  (current-myhost)))
-                             #:status 302)))))
+        (protected-endpoint rc do-delete)))

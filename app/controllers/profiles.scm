@@ -23,6 +23,7 @@
         (web uri)
         (byggsteg process)
         (byggsteg uuid)
+        (byggsteg auth)
         (byggsteg base64)
         (byggsteg preferences)
         (app views profiles)
@@ -93,19 +94,7 @@
                                                       (current-myhost)
                                                       new-uuid))
                                  #:status 302)))))
-
-        (cond
-          ((:session rc
-                     'check)
-           (do-submit))
-          ((:auth rc)
-           (:session rc
-                     'spawn)
-           (do-submit))
-          (else (redirect-to rc
-                             (string->uri (format #f "~a/login"
-                                                  (current-myhost)))
-                             #:status 302)))))
+        (protected-endpoint rc do-submit)))
 
 (post "/profiles/manage/delete"
       #:auth '(table user "username" "password")
@@ -124,15 +113,4 @@
                          (string->uri (format #f "~a/profiles"
                                               (current-myhost)))
                          #:status 302)))
-        (cond
-          ((:session rc
-                     'check)
-           (do-delete))
-          ((:auth rc)
-           (:session rc
-                     'spawn)
-           (do-delete))
-          (else (redirect-to rc
-                             (string->uri (format #f "~a/login"
-                                                  (current-myhost)))
-                             #:status 302)))))
+        (protected-endpoint rc do-delete)))
