@@ -22,7 +22,6 @@
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
   #:use-module (byggsteg job pipeline)
-  #:use-module (byggsteg job utils)
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg prelude)

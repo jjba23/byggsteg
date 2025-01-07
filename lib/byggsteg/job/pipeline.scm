@@ -20,7 +20,6 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg process)
   #:use-module (byggsteg job steps)
-  #:use-module (byggsteg job utils)
   #:use-module (byggsteg uuid)
   #:use-module (artanis artanis)
   #:use-module (app models log)

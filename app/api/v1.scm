@@ -21,7 +21,6 @@
 (import (ice-9 string-fun)
         (byggsteg base64)
         (byggsteg preferences)
-        (byggsteg job utils)
         (byggsteg url)
         (byggsteg uuid)
         (byggsteg log)

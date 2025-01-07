@@ -25,7 +25,6 @@
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg prelude)
   #:use-module (byggsteg html)
-  #:use-module (byggsteg job utils)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 

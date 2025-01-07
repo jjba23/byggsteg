@@ -26,7 +26,6 @@
         (byggsteg process)
         (byggsteg uuid)
         (byggsteg job pipeline)
-        (byggsteg job utils)
         (byggsteg log)
         (ice-9 string-fun)
         (app models job)

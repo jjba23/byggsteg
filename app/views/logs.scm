@@ -27,7 +27,6 @@
   #:use-module (byggsteg debug)
   #:use-module (web uri)
   #:use-module (artanis artanis)
-  #:use-module (byggsteg job utils)
   #:use-module (byggsteg html)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))

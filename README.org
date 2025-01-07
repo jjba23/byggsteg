@@ -197,11 +197,16 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 ** Project backlog
 
+**** TODO job-code that users send to byggsteg should not be ~eval~ directly but rather in a sandbox, using ~(ice-9 sandbox)~ capabilities.
+
+**** TODO add comprehensive unit and integration tests
+
 **** TODO Add notifications upon success or errors as balloons/banners via URL params
 
+**** TODO Make certain values more configurable, like worker sleep time, etc.
 **** TODO Be explicit about other projects/libraries used to make byggsteg and their licenses
 
-**** TODO Consider using gettext for internationalization and localization, or improve existing setup
+**** TODO Consider using gettext for internationalization and localization, or improve existing setup, or wait for Artanis to provide i18n
 
 **** TODO Add REPL interface via website, to allow hot-modifications
 
