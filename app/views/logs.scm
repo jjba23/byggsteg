@@ -123,7 +123,7 @@
                                         "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
                                    ,detail-data)
                               (pre (@ (class
-                                        "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
+                                        "rounded-xl bg-stone-800 p-4 my-6 text-sm text-stone-300 white-space-pre overflow-x-scroll"))
                                    ,log-data)) #t)))
 
 (define-public (make-job-link job log)
