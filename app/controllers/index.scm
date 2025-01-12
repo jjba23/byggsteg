@@ -24,7 +24,8 @@
         (app views index))
 
 (get "/"
+     #:i18n '(cookie "lang")
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
-                             (welcome-page)))))
+                       (welcome-page rc)))))
