@@ -25,6 +25,12 @@
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg prelude)
   #:use-module (byggsteg html)
+  #:use-module (ice-9 i18n)
+  #:use-module (artanis i18n)
+  #:use-module (artanis artanis)
+  #:use-module (artanis i18n json)
+  #:use-module (artanis i18n sxml)
+  #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 
