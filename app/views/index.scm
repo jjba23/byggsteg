@@ -28,7 +28,6 @@
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
-  #:use-module (artanis i18n json)
   #:use-module (artanis i18n sxml)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
@@ -37,7 +36,7 @@
 (define-public (welcome-page rc)
   (let ((_G (:i18n rc)))
     (byggsteg-html-template "byggsteg"
-                            `((h2 (@ (class ,h2-face)) (_G "welcome to byggsteg"))
+                            `((h2 (@ (class ,h2-face)) ,(_G "welcome to byggsteg"))
                               (div (@ (class
                                         "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                    (div (@ (class "max-w-prose"))

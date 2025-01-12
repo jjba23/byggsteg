@@ -21,10 +21,26 @@
 (import (byggsteg html)
         (byggsteg url)
         (byggsteg debug)
+        (web uri)
+        (artanis i18n)
+        (artanis i18n locale)
         (app views index))
 
 (get "/"
-     #:i18n '(cookie "lang")
+     (lambda(rc)
+       (redirect-to rc
+                    (string->uri (format #f "~a/en_US/welcome" (current-myhost)))
+                    #:status 302)))
+
+(get "/:lang"
+     #:i18n "lang"
+     (lambda(rc)
+       (redirect-to rc
+                    (string->uri (format #f "~a/en_US/welcome" (current-myhost)))
+                    #:status 302)))
+
+(get "/:lang/welcome"
+     #:i18n "lang"
      #:mime 'xml
      (lambda (rc)
        (response-emit (:mime rc
