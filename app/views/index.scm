@@ -37,7 +37,7 @@
 (define-public (welcome-page rc)
   (let ((_G (:i18n rc)))
     (byggsteg-html-template "byggsteg"
-                          `((h2 (@ (class ,h2-face)) ,(_G "welcome to byggsteg"))
+                          `((h2 (@ (class ,h2-face)) ,(_G "welcome"))
                             (div (@ (class
                                      "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                  (div (@ (class "max-w-prose"))
