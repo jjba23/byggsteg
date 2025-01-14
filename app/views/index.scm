@@ -34,9 +34,10 @@
   #:use-module (ice-9 string-fun))
 
 
-(define-public (welcome-page)
-  (byggsteg-html-template "byggsteg"
-                          `((h2 (@ (class ,h2-face)) "welcome to byggsteg")
+(define-public (welcome-page rc)
+  (let ((_G (:i18n rc)))
+    (byggsteg-html-template "byggsteg"
+                          `((h2 (@ (class ,h2-face)) ,(_G "welcome to byggsteg"))
                             (div (@ (class
                                      "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                  (div (@ (class "max-w-prose"))
@@ -86,5 +87,6 @@
                                  (p (@ (class "text-stone-400 text-sm"))
                                   "As a fallback, if no other task matches are found, byggsteg will default to doing a make build.")))
                           #f))
+  )
 
 

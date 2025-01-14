@@ -27,21 +27,9 @@
         (app views index))
 
 (get "/"
-     (lambda(rc)
-       (redirect-to rc
-                    (string->uri (format #f "~a/en_US/welcome" (current-myhost)))
-                    #:status 302)))
-
-(get "/:lang"
-     #:i18n "lang"
-     (lambda(rc)
-       (redirect-to rc
-                    (string->uri (format #f "~a/en_US/welcome" (current-myhost)))
-                    #:status 302)))
-
-(get "/:lang/welcome"
-     #:i18n "lang"
+     #:i18n '(cookie "lang")
      #:mime 'xml
-     (lambda (rc)
+     (lambda(rc)
        (response-emit (:mime rc
                        (welcome-page rc)))))
+
