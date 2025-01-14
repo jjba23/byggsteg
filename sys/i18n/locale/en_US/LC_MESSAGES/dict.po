@@ -1,13 +1,29 @@
-# byggsteg
-# Copyright (C) 2025
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-msgid "welcome"
-msgstr "welcome to byggsteg"
+# byggsteg - the CI/CD orchestrator written in Guile Scheme
+
+# Copyright © 2024 "Josep Bigorra" known as "jjba23" <jjbigorra@gmail.com>
+# Copyright © 2024 "Mu Lei" known as "NalaGinrut" <NalaGinrut@gmail.com>
+
+# byggsteg is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# byggsteg is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
+msgid ""
+msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Last-Translator: Josep Bigorra <jjbigorra@gmail.com>\n"
+"Language-Team: English <jjbigorra@gmail.com>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+msgid "welcome"
+msgstr "welcome to byggsteg"
