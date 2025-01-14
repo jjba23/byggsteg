@@ -76,12 +76,12 @@
         (p (@ (class "text-stone-400 text-sm"))
            "As a fallback, if no other task matches are found, byggsteg will default to doing a make build.")))
 
-(define locale-choose-form
+(define (locale-choose-form)
   `(div
     (form (@(action "/preferences/locale") (method "POST"))
           (select (@(name "user-lang")(onchange "this.form.submit()"))
                   (option (@(value "en_US")) "English")
-                  (option (@(value "nl_NL")) "Nederlands")))))
+                  (option (@(value "nl_NL")(selected "")) "Nederlands")))))
 
 (define-public (welcome-page rc)
   (let ((_G (:i18n rc)))
@@ -94,7 +94,7 @@
                                               "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))
                                    (div (img (@ (class "w-48 h-auto")
                                                 (src "/img/byggsteg-logo.png")))))
-                              ,locale-choose-form
+                              ,(locale-choose-form)
                               ,job-type-expl)
                             #f)))
 

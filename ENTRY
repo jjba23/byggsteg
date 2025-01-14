@@ -24,7 +24,9 @@
              ;; Put modules you want to be imported here
              ;; only for this file, not controllers/views
              (ice-9 threads)
-             (artanis utils))
+             (artanis utils)
+             (ice-9 i18n)
+             (artanis irregex))
 ;; Put whatever you want to be called before server initilization here
 
 (init-server #:statics '(png gif jpg jpeg ico html js json csv xml css woff woff2 ttf))
@@ -43,3 +45,11 @@
                             (while #t (do-pip))))))
 
 (run-before-run! worker)
+
+;; Specify the directory where the MO file is located
+(bindtextdomain "dict" "./sys/i18n/locale/")
+;; Specify the domain of the MO file since you may have multiple MO files
+(textdomain "dict")
+
+(setlocale LC_MESSAGES "en_US.UTF-8")
+(display (gettext "welcome"))
