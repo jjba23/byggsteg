@@ -27,3 +27,15 @@ msgstr ""
 
 msgid "welcome"
 msgstr "welcome to byggsteg"
+
+msgid "login"
+msgstr "login"
+
+msgid "username"
+msgstr "username"
+
+msgid "password"
+msgstr "password"
+
+msgid "learn-writing-byggsteg-pipelines"
+msgstr "learn writing code for a byggsteg pipeline"
