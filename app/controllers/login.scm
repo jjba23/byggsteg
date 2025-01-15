@@ -30,9 +30,10 @@
 
 (get "/login"
      #:mime 'xml
+     #:i18n '(cookie "lang")
      (lambda (rc)
        (response-emit (:mime rc
-                             (login-page)))))
+                       (login-page rc)))))
 
 (post "/login"
       #:auth '(table user "username" "password")
