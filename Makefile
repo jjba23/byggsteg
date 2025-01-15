@@ -42,4 +42,5 @@ rebuild-db:
 	touch byggsteg.db
 	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
 compile-gettext:
-	msgfmt -v -o sys/i18n/locale/en/LC_MESSAGES/dict.mo sys/i18n/locale/en/LC_MESSAGES/dict.po 
+	msgfmt -v -o sys/i18n/locale/en_US/LC_MESSAGES/dict.mo sys/i18n/locale/en_US/LC_MESSAGES/dict.po
+	msgfmt -v -o sys/i18n/locale/nl_NL/LC_MESSAGES/dict.mo sys/i18n/locale/nl_NL/LC_MESSAGES/dict.po 
