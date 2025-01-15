@@ -35,67 +35,60 @@
 
 (define job-type-expl
   `(div (@ (class "max-w-prose p-4"))
-        (h4 (@ (class ,h4-face))
-            "available job types")
+        (h4 (@ (class ,h4-face)) "available job types")
         (dl (@ (class "p-4"))
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "stack-test"))
-            (dd (@ (class
-                     "text-stone-500 mb-2 text-sm"))
+            (dd (@ (class "text-stone-500 mb-2 text-sm"))
                 "Haskell project build and test with Stack + Hackage bundle.")
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "stack-build"))
-            (dd (@ (class
-                     "text-stone-500 mb-2 text-sm"))
+            (dd (@ (class "text-stone-500 mb-2 text-sm"))
                 "Haskell project build with Stack + Hackage bundle.")
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "nix-build"))
-            (dd (@ (class
-                     "text-stone-500 mb-2 text-sm"))
-                "Nix build (flake)")
+            (dd (@ (class "text-stone-500 mb-2 text-sm")) "Nix build (flake)")
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "byggsteg-version"))
-            (dd (@ (class
-                     "text-stone-500 mb-2 text-sm"))
+            (dd (@ (class "text-stone-500 mb-2 text-sm"))
                 "Byggsteg pull and restart GNU Shepherd daemon itself.")
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "pull-and-restart"))
-            (dd (@ (class
-                     "text-stone-500 mb-2 text-sm"))
+            (dd (@ (class "text-stone-500 mb-2 text-sm"))
                 "Git pull and restart wanted GNU Shepherd service.")
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "pull-and-deploy"))
-            (dd (@ (class
-                     "text-stone-500 mb-2 text-sm"))
+            (dd (@ (class "text-stone-500 mb-2 text-sm"))
                 "Git pull and run a make deploy.")
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "sbt-test"))
-            (dd (@ (class
-                     "text-stone-500 mb-2 text-sm"))
+            (dd (@ (class "text-stone-500 mb-2 text-sm"))
                 "Scala project test with SBT."))
         (p (@ (class "text-stone-400 text-sm"))
-           "As a fallback, if no other task matches are found, byggsteg will default to doing a make build.")))
+         "As a fallback, if no other task matches are found, byggsteg will default to doing a make build.")))
 
 (define (locale-choose-form)
-  `(div
-    (form (@(action "/preferences/locale") (method "POST"))
-          (select (@(name "user-lang")(onchange "this.form.submit()"))
-                  (option (@(value "en_US")) "English")
-                  (option (@(value "nl_NL")(selected "")) "Nederlands")))))
+  `(div (form (@ (action "/preferences/locale")
+                 (method "POST"))
+              (select (@ (name "user-lang")
+                         (onchange "this.form.submit()"))
+                      (option (@ (value "en_US")) "English")
+                      (option (@ (value "nl_NL")
+                                 (selected "")) "Nederlands")))))
 
 (define-public (welcome-page rc)
   (let ((G_ (:i18n rc)))
-    (byggsteg-html-template "byggsteg"
-                            `((h2 (@ (class ,h2-face)) ,(G_ "welcome"))
-                              (div (@ (class
-                                        "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
-                                   (div (@ (class "max-w-prose"))
-                                        (span (@ (class "text-stone-300 text-sm"))
-                                              "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))
-                                   (div (img (@ (class "w-48 h-auto")
-                                                (src "/img/byggsteg-logo.png")))))
-                              ,(locale-choose-form)
-                              ,job-type-expl)
-                            #f)))
-
+    (byggsteg-html-template #:title "byggsteg"
+                            #:body `((h2 (@ (class ,h2-face))
+                                         ,(G_ "welcome"))
+                                     (div (@ (class
+                                               "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
+                                          (div (@ (class "max-w-prose"))
+                                               (span (@ (class
+                                                          "text-stone-300 text-sm"))
+                                                     "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))
+                                          (div (img (@ (class "w-48 h-auto")
+                                                       (src "/img/byggsteg-logo.png")))))
+                                     ,(locale-choose-form)
+                                     ,job-type-expl))))
 

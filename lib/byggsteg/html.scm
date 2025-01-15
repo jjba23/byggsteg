@@ -34,37 +34,39 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads))
 
-(define-public (byggsteg-html-template title body should-auto-refresh)
-  (let ((maybe-auto-refresh (cond
-                              ((equal? should-auto-refresh #t)
-                               `(meta (@ (content "10")
-                                         (http-equiv "refresh")) ()))
-                              (else `())))
-        ;; (maybe-auto-refresh `())
-        )
-    
-    `(html (head (title ,title)
-                 (link (@ (rel "preconnect")
-                          (href "https://fonts.googleapis.com")))
-                 (link (@ (rel "preconnect")
-                          (href "https://fonts.gstatic.com")
-                          (crossorigin "")))
-                 (link (@ (rel "stylesheet")
-                          (href
-                           "https://fonts.cdnfonts.com/css/liberation-sans")))
-                 (link (@ (rel "stylesheet")
-                          (href "/css/fonts.css")))
+(begin
+  (define* (byggsteg-html-template #:key title body (should-auto-refresh #f))
+    (let ((maybe-auto-refresh (cond
+                               ((equal? should-auto-refresh #t)
+                                `(meta (@ (content "10")
+                                          (http-equiv "refresh")) ()))
+                               (else `())))
+          ;; (maybe-auto-refresh `())
+          )
+      
+      `(html (head (title ,title)
+                   (link (@ (rel "preconnect")
+                            (href "https://fonts.googleapis.com")))
+                   (link (@ (rel "preconnect")
+                            (href "https://fonts.gstatic.com")
+                            (crossorigin "")))
+                   (link (@ (rel "stylesheet")
+                            (href
+                             "https://fonts.cdnfonts.com/css/liberation-sans")))
+                   (link (@ (rel "stylesheet")
+                            (href "/css/fonts.css")))
 
-                 ,maybe-auto-refresh
-                 (meta (@ (name "viewport")
-                          (content "width=device-width, initial-scale=1.0")))
-                 (script (@ (src "https://cdn.tailwindcss.com")) "")
-                 (script (@ (src "/js/tailwind.config.js")) ()))
-           (body (@ (class "bg-stone-900"))
-                 (div (@ (class "container mx-auto"))
-                      ,(page-top)
-                      ,@body
-                      ,(page-footer))))))
+                   ,maybe-auto-refresh
+                   (meta (@ (name "viewport")
+                            (content "width=device-width, initial-scale=1.0")))
+                   (script (@ (src "https://cdn.tailwindcss.com")) "")
+                   (script (@ (src "/js/tailwind.config.js")) ()))
+             (body (@ (class "bg-stone-900"))
+                   (div (@ (class "container mx-auto"))
+                        ,(page-top)
+                        ,@body
+                        ,(page-footer))))))
+  (export byggsteg-html-template))
 
 (define-public (page-top)
   `((div (@ (class "flex flex-row flex-wrap gap-4 py-3 items-center"))

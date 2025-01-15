@@ -33,6 +33,9 @@ msgstr ""
 msgid "welcome"
 msgstr "welcome to byggsteg"
 
+msgid "login-to-byggsteg"
+msgstr "login to byggsteg"
+
 msgid "login"
 msgstr "login"
 

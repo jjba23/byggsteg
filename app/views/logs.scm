@@ -41,14 +41,14 @@
          (in_progress (assoc-ref job "job_in_progress"))
          (failure (assoc-ref job "job_failed"))
          (job-status (cond
-                       ((equal? success 1)
-                        `(h2 (@ (class "text-xl text-green-700 font-mono"))
-                             ,(ii 'job-succeeded)))
-                       ((equal? failure 1)
-                        `(h2 (@ (class "text-xl text-red-700 font-mono"))
-                             ,(ii 'job-failed)))
-                       (else `(h2 (@ (class "text-xl text-sky-600 font-mono"))
-                                  ,(ii 'job-in-progress)))))
+                      ((equal? success 1)
+                       `(h2 (@ (class "text-xl text-green-700 font-mono"))
+                            ,(ii 'job-succeeded)))
+                      ((equal? failure 1)
+                       `(h2 (@ (class "text-xl text-red-700 font-mono"))
+                            ,(ii 'job-failed)))
+                      (else `(h2 (@ (class "text-xl text-sky-600 font-mono"))
+                                 ,(ii 'job-in-progress)))))
          (delete-button `(form (@ (method "POST")
                                   (enctype "application/x-www-form-urlencoded")
                                   (action "/jobs/manage/delete"))
@@ -66,61 +66,62 @@
                                           (class ,danger-button-face))
                                        "delete"))))
     
-    (byggsteg-html-template "byggsteg"
-                            `((div (@ (class
-                                       "flex flex-row flex-wrap align-middle gap-6 py-2"))
-                                   (h2 (@ (class ,h2-face)) "viewing logs")
-                                   ,job-status)
-                              (h3 (@ (class "text-stone-300 text-lg font-mono"))
-                                  ,log-filename)
+    (byggsteg-html-template #:title "byggsteg"
+                            #:body `((div (@ (class
+                                               "flex flex-row flex-wrap align-middle gap-6 py-2"))
+                                          (h2 (@ (class ,h2-face)) "viewing logs")
+                                          ,job-status)
+                                     (h3 (@ (class "text-stone-300 text-lg font-mono"))
+                                         ,log-filename)
 
-                              (div (@ (class "flex flex-col gap-4"))
-                                   ,(cond
-                                      ((equal? (assoc-ref job "updated_at") #f)
-                                       '())
-                                      (else `(em (@ (class
-                                                     "text-stone-400 text-sm font-mono"))
-                                                 ,(format #f "took ~a seconds"
-                                                          (- (assoc-ref job
-                                                              "updated_at")
-                                                             (assoc-ref job
-                                                              "created_at"))))))
-                                   (small (@ (class
-                                              "text-stone-400 text-sm font-mono"))
-                                          ,(format #f "started at: ~a"
-                                                   (strftime "%c"
-                                                             (localtime (assoc-ref
-                                                                         job
-                                                                         "created_at")))))
-                                   ,(cond
-                                      ((equal? (assoc-ref job "updated_at") #f)
-                                       '())
-                                      (else `(small (@ (class
-                                                        "text-stone-400 text-sm font-mono"))
-                                                    ,(format #f
-                                                             "updated at: ~a"
-                                                             (strftime "%c"
-                                                                       (localtime
-                                                                        (assoc-ref
-                                                                         job
-                                                                         "updated_at"))))))))
+                                     (div (@ (class "flex flex-col gap-4"))
+                                          ,(cond
+                                            ((equal? (assoc-ref job "updated_at") #f)
+                                             '())
+                                            (else `(em (@ (class
+                                                            "text-stone-400 text-sm font-mono"))
+                                                       ,(format #f "took ~a seconds"
+                                                                (- (assoc-ref job
+                                                                              "updated_at")
+                                                                   (assoc-ref job
+                                                                              "created_at"))))))
+                                          (small (@ (class
+                                                      "text-stone-400 text-sm font-mono"))
+                                                 ,(format #f "started at: ~a"
+                                                          (strftime "%c"
+                                                                    (localtime (assoc-ref
+                                                                                job
+                                                                                "created_at")))))
+                                          ,(cond
+                                            ((equal? (assoc-ref job "updated_at") #f)
+                                             '())
+                                            (else `(small (@ (class
+                                                               "text-stone-400 text-sm font-mono"))
+                                                          ,(format #f
+                                                                   "updated at: ~a"
+                                                                   (strftime "%c"
+                                                                             (localtime
+                                                                              (assoc-ref
+                                                                               job
+                                                                               "updated_at"))))))))
 
-                              (div (@ (class "flex flex-wrap flex-row gap-4"))
-                                   (small (@ (class
-                                              "text-stone-400 text-sm font-mono"))
-                                          ,(format #f "uuid: ~a" job-id))
-                                   (small (@ (class
-                                              "text-stone-400 text-sm font-mono"))
-                                          ,(format #f "log uuid: ~a" log-id)))
+                                     (div (@ (class "flex flex-wrap flex-row gap-4"))
+                                          (small (@ (class
+                                                      "text-stone-400 text-sm font-mono"))
+                                                 ,(format #f "uuid: ~a" job-id))
+                                          (small (@ (class
+                                                      "text-stone-400 text-sm font-mono"))
+                                                 ,(format #f "log uuid: ~a" log-id)))
 
-                              ,delete-button
+                                     ,delete-button
 
-                              (pre (@ (class
-                                       "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
-                                   ,detail-data)
-                              (pre (@ (class
-                                       "rounded-xl bg-stone-800 p-4 my-6 text-sm text-stone-300 white-space-pre overflow-x-scroll"))
-                                   ,log-data)) #t)))
+                                     (pre (@ (class
+                                               "rounded-xl bg-stone-800 p-4 my-6 text-md text-stone-300 white-space-pre overflow-x-scroll"))
+                                          ,detail-data)
+                                     (pre (@ (class
+                                               "rounded-xl bg-stone-800 p-4 my-6 text-sm text-stone-300 white-space-pre overflow-x-scroll"))
+                                          ,log-data))
+                            #:should-auto-refresh #t)))
 
 (define-public (make-job-link job log)
   (let* ((log-filename (safe-base64-decode (assoc-ref log "human_id")))
@@ -150,10 +151,11 @@
                            (make-job-link (car (assoc-ref jobs-of-logs
                                                           (assoc-ref l "id")))
                                           l)) logs)))
-    (byggsteg-html-template "byggsteg"
-                            `((div (@ (class
-                                       "w-full flex flex-col gap-4 align-center"))
-                                   (h2 (@ (class ,h2-face)) "jobs")
-                                   (div (@ (class
-                                            "rounded-xl bg-stone-800 flex flex-col gap-4 py-4 px-2"))
-                                        ,jobs-html))) #t)))
+    (byggsteg-html-template #:title "byggsteg"
+                            #:body `((div (@ (class
+                                               "w-full flex flex-col gap-4 align-center"))
+                                          (h2 (@ (class ,h2-face)) "jobs")
+                                          (div (@ (class
+                                                    "rounded-xl bg-stone-800 flex flex-col gap-4 py-4 px-2"))
+                                               ,jobs-html)))
+                            #:should-auto-refresh #t)))

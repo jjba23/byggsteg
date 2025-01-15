@@ -31,74 +31,73 @@
 (define-public (profile-page p)
   (let* ((profile-name (safe-base64-decode (assoc-ref p "human_id")))
          (profile-data (safe-base64-decode (assoc-ref p "profile_data"))))
-    (byggsteg-html-template "byggsteg"
-                            `((div (@ (class
-                                       "flex flex-row flex-wrap align-center gap-6"))
-                                   (h2 (@ (class ,h2-face))
-                                       ,(ii 'viewing-profile-title))
-                                   (h3 (@ (class "text-stone-300 text-xl"))
-                                       ,profile-name))
-                              
-                              (div (@ (class "flex flex-row flex-wrap gap-4"))
-                                   (form (@ (method "POST")
-                                            (action "/jobs/manage/submit")
-                                            (enctype
-                                             "application/x-www-form-urlencoded")
-                                            (charset "utf-8"))
+    (byggsteg-html-template #:title "byggsteg"
+                            #:body `((div (@ (class
+                                               "flex flex-row flex-wrap align-center gap-6"))
+                                          (h2 (@ (class ,h2-face))
+                                              ,(ii 'viewing-profile-title))
+                                          (h3 (@ (class "text-stone-300 text-xl"))
+                                              ,profile-name))
+                                     
+                                     (div (@ (class "flex flex-row flex-wrap gap-4"))
+                                          (form (@ (method "POST")
+                                                   (action "/jobs/manage/submit")
+                                                   (enctype
+                                                    "application/x-www-form-urlencoded")
+                                                   (charset "utf-8"))
 
-                                         (textarea (@ (id "job-code")
-                                                      (name "job-code")
-                                                      (required "")
-                                                      (hidden ""))
-                                                   ,profile-data)
+                                                (textarea (@ (id "job-code")
+                                                             (name "job-code")
+                                                             (required "")
+                                                             (hidden ""))
+                                                          ,profile-data)
 
-                                         (button (@ (type "submit")
-                                                    (class ,button-face))
-                                                 "start new job"))
+                                                (button (@ (type "submit")
+                                                           (class ,button-face))
+                                                        "start new job"))
 
-                                   (form (@ (method "POST")
-                                            (enctype
-                                             "application/x-www-form-urlencoded")
-                                            (action "/profiles/manage/delete"))
-                                         (input (@ (id "profile-id")
-                                                   (name "profile-id")
-                                                   (required "")
-                                                   (hidden "")
-                                                   (value ,(assoc-ref p "id"))
-                                                   (class
-                                                    "rounded-xl border font-mono p-2")))
-                                         (button (@ (type "submit")
-                                                    (class ,danger-button-face))
-                                                 "delete")))
+                                          (form (@ (method "POST")
+                                                   (enctype
+                                                    "application/x-www-form-urlencoded")
+                                                   (action "/profiles/manage/delete"))
+                                                (input (@ (id "profile-id")
+                                                          (name "profile-id")
+                                                          (required "")
+                                                          (hidden "")
+                                                          (value ,(assoc-ref p "id"))
+                                                          (class
+                                                            "rounded-xl border font-mono p-2")))
+                                                (button (@ (type "submit")
+                                                           (class ,danger-button-face))
+                                                        "delete")))
 
-                              (form (@ (method "POST")
-                                       (enctype
-                                        "application/x-www-form-urlencoded")
-                                       (action "/profiles/manage/submit"))
-                                    (input (@ (hidden "")
-                                              (name "profile-name")
-                                              (value ,profile-name)))
-                                    (textarea (@ (class ,textarea-face)
-                                                 (name "job-code"))
-                                              ,profile-data)
-                                    (button (@ (type "submit")
-                                               (class ,button-face)) "save")))
-                            #f)))
+                                     (form (@ (method "POST")
+                                              (enctype
+                                               "application/x-www-form-urlencoded")
+                                              (action "/profiles/manage/submit"))
+                                           (input (@ (hidden "")
+                                                     (name "profile-name")
+                                                     (value ,profile-name)))
+                                           (textarea (@ (class ,textarea-face)
+                                                        (name "job-code"))
+                                                     ,profile-data)
+                                           (button (@ (type "submit")
+                                                      (class ,button-face)) "save"))))))
 
 (define-public (add-profile-form-page)
-  (byggsteg-html-template "byggsteg"
-                          `((h2 (@ (class ,h2-face))
-                                ,(ii 'add-profile-title))
-                            ,(job-form "/profiles/manage/submit" #t)) #f))
+  (byggsteg-html-template #:title "byggsteg"
+                          #:body `((h2 (@ (class ,h2-face))
+                                       ,(ii 'add-profile-title))
+                                   ,(job-form "/profiles/manage/submit" #t))))
 
 (define-public (profile-list-page profiles)
   (let* ((profiles-html (map make-profile-link profiles)))
-    (byggsteg-html-template "byggsteg"
-                            `((h2 (@ (class ,h2-face))
-                                  ,(ii 'profiles))
-                              (div (@ (class
-                                       "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
-                                   ,profiles-html)) #f)))
+    (byggsteg-html-template #:title "byggsteg"
+                            #:body `((h2 (@ (class ,h2-face))
+                                         ,(ii 'profiles))
+                                     (div (@ (class
+                                               "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
+                                          ,profiles-html)))))
 
 (define-public (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"

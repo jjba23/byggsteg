@@ -26,15 +26,22 @@
 
 (post "/preferences/locale"
       #:cookies '(names lang)
-      (lambda(rc)
+      (lambda (rc)
         (define (do-pref)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
                  (user-lang (uri-decode (car (assoc-ref kv "user-lang")))))
             (debug-print user-lang)
-            (:cookies-set! rc 'lang "lang" user-lang)
-            (:cookies-setattr! rc 'lang #:expires 12000000 #:path "/" #:http-only #t)
-            (redirect-to rc (string->uri (format #f "~a/" (current-myhost))))))
+            (:cookies-set! rc
+                           'lang "lang" user-lang)
+            (:cookies-setattr! rc
+                               'lang
+                               #:expires 12000000
+                               #:path "/"
+                               #:http-only #t)
+            (redirect-to rc
+                         (string->uri (format #f "~a/"
+                                              (current-myhost))))))
         (do-pref)))
 
 ;; sid=ee1fffe998a9cb0e; Expires=Thu, 13 Feb 2025 14:04:30 GMT; Path=/; HttpOnly

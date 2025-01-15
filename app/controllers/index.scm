@@ -29,7 +29,7 @@
 (get "/"
      #:i18n '(cookie "lang")
      #:mime 'xml
-     (lambda(rc)
+     (lambda (rc)
        (response-emit (:mime rc
-                       (welcome-page rc)))))
+                             (welcome-page rc)))))
 
