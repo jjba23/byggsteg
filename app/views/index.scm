@@ -74,7 +74,8 @@
                          (onchange "this.form.submit()"))
                       (option (@ (value "en_US")) "English")
                       (option (@ (value "nl_NL")
-                                 (selected "")) "Nederlands")))))
+                                 (selected "")) "Nederlands"))
+              (button (@(type "submit")(class "text-white bg-teal-600 rounded-xl p-1")) "&nbsp;✓&nbsp;"))))
 
 (define-public (welcome-page rc)
   (let ((G_ (:i18n rc)))

@@ -47,14 +47,14 @@
 (run-before-run! worker)
 
 ;; Specify the directory where the MO file is located
-;; (bindtextdomain "dict" "./sys/i18n/locale")
-;; (bind-textdomain-codeset "dict" "UTF-8")
-;; ;; Specify the domain of the MO file since you may have multiple MO files
-;; (textdomain "dict")
-;; ;; Set base locale for gettext test at startup
-;; (setlocale LC_MESSAGES "en_US.UTF-8")
-;; ;; Test gettext at startup
-;; (display (string-join `("" "--------"
-;;                         ,(gettext "welcome")
-;;                         ,(gettext "welcome" "dict")
-;;                         "--------" "") "\n"))
+(bindtextdomain "dict" "./sys/i18n/locale")
+(bind-textdomain-codeset "dict" "UTF-8")
+;; Specify the domain of the MO file since you may have multiple MO files
+(textdomain "dict")
+;; Set base locale for gettext test at startup
+(setlocale LC_MESSAGES "en_US.UTF-8")
+;; Test gettext at startup
+(display (string-join `("" "--------"
+                        ,(gettext "welcome")
+                        ,(gettext "welcome" "dict")
+                        "--------" "") "\n"))
