@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 12:50+0100\n"
+"POT-Creation-Date: 2025-01-16 13:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,6 +23,12 @@ msgstr ""
 
 #: app/views/index.scm:85 app/views/index.scm:87
 msgid "welcome to byggsteg"
+msgstr ""
+
+#: app/views/index.scm:95
+msgid ""
+"byggsteg aims to be the hackable continuous integration and delivery system, "
+"allowing engineers to deliver software quicker and with less friction"
 msgstr ""
 
 #: app/views/jobs.scm:47
