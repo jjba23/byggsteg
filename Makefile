@@ -61,7 +61,11 @@ extract-gettext:
 		app/views/*.scm \
 		app/api/*.scm \
 		--from-code UTF-8
-nl-gettext:
+init-po-nl:
 	msginit -l nl_NL.UTF8 -o sys/i18n/locale/nl_NL/LC_MESSAGES/translate.po -i sys/i18n/locale/translate.pot --no-translator
-en-gettext:
+init-po-en:
 	msginit -l en_US.UTF8 -o sys/i18n/locale/en_US/LC_MESSAGES/translate.po -i sys/i18n/locale/translate.pot --no-translator
+merge-po-nl:
+	msgmerge -U sys/i18n/locale/nl_NL/LC_MESSAGES/translate.po sys/i18n/locale/translate.pot
+merge-po-en:
+	msgmerge -U sys/i18n/locale/en_US/LC_MESSAGES/translate.po sys/i18n/locale/translate.pot

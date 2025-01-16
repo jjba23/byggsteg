@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 12:50+0100\n"
+"POT-Creation-Date: 2025-01-16 13:05+0100\n"
 "PO-Revision-Date: 2025-01-16 12:50+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -19,88 +19,94 @@ msgstr ""
 
 #: app/views/index.scm:39
 msgid "job types"
-msgstr "job types"
+msgstr ""
 
 #: app/views/index.scm:85 app/views/index.scm:87
 msgid "welcome to byggsteg"
-msgstr "welcome to byggsteg"
+msgstr ""
+
+#: app/views/index.scm:95
+msgid ""
+"byggsteg aims to be the hackable continuous integration and delivery system, "
+"allowing engineers to deliver software quicker and with less friction"
+msgstr ""
 
 #: app/views/jobs.scm:47
 msgid "learn writing a byggsteg pipeline"
-msgstr "learn writing a byggsteg pipeline"
+msgstr ""
 
 #: app/views/jobs.scm:61 lib/byggsteg/html.scm:149
 msgid "submit"
-msgstr "submit"
+msgstr ""
 
 #: app/views/jobs.scm:67
 msgid "run job"
-msgstr "run job"
+msgstr ""
 
 #: app/views/login.scm:39
 msgid "login to byggsteg"
-msgstr "login to byggsteg"
+msgstr ""
 
 #: app/views/login.scm:47
 msgid "username"
-msgstr "username"
+msgstr ""
 
 #: app/views/login.scm:53
 msgid "password"
-msgstr "password"
+msgstr ""
 
 #: app/views/login.scm:59
 msgid "login"
-msgstr "login"
+msgstr ""
 
 #: app/views/logs.scm:46 app/views/logs.scm:146
 msgid "job succeeded"
-msgstr "job succeeded"
+msgstr ""
 
 #: app/views/logs.scm:49 app/views/logs.scm:149
 msgid "job failed"
-msgstr "job failed"
+msgstr ""
 
 #: app/views/logs.scm:51 app/views/logs.scm:151
 msgid "job in progress"
-msgstr "job in progress"
+msgstr ""
 
 #: app/views/profiles.scm:44
 msgid "profile details"
-msgstr "profile details"
+msgstr ""
 
 #: app/views/profiles.scm:66
 msgid "start new job"
-msgstr "start new job"
+msgstr ""
 
 #: app/views/profiles.scm:83
 msgid "delete"
-msgstr "delete"
+msgstr ""
 
 #: app/views/profiles.scm:98
 msgid "save"
-msgstr "save"
+msgstr ""
 
 #: app/views/profiles.scm:104
 msgid "new profile"
-msgstr "new profile"
+msgstr ""
 
 #: app/views/profiles.scm:112 lib/byggsteg/html.scm:83
 msgid "profiles"
-msgstr "profiles"
+msgstr ""
 
 #: lib/byggsteg/html.scm:93
 msgid "byggsteg is the hackable Guile CI/CD system"
-msgstr "byggsteg is the hackable Guile CI/CD system"
+msgstr ""
 
 #: lib/byggsteg/html.scm:96
 msgid "byggsteg is free software, available under the GNU GPL v3 or newer."
-msgstr "byggsteg is free software, available under the GNU GPL v3 or newer."
+msgstr ""
 
 #: lib/byggsteg/html.scm:111
 msgid "byggsteg means “build step” in Norwegian."
-msgstr "byggsteg means “build step” in Norwegian."
+msgstr ""
 
 #: lib/byggsteg/job/pipeline.scm:160
 msgid "starting new job"
-msgstr "starting new job"
+msgstr ""
