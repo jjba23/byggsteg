@@ -56,5 +56,4 @@
 ;; Test gettext at startup
 (display (string-join `("" "--------"
                         ,(gettext "welcome")
-                        ,(gettext "welcome" "dict")
                         "--------" "") "\n"))

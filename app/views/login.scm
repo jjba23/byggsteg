@@ -35,7 +35,7 @@
 
 (define-public (login-page rc)
   (let* ((G_ (:i18n rc))
-         (login-html `((h2 (@ (class ,h2-face)) ,(G_ "login-to-byggsteg"))
+         (login-html `((h2 (@ (class ,h2-face)) ,(G_ "login to byggsteg"))
                        (form (@ (action "/login")
                                 (method "POST")
                                 (class "rounded-xl bg-stone-800 p-4"))

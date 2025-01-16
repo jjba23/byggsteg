@@ -33,7 +33,7 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 
-(define job-type-expl
+(define (job-type-expl G_)
   `(div (@ (class "max-w-prose p-4"))
         (h4 (@ (class ,h4-face)) "available job types")
         (dl (@ (class "p-4"))
@@ -65,7 +65,7 @@
             (dd (@ (class "text-stone-500 mb-2 text-sm"))
                 "Scala project test with SBT."))
         (p (@ (class "text-stone-400 text-sm"))
-         "As a fallback, if no other task matches are found, byggsteg will default to doing a make build.")))
+           "As a fallback, if no other task matches are found, byggsteg will default to doing a make build.")))
 
 (define (locale-choose-form)
   `(div (form (@ (action "/preferences/locale")
@@ -79,9 +79,9 @@
 
 (define-public (welcome-page rc)
   (let ((G_ (:i18n rc)))
-    (byggsteg-html-template #:title "byggsteg"
+    (byggsteg-html-template #:title (format #f "byggsteg - ~a" (G_ "welcome to byggsteg"))
                             #:body `((h2 (@ (class ,h2-face))
-                                         ,(G_ "welcome"))
+                                         ,(G_ "welcome to byggsteg"))
                                      (div (@ (class
                                                "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                           (div (@ (class "max-w-prose"))
@@ -91,5 +91,5 @@
                                           (div (img (@ (class "w-48 h-auto")
                                                        (src "/img/byggsteg-logo.png")))))
                                      ,(locale-choose-form)
-                                     ,job-type-expl))))
+                                     ,(job-type-expl G_)))))
 
