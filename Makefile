@@ -44,3 +44,14 @@ rebuild-db:
 compile-gettext:
 	msgfmt -v -o sys/i18n/locale/en_US/LC_MESSAGES/dict.mo sys/i18n/locale/en_US/LC_MESSAGES/dict.po
 	msgfmt -v -o sys/i18n/locale/nl_NL/LC_MESSAGES/dict.mo sys/i18n/locale/nl_NL/LC_MESSAGES/dict.po 
+extract-gettext:
+	xgettext --default-domain=dict \
+		--output=sys/i18n/locale/dict.pot \
+		--language=Scheme \
+		--keyword=G_ \
+		lib/byggsteg/job/*.scm \
+		lib/byggsteg/*.scm \
+		app/controllers/*.scm \
+		app/views/*.scm \
+		app/api/*.scm \
+		--from-code UTF-8
