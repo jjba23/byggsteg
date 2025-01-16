@@ -43,12 +43,18 @@ rebuild-db:
 	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
 compile-gettext:
 	msgfmt -v -o sys/i18n/locale/en_US/LC_MESSAGES/dict.mo sys/i18n/locale/en_US/LC_MESSAGES/dict.po
-	msgfmt -v -o sys/i18n/locale/nl_NL/LC_MESSAGES/dict.mo sys/i18n/locale/nl_NL/LC_MESSAGES/dict.po 
+	msgfmt -v -o sys/i18n/locale/nl_NL/LC_MESSAGES/dict.mo sys/i18n/locale/nl_NL/LC_MESSAGES/dict.po
+
+#		--join-existing 
 extract-gettext:
-	xgettext --default-domain=dict \
+	xgettext --default-domain=translate \
 		--output=sys/i18n/locale/dict.pot \
 		--language=Scheme \
 		--keyword=G_ \
+		--sort-by-file \
+		--join-existing \
+		--copyright-holder="Josep Bigorra & Roy Mu" \
+		--package-name="byggsteg" \
 		lib/byggsteg/job/*.scm \
 		lib/byggsteg/*.scm \
 		app/controllers/*.scm \

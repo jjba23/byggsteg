@@ -28,30 +28,35 @@
         (byggsteg preferences)
         (app views profiles)
         (app models profile)
+        (artanis i18n)
+        (artanis i18n locale)
         (ice-9 string-fun))
 
 (get "/profiles"
      #:mime 'xml
+     #:i18n '(cookie "lang")
      (lambda (rc)
        (response-emit (:mime rc
-                             (profile-list-page ($profile 'get
-                                                          #:order-by '(human_id
-                                                                       asc)))))))
+                       (profile-list-page rc ($profile 'get
+                                                       #:order-by '(human_id
+                                                                    asc)))))))
 
 (get "/profiles/:id"
      #:mime 'xml
+     #:i18n '(cookie "lang")
      (lambda (rc)
        (let ((p ($profile 'get
                           #:ret 'top
                           #:condition (where #:id (params rc "id")))))
          (response-emit (:mime rc
-                               (profile-page (car p)))))))
+                         (profile-page rc (car p)))))))
 
 (get "/profiles/manage/create"
      #:mime 'xml
+     #:i18n '(cookie "lang")
      (lambda (rc)
        (response-emit (:mime rc
-                             (add-profile-form-page)))))
+                       (add-profile-form-page rc)))))
 
 (post "/profiles/manage/submit"
       #:auth '(table user "username" "password")
