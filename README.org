@@ -53,11 +53,14 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 
     `((project . ,my-project-name)
       (branch-name . "trunk")
-      (task . "stack-test")
+      (task . ("stack-build" "stack-test"))
       (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
 ** Types of jobs
+
+When defining a pipeline alist, the task field can be either a single step, or multiple.
+You should either pass a string or a list of strings of job names.
 
 ~stack-test~ - Haskell project build and test with Stack + Hackage bundle.
 

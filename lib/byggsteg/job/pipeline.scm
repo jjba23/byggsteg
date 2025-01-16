@@ -39,18 +39,18 @@
                                    #:condition (where #:job_in_progress 1)
                                    #:order-by '(created_at asc)))
            (logs-of-in-progress (cond
-                                  ((nil? jobs-in-progress)
-                                   '())
-                                  (else ($log 'get
-                                              #:ret 'all
-                                              #:condition (where #:job_id (map (lambda 
-                                                                                       (j)
-                                                                                 
-                                                                                 
-                                                                                 (assoc-ref
-                                                                                  j
-                                                                                  "id"))
-                                                                           jobs-in-progress))))))
+                                 ((nil? jobs-in-progress)
+                                  '())
+                                 (else ($log 'get
+                                             #:ret 'all
+                                             #:condition (where #:job_id (map (lambda 
+                                                                                  (j)
+                                                                                
+                                                                                
+                                                                                (assoc-ref
+                                                                                 j
+                                                                                 "id"))
+                                                                              jobs-in-progress))))))
            (job-log-map (map (lambda (l)
                                `(,(assoc-ref l "job_id") unquote l))
                              logs-of-in-progress)))
@@ -69,80 +69,75 @@ byggsteg worker will sleep for ~a seconds
   (export do-pip))
 
 (begin
+  (define* (run-pipeline-task #:key project branch-name clone-url task)
+    (cond
+     ;; Stack test + sdist
+     ((equal? task
+              "stack-test")
+      (stack-step #:project project
+                  #:branch-name branch-name
+                  #:clone-url clone-url
+                  #:stack-task "test")
+      (stack-step #:project project
+                  #:branch-name branch-name
+                  #:clone-url clone-url
+                  #:stack-task "sdist --tar-dir ."))
+
+     ;; Stack build + sdist
+     ((equal? task
+              "stack-build")
+      (stack-step #:project project
+                  #:branch-name branch-name
+                  #:clone-url clone-url
+                  #:stack-task "build")
+      (stack-step #:project project
+                  #:branch-name branch-name
+                  #:clone-url clone-url
+                  #:stack-task "sdist --tar-dir ."))
+
+     ;; Byggsteg version update
+     ((equal? task
+              "byggsteg-version")
+      (byggsteg-version-step #:project project
+                             #:branch-name branch-name
+                             #:clone-url clone-url))
+
+     ;; Nix generic build
+     ((equal? task
+              "nix-build")
+      (nix-build-step #:project project
+                      #:branch-name branch-name
+                      #:clone-url clone-url))
+
+     ;; Herd pull and restart
+     ((equal? task
+              "pull-and-restart")
+      (pull-and-restart-step #:project project
+                             #:branch-name branch-name
+                             #:clone-url clone-url))
+
+     ;; Scala SBT test
+     ((equal? task
+              "sbt-test")
+      (sbt-test-step #:project project
+                     #:branch-name branch-name
+                     #:clone-url clone-url))
+
+     ;; Pull and make deploy
+     ((equal? task
+              "pull-and-deploy")
+      (pull-and-deploy-step #:project project
+                            #:branch-name branch-name
+                            #:clone-url clone-url))
+
+     ;; Otherwise attempt generic `make build'
+     (else (make-build-step #:project project
+                            #:branch-name branch-name
+                            #:clone-url clone-url))))
+  (export run-pipeline-task))
+
+(begin
   (define* (job-pipeline #:key job log)
-    (define* (run-pipeline #:key project branch-name clone-url task)
-      (display (format #f "\n~a...\n"
-                       (gettext "starting new job")))
-
-      (clone-repo-step #:project project
-                       #:branch-name branch-name
-                       #:clone-url clone-url)
-
-      (cond
-        ;; Stack test + sdist
-        ((eq? task
-              'stack-test)
-         (stack-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url
-                     #:stack-task "test")
-         (stack-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url
-                     #:stack-task "sdist --tar-dir ."))
-
-        ;; Stack build + sdist
-        ((eq? task
-              'stack-build)
-         (stack-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url
-                     #:stack-task "build")
-         (stack-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url
-                     #:stack-task "sdist --tar-dir ."))
-
-        ;; Byggsteg version update
-        ((eq? task
-              'byggsteg-version)
-         (byggsteg-version-step #:project project
-                                #:branch-name branch-name
-                                #:clone-url clone-url))
-
-        ;; Nix generic build
-        ((eq? task
-              'nix-build)
-         (nix-build-step #:project project
-                         #:branch-name branch-name
-                         #:clone-url clone-url))
-
-        ;; Herd pull and restart
-        ((eq? task
-              'pull-and-restart)
-         (pull-and-restart-step #:project project
-                                #:branch-name branch-name
-                                #:clone-url clone-url))
-
-        ;; Scala SBT test
-        ((eq? task
-              'sbt-test)
-         (sbt-test-step #:project project
-                        #:branch-name branch-name
-                        #:clone-url clone-url))
-
-        ;; Pull and make deploy
-        ((eq? task
-              'pull-and-deploy)
-         (pull-and-deploy-step #:project project
-                               #:branch-name branch-name
-                               #:clone-url clone-url))
-
-        ;; Otherwise attempt generic `make build'
-        (else (make-build-step #:project project
-                               #:branch-name branch-name
-                               #:clone-url clone-url))))
-
     (let* ((old-log-data (safe-base64-decode (assoc-ref log "log_data")))
            (kv-thunk (eval-string (safe-base64-decode (assoc-ref job
                                                                  "job_data"))))
@@ -153,33 +148,46 @@ byggsteg worker will sleep for ~a seconds
                                    'branch-name))
            (clone-url (assoc-ref kv
                                  'clone-url))
-           (task (string->symbol (assoc-ref kv
-                                            'task)))
-           (o (with-output-to-string (lambda ()
-                                       (run-pipeline #:project project
-                                                     #:branch-name branch-name
-                                                     #:clone-url clone-url
-                                                     #:task task))))
-           (new-log-data (string-append old-log-data "\n" o)))
-      (display o)
+           (task-or-tasks (assoc-ref kv
+                                     'task))
+           (tasks (cond
+                   ((list? task-or-tasks) task-or-tasks)
+                   ((string? task-or-tasks) (list task-or-tasks))
+                   (else task-or-tasks))))
+      
+      (let* ((o (with-output-to-string (lambda ()
+                                         (display (format #f "\n~a...\n"
+                                                          (gettext "starting new job")))
 
-      (DB-query (get-conn-from-pool!)
-                (->sql update
-                       'log set
-                       `((log_data ,(safe-base64-encode new-log-data))
-                         (updated_at ,(current-time)))
-                       (where #:id (assoc-ref log "id"))))
+                                         (clone-repo-step #:project project
+                                                          #:branch-name branch-name
+                                                          #:clone-url clone-url)
+                                         (for-each (lambda(task)
+                                                     (run-pipeline-task #:project project
+                                                                        #:branch-name branch-name
+                                                                        #:clone-url clone-url
+                                                                        #:task task)) tasks))))
+             (new-log-data (string-append old-log-data "\n" o)))
 
-      (DB-query (get-conn-from-pool!)
-                (->sql update
-                       'job set
-                       `((job_success 1)
-                         (job_in_progress 0)
-                         (job_failed 0)
-                         (updated_at ,(current-time)))
-                       (where #:id (assoc-ref job "id"))))
+        
+        (display o)
 
-      ))
+        (DB-query (get-conn-from-pool!)
+                  (->sql update
+                         'log set
+                         `((log_data ,(safe-base64-encode new-log-data))
+                           (updated_at ,(current-time)))
+                         (where #:id (assoc-ref log "id"))))
 
-  (export async-job-pipeline))
+        (DB-query (get-conn-from-pool!)
+                  (->sql update
+                         'job set
+                         `((job_success 1)
+                           (job_in_progress 0)
+                           (job_failed 0)
+                           (updated_at ,(current-time)))
+                         (where #:id (assoc-ref job "id"))))
+
+        )))
+  (export job-pipeline))
 
