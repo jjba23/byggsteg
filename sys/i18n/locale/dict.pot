@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 12:41+0100\n"
+"POT-Creation-Date: 2025-01-16 12:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -65,15 +65,28 @@ msgstr ""
 msgid "job in progress"
 msgstr ""
 
-#: app/views/profiles.scm:38
+#: app/views/profiles.scm:38 app/views/profiles.scm:44
 msgid "profile details"
 msgstr ""
 
-#: app/views/profiles.scm:97
+#: app/views/profiles.scm:66
+msgid "start new job"
+msgstr ""
+
+#: app/views/profiles.scm:83
+msgid "delete"
+msgstr ""
+
+#: app/views/profiles.scm:97 app/views/profiles.scm:104
 msgid "new profile"
 msgstr ""
 
-#: app/views/profiles.scm:104 lib/byggsteg/html.scm:83
+#: app/views/profiles.scm:98
+msgid "save"
+msgstr ""
+
+#: app/views/profiles.scm:104 app/views/profiles.scm:112
+#: lib/byggsteg/html.scm:83
 msgid "profiles"
 msgstr ""
 
