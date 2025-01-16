@@ -33,19 +33,6 @@
 (add-to-load-path (string-append (current-toplevel) "/lib"))
 ;; Put whatever you want to be called before server running here
 
-(define is-worker-running #f)
-
-(define (worker)
-  (unless is-worker-running
-    (call-with-new-thread (lambda()
-                            (sleep 3) ; delay worker start
-                            (display "\ninitializing byggsteg queue worker\n")
-                            (set! is-worker-running #t)
-                            (use-modules (byggsteg job pipeline))
-                            (while #t (do-pip))))))
-
-(run-before-run! worker)
-
 ;; Specify the directory where the MO file is located
 (bindtextdomain "dict" "./sys/i18n/locale")
 (bind-textdomain-codeset "dict" "UTF-8")
@@ -57,3 +44,18 @@
 (display (string-join `("" "--------"
                         ,(gettext "welcome")
                         "--------" "") "\n"))
+
+(define is-worker-running #f)
+
+(define (worker)
+  (unless is-worker-running
+    (call-with-new-thread (lambda()
+                            (sleep 3) ; delay worker start
+                            (display (format #f "\n~a...\n" (gettext "initializing byggsteg queue worker")))
+                            (set! is-worker-running #t)
+                            (use-modules (byggsteg job pipeline))
+                            (while #t (do-pip))))))
+
+(run-before-run! worker)
+
+

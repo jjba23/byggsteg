@@ -47,3 +47,9 @@ msgstr "wachtwoord"
 
 msgid "learn writing a byggsteg pipeline"
 msgstr "leer hoe je een byggsteg pipeline schrijft"
+
+msgid "initializing byggsteg queue worker"
+msgstr "byggsteg job queue worker wordt gestart"
+
+msgid "starting new job"
+msgstr "nieuwe job wordt gestart"

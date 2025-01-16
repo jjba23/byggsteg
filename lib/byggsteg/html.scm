@@ -79,7 +79,7 @@
                     (class ,nav-button-face)) "+ new job run")
               (a (@ (href "/profiles")
                     (class ,nav-button-face))
-                 ,(ii 'profiles))
+                 ,(gettext "profiles"))
               (a (@ (href "/profiles/manage/create")
                     (class ,nav-button-face)) "+ new profile")
               (a (@ (href "/login")
@@ -89,11 +89,11 @@
   `((div (@ (class "block text-center font-mono"))
          (hr (@ (class ,hr-face)))
          (p (@ (class "text-sm text-stone-300"))
-            ,(ii 'byggsteg-hackable))
+            ,(gettext  "byggsteg is the hackable Guile CI/CD system"))
          (p (@ (class "text-sm text-stone-300"))
-            ,(ii 'byggsteg-license))
+            ,(gettext "byggsteg is free software, available under the GNU GPL v3 or newer."))
          (div (@ (class
-                  "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
+                   "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@ (class "text-sm text-stone-300"))
                  "find the source code here:")
               (a (@ (class ,link-face)
@@ -106,7 +106,7 @@
                 "Copyright © 2025 - Josep Bigorra & Mu Lei"))
          (p (@ (class "mt-4"))
             (span (@ (class "text-sm text-stone-300"))
-                  ,(ii 'byggsteg-word-meaning))))))
+                  ,(gettext "byggsteg means “build step” in Norwegian."))))))
 
 (define-public (maybe-profile-name is-profile)
   (cond
@@ -144,5 +144,5 @@
 
          (button (@ (type "submit")
                     (class ,button-face))
-                 ,(ii 'submit))))
+                 ,(gettext "submit"))))
 

@@ -35,7 +35,7 @@
                             #:body `((div (@ (class
                                                "flex flex-row flex-wrap align-center gap-6"))
                                           (h2 (@ (class ,h2-face))
-                                              ,(ii 'viewing-profile-title))
+                                              ,(gettext "profile details"))
                                           (h3 (@ (class "text-stone-300 text-xl"))
                                               ,profile-name))
                                      
@@ -87,14 +87,14 @@
 (define-public (add-profile-form-page)
   (byggsteg-html-template #:title "byggsteg"
                           #:body `((h2 (@ (class ,h2-face))
-                                       ,(ii 'add-profile-title))
+                                       ,(gettext "new profile"))
                                    ,(job-form "/profiles/manage/submit" #t))))
 
 (define-public (profile-list-page profiles)
   (let* ((profiles-html (map make-profile-link profiles)))
     (byggsteg-html-template #:title "byggsteg"
                             #:body `((h2 (@ (class ,h2-face))
-                                         ,(ii 'profiles))
+                                         ,(gettext "profiles"))
                                      (div (@ (class
                                                "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
                                           ,profiles-html)))))
