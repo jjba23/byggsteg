@@ -1,107 +1,106 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Josep Bigorra & Roy Mu
+# English translations for byggsteg package.
+# Copyright (C) 2025 Josep Bigorra & Roy Mu
 # This file is distributed under the same license as the byggsteg package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Automatically generated, 2025.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 12:47+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2025-01-16 12:50+0100\n"
+"PO-Revision-Date: 2025-01-16 12:50+0100\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en_US\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: app/views/index.scm:39
 msgid "job types"
-msgstr ""
+msgstr "job types"
 
 #: app/views/index.scm:85 app/views/index.scm:87
 msgid "welcome to byggsteg"
-msgstr ""
+msgstr "welcome to byggsteg"
 
 #: app/views/jobs.scm:47
 msgid "learn writing a byggsteg pipeline"
-msgstr ""
+msgstr "learn writing a byggsteg pipeline"
 
 #: app/views/jobs.scm:61 lib/byggsteg/html.scm:149
 msgid "submit"
-msgstr ""
+msgstr "submit"
 
 #: app/views/jobs.scm:67
 msgid "run job"
-msgstr ""
+msgstr "run job"
 
 #: app/views/login.scm:39
 msgid "login to byggsteg"
-msgstr ""
+msgstr "login to byggsteg"
 
 #: app/views/login.scm:47
 msgid "username"
-msgstr ""
+msgstr "username"
 
 #: app/views/login.scm:53
 msgid "password"
-msgstr ""
+msgstr "password"
 
 #: app/views/login.scm:59
 msgid "login"
-msgstr ""
+msgstr "login"
 
 #: app/views/logs.scm:46 app/views/logs.scm:146
 msgid "job succeeded"
-msgstr ""
+msgstr "job succeeded"
 
 #: app/views/logs.scm:49 app/views/logs.scm:149
 msgid "job failed"
-msgstr ""
+msgstr "job failed"
 
 #: app/views/logs.scm:51 app/views/logs.scm:151
 msgid "job in progress"
-msgstr ""
+msgstr "job in progress"
 
-#: app/views/profiles.scm:38 app/views/profiles.scm:44
+#: app/views/profiles.scm:44
 msgid "profile details"
-msgstr ""
+msgstr "profile details"
 
 #: app/views/profiles.scm:66
 msgid "start new job"
-msgstr ""
+msgstr "start new job"
 
 #: app/views/profiles.scm:83
 msgid "delete"
-msgstr ""
-
-#: app/views/profiles.scm:97 app/views/profiles.scm:104
-msgid "new profile"
-msgstr ""
+msgstr "delete"
 
 #: app/views/profiles.scm:98
 msgid "save"
-msgstr ""
+msgstr "save"
 
-#: app/views/profiles.scm:104 app/views/profiles.scm:112
-#: lib/byggsteg/html.scm:83
+#: app/views/profiles.scm:104
+msgid "new profile"
+msgstr "new profile"
+
+#: app/views/profiles.scm:112 lib/byggsteg/html.scm:83
 msgid "profiles"
-msgstr ""
+msgstr "profiles"
 
 #: lib/byggsteg/html.scm:93
 msgid "byggsteg is the hackable Guile CI/CD system"
-msgstr ""
+msgstr "byggsteg is the hackable Guile CI/CD system"
 
 #: lib/byggsteg/html.scm:96
 msgid "byggsteg is free software, available under the GNU GPL v3 or newer."
-msgstr ""
+msgstr "byggsteg is free software, available under the GNU GPL v3 or newer."
 
 #: lib/byggsteg/html.scm:111
 msgid "byggsteg means “build step” in Norwegian."
-msgstr ""
+msgstr "byggsteg means “build step” in Norwegian."
 
 #: lib/byggsteg/job/pipeline.scm:160
 msgid "starting new job"
-msgstr ""
+msgstr "starting new job"

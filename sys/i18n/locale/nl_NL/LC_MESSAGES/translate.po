@@ -1,0 +1,107 @@
+# Dutch translations for byggsteg package
+# Nederlandse vertalingen voor het pakket byggsteg.
+# Copyright (C) 2025 Josep Bigorra & Roy Mu
+# This file is distributed under the same license as the byggsteg package.
+# Automatically generated, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: byggsteg\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-16 12:50+0100\n"
+"PO-Revision-Date: 2025-01-16 12:50+0100\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: app/views/index.scm:39
+msgid "job types"
+msgstr "job types"
+
+#: app/views/index.scm:85 app/views/index.scm:87
+msgid "welcome to byggsteg"
+msgstr "welkom bij byggsteg"
+
+#: app/views/jobs.scm:47
+msgid "learn writing a byggsteg pipeline"
+msgstr "leer hoe je een byggsteg pipeline schrijft"
+
+#: app/views/jobs.scm:61 lib/byggsteg/html.scm:149
+msgid "submit"
+msgstr "indienen"
+
+#: app/views/jobs.scm:67
+msgid "run job"
+msgstr "draai job"
+
+#: app/views/login.scm:39
+msgid "login to byggsteg"
+msgstr "inloggen bij byggsteg"
+
+#: app/views/login.scm:47
+msgid "username"
+msgstr "gebruikersnaam"
+
+#: app/views/login.scm:53
+msgid "password"
+msgstr "wachtwoord"
+
+#: app/views/login.scm:59
+msgid "login"
+msgstr "inloggen"
+
+#: app/views/logs.scm:46 app/views/logs.scm:146
+msgid "job succeeded"
+msgstr "job succesvol"
+
+#: app/views/logs.scm:49 app/views/logs.scm:149
+msgid "job failed"
+msgstr "job gefaald"
+
+#: app/views/logs.scm:51 app/views/logs.scm:151
+msgid "job in progress"
+msgstr "job draait"
+
+#: app/views/profiles.scm:44
+msgid "profile details"
+msgstr "profieldetails"
+
+#: app/views/profiles.scm:66
+msgid "start new job"
+msgstr "draai nieuw job"
+
+#: app/views/profiles.scm:83
+msgid "delete"
+msgstr "verwijderen"
+
+#: app/views/profiles.scm:98
+msgid "save"
+msgstr "opslaan"
+
+#: app/views/profiles.scm:104
+msgid "new profile"
+msgstr "nieuw profiel"
+
+#: app/views/profiles.scm:112 lib/byggsteg/html.scm:83
+msgid "profiles"
+msgstr "profielen"
+
+#: lib/byggsteg/html.scm:93
+msgid "byggsteg is the hackable Guile CI/CD system"
+msgstr "byggsteg is de hackable Guile CI/CD systeem"
+
+#: lib/byggsteg/html.scm:96
+msgid "byggsteg is free software, available under the GNU GPL v3 or newer."
+msgstr "byggsteg is vrije software, beschikbaar onder de GNU GPL v3 of nieuwer"
+
+#: lib/byggsteg/html.scm:111
+msgid "byggsteg means “build step” in Norwegian."
+msgstr "byggsteg betekent “bouwstap” in het Noors"
+
+#: lib/byggsteg/job/pipeline.scm:160
+msgid "starting new job"
+msgstr "nieuw job wordt gestart"

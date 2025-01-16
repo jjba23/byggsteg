@@ -42,13 +42,13 @@ rebuild-db:
 	touch byggsteg.db
 	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
 compile-gettext:
-	msgfmt -v -o sys/i18n/locale/en_US/LC_MESSAGES/dict.mo sys/i18n/locale/en_US/LC_MESSAGES/dict.po
-	msgfmt -v -o sys/i18n/locale/nl_NL/LC_MESSAGES/dict.mo sys/i18n/locale/nl_NL/LC_MESSAGES/dict.po
+	msgfmt -v -o sys/i18n/locale/en_US/LC_MESSAGES/translate.mo sys/i18n/locale/en_US/LC_MESSAGES/translate.po
+	msgfmt -v -o sys/i18n/locale/nl_NL/LC_MESSAGES/translate.mo sys/i18n/locale/nl_NL/LC_MESSAGES/translate.po
 
 #		--join-existing 
 extract-gettext:
 	xgettext --default-domain=translate \
-		--output=sys/i18n/locale/dict.pot \
+		--output=sys/i18n/locale/translate.pot \
 		--language=Scheme \
 		--keyword=G_ \
 		--sort-by-file \
@@ -62,6 +62,6 @@ extract-gettext:
 		app/api/*.scm \
 		--from-code UTF-8
 nl-gettext:
-	msginit -l nl_NL.UTF8 -o sys/i18n/locale/nl_NL/LC_MESSAGES/dict.po -i sys/i18n/locale/dict.pot --no-translator
+	msginit -l nl_NL.UTF8 -o sys/i18n/locale/nl_NL/LC_MESSAGES/translate.po -i sys/i18n/locale/translate.pot --no-translator
 en-gettext:
-	msginit -l en_US.UTF8 -o sys/i18n/locale/en_US/LC_MESSAGES/dict.po -i sys/i18n/locale/dict.pot --no-translator
+	msginit -l en_US.UTF8 -o sys/i18n/locale/en_US/LC_MESSAGES/translate.po -i sys/i18n/locale/translate.pot --no-translator
