@@ -58,5 +58,5 @@
                                      ,(G_ "login"))))))
     
     (byggsteg-html-template #:title "byggsteg"
-                            #:body login-html)))
+                            #:body `((div (@(class "px-3 py-3")) ,login-html)))))
 

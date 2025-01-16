@@ -33,7 +33,7 @@
          (profile-data (safe-base64-decode (assoc-ref p "profile_data"))))
     (byggsteg-html-template #:title "byggsteg"
                             #:body `((div (@ (class
-                                               "flex flex-row flex-wrap align-center gap-6"))
+                                               "flex flex-row flex-wrap align-center gap-6 px-3"))
                                           (h2 (@ (class ,h2-face))
                                               ,(gettext "profile details"))
                                           (h3 (@ (class "text-stone-300 text-xl"))

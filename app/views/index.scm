@@ -35,7 +35,7 @@
 
 (define (job-type-expl G_)
   `(div (@ (class "max-w-prose p-4"))
-        (h4 (@ (class ,h4-face)) "available job types")
+        (h4 (@ (class ,h4-face)) ,(G_ "job types"))
         (dl (@ (class "p-4"))
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "stack-test"))

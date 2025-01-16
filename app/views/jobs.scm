@@ -39,7 +39,7 @@
 
          (p (@ (class "flex flex-row flex-wrap gap-4"))
             (span (@ (class "text-stone-400 text-sm"))
-                  "learn writing code for a job: ")
+                  ,(gettext "learn writing a byggsteg pipeline"))
             (a (@ (class ,link-face)
                   (href "https://codeberg.org/jjba23/byggsteg"))
                "https://codeberg.org/jjba23/byggsteg"))
@@ -53,10 +53,10 @@
 
          (button (@ (type "submit")
                     (class ,button-face))
-                 ,(ii 'submit))))
+                 ,(gettext "submit"))))
 
 (define-public (job-request-form-page)
   (byggsteg-html-template #:title "byggsteg"
                           #:body `((h2 (@ (class ,h2-face))
-                                       ,(ii 'run-job-title))
+                                       ,(gettext "run job"))
                                    ,(job-form "/jobs/manage/submit" #f))))

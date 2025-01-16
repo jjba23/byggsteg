@@ -53,3 +53,9 @@ msgstr "byggsteg job queue worker wordt gestart"
 
 msgid "starting new job"
 msgstr "nieuwe job wordt gestart"
+
+msgid "job types"
+msgstr "job-types"
+
+msgid "submit"
+msgstr "indienen"

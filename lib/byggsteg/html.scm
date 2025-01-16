@@ -69,7 +69,7 @@
   (export byggsteg-html-template))
 
 (define-public (page-top)
-  `((div (@ (class "flex flex-row flex-wrap gap-4 py-3 items-center"))
+  `((div (@ (class "flex flex-row flex-wrap gap-4 py-3 px-2 items-center"))
          (h1 (@ (class ,brand-title-face))
              (a (@ (href "/")) "byggsteg"))
          (div (@ (class "flex flex-row flex-wrap items-center gap-4"))
@@ -86,7 +86,7 @@
                     (class ,nav-button-face)) "login")))))
 
 (define-public (page-footer)
-  `((div (@ (class "block text-center font-mono"))
+  `((div (@ (class "block text-center font-mono py-3 px-5"))
          (hr (@ (class ,hr-face)))
          (p (@ (class "text-sm text-stone-300"))
             ,(gettext  "byggsteg is the hackable Guile CI/CD system"))

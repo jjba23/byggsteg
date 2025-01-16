@@ -68,7 +68,7 @@
     
     (byggsteg-html-template #:title "byggsteg"
                             #:body `((div (@ (class
-                                               "flex flex-row flex-wrap align-middle gap-6 py-2"))
+                                               "flex flex-row flex-wrap align-middle gap-6 py-3 px-3"))
                                           (h2 (@ (class ,h2-face)) "viewing logs")
                                           ,job-status)
                                      (h3 (@ (class "text-stone-300 text-lg font-mono"))

@@ -53,3 +53,9 @@ msgstr "initializing byggsteg queue worker"
 
 msgid "starting new job"
 msgstr "starting new job"
+
+msgid "job types"
+msgstr "job types"
+
+msgid "submit"
+msgstr "submit"
