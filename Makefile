@@ -55,3 +55,7 @@ extract-gettext:
 		app/views/*.scm \
 		app/api/*.scm \
 		--from-code UTF-8
+nl-gettext:
+	msginit -l nl_NL.UTF8 -o sys/i18n/locale/nl_NL/LC_MESSAGES/dict.po -i sys/i18n/locale/dict.pot --no-translator
+en-gettext:
+	msginit -l en_US.UTF8 -o sys/i18n/locale/en_US/LC_MESSAGES/dict.po -i sys/i18n/locale/dict.pot --no-translator
