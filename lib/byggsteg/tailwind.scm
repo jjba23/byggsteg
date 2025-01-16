@@ -57,7 +57,7 @@
 (define-public input-face
   (string-join '("rounded-xl" "border"
                  "border-stone-600"
-                 "p-2"
+                 "p-3"
                  "text-md"
                  "bg-stone-800"
                  "text-stone-300"

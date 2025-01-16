@@ -70,12 +70,11 @@
 
 (define (locale-choose-form)
   `(div (form (@ (action "/preferences/locale")
-                 (method "POST"))
-              (select (@ (name "user-lang")
-                         (onchange "this.form.submit()"))
+                 (method "POST")
+                 (class "flex flex-row gap-4 flex-wrap"))
+              (select (@ (name "user-lang")(class ,input-face))
                       (option (@ (value "en_US")) "English")
-                      (option (@ (value "nl_NL")
-                                 (selected "")) "Nederlands"))
+                      (option (@ (value "nl_NL")) "Nederlands"))
               (button (@ (type "submit")
                          (class "text-white bg-teal-600 rounded-xl p-1"))
                       "&nbsp;✓&nbsp;"))))
@@ -84,17 +83,19 @@
   (let ((G_ (:i18n rc)))
     (byggsteg-html-template #:title (format #f "byggsteg - ~a"
                                             (G_ "welcome to byggsteg"))
-                            #:body `((h2 (@ (class ,h2-face))
-                                         ,(G_ "welcome to byggsteg"))
+                            #:body `((div (h2 (@ (class ,h2-face))
+                                              ,(G_ "welcome to byggsteg")))
+                                     (div (@(class "py-3"))
+                                          ,(locale-choose-form))
                                      (div (@ (class
-                                              "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
+                                               "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                           (div (@ (class "max-w-prose"))
                                                (span (@ (class
-                                                         "text-stone-300 text-sm"))
-                                                "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))
+                                                          "text-stone-300 text-sm"))
+                                                     "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))
                                           (div (img (@ (class "w-48 h-auto")
                                                        (src
                                                         "/img/byggsteg-logo.png")))))
-                                     ,(locale-choose-form)
+                                     
                                      ,(job-type-expl G_)))))
 
