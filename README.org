@@ -171,6 +171,13 @@ An example shepherd service for byggsteg could look like this:
 
 byggsteg is licensed under the GNU GPL v3 License or newer.
 
+** Performance
+
+byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
+
+[[file:docs/BENCHMARKS.org][See some of byggsteg's benchmarks here]]
+
+
 ** Code owners
 
 The project's main branch is ~trunk~. Find a list of roles and people involved in the project.
