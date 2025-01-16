@@ -35,12 +35,13 @@
 
 (define-public (login-page rc)
   (let* ((G_ (:i18n rc))
-         (login-html `((h2 (@ (class ,h2-face)) ,(G_ "login to byggsteg"))
+         (login-html `((h2 (@ (class ,h2-face))
+                           ,(G_ "login to byggsteg"))
                        (form (@ (action "/login")
                                 (method "POST")
                                 (class "rounded-xl bg-stone-800 p-4"))
                              (div (@ (class
-                                       "grid grid-cols-1 sm:grid-cols-3 gap-x-4"))
+                                      "grid grid-cols-1 sm:grid-cols-3 gap-x-4"))
                                   (div (label (@ (class ,label-face)
                                                  (for "username"))
                                               ,(G_ "username"))
@@ -58,5 +59,6 @@
                                      ,(G_ "login"))))))
     
     (byggsteg-html-template #:title "byggsteg"
-                            #:body `((div (@(class "px-3 py-3")) ,login-html)))))
+                            #:body `((div (@ (class "px-3 py-3"))
+                                          ,login-html)))))
 

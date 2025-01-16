@@ -35,9 +35,10 @@
 
 (get "/jobs/request"
      #:mime 'xml
+     #:i18n '(cookie "lang")
      (lambda (rc)
        (response-emit (:mime rc
-                             (job-request-form-page)))))
+                             (job-request-form-page rc)))))
 
 (post "/jobs/manage/submit"
       #:auth '(table user "username" "password")

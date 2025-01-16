@@ -25,10 +25,15 @@
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg prelude)
   #:use-module (byggsteg html)
+  #:use-module (ice-9 i18n)
+  #:use-module (artanis i18n)
+  #:use-module (artanis artanis)
+  #:use-module (artanis i18n sxml)
+  #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 
-(define-public (job-form route is-profile)
+(define-public (job-form G_ route is-profile)
   `(form (@ (method "POST")
             (action ,route)
             (enctype "application/x-www-form-urlencoded")
@@ -39,7 +44,7 @@
 
          (p (@ (class "flex flex-row flex-wrap gap-4"))
             (span (@ (class "text-stone-400 text-sm"))
-                  ,(gettext "learn writing a byggsteg pipeline"))
+                  ,(G_ "learn writing a byggsteg pipeline"))
             (a (@ (class ,link-face)
                   (href "https://codeberg.org/jjba23/byggsteg"))
                "https://codeberg.org/jjba23/byggsteg"))
@@ -55,8 +60,9 @@
                     (class ,button-face))
                  ,(gettext "submit"))))
 
-(define-public (job-request-form-page)
-  (byggsteg-html-template #:title "byggsteg"
-                          #:body `((h2 (@ (class ,h2-face))
-                                       ,(gettext "run job"))
-                                   ,(job-form "/jobs/manage/submit" #f))))
+(define-public (job-request-form-page rc)
+  (let* ((G_ (:i18n rc)))
+    (byggsteg-html-template #:title "byggsteg"
+                            #:body `((h2 (@ (class ,h2-face))
+                                         ,(gettext "run job"))
+                                     ,(job-form G_ "/jobs/manage/submit" #f)))))

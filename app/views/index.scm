@@ -35,7 +35,8 @@
 
 (define (job-type-expl G_)
   `(div (@ (class "max-w-prose p-4"))
-        (h4 (@ (class ,h4-face)) ,(G_ "job types"))
+        (h4 (@ (class ,h4-face))
+            ,(G_ "job types"))
         (dl (@ (class "p-4"))
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "stack-test"))
@@ -65,7 +66,7 @@
             (dd (@ (class "text-stone-500 mb-2 text-sm"))
                 "Scala project test with SBT."))
         (p (@ (class "text-stone-400 text-sm"))
-           "As a fallback, if no other task matches are found, byggsteg will default to doing a make build.")))
+         "As a fallback, if no other task matches are found, byggsteg will default to doing a make build.")))
 
 (define (locale-choose-form)
   `(div (form (@ (action "/preferences/locale")
@@ -75,21 +76,25 @@
                       (option (@ (value "en_US")) "English")
                       (option (@ (value "nl_NL")
                                  (selected "")) "Nederlands"))
-              (button (@(type "submit")(class "text-white bg-teal-600 rounded-xl p-1")) "&nbsp;✓&nbsp;"))))
+              (button (@ (type "submit")
+                         (class "text-white bg-teal-600 rounded-xl p-1"))
+                      "&nbsp;✓&nbsp;"))))
 
 (define-public (welcome-page rc)
   (let ((G_ (:i18n rc)))
-    (byggsteg-html-template #:title (format #f "byggsteg - ~a" (G_ "welcome to byggsteg"))
+    (byggsteg-html-template #:title (format #f "byggsteg - ~a"
+                                            (G_ "welcome to byggsteg"))
                             #:body `((h2 (@ (class ,h2-face))
                                          ,(G_ "welcome to byggsteg"))
                                      (div (@ (class
-                                               "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
+                                              "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                           (div (@ (class "max-w-prose"))
                                                (span (@ (class
-                                                          "text-stone-300 text-sm"))
-                                                     "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))
+                                                         "text-stone-300 text-sm"))
+                                                "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction."))
                                           (div (img (@ (class "w-48 h-auto")
-                                                       (src "/img/byggsteg-logo.png")))))
+                                                       (src
+                                                        "/img/byggsteg-logo.png")))))
                                      ,(locale-choose-form)
                                      ,(job-type-expl G_)))))
 

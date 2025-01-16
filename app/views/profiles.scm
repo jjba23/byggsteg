@@ -33,15 +33,18 @@
          (profile-data (safe-base64-decode (assoc-ref p "profile_data"))))
     (byggsteg-html-template #:title "byggsteg"
                             #:body `((div (@ (class
-                                               "flex flex-row flex-wrap align-center gap-6 px-3"))
+                                              "flex flex-row flex-wrap align-center gap-6 px-3"))
                                           (h2 (@ (class ,h2-face))
                                               ,(gettext "profile details"))
-                                          (h3 (@ (class "text-stone-300 text-xl"))
+                                          (h3 (@ (class
+                                                  "text-stone-300 text-xl"))
                                               ,profile-name))
                                      
-                                     (div (@ (class "flex flex-row flex-wrap gap-4"))
+                                     (div (@ (class
+                                              "flex flex-row flex-wrap gap-4"))
                                           (form (@ (method "POST")
-                                                   (action "/jobs/manage/submit")
+                                                   (action
+                                                    "/jobs/manage/submit")
                                                    (enctype
                                                     "application/x-www-form-urlencoded")
                                                    (charset "utf-8"))
@@ -59,14 +62,16 @@
                                           (form (@ (method "POST")
                                                    (enctype
                                                     "application/x-www-form-urlencoded")
-                                                   (action "/profiles/manage/delete"))
+                                                   (action
+                                                    "/profiles/manage/delete"))
                                                 (input (@ (id "profile-id")
                                                           (name "profile-id")
                                                           (required "")
                                                           (hidden "")
-                                                          (value ,(assoc-ref p "id"))
+                                                          (value ,(assoc-ref p
+                                                                   "id"))
                                                           (class
-                                                            "rounded-xl border font-mono p-2")))
+                                                           "rounded-xl border font-mono p-2")))
                                                 (button (@ (type "submit")
                                                            (class ,danger-button-face))
                                                         "delete")))
@@ -74,7 +79,8 @@
                                      (form (@ (method "POST")
                                               (enctype
                                                "application/x-www-form-urlencoded")
-                                              (action "/profiles/manage/submit"))
+                                              (action
+                                               "/profiles/manage/submit"))
                                            (input (@ (hidden "")
                                                      (name "profile-name")
                                                      (value ,profile-name)))
@@ -82,7 +88,8 @@
                                                         (name "job-code"))
                                                      ,profile-data)
                                            (button (@ (type "submit")
-                                                      (class ,button-face)) "save"))))))
+                                                      (class ,button-face))
+                                                   "save"))))))
 
 (define-public (add-profile-form-page)
   (byggsteg-html-template #:title "byggsteg"
@@ -96,7 +103,7 @@
                             #:body `((h2 (@ (class ,h2-face))
                                          ,(gettext "profiles"))
                                      (div (@ (class
-                                               "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
+                                              "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
                                           ,profiles-html)))))
 
 (define-public (make-profile-link profile)

@@ -35,12 +35,13 @@
   #:use-module (ice-9 threads))
 
 (begin
-  (define* (byggsteg-html-template #:key title body (should-auto-refresh #f))
+  (define* (byggsteg-html-template #:key title body
+                                   (should-auto-refresh #f))
     (let ((maybe-auto-refresh (cond
-                               ((equal? should-auto-refresh #t)
-                                `(meta (@ (content "10")
-                                          (http-equiv "refresh")) ()))
-                               (else `())))
+                                ((equal? should-auto-refresh #t)
+                                 `(meta (@ (content "10")
+                                           (http-equiv "refresh")) ()))
+                                (else `())))
           ;; (maybe-auto-refresh `())
           )
       
@@ -89,11 +90,12 @@
   `((div (@ (class "block text-center font-mono py-3 px-5"))
          (hr (@ (class ,hr-face)))
          (p (@ (class "text-sm text-stone-300"))
-            ,(gettext  "byggsteg is the hackable Guile CI/CD system"))
+            ,(gettext "byggsteg is the hackable Guile CI/CD system"))
          (p (@ (class "text-sm text-stone-300"))
-            ,(gettext "byggsteg is free software, available under the GNU GPL v3 or newer."))
+            ,(gettext
+              "byggsteg is free software, available under the GNU GPL v3 or newer."))
          (div (@ (class
-                   "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
+                  "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@ (class "text-sm text-stone-300"))
                  "find the source code here:")
               (a (@ (class ,link-face)
