@@ -95,7 +95,7 @@
                                                      ,profile-data)
                                            (button (@ (type "submit")
                                                       (class ,button-face))
-                                                   ,(G_ "save"))))))
+                                                   ,(G_ "save")))))))
 
 (define-public (add-profile-form-page rc)
   (let* ((G_ (:i18n rc)))
