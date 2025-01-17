@@ -163,17 +163,17 @@
                 ,job-status)))))
 
 (define-public (logs-page rc jobs-of-logs logs)
-  (let* ((jobs-html (map (lambda (l)
+  (let* ((G_ (:i18n rc))
+         (jobs-html (map (lambda (l)
                            (make-job-link G_
                                           (car (assoc-ref jobs-of-logs
                                                           (assoc-ref l "id")))
-                                          l)) logs))
-         (G_ (:i18n rc)))
+                                          l)) logs)))
     (byggsteg-html-template #:title "byggsteg"
                             #:body `((div (@ (class
-                                              "w-full flex flex-col gap-4 align-center"))
+                                               "w-full flex flex-col gap-4 align-center"))
                                           (h2 (@ (class ,h2-face)) "jobs")
                                           (div (@ (class
-                                                   "rounded-xl bg-stone-800 flex flex-col gap-4 py-4 px-2"))
+                                                    "rounded-xl bg-stone-800 flex flex-col gap-4 py-4 px-2"))
                                                ,jobs-html)))
                             #:should-auto-refresh #t)))
