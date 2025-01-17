@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 13:05+0100\n"
+"POT-Creation-Date: 2025-01-17 10:37+0100\n"
 "PO-Revision-Date: 2025-01-16 12:50+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -18,21 +18,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: ENTRY:50
+msgid "initializing byggsteg queue worker"
+msgstr "byggsteg opdrachtrijwerker wordt gestart"
+
 #: app/views/index.scm:39
 msgid "job types"
 msgstr "job types"
 
-#: app/views/index.scm:85 app/views/index.scm:87
+#: app/views/index.scm:85 app/views/index.scm:86 app/views/index.scm:87
+#: app/views/index.scm:88
 msgid "welcome to byggsteg"
 msgstr "welkom bij byggsteg"
 
-#: app/views/index.scm:95
+#: app/views/index.scm:95 app/views/index.scm:97
 msgid ""
 "byggsteg aims to be the hackable continuous integration and delivery system, "
 "allowing engineers to deliver software quicker and with less friction"
 msgstr ""
-"byggsteg heeft als doel de hackable continuous integration en delivery systeem, "
-"en dit laat ingenieurs sneller software leveren en met minder fractie"
+"byggsteg heeft als doel de hackable continuous integration en delivery "
+"systeem, en dit laat ingenieurs sneller software leveren en met minder "
+"fractie"
 
 #: app/views/jobs.scm:47
 msgid "learn writing a byggsteg pipeline"
@@ -62,17 +68,28 @@ msgstr "wachtwoord"
 msgid "login"
 msgstr "inloggen"
 
-#: app/views/logs.scm:46 app/views/logs.scm:146
+#: app/views/logs.scm:46 app/views/logs.scm:52 app/views/logs.scm:146
+#: app/views/logs.scm:152
 msgid "job succeeded"
 msgstr "job succesvol"
 
-#: app/views/logs.scm:49 app/views/logs.scm:149
+#: app/views/logs.scm:49 app/views/logs.scm:55 app/views/logs.scm:149
+#: app/views/logs.scm:155
 msgid "job failed"
 msgstr "job gefaald"
 
-#: app/views/logs.scm:51 app/views/logs.scm:151
+#: app/views/logs.scm:51 app/views/logs.scm:57 app/views/logs.scm:151
+#: app/views/logs.scm:157
 msgid "job in progress"
 msgstr "job draait"
+
+#: app/views/logs.scm:73 app/views/profiles.scm:83
+msgid "delete"
+msgstr "verwijderen"
+
+#: app/views/logs.scm:79
+msgid "viewing logs"
+msgstr "logs bekijken"
 
 #: app/views/profiles.scm:44
 msgid "profile details"
@@ -81,10 +98,6 @@ msgstr "profieldetails"
 #: app/views/profiles.scm:66
 msgid "start new job"
 msgstr "draai nieuw job"
-
-#: app/views/profiles.scm:83
-msgid "delete"
-msgstr "verwijderen"
 
 #: app/views/profiles.scm:98
 msgid "save"
@@ -110,6 +123,6 @@ msgstr "byggsteg is vrije software, beschikbaar onder de GNU GPL v3 of nieuwer"
 msgid "byggsteg means “build step” in Norwegian."
 msgstr "byggsteg betekent “bouwstap” in het Noors"
 
-#: lib/byggsteg/job/pipeline.scm:160
+#: lib/byggsteg/job/pipeline.scm:156 lib/byggsteg/job/pipeline.scm:160
 msgid "starting new job"
 msgstr "nieuw job wordt gestart"

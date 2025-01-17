@@ -139,8 +139,8 @@ init-db:
 # Compile translation files to .mo files
 compile-i18n:
 	$(call byggsteg-log-info,"compiling translation files")
-	$(call byggsteg-msgfmt "en_US")
-	$(call byggsteg-msgfmt "nl_NL")
+	$(call byggsteg-msgfmt,"en_US")
+	$(call byggsteg-msgfmt,"nl_NL")
 
 # Create new i18n template from source code
 new-i18n:
