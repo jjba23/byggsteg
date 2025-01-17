@@ -16,10 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-BYGGSTEG_LOCATION=/etc/byggsteg
-BYGGSTEG_DB=byggsteg.db
+# Code:
 
-.PHONY: dir-install dir-uninstall dev server production-server fmt rebuild-db compile-gettext new-gettext merge-gettext init-po-nl init-po-en merge-po-nl merge-po-en
+# Constants
+
+BYGGSTEG_LOCATION="/etc/byggsteg"
+BYGGSTEG_DB="byggsteg.db"
+COPYRIGHT_HOLDERS="Josep Bigorra & Mu Lei"
+I18N_LOCATION="sys/i18n/locale"
+
+.PHONY: dir-install dir-uninstall dev server production-server fmt rebuild-db compile-i18n new-i18n join-i18n init-i18n-nl init-i18n-en merge-i18n-nl merge-i18n-en
+
+# Logging helpers
 
 define byggsteg-log-info
 	@printf "\n\033[1m>>= $(shell date) - info - %s\033[0m\n" $(1)
@@ -29,23 +37,58 @@ define byggsteg-notify
 	@-notify-send $(1)
 endef
 
+# i18n helpers
+
+define byggsteg-msgfmt
+	msgfmt -v -o $(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.mo \
+		$(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.po
+endef
+
+define byggsteg-msginit
+	msginit -l $(1).UTF8 -o $(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.po \
+		-i $(I18N_LOCATION)/translate.pot --no-translator
+endef
+
+define byggsteg-merge
+	msgmerge -U $(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.po \
+		$(I18N_LOCATION)/translate.pot
+endef
+
+# Target to prepare directories for the byggsteg project
+# Create the necessary directory for job cloning, if it doesn't exist
+# Change ownership of the byggsteg location to the current user
 dir-install:
 	$(call sss-log-info,"preparing directories for byggsteg")
 	sudo mkdir -pv $(BYGGSTEG_LOCATION)/job-clone || true
 	sudo chown -R $(shell whoami) $(BYGGSTEG_LOCATION)
+
+# Target to clean up the byggsteg installation (remove job files)
+# Remove all files in the byggsteg location, ignoring errors
 dir-uninstall:
 	$(call sss-log-info,"cleaning byggsteg installation")
 	rm -rfv $(BYGGSTEG_LOCATION)/* || true
+
+# Target to start a development server for byggsteg
+# Use watchexec to watch for file changes and restart the server on changes
 dev:
 	$(call sss-log-info,"starting development server for byggsteg")
 	watchexec -i "dist/**" -r -e scm,css,js -- "make server"
+
+# Target to start the byggsteg server
+# Start the server with the default configuration
 server:
 	$(call sss-log-info,"starting byggsteg server")
 	art work
+
+# Target to start the byggsteg server with production configuration
 production-server:
 	art work -c conf/production.conf
+
+# Target to format source code files according to the style guide
+# Find all .scm files and format them using 'guix style'
 fmt:
 	find . -maxdepth 8 -name "*.scm" -type f -exec guix style -f {} \;
+
 
 # Initialize a new database and enable WAL mode for higher concurrent writes to SQLite 3
 rebuild-db:
@@ -53,22 +96,17 @@ rebuild-db:
 	touch 
 	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
 
-define byggsteg-msgfmt
-	msgfmt -v -o sys/i18n/locale/$(1)/LC_MESSAGES/translate.mo \
-		sys/i18n/locale/$(1)/LC_MESSAGES/translate.po
-endef
-
-compile-gettext:
+compile-i18n:
 	$(call byggsteg-msgfmt "en_US")
 	$(call byggsteg-msgfmt "nl_NL")
 
-new-gettext:
+new-i18n:
 	xgettext --default-domain=translate \
-		--output=sys/i18n/locale/translate.pot \
+		--output=$(I18N_LOCATION)/translate.pot \
 		--language=Scheme \
 		--keyword=G_ \
 		--sort-by-file \
-		--copyright-holder="Josep Bigorra & Mu Lei" \
+		--copyright-holder=$(COPYRIGHT_HOLDERS) \
 		--package-name="byggsteg" \
 		lib/byggsteg/job/*.scm \
 		lib/byggsteg/*.scm \
@@ -77,14 +115,14 @@ new-gettext:
 		app/api/*.scm \
 		--from-code UTF-8
 
-merge-gettext:
+join-i18n:
 	xgettext --default-domain=translate \
-		--output=sys/i18n/locale/translate.pot \
+		--output=$(I18N_LOCATION)/translate.pot \
 		--language=Scheme \
 		--keyword=G_ \
 		--sort-by-file \
 		--join-existing \
-		--copyright-holder="Josep Bigorra & Mu Lei" \
+		--copyright-holder=$(COPYRIGHT_HOLDERS) \
 		--package-name="byggsteg" \
 		lib/byggsteg/job/*.scm \
 		lib/byggsteg/*.scm \
@@ -93,11 +131,11 @@ merge-gettext:
 		app/api/*.scm \
 		--from-code UTF-8
 
-init-po-nl:
-	msginit -l nl_NL.UTF8 -o sys/i18n/locale/nl_NL/LC_MESSAGES/translate.po -i sys/i18n/locale/translate.pot --no-translator
-init-po-en:
-	msginit -l en_US.UTF8 -o sys/i18n/locale/en_US/LC_MESSAGES/translate.po -i sys/i18n/locale/translate.pot --no-translator
-merge-po-nl:
-	msgmerge -U sys/i18n/locale/nl_NL/LC_MESSAGES/translate.po sys/i18n/locale/translate.pot
-merge-po-en:
-	msgmerge -U sys/i18n/locale/en_US/LC_MESSAGES/translate.po sys/i18n/locale/translate.pot
+init-i18n-nl:
+	$(call byggsteg-msginit,"nl_NL")
+init-i18n-en:
+	$(call byggsteg-msginit,"en_US")
+merge-i18n-nl:
+	msgmerge -U $(I18N_LOCATION)/nl_NL/LC_MESSAGES/translate.po $(I18N_LOCATION)/translate.pot
+merge-i18n-en:
+	$(call byggsteg-merge,"en_US")
