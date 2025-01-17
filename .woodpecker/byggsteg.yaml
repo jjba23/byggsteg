@@ -6,7 +6,7 @@ steps:
         branch: [trunk]        
     secrets: [BYGGSTEG_KEY]    
     commands: |
-      apt update && apt upgrade -y
+      apt update
       apt install -y curl
       curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
         -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
