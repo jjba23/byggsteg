@@ -86,6 +86,7 @@ define byggsteg-xgettext
 		app/controllers/*.scm \
 		app/views/*.scm \
 		app/api/*.scm \
+		ENTRY \
 		--from-code UTF-8
 endef
 
