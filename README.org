@@ -1,5 +1,5 @@
 #+title: byggsteg
-#+options: toc:nil num:nil
+#+options: num:nil
 
 /byggsteg/ means "build step" in the Norwegian language, and is a CI/CD orchestrator written in Guile Scheme.
 
@@ -78,7 +78,7 @@ You should either pass a string or a list of strings of job names.
 
 As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
 
-** Auth
+** Authentication
 
 Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles.
 
@@ -199,6 +199,16 @@ MFL has write permissions to all branches (except trunk) and can open PRs.
 *** Other contributors
 Other contributors must fork byggsteg and create a pull request to contribute back.
 After productive collaboration other kinds of roles can be added and assigned.
+
+** Translation effort
+
+byggsteg is a community driven effort and as such, can use your help in translating to several different languages.
+
+*** English language (en_US)
+100% translated
+
+*** Dutch language (nl_NL)
+100% translated
 
 ** Ongoing efforts
 
