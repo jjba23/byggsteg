@@ -39,18 +39,18 @@
                                    #:condition (where #:job_in_progress 1)
                                    #:order-by '(created_at asc)))
            (logs-of-in-progress (cond
-                                 ((nil? jobs-in-progress)
-                                  '())
-                                 (else ($log 'get
-                                             #:ret 'all
-                                             #:condition (where #:job_id (map (lambda 
-                                                                                  (j)
-                                                                                
-                                                                                
-                                                                                (assoc-ref
-                                                                                 j
-                                                                                 "id"))
-                                                                              jobs-in-progress))))))
+                                  ((nil? jobs-in-progress)
+                                   '())
+                                  (else ($log 'get
+                                              #:ret 'all
+                                              #:condition (where #:job_id (map (lambda 
+                                                                                       (j)
+                                                                                 
+                                                                                 
+                                                                                 (assoc-ref
+                                                                                  j
+                                                                                  "id"))
+                                                                           jobs-in-progress))))))
            (job-log-map (map (lambda (l)
                                `(,(assoc-ref l "job_id") unquote l))
                              logs-of-in-progress)))
@@ -71,69 +71,62 @@ byggsteg worker will sleep for ~a seconds
 (begin
   (define* (run-pipeline-task #:key project branch-name clone-url task)
     (cond
-     ;; Stack test + sdist
-     ((equal? task
-              "stack-test")
-      (stack-step #:project project
-                  #:branch-name branch-name
-                  #:clone-url clone-url
-                  #:stack-task "test")
-      (stack-step #:project project
-                  #:branch-name branch-name
-                  #:clone-url clone-url
-                  #:stack-task "sdist --tar-dir ."))
+      ;; Stack test + sdist
+      ((equal? task "stack-test")
+       (stack-step #:project project
+                   #:branch-name branch-name
+                   #:clone-url clone-url
+                   #:stack-task "test")
+       (stack-step #:project project
+                   #:branch-name branch-name
+                   #:clone-url clone-url
+                   #:stack-task "sdist --tar-dir ."))
 
-     ;; Stack build + sdist
-     ((equal? task
-              "stack-build")
-      (stack-step #:project project
-                  #:branch-name branch-name
-                  #:clone-url clone-url
-                  #:stack-task "build")
-      (stack-step #:project project
-                  #:branch-name branch-name
-                  #:clone-url clone-url
-                  #:stack-task "sdist --tar-dir ."))
+      ;; Stack build + sdist
+      ((equal? task "stack-build")
+       (stack-step #:project project
+                   #:branch-name branch-name
+                   #:clone-url clone-url
+                   #:stack-task "build")
+       (stack-step #:project project
+                   #:branch-name branch-name
+                   #:clone-url clone-url
+                   #:stack-task "sdist --tar-dir ."))
 
-     ;; Byggsteg version update
-     ((equal? task
-              "byggsteg-version")
-      (byggsteg-version-step #:project project
-                             #:branch-name branch-name
-                             #:clone-url clone-url))
+      ;; Byggsteg version update
+      ((equal? task "byggsteg-version")
+       (byggsteg-version-step #:project project
+                              #:branch-name branch-name
+                              #:clone-url clone-url))
 
-     ;; Nix generic build
-     ((equal? task
-              "nix-build")
-      (nix-build-step #:project project
+      ;; Nix generic build
+      ((equal? task "nix-build")
+       (nix-build-step #:project project
+                       #:branch-name branch-name
+                       #:clone-url clone-url))
+
+      ;; Herd pull and restart
+      ((equal? task "pull-and-restart")
+       (pull-and-restart-step #:project project
+                              #:branch-name branch-name
+                              #:clone-url clone-url))
+
+      ;; Scala SBT test
+      ((equal? task "sbt-test")
+       (sbt-test-step #:project project
                       #:branch-name branch-name
                       #:clone-url clone-url))
 
-     ;; Herd pull and restart
-     ((equal? task
-              "pull-and-restart")
-      (pull-and-restart-step #:project project
+      ;; Pull and make deploy
+      ((equal? task "pull-and-deploy")
+       (pull-and-deploy-step #:project project
                              #:branch-name branch-name
                              #:clone-url clone-url))
 
-     ;; Scala SBT test
-     ((equal? task
-              "sbt-test")
-      (sbt-test-step #:project project
-                     #:branch-name branch-name
-                     #:clone-url clone-url))
-
-     ;; Pull and make deploy
-     ((equal? task
-              "pull-and-deploy")
-      (pull-and-deploy-step #:project project
-                            #:branch-name branch-name
-                            #:clone-url clone-url))
-
-     ;; Otherwise attempt generic `make build'
-     (else (make-build-step #:project project
-                            #:branch-name branch-name
-                            #:clone-url clone-url))))
+      ;; Otherwise attempt generic `make build'
+      (else (make-build-step #:project project
+                             #:branch-name branch-name
+                             #:clone-url clone-url))))
   (export run-pipeline-task))
 
 (begin
@@ -151,24 +144,30 @@ byggsteg worker will sleep for ~a seconds
            (task-or-tasks (assoc-ref kv
                                      'task))
            (tasks (cond
-                   ((list? task-or-tasks) task-or-tasks)
-                   ((string? task-or-tasks) (list task-or-tasks))
-                   (else task-or-tasks))))
+                    ((list? task-or-tasks)
+                     task-or-tasks)
+                    ((string? task-or-tasks)
+                     (list task-or-tasks))
+                    (else task-or-tasks))))
       
       (let* ((o (with-output-to-string (lambda ()
                                          (display (format #f "\n~a...\n"
-                                                          (gettext "starting new job")))
+                                                          (gettext
+                                                           "starting new job")))
 
                                          (clone-repo-step #:project project
-                                                          #:branch-name branch-name
-                                                          #:clone-url clone-url)
-                                         (for-each (lambda(task)
-                                                     (run-pipeline-task #:project project
-                                                                        #:branch-name branch-name
-                                                                        #:clone-url clone-url
-                                                                        #:task task)) tasks))))
+                                                          #:branch-name
+                                                          branch-name
+                                                          #:clone-url
+                                                          clone-url)
+                                         (for-each (lambda (task)
+                                                     (run-pipeline-task
+                                                      #:project project
+                                                      #:branch-name
+                                                      branch-name
+                                                      #:clone-url clone-url
+                                                      #:task task)) tasks))))
              (new-log-data (string-append old-log-data "\n" o)))
-
         
         (display o)
 

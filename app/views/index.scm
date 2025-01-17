@@ -72,7 +72,8 @@
   `(div (form (@ (action "/preferences/locale")
                  (method "POST")
                  (class "flex flex-row gap-4 flex-wrap"))
-              (select (@ (name "user-lang")(class ,input-face))
+              (select (@ (name "user-lang")
+                         (class ,input-face))
                       (option (@ (value "en_US")) "English")
                       (option (@ (value "nl_NL")) "Nederlands"))
               (button (@ (type "submit")
@@ -85,17 +86,18 @@
                                             (G_ "welcome to byggsteg"))
                             #:body `((div (h2 (@ (class ,h2-face))
                                               ,(G_ "welcome to byggsteg")))
-                                     (div (@(class "py-3"))
+                                     (div (@ (class "py-3"))
                                           ,(locale-choose-form))
                                      (div (@ (class
-                                               "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
+                                              "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
                                           (div (@ (class "max-w-prose"))
                                                (span (@ (class
-                                                          "text-stone-300 text-sm"))
-                                                     ,(G_ "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction")))
+                                                         "text-stone-300 text-sm"))
+                                                     ,(G_
+                                                       "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction")))
                                           (div (img (@ (class "w-48 h-auto")
                                                        (src
                                                         "/img/byggsteg-logo.png")))))
-                                     
+
                                      ,(job-type-expl G_)))))
 

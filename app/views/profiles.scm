@@ -39,15 +39,15 @@
          (G_ (:i18n rc)))
     (byggsteg-html-template #:title "byggsteg"
                             #:body `((div (@ (class
-                                               "flex flex-row flex-wrap align-center gap-6 px-3"))
+                                              "flex flex-row flex-wrap align-center gap-6 px-3"))
                                           (h2 (@ (class ,h2-face))
                                               ,(G_ "profile details"))
                                           (h3 (@ (class
-                                                   "text-stone-300 text-xl"))
+                                                  "text-stone-300 text-xl"))
                                               ,profile-name))
                                      
                                      (div (@ (class
-                                               "flex flex-row flex-wrap gap-4"))
+                                              "flex flex-row flex-wrap gap-4"))
                                           (form (@ (method "POST")
                                                    (action
                                                     "/jobs/manage/submit")
@@ -75,9 +75,9 @@
                                                           (required "")
                                                           (hidden "")
                                                           (value ,(assoc-ref p
-                                                                             "id"))
+                                                                   "id"))
                                                           (class
-                                                            "rounded-xl border font-mono p-2")))
+                                                           "rounded-xl border font-mono p-2")))
                                                 (button (@ (type "submit")
                                                            (class ,danger-button-face))
                                                         ,(G_ "delete"))))
@@ -111,7 +111,7 @@
                             #:body `((h2 (@ (class ,h2-face))
                                          ,(G_ "profiles"))
                                      (div (@ (class
-                                               "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
+                                              "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
                                           ,profiles-html)))))
 
 (define-public (make-profile-link profile)

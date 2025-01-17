@@ -36,11 +36,11 @@
               (job-ids (map (lambda (l)
                               (assoc-ref l "job_id")) logs))
               (jobs (cond
-                     ((not (nil? job-ids))
-                      ($job 'get
-                            #:ret 'all
-                            #:condition (where #:id job-ids)))
-                     (else '())))
+                      ((not (nil? job-ids))
+                       ($job 'get
+                             #:ret 'all
+                             #:condition (where #:id job-ids)))
+                      (else '())))
               (job-map (map (lambda (j)
                               (list (assoc-ref j "id") j)) jobs))
 
@@ -51,7 +51,7 @@
                                  logs)))
          
          (response-emit (:mime rc
-                         (logs-page rc jobs-of-logs logs))))))
+                               (logs-page rc jobs-of-logs logs))))))
 
 (get "/logs/:id"
      #:mime 'xml
@@ -64,5 +64,6 @@
                        #:ret 'top
                        #:condition (where #:id (assoc-ref (car l) "job_id")))))
          (response-emit (:mime rc
-                         (log-page rc (car j)
-                                   (car l)))))))
+                               (log-page rc
+                                         (car j)
+                                         (car l)))))))
