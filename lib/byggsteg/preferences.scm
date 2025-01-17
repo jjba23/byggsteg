@@ -22,7 +22,7 @@
   #:use-module (ice-9 string-fun))
 
 (define-public job-clone-location
-  "/var/log/byggsteg/job-clone/")
+  "/etc/byggsteg/job-clone/")
 
 (define-public job-time-format
   "%H:%M:%S__%d-%m-%Y")

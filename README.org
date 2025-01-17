@@ -141,7 +141,7 @@ An example shepherd service for byggsteg could look like this:
                             (requirement '())
                             (start #~(make-forkexec-constructor '("make" "production-server")
                                       #:directory
-                                      "/var/log/byggsteg/job-clone/byggsteg/trunk"
+                                      "/etc/byggsteg/job-clone/byggsteg/trunk"
                                       #:environment-variables
                                       (list
                                        "GUILE_LOAD_PATH=/run/current-system/profile/share/guile/site/3.0"
@@ -151,7 +151,6 @@ An example shepherd service for byggsteg could look like this:
                                        "LIBRARY_PATH=/run/current-system/profile/lib"
                                        "GIT_SSL_NO_VERIFY=1"
                                        "LANG=nl_NL.UTF-8"
-                                       "PWD=/var/log/byggsteg/job-clone/byggsteg/trunk"
                                        "PATH=/run/privileged/bin:/run/current-system/profile/bin:/run/current-system/profile/sbin")))
                             (stop #~(make-kill-destructor))
                             (auto-start? #t)

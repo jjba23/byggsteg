@@ -16,44 +16,59 @@
 # You should have received a copy of the GNU General Public License
 # along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
+BYGGSTEG_LOCATION=/etc/byggsteg
+BYGGSTEG_DB=byggsteg.db
 
-.PHONY: prepare-dirs clean-dirs create server
+.PHONY: dir-install dir-uninstall dev server production-server fmt rebuild-db compile-gettext new-gettext merge-gettext init-po-nl init-po-en merge-po-nl merge-po-en
 
-prepare-dirs:
-	mkdir -p /var/log/byggsteg || true
-	mkdir -p /var/log/byggsteg/job-clone || true
-clean-dirs:
-	rm -rfv /var/log/byggsteg/* || true
-create:
-	sudo mkdir /var/log/byggsteg || true
-	sudo chown $(shell whoami) /var/log/byggsteg
+define byggsteg-log-info
+	@printf "\n\033[1m>>= $(shell date) - info - %s\033[0m\n" $(1)
+endef
+
+define byggsteg-notify
+	@-notify-send $(1)
+endef
+
+dir-install:
+	$(call sss-log-info,"preparing directories for byggsteg")
+	sudo mkdir -pv $(BYGGSTEG_LOCATION)/job-clone || true
+	sudo chown -R $(shell whoami) $(BYGGSTEG_LOCATION)
+dir-uninstall:
+	$(call sss-log-info,"cleaning byggsteg installation")
+	rm -rfv $(BYGGSTEG_LOCATION)/* || true
 dev:
+	$(call sss-log-info,"starting development server for byggsteg")
 	watchexec -i "dist/**" -r -e scm,css,js -- "make server"
 server:
+	$(call sss-log-info,"starting byggsteg server")
 	art work
 production-server:
 	art work -c conf/production.conf
 fmt:
 	find . -maxdepth 8 -name "*.scm" -type f -exec guix style -f {} \;
-rebuild-db:
-	-rm byggsteg.db
-	-rm byggsteg.db-shm
-	-rm byggsteg.db-wal
-	touch byggsteg.db
-	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
-compile-gettext:
-	msgfmt -v -o sys/i18n/locale/en_US/LC_MESSAGES/translate.mo sys/i18n/locale/en_US/LC_MESSAGES/translate.po
-	msgfmt -v -o sys/i18n/locale/nl_NL/LC_MESSAGES/translate.mo sys/i18n/locale/nl_NL/LC_MESSAGES/translate.po
 
-#		--join-existing 
-extract-gettext:
+# Initialize a new database and enable WAL mode for higher concurrent writes to SQLite 3
+rebuild-db:
+	-rm -v $(BYGGSTEG_DB) $(BYGGSTEG_DB)-shm $(BYGGSTEG_DB)-wal
+	touch 
+	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
+
+define byggsteg-msgfmt
+	msgfmt -v -o sys/i18n/locale/$(1)/LC_MESSAGES/translate.mo \
+		sys/i18n/locale/$(1)/LC_MESSAGES/translate.po
+endef
+
+compile-gettext:
+	$(call byggsteg-msgfmt "en_US")
+	$(call byggsteg-msgfmt "nl_NL")
+
+new-gettext:
 	xgettext --default-domain=translate \
 		--output=sys/i18n/locale/translate.pot \
 		--language=Scheme \
 		--keyword=G_ \
 		--sort-by-file \
-		--join-existing \
-		--copyright-holder="Josep Bigorra & Roy Mu" \
+		--copyright-holder="Josep Bigorra & Mu Lei" \
 		--package-name="byggsteg" \
 		lib/byggsteg/job/*.scm \
 		lib/byggsteg/*.scm \
@@ -61,6 +76,23 @@ extract-gettext:
 		app/views/*.scm \
 		app/api/*.scm \
 		--from-code UTF-8
+
+merge-gettext:
+	xgettext --default-domain=translate \
+		--output=sys/i18n/locale/translate.pot \
+		--language=Scheme \
+		--keyword=G_ \
+		--sort-by-file \
+		--join-existing \
+		--copyright-holder="Josep Bigorra & Mu Lei" \
+		--package-name="byggsteg" \
+		lib/byggsteg/job/*.scm \
+		lib/byggsteg/*.scm \
+		app/controllers/*.scm \
+		app/views/*.scm \
+		app/api/*.scm \
+		--from-code UTF-8
+
 init-po-nl:
 	msginit -l nl_NL.UTF8 -o sys/i18n/locale/nl_NL/LC_MESSAGES/translate.po -i sys/i18n/locale/translate.pot --no-translator
 init-po-en:
