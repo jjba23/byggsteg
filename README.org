@@ -57,6 +57,8 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
       (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
+-----
+
 ** Types of jobs
 
 When defining a pipeline alist, the task field can be either a single step, or multiple.
@@ -122,6 +124,18 @@ You can query for the job status via the UI or also via the REST API. You could 
   # }
 #+end_src
 
+** Licensing
+
+byggsteg is licensed under the GNU GPL v3 License or newer.
+
+** Performance
+
+byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
+
+[[file:docs/BENCHMARKS.org][See some of byggsteg's benchmarks here]]
+
+-----
+
 ** Using
 
 You can run byggsteg server by calling ~art work~ from the root directory. Refer to the ~Makefile~ for more convenient commands and variations.
@@ -167,38 +181,32 @@ An example shepherd service for byggsteg could look like this:
     ;; then load it with (service byggsteg-service-type)
 #+end_src
 
-
-
-** Licensing
-
-byggsteg is licensed under the GNU GPL v3 License or newer.
-
-** Performance
-
-byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
-
-[[file:docs/BENCHMARKS.org][See some of byggsteg's benchmarks here]]
-
+-----
 
 ** Code owners
 
 The project's main branch is ~trunk~. Find a list of roles and people involved in the project.
 
-*** BDFL (Benevolent Dictator For Life)
+*BDFL (Benevolent Dictator For Life*
+
 @jjba23 - Josep Bigorra <jjbigorra@gmail.com>
 
 Only BDFL can merge PRs.
 Only BDFL is allowed to push directly to ~trunk~ in case a quick fix is needed.
 
-*** MFL (Maintainer For Life)
+*MFL (Maintainer For Life)*
+
 @NalaGinrut - Roy Mu <NalaGinrut@hardenedlinux.org>
 
 MFL can ascend to BDFL after extensive productive collaboration.
 MFL has write permissions to all branches (except trunk) and can open PRs.
 
-*** Other contributors
+*Other contributors*
+
 Other contributors must fork byggsteg and create a pull request to contribute back.
 After productive collaboration other kinds of roles can be added and assigned.
+
+-----
 
 ** Translation effort
 
@@ -210,55 +218,6 @@ byggsteg is a community driven effort and as such, can use your help in translat
 *** Dutch language (nl_NL)
 100% translated
 
-** Ongoing efforts
+** Project management
 
-**** WIP Feature parity (bring all functionalities to REST JSON)
-
-** Project backlog
-
-**** TODO job-code that users send to byggsteg should not be ~eval~ directly but rather in a sandbox, using ~(ice-9 sandbox)~ capabilities.
-
-**** TODO add comprehensive unit and integration tests
-
-**** TODO Add notifications upon success or errors as balloons/banners via URL params
-
-**** TODO Make certain values more configurable, like worker sleep time, etc.
-
-**** TODO Be explicit about other projects/libraries used to make byggsteg and their licenses
-
-**** TODO Consider using gettext for internationalization and localization, or improve existing setup, or wait for Artanis to provide i18n
-
-**** TODO Add REPL interface via website, to allow hot-modifications
-
-
-** ✅ Work done
-
-**** DONE Migrate to SQLite
-CLOSED: [2024-12-31 di 15:19]
-
-**** DONE Add correct copyright and license header to all source code files
-CLOSED: [2024-12-31 di 15:19]
-
-**** DONE Hot reload server
-CLOSED: [2024-12-30 ma 14:55]
-
-**** DONE Move to using base64 for URLs and payloads instead of base16
-CLOSED: [2024-12-30 ma 14:55]
-
-**** DONE Allow user to send Guile Scheme over the wire and define his/her own pipeline in a ~progn~ fashion.
-CLOSED: [2024-10-03 do 13:24]
-
-**** DONE Concurrency primitives and usage
-CLOSED: [2024-10-01 di 00:23]
-
-**** DONE Split codebase into separate modules
-CLOSED: [2024-09-28 za 12:17]
-
-**** DONE Implement basic internationalization
-CLOSED: [2024-10-05 za 14:34]
-
-**** DONE Migration to GNU Artanis
-CLOSED: [2024-12-02 ma 14:24]
-
-**** DONE Improve JSON support
-CLOSED: [2024-12-02 ma 17:07]
+Find the [[file:docs/MANAGEMENT.org][project management of byggsteg here]].
