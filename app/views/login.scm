@@ -58,7 +58,8 @@
                                         (class ,button-face))
                                      ,(G_ "login"))))))
     
-    (byggsteg-html-template #:title "byggsteg"
+    (byggsteg-html-template G_
+                            #:title "byggsteg"
                             #:body `((div (@ (class "px-3 py-3"))
                                           ,login-html)))))
 

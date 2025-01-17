@@ -33,36 +33,10 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 
-(define-public (job-form G_ route is-profile)
-  `(form (@ (method "POST")
-            (action ,route)
-            (enctype "application/x-www-form-urlencoded")
-            (charset "utf-8")
-            (class "flex flex-col justify-center gap-4"))
-
-         ,(maybe-profile-name is-profile)
-
-         (p (@ (class "flex flex-row flex-wrap gap-4"))
-            (span (@ (class "text-stone-400 text-sm"))
-                  ,(G_ "learn writing a byggsteg pipeline"))
-            (a (@ (class ,link-face)
-                  (href "https://codeberg.org/jjba23/byggsteg"))
-               "https://codeberg.org/jjba23/byggsteg"))
-
-         (label (@ (for "job-code")
-                   (class ,label-face)) "job code:")
-         (textarea (@ (id "job-code")
-                      (name "job-code")
-                      (required "")
-                      (class ,textarea-face)) "")
-
-         (button (@ (type "submit")
-                    (class ,button-face))
-                 ,(gettext "submit"))))
-
 (define-public (job-request-form-page rc)
   (let* ((G_ (:i18n rc)))
-    (byggsteg-html-template #:title "byggsteg"
+    (byggsteg-html-template G_
+                            #:title "byggsteg"
                             #:body `((h2 (@ (class ,h2-face))
-                                         ,(gettext "run job"))
+                                         ,(G_ "run job"))
                                      ,(job-form G_ "/jobs/manage/submit" #f)))))

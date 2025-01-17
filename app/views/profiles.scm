@@ -37,7 +37,8 @@
   (let* ((profile-name (safe-base64-decode (assoc-ref p "human_id")))
          (profile-data (safe-base64-decode (assoc-ref p "profile_data")))
          (G_ (:i18n rc)))
-    (byggsteg-html-template #:title "byggsteg"
+    (byggsteg-html-template G_
+                            #:title "byggsteg"
                             #:body `((div (@ (class
                                               "flex flex-row flex-wrap align-center gap-6 px-3"))
                                           (h2 (@ (class ,h2-face))
@@ -99,27 +100,21 @@
 
 (define-public (add-profile-form-page rc)
   (let* ((G_ (:i18n rc)))
-    (byggsteg-html-template #:title "byggsteg"
+    (byggsteg-html-template G_
+                            #:title "byggsteg"
                             #:body `((h2 (@ (class ,h2-face))
                                          ,(G_ "new profile"))
-                                     ,(job-form "/profiles/manage/submit" #t)))))
+                                     ,(job-form G_ "/profiles/manage/submit"
+                                                #t)))))
 
 (define-public (profile-list-page rc profiles)
   (let* ((profiles-html (map make-profile-link profiles))
          (G_ (:i18n rc)))
-    (byggsteg-html-template #:title "byggsteg"
+    (byggsteg-html-template G_
+                            #:title "byggsteg"
                             #:body `((h2 (@ (class ,h2-face))
                                          ,(G_ "profiles"))
                                      (div (@ (class
                                               "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
                                           ,profiles-html)))))
 
-(define-public (make-profile-link profile)
-  (let* ((profiles-link (format #f "/profiles/~a"
-                                (assoc-ref profile "id"))))
-    `((div (@ (class "flex flex-col gap-2"))
-           (a (@ (class ,dash-link-face)
-                 (href ,profiles-link))
-              ,(string-append "~>  "
-                              (safe-base64-decode (assoc-ref profile
-                                                             "human_id"))))))))

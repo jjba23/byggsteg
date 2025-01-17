@@ -72,7 +72,8 @@
                                           (class ,danger-button-face))
                                        ,(G_ "delete")))))
     
-    (byggsteg-html-template #:title "byggsteg"
+    (byggsteg-html-template G_
+                            #:title "byggsteg"
                             #:body `((div (@ (class
                                               "flex flex-row flex-wrap align-middle gap-6 py-3 px-3"))
                                           (h2 (@ (class ,h2-face))
@@ -139,29 +140,6 @@
                                           ,log-data))
                             #:should-auto-refresh #t)))
 
-(define-public (make-job-link G_ job log)
-  (let* ((log-filename (safe-base64-decode (assoc-ref log "human_id")))
-         (logs-link (format #f "~a/logs/~a"
-                            (current-myhost)
-                            (assoc-ref log "id")))
-         (success (assoc-ref (car job) "job_success"))
-         (failure (assoc-ref (car job) "job_failed"))
-         (job-status (cond
-                       ((equal? success 1)
-                        `(h2 (@ (class "text-green-700 text-sm font-mono"))
-                             ,(G_ "job succeeded")))
-                       ((equal? failure 1)
-                        `(h2 (@ (class "text-red-700 text-sm font-mono"))
-                             ,(G_ "job failed")))
-                       (else `(h2 (@ (class "text-sky-600 text-sm font-mono"))
-                                  ,(G_ "job in progress"))))))
-    `((div (@ (class "flex flex-col gap-1"))
-           (a (@ (class ,dash-link-face)
-                 (href ,logs-link))
-              ,(string-append "~>  " log-filename))
-           (div (@ (class "ml-4"))
-                ,job-status)))))
-
 (define-public (logs-page rc jobs-of-logs logs)
   (let* ((G_ (:i18n rc))
          (jobs-html (map (lambda (l)
@@ -169,11 +147,12 @@
                                           (car (assoc-ref jobs-of-logs
                                                           (assoc-ref l "id")))
                                           l)) logs)))
-    (byggsteg-html-template #:title "byggsteg"
+    (byggsteg-html-template G_
+                            #:title "byggsteg"
                             #:body `((div (@ (class
-                                               "w-full flex flex-col gap-4 align-center"))
+                                              "w-full flex flex-col gap-4 align-center"))
                                           (h2 (@ (class ,h2-face)) "jobs")
                                           (div (@ (class
-                                                    "rounded-xl bg-stone-800 flex flex-col gap-4 py-4 px-2"))
+                                                   "rounded-xl bg-stone-800 flex flex-col gap-4 py-4 px-2"))
                                                ,jobs-html)))
                             #:should-auto-refresh #t)))
