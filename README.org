@@ -212,11 +212,8 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 byggsteg is a community driven effort and as such, can use your help in translating to several different languages.
 
-*** English language (en_US)
-100% translated
-
-*** Dutch language (nl_NL)
-100% translated
+- English language (en_US) :: 100% translated
+- Dutch language (nl_NL) :: 100% translated
 
 ** Project management
 
