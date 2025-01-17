@@ -39,20 +39,56 @@ endef
 
 # i18n helpers
 
+# Define a function for compiling the translation file (.po) into a machine-readable (.mo) format
+# Arguments: $(1) represents the language code (e.g., "en_US", "nl_NL", etc.)
+# Use msgfmt to compile the .po file into a .mo file for the specified language
+# The output .mo file will be placed in the LC_MESSAGES directory under the language's folder
 define byggsteg-msgfmt
 	msgfmt -v -o $(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.mo \
 		$(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.po
 endef
 
+# Define a function to initialize a new translation file from a template (.pot) for a specific language
+# Arguments: $(1) represents the language code (e.g., "en_US", "nl_NL", etc.)
+# Use msginit to generate a .po file from the .pot template for the specified language
+# The -l option sets the language, and --no-translator means no translator is pre-filled in the .po file
+# The generated .po file is placed in the LC_MESSAGES directory for the given language
 define byggsteg-msginit
 	msginit -l $(1).UTF8 -o $(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.po \
 		-i $(I18N_LOCATION)/translate.pot --no-translator
 endef
 
+# Define a function to merge translation updates from the template (.pot) into an existing .po file
+# Arguments: $(1) represents the language code (e.g., "en_US", "nl_NL", etc.)
+# Use msgmerge to update the specified language's .po file with new translations from the template (.pot)
+# The -U flag updates the .po file in place
+# This ensures the .po file stays up-to-date with the latest changes in the template
 define byggsteg-merge
 	msgmerge -U $(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.po \
 		$(I18N_LOCATION)/translate.pot
 endef
+
+# Define a function to extract translatable strings from Scheme source files using xgettext
+# Arguments: $(1) should be either "--join-existing" for updating template
+#   or "" to start from scratch.
+# Run xgettext to extract strings marked for translation from Scheme source files
+define byggsteg-xgettext
+	xgettext --default-domain=translate \
+		--output=$(I18N_LOCATION)/translate.pot \
+		--language=Scheme \
+		--keyword=G_ \
+		--sort-by-file \
+		$(1) \
+		--copyright-holder=$(COPYRIGHT_HOLDERS) \
+		--package-name="byggsteg" \
+		lib/byggsteg/job/*.scm \
+		lib/byggsteg/*.scm \
+		app/controllers/*.scm \
+		app/views/*.scm \
+		app/api/*.scm \
+		--from-code UTF-8
+endef
+
 
 # Target to prepare directories for the byggsteg project
 # Create the necessary directory for job cloning, if it doesn't exist
@@ -96,46 +132,27 @@ rebuild-db:
 	touch 
 	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
 
+# Compile translation files to .mo files
 compile-i18n:
 	$(call byggsteg-msgfmt "en_US")
 	$(call byggsteg-msgfmt "nl_NL")
 
+# Create new i18n template from source code
 new-i18n:
-	xgettext --default-domain=translate \
-		--output=$(I18N_LOCATION)/translate.pot \
-		--language=Scheme \
-		--keyword=G_ \
-		--sort-by-file \
-		--copyright-holder=$(COPYRIGHT_HOLDERS) \
-		--package-name="byggsteg" \
-		lib/byggsteg/job/*.scm \
-		lib/byggsteg/*.scm \
-		app/controllers/*.scm \
-		app/views/*.scm \
-		app/api/*.scm \
-		--from-code UTF-8
+	$(call byggsteg-xgettext,"")
 
+# Update i18n template from source code
 join-i18n:
-	xgettext --default-domain=translate \
-		--output=$(I18N_LOCATION)/translate.pot \
-		--language=Scheme \
-		--keyword=G_ \
-		--sort-by-file \
-		--join-existing \
-		--copyright-holder=$(COPYRIGHT_HOLDERS) \
-		--package-name="byggsteg" \
-		lib/byggsteg/job/*.scm \
-		lib/byggsteg/*.scm \
-		app/controllers/*.scm \
-		app/views/*.scm \
-		app/api/*.scm \
-		--from-code UTF-8
+	$(call byggsteg-xgettext,"--join-existing")
 
-init-i18n-nl:
-	$(call byggsteg-msginit,"nl_NL")
+# en_US - English language targets
 init-i18n-en:
 	$(call byggsteg-msginit,"en_US")
-merge-i18n-nl:
-	msgmerge -U $(I18N_LOCATION)/nl_NL/LC_MESSAGES/translate.po $(I18N_LOCATION)/translate.pot
 merge-i18n-en:
 	$(call byggsteg-merge,"en_US")
+
+# nl_NL - Dutch language targets
+init-i18n-nl:
+	$(call byggsteg-msginit,"nl_NL")
+merge-i18n-nl:
+	$(call byggsteg-merge,"nl_NL")
