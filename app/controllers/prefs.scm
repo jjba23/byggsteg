@@ -43,5 +43,3 @@
                          (string->uri (format #f "~a/"
                                               (current-myhost))))))
         (do-pref)))
-
-;; sid=ee1fffe998a9cb0e; Expires=Thu, 13 Feb 2025 14:04:30 GMT; Path=/; HttpOnly

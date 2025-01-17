@@ -37,13 +37,14 @@
   #:use-module (ice-9 threads))
 
 (begin
-  (define* (byggsteg-html-template G_ #:key title body
+  (define* (byggsteg-html-template G_
+                                   #:key title body
                                    (should-auto-refresh #f))
     (let ((maybe-auto-refresh (cond
-                               ((equal? should-auto-refresh #t)
-                                `(meta (@ (content "10")
-                                          (http-equiv "refresh")) ()))
-                               (else `())))
+                                ((equal? should-auto-refresh #t)
+                                 `(meta (@ (content "10")
+                                           (http-equiv "refresh")) ()))
+                                (else `())))
           ;; (maybe-auto-refresh `())
           )
       
@@ -77,16 +78,20 @@
              (a (@ (href "/")) "byggsteg"))
          (div (@ (class "flex flex-row flex-wrap items-center gap-4"))
               (a (@ (href "/logs")
-                    (class ,nav-button-face)) ,(G_ "logs"))
+                    (class ,nav-button-face))
+                 ,(G_ "logs"))
               (a (@ (href "/jobs/request")
-                    (class ,nav-button-face)) ,(G_ "run job"))
+                    (class ,nav-button-face))
+                 ,(G_ "run job"))
               (a (@ (href "/profiles")
                     (class ,nav-button-face))
                  ,(G_ "profiles"))
               (a (@ (href "/profiles/manage/create")
-                    (class ,nav-button-face)) ,(G_ "new profile"))
+                    (class ,nav-button-face))
+                 ,(G_ "new profile"))
               (a (@ (href "/login")
-                    (class ,nav-button-face)) ,(G_ "login"))))))
+                    (class ,nav-button-face))
+                 ,(G_ "login"))))))
 
 (define-public (page-footer G_)
   `((div (@ (class "block text-center font-mono py-3 px-5"))
@@ -97,7 +102,7 @@
             ,(G_
               "byggsteg is free software, available under the GNU GPL v3 or newer."))
          (div (@ (class
-                   "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
+                  "mt-4 flex flex-row flex-wrap gap-4 justify-center align-center"))
               (p (@ (class "text-sm text-stone-300"))
                  ,(G_ "find the source code here"))
               (a (@ (class ,link-face)
@@ -114,15 +119,15 @@
 
 (define-public (maybe-profile-name G_ is-profile)
   (cond
-   ((equal? is-profile #t)
-    `((label (@ (for "profile-name")
-                (class "text-stone-300 font-bold")) ,(G_ "profile name"))
-      (input (@ (id "profile-name")
-                (name "profile-name")
-                (required "")
-                (class ,input-face)))))
-   (else `())))
-
+    ((equal? is-profile #t)
+     `((label (@ (for "profile-name")
+                 (class "text-stone-300 font-bold"))
+              ,(G_ "profile name"))
+       (input (@ (id "profile-name")
+                 (name "profile-name")
+                 (required "")
+                 (class ,input-face)))))
+    (else `())))
 
 (define-public (locale-choose-form G_)
   `(div (form (@ (action "/preferences/locale")
@@ -171,14 +176,14 @@
          (success (assoc-ref (car job) "job_success"))
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
-                      ((equal? success 1)
-                       `(h2 (@ (class "text-green-700 text-sm font-mono"))
-                            ,(G_ "job succeeded")))
-                      ((equal? failure 1)
-                       `(h2 (@ (class "text-red-700 text-sm font-mono"))
-                            ,(G_ "job failed")))
-                      (else `(h2 (@ (class "text-sky-600 text-sm font-mono"))
-                                 ,(G_ "job in progress"))))))
+                       ((equal? success 1)
+                        `(h2 (@ (class "text-green-700 text-sm font-mono"))
+                             ,(G_ "job succeeded")))
+                       ((equal? failure 1)
+                        `(h2 (@ (class "text-red-700 text-sm font-mono"))
+                             ,(G_ "job failed")))
+                       (else `(h2 (@ (class "text-sky-600 text-sm font-mono"))
+                                  ,(G_ "job in progress"))))))
     `((div (@ (class "flex flex-col gap-1"))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
