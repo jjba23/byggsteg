@@ -72,24 +72,23 @@
              "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))
 
 (define-public (welcome-page rc)
-  (let ((G_ (:i18n rc)))
+  (let* ((G_ (:i18n rc))
+         (welcome-html `((div (h2 (@ (class ,h2-face))
+                                  ,(G_ "welcome to byggsteg")))
+                         (div (@ (class "py-3"))
+                              ,(locale-choose-form G_))
+                         (div (@ (class
+                                  "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
+                              (div (@ (class "max-w-prose"))
+                                   (span (@ (class "text-stone-300 text-sm"))
+                                         ,(G_
+                                           "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction")))
+                              (div (img (@ (class "w-48 h-auto")
+                                           (src "/img/byggsteg-logo.png")))))
+
+                         ,(job-type-expl G_))))
     (byggsteg-html-template G_
                             #:title (format #f "byggsteg - ~a"
                                             (G_ "welcome to byggsteg"))
-                            #:body `((div (h2 (@ (class ,h2-face))
-                                              ,(G_ "welcome to byggsteg")))
-                                     (div (@ (class "py-3"))
-                                          ,(locale-choose-form G_))
-                                     (div (@ (class
-                                              "rounded-xl bg-stone-800 p-4 flex flex-row flex-wrap gap-4 align-center"))
-                                          (div (@ (class "max-w-prose"))
-                                               (span (@ (class
-                                                         "text-stone-300 text-sm"))
-                                                     ,(G_
-                                                       "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction")))
-                                          (div (img (@ (class "w-48 h-auto")
-                                                       (src
-                                                        "/img/byggsteg-logo.png")))))
-
-                                     ,(job-type-expl G_)))))
+                            #:body welcome-html)))
 

@@ -38,6 +38,7 @@
          (login-html `((h2 (@ (class ,h2-face))
                            ,(G_ "login to byggsteg"))
                        (form (@ (action "/login")
+                                (enctype "application/x-www-form-urlencoded")
                                 (method "POST")
                                 (class "rounded-xl bg-stone-800 p-4"))
                              (div (@ (class

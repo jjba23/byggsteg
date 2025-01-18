@@ -131,6 +131,7 @@
 
 (define-public (locale-choose-form G_)
   `(div (form (@ (action "/preferences/locale")
+                 (enctype "application/x-www-form-urlencoded")
                  (method "POST")
                  (class "flex flex-row gap-4 flex-wrap"))
               (select (@ (name "user-lang")
@@ -200,3 +201,12 @@
               ,(string-append "~>  "
                               (safe-base64-decode (assoc-ref profile
                                                              "human_id"))))))))
+
+(begin
+  (define-syntax-rule (if-job-was-updated-html job html)
+    "Render HTML conditionally for jobs that contain updated_at field"
+    (cond
+      ((equal? (assoc-ref job "updated_at") #f)
+       '())
+      (else html)))
+  (export if-job-was-updated-html))

@@ -75,7 +75,7 @@
                  "min-h-64") " "))
 
 (define-public label-face
-  (string-join '("text-stone-300" "text-sm" "font-bold") " "))
+  (string-join '("text-stone-300" "text-sm" "font-bold" "py-2" "md:px-2") " "))
 
 (define-public hr-face
   (string-join '("my-6" "border-t-2" "border-t-stone-600") " "))
@@ -103,3 +103,15 @@
 (define-public link-face
   (string-join '("text-teal-500" "hover:text-teal-400" "font-bold"
                  "cursor-pointer" "text-sm") " "))
+
+;;
+;; Pre
+;;
+(define-public pre-face
+  (string-join '("rounded-xl" "bg-stone-800"
+                 "p-4"
+                 "my-6"
+                 "text-md"
+                 "text-stone-300"
+                 "white-space-pre"
+                 "overflow-x-scroll") " "))
