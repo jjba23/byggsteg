@@ -140,6 +140,8 @@ byggsteg is quite a performant implementation of a CI/CD system and the numbers 
 
 ** Using
 
+It is recommended to use tagged releases of byggsteg, as those are considered as stable by the developers.
+
 You can run byggsteg server by calling ~art work~ from the root directory. Refer to the ~Makefile~ for more convenient commands and variations.
 
 byggsteg exposes an HTML frontend (server-side-rendered SSR) and a REST API, and should be compatible with most UNIX like systems, but is best experiences with GNU Guix.
