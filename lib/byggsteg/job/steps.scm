@@ -101,7 +101,7 @@
                                      branch-name)))
       (do-in-clone-dir clone-dir
                        '("uname -a"))))
-  (export git-details-step))
+  (export sys-details-step))
 
 (begin
   (define* (clone-repo-step #:key project branch-name clone-url)
