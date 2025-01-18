@@ -78,7 +78,7 @@
   (string-join '("text-stone-300" "text-sm" "font-bold" "py-2" "md:px-2") " "))
 
 (define-public hr-face
-  (string-join '("my-6" "border-t-2" "border-t-stone-600") " "))
+  (string-join '("mx-8" "my-5" "border-t-2" "border-t-stone-600") " "))
 
 ;;
 ;; Headers
@@ -115,3 +115,11 @@
                  "text-stone-300"
                  "white-space-pre"
                  "overflow-x-scroll") " "))
+
+;;
+;; DL DD DT
+;;
+(define-public dt-face
+  (string-join '("text-stone-300" "text-sm") " "))
+(define-public dd-face
+  (string-join '("text-stone-400" "text-sm" "mb-2" "sm:ml-4") " "))

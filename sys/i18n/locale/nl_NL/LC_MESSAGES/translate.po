@@ -81,7 +81,7 @@ msgid ""
 msgstr ""
 "byggsteg heeft als doel de hackable continuous integration en delivery "
 "systeem, en dit laat ingenieurs sneller software leveren en met minder "
-"fractie"
+"frictie"
 
 #: app/views/jobs.scm:41 app/views/jobs.scm:67 lib/byggsteg/html.scm:82
 #: lib/byggsteg/html.scm:85
