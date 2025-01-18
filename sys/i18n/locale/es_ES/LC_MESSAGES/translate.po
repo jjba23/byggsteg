@@ -20,11 +20,11 @@ msgstr ""
 
 #: ENTRY:50
 msgid "initializing byggsteg queue worker"
-msgstr "inicializando la cola de trabajos de byggsteg"
+msgstr "inicializando el trabajador de cola de byggsteg"
 
 #: app/views/index.scm:39
 msgid "job types"
-msgstr "tipos de trabajos"
+msgstr "tipos de trabajo"
 
 #: app/views/index.scm:45
 msgid "Haskell project build and test with Stack + Hackage bundle"
@@ -75,7 +75,7 @@ msgid ""
 "allowing engineers to deliver software quicker and with less friction"
 msgstr ""
 "byggsteg tiene como objetivo ser el sistema de continuous integration / delivery hackeable, "
-"haciendo posible a ingenieros a sacar y publicar software mas rapido y con menos friccion"
+"haciendo posible a ingenieros a sacar y publicar software más rapido y con menos fricción"
 
 #: app/views/jobs.scm:41 app/views/jobs.scm:67 lib/byggsteg/html.scm:82
 #: lib/byggsteg/html.scm:85
@@ -93,7 +93,7 @@ msgstr "hecho"
 
 #: app/views/login.scm:39
 msgid "login to byggsteg"
-msgstr "iniciar sesion en byggsteg"
+msgstr "iniciar sesión en byggsteg"
 
 #: app/views/login.scm:47 app/views/login.scm:48
 msgid "username"
@@ -106,7 +106,7 @@ msgstr "contraseña"
 #: app/views/login.scm:59 app/views/login.scm:60 lib/byggsteg/html.scm:89
 #: lib/byggsteg/html.scm:94
 msgid "login"
-msgstr "inicia sesion"
+msgstr "inicia sesión"
 
 #: app/views/logs.scm:46 app/views/logs.scm:52 app/views/logs.scm:146
 #: app/views/logs.scm:152 lib/byggsteg/html.scm:176 lib/byggsteg/html.scm:182
@@ -116,12 +116,12 @@ msgstr "trabajo completado"
 #: app/views/logs.scm:49 app/views/logs.scm:55 app/views/logs.scm:149
 #: app/views/logs.scm:155 lib/byggsteg/html.scm:179 lib/byggsteg/html.scm:185
 msgid "job failed"
-msgstr "trabajo fallo"
+msgstr "trabajo falló"
 
 #: app/views/logs.scm:51 app/views/logs.scm:57 app/views/logs.scm:151
 #: app/views/logs.scm:157 lib/byggsteg/html.scm:181 lib/byggsteg/html.scm:187
 msgid "job in progress"
-msgstr "trabajo en progreso"
+msgstr "trabajo activo"
 
 #: app/views/logs.scm:73 app/views/profiles.scm:83 app/views/profiles.scm:84
 msgid "delete"
@@ -129,11 +129,11 @@ msgstr "borrar"
 
 #: app/views/logs.scm:77 app/views/logs.scm:79 app/views/logs.scm:80
 msgid "viewing logs"
-msgstr "viendo logs"
+msgstr "viendo registros"
 
 #: app/views/logs.scm:93
 msgid "started at"
-msgstr "empezo en"
+msgstr "empezó en"
 
 #: app/views/logs.scm:101
 msgid "updated at"
@@ -163,7 +163,7 @@ msgstr "perfiles"
 
 #: lib/byggsteg/html.scm:80 lib/byggsteg/html.scm:82
 msgid "logs"
-msgstr "logs"
+msgstr "registros"
 
 #: lib/byggsteg/html.scm:93 lib/byggsteg/html.scm:95 lib/byggsteg/html.scm:100
 msgid "byggsteg is the hackable Guile CI/CD system"
@@ -171,15 +171,15 @@ msgstr "byggsteg es el sistema CI/CD Guile hackeable"
 
 #: lib/byggsteg/html.scm:96 lib/byggsteg/html.scm:98 lib/byggsteg/html.scm:103
 msgid "byggsteg is free software, available under the GNU GPL v3 or newer."
-msgstr "byggsteg es software gratuito, disponible sobre la GNU GPL v3 o mas nueva"
+msgstr "byggsteg es software gratuito, disponible sobre la licencia GNU GPL v3 o mas nueva"
 
 #: lib/byggsteg/html.scm:102 lib/byggsteg/html.scm:107
 msgid "find the source code here"
-msgstr "encuentra el codigo fuente aqui"
+msgstr "encuentra el código fuente aquí"
 
 #: lib/byggsteg/html.scm:107 lib/byggsteg/html.scm:112
 msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS"
-msgstr "hecho posible por Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS"
+msgstr "hecho posible gracias a Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS"
 
 #: lib/byggsteg/html.scm:110 lib/byggsteg/html.scm:115
 msgid "Copyright © 2025 - Josep Bigorra & Mu Lei"
@@ -188,7 +188,7 @@ msgstr "Copyright © 2025 - Josep Bigorra & Mu Lei"
 #: lib/byggsteg/html.scm:111 lib/byggsteg/html.scm:113
 #: lib/byggsteg/html.scm:118
 msgid "byggsteg means “build step” in Norwegian."
-msgstr "byggsteg significa “etapa de construccion” en Noruego"
+msgstr "byggsteg significa “etapa de construcción” en Noruego"
 
 #: lib/byggsteg/html.scm:119 lib/byggsteg/html.scm:125
 msgid "profile name"
