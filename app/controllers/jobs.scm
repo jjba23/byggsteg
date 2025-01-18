@@ -47,6 +47,7 @@
         (define (do-submit)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
+                 ;; TODO add sandbox eval and validation here
                  (job-code (uri-decode (car (assoc-ref kv "job-code"))))
                  (kvv-thunk (eval-string job-code))
                  (kvv (kvv-thunk))
