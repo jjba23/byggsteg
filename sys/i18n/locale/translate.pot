@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-18 01:28+0100\n"
+"POT-Creation-Date: 2025-01-18 22:39+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -53,15 +53,20 @@ msgstr ""
 msgid "Scala project test with SBT"
 msgstr ""
 
-#: app/views/index.scm:72
+#: app/views/index.scm:72 app/views/index.scm:76
 msgid ""
 "As a fallback, if no other task matches are found, byggsteg will default to "
 "doing a make build."
 msgstr ""
 
+#: app/views/index.scm:73
+msgid "Allow passing arbitrary list of commands (via trivial-cmds field)"
+msgstr ""
+
 #: app/views/index.scm:77 app/views/index.scm:78 app/views/index.scm:80
-#: app/views/index.scm:85 app/views/index.scm:86 app/views/index.scm:87
-#: app/views/index.scm:88 app/views/index.scm:92
+#: app/views/index.scm:81 app/views/index.scm:85 app/views/index.scm:86
+#: app/views/index.scm:87 app/views/index.scm:88 app/views/index.scm:92
+#: app/views/index.scm:96
 msgid "welcome to byggsteg"
 msgstr ""
 
@@ -78,11 +83,12 @@ msgid "run job"
 msgstr ""
 
 #: app/views/jobs.scm:47 lib/byggsteg/html.scm:150 lib/byggsteg/html.scm:156
+#: lib/byggsteg/html.scm:157
 msgid "learn writing a byggsteg pipeline"
 msgstr ""
 
 #: app/views/jobs.scm:61 lib/byggsteg/html.scm:149 lib/byggsteg/html.scm:164
-#: lib/byggsteg/html.scm:170
+#: lib/byggsteg/html.scm:170 lib/byggsteg/html.scm:171
 msgid "submit"
 msgstr ""
 
@@ -105,16 +111,19 @@ msgstr ""
 
 #: app/views/logs.scm:46 app/views/logs.scm:52 app/views/logs.scm:146
 #: app/views/logs.scm:152 lib/byggsteg/html.scm:176 lib/byggsteg/html.scm:182
+#: lib/byggsteg/html.scm:183
 msgid "job succeeded"
 msgstr ""
 
 #: app/views/logs.scm:49 app/views/logs.scm:55 app/views/logs.scm:149
 #: app/views/logs.scm:155 lib/byggsteg/html.scm:179 lib/byggsteg/html.scm:185
+#: lib/byggsteg/html.scm:186
 msgid "job failed"
 msgstr ""
 
 #: app/views/logs.scm:51 app/views/logs.scm:57 app/views/logs.scm:151
 #: app/views/logs.scm:157 lib/byggsteg/html.scm:181 lib/byggsteg/html.scm:187
+#: lib/byggsteg/html.scm:188
 msgid "job in progress"
 msgstr ""
 
@@ -126,11 +135,11 @@ msgstr ""
 msgid "viewing logs"
 msgstr ""
 
-#: app/views/logs.scm:93
+#: app/views/logs.scm:93 app/views/logs.scm:94
 msgid "started at"
 msgstr ""
 
-#: app/views/logs.scm:101
+#: app/views/logs.scm:101 app/views/logs.scm:104
 msgid "updated at"
 msgstr ""
 
@@ -189,6 +198,7 @@ msgstr ""
 msgid "profile name"
 msgstr ""
 
-#: lib/byggsteg/job/pipeline.scm:156 lib/byggsteg/job/pipeline.scm:160
+#: lib/byggsteg/job/pipeline.scm:153 lib/byggsteg/job/pipeline.scm:156
+#: lib/byggsteg/job/pipeline.scm:160
 msgid "starting new job"
 msgstr ""

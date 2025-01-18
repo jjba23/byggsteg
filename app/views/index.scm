@@ -66,7 +66,12 @@
             (dt (@ (class "text-stone-400 text-sm"))
                 (code "sbt-test"))
             (dd (@ (class "text-stone-500 mb-2 text-sm"))
-                ,(G_ "Scala project test with SBT")))
+                ,(G_ "Scala project test with SBT"))
+            (dt (@ (class "text-stone-400 text-sm"))
+                (code "trivial"))
+            (dd (@ (class "text-stone-500 mb-2 text-sm"))
+                ,(G_
+                  "Allow passing arbitrary list of commands (via trivial-cmds field)")))
         (p (@ (class "text-stone-400 text-sm"))
            ,(G_
              "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))

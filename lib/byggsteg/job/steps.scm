@@ -1,7 +1,7 @@
 ;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
-;; Copyright © 2024 "Josep Bigorra" known as "jjba23" <jjbigorra@gmail.com>
-;; Copyright © 2024 "Mu Lei" known as "NalaGinrut" <NalaGinrut@gmail.com>
+;; Copyright © 2025 "Josep Bigorra" known as "jjba23" <jjbigorra@gmail.com>
+;; Copyright © 2025 "Mu Lei" known as "NalaGinrut" <NalaGinrut@gmail.com>
 
 ;; byggsteg is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,84 +26,82 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads))
 
-(define-public (display-cmd cmd)
-  (display (format #f "\n~~> running command: ~a\n" cmd)))
+(begin
+  (define-syntax-rule (display-cmd cmd)
+    (display (format #f "\n~~> running command: ~a\n" cmd)))
+  (export display-cmd))
 
 (begin
-  (define* (stack-step #:key project branch-name clone-url stack-task)
+  (define-syntax-rule (do-in-clone-dir clone-dir cmds)
+    (let* ((command (format #f "cd ~a && ~a" clone-dir
+                            (string-join cmds " && "))))
+      (display-cmd command)
+      (syscall command)))
+  (export do-in-clone-dir))
+
+(begin
+  (define* (stack-step #:key project branch-name stack-task)
     (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (cmd (format #f
-                        (string-append "cd ~a" " && stack --nix ~a") clone-dir
-                        stack-task)))
-      (display-cmd cmd)
-      (syscall cmd)))
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       (list (format #f "stack --nix ~a" stack-task)))))
   (export stack-step))
 
 (begin
-  (define* (byggsteg-version-step #:key project branch-name clone-url)
+  (define* (pull-and-restart-step #:key project branch-name)
     (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (cmd (format #f
-                        (string-append "cd ~a && sudo herd restart byggsteg")
-                        clone-dir)))
-      (call-with-new-thread (lambda ()
-                              (display-cmd cmd)
-                              (sleep 2)
-                              (syscall cmd)))))
-  (export byggsteg-version-step))
-
-(begin
-  (define* (pull-and-restart-step #:key project branch-name clone-url)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (cmd (format #f
-                        (string-append "cd ~a" " && sudo herd restart ~a")
-                        clone-dir project)))
-      (display-cmd cmd)
-      (syscall cmd)))
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       (list (format #f "sudo herd restart ~a" project)))))
   (export pull-and-restart-step))
 
 (begin
-  (define* (pull-and-deploy-step #:key project branch-name clone-url)
+  (define* (pull-and-deploy-step #:key project branch-name)
     (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (cmd (format #f
-                        (string-append "cd ~a" " && sudo make deploy")
-                        clone-dir)))
-      (display-cmd cmd)
-      (syscall cmd)))
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       '("sudo make deploy"))))
   (export pull-and-deploy-step))
 
 (begin
-  (define* (make-build-step #:key project branch-name clone-url)
+  (define* (make-build-step #:key project branch-name)
     (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (cmd (format #f
-                        (string-append "cd ~a" " && make build") clone-dir)))
-      (display-cmd cmd)
-      (syscall cmd)))
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       '("make build"))))
   (export make-build-step))
 
 (begin
-  (define* (nix-build-step #:key project branch-name clone-url)
+  (define* (nix-build-step #:key project branch-name)
     (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (cmd (format #f
-                        (string-append "cd ~a" " && nix build") clone-dir)))
-      (display-cmd cmd)
-      (syscall cmd)))
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       '("nix build"))))
   (export nix-build-step))
 
 (begin
-  (define* (sbt-test-step #:key project branch-name clone-url)
+  (define* (sbt-test-step #:key project branch-name)
     (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (cmd (format #f
-                        (string-append "cd ~a" " && sbt test") clone-dir)))
-      (display-cmd cmd)
-      (syscall cmd)))
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       '("sbt test"))))
   (export sbt-test-step))
+
+(begin
+  (define* (git-details-step #:key project branch-name)
+    (let* ((clone-dir (string-append job-clone-location project "/"
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       '("git log --name-status HEAD^..HEAD"))))
+  (export git-details-step))
+
+(begin
+  (define* (sys-details-step #:key project branch-name)
+    (let* ((clone-dir (string-append job-clone-location project "/"
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       '("uname -a"))))
+  (export git-details-step))
 
 (begin
   (define* (clone-repo-step #:key project branch-name clone-url)
@@ -125,3 +123,24 @@
               (syscall pull-cmd)))))
   (export clone-repo-step))
 
+(begin
+  (define* (trivial-step #:key project branch-name cmds)
+    (let* ((clone-dir (string-append job-clone-location project "/"
+                                     branch-name)))
+      (for-each (lambda (c)
+                  (display-cmd c)
+                  (syscall c)) cmds)))
+  (export trivial-step))
+
+(begin
+  (define* (byggsteg-version-step #:key project branch-name)
+    (let* ((clone-dir (string-append job-clone-location project "/"
+                                     branch-name))
+           (cmd (format #f
+                        (string-append "cd ~a && sudo herd restart byggsteg")
+                        clone-dir)))
+      (call-with-new-thread (lambda ()
+                              (display-cmd cmd)
+                              (sleep 2)
+                              (syscall cmd)))))
+  (export byggsteg-version-step))

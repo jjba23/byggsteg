@@ -69,64 +69,61 @@ byggsteg worker will sleep for ~a seconds
   (export do-pip))
 
 (begin
-  (define* (run-pipeline-task #:key project branch-name clone-url task)
+  (define* (run-pipeline-task #:key project branch-name task
+                              (trivial-cmds '()))
     (cond
       ;; Stack test + sdist
       ((equal? task "stack-test")
        (stack-step #:project project
                    #:branch-name branch-name
-                   #:clone-url clone-url
                    #:stack-task "test")
        (stack-step #:project project
                    #:branch-name branch-name
-                   #:clone-url clone-url
                    #:stack-task "sdist --tar-dir ."))
 
       ;; Stack build + sdist
       ((equal? task "stack-build")
        (stack-step #:project project
                    #:branch-name branch-name
-                   #:clone-url clone-url
                    #:stack-task "build")
        (stack-step #:project project
                    #:branch-name branch-name
-                   #:clone-url clone-url
                    #:stack-task "sdist --tar-dir ."))
 
       ;; Byggsteg version update
       ((equal? task "byggsteg-version")
        (byggsteg-version-step #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url))
+                              #:branch-name branch-name))
 
       ;; Nix generic build
       ((equal? task "nix-build")
        (nix-build-step #:project project
-                       #:branch-name branch-name
-                       #:clone-url clone-url))
+                       #:branch-name branch-name))
 
       ;; Herd pull and restart
       ((equal? task "pull-and-restart")
        (pull-and-restart-step #:project project
-                              #:branch-name branch-name
-                              #:clone-url clone-url))
+                              #:branch-name branch-name))
 
       ;; Scala SBT test
       ((equal? task "sbt-test")
        (sbt-test-step #:project project
-                      #:branch-name branch-name
-                      #:clone-url clone-url))
+                      #:branch-name branch-name))
 
       ;; Pull and make deploy
       ((equal? task "pull-and-deploy")
        (pull-and-deploy-step #:project project
-                             #:branch-name branch-name
-                             #:clone-url clone-url))
+                             #:branch-name branch-name))
+
+      ;; Trivial - Allow user to specify all commands
+      ((equal? task "trivial")
+       (trivial-step #:project project
+                     #:branch-name branch-name
+                     #:cmds trivial-cmds))
 
       ;; Otherwise attempt generic `make build'
       (else (make-build-step #:project project
-                             #:branch-name branch-name
-                             #:clone-url clone-url))))
+                             #:branch-name branch-name))))
   (export run-pipeline-task))
 
 (begin
@@ -148,25 +145,33 @@ byggsteg worker will sleep for ~a seconds
                      task-or-tasks)
                     ((string? task-or-tasks)
                      (list task-or-tasks))
-                    (else task-or-tasks))))
+                    (else task-or-tasks)))
+           (trivial-cmds (assoc-ref kv
+                                    'trivial-cmds)))
       
       (let* ((o (with-output-to-string (lambda ()
                                          (display (format #f "\n~a...\n"
                                                           (gettext
                                                            "starting new job")))
-
+                                         (sys-details-step #:project project
+                                                           #:branch-name
+                                                           branch-name)
                                          (clone-repo-step #:project project
                                                           #:branch-name
                                                           branch-name
                                                           #:clone-url
                                                           clone-url)
+                                         (git-details-step #:project project
+                                                           #:branch-name
+                                                           branch-name)
                                          (for-each (lambda (task)
                                                      (run-pipeline-task
                                                       #:project project
                                                       #:branch-name
                                                       branch-name
-                                                      #:clone-url clone-url
-                                                      #:task task)) tasks))))
+                                                      #:task task
+                                                      #:trivial-cmds
+                                                      trivial-cmds)) tasks))))
              (new-log-data (string-append old-log-data "\n" o)))
         
         (display o)
