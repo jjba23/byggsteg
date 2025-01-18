@@ -54,6 +54,7 @@ endef
 # The -l option sets the language, and --no-translator means no translator is pre-filled in the .po file
 # The generated .po file is placed in the LC_MESSAGES directory for the given language
 define byggsteg-msginit
+	mkdir -p $(I18N_LOCATION)/$(1)/LC_MESSAGES
 	msginit -l $(1).UTF8 -o $(I18N_LOCATION)/$(1)/LC_MESSAGES/translate.po \
 		-i $(I18N_LOCATION)/translate.pot --no-translator
 endef
@@ -141,6 +142,7 @@ compile-i18n:
 	$(call byggsteg-log-info,"compiling translation files")
 	$(call byggsteg-msgfmt,"en_US")
 	$(call byggsteg-msgfmt,"nl_NL")
+	$(call byggsteg-msgfmt,"es_ES")
 
 # Create new i18n template from source code
 new-i18n:
@@ -163,3 +165,9 @@ init-i18n-nl:
 	$(call byggsteg-msginit,"nl_NL")
 merge-i18n-nl:
 	$(call byggsteg-merge,"nl_NL")
+
+# es_ES - Spanish language targets
+init-i18n-es:
+	$(call byggsteg-msginit,"es_ES")
+merge-i18n-es:
+	$(call byggsteg-merge,"es_ES")

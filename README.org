@@ -187,21 +187,14 @@ An example shepherd service for byggsteg could look like this:
 
 The project's main branch is ~trunk~. Find a list of roles and people involved in the project.
 
-*BDFL (Benevolent Dictator For Life*
-
-@jjba23 - Josep Bigorra <jjbigorra@gmail.com>
-
-Only BDFL can merge PRs.
+Only BDFL (Benevolent Dictator For Life) can merge PRs.
 Only BDFL is allowed to push directly to ~trunk~ in case a quick fix is needed.
 
-*MFL (Maintainer For Life)*
-
-@NalaGinrut - Roy Mu <NalaGinrut@hardenedlinux.org>
-
-MFL can ascend to BDFL after extensive productive collaboration.
+MFL (Maintainer For Life) can ascend to BDFL after extensive productive collaboration.
 MFL has write permissions to all branches (except trunk) and can open PRs.
 
-*Other contributors*
+- *BDFL* :: @jjba23 - Josep Bigorra <jjbigorra@gmail.com>
+- *MFL* :: @NalaGinrut - Roy Mu <NalaGinrut@hardenedlinux.org>
 
 Other contributors must fork byggsteg and create a pull request to contribute back.
 After productive collaboration other kinds of roles can be added and assigned.
@@ -214,6 +207,7 @@ byggsteg is a community driven effort and as such, can use your help in translat
 
 - English language (en_US) :: 100% translated
 - Dutch language (nl_NL) :: 100% translated
+- Spanish language (es_ES) :: 100% translated
 
 ** Project management
 
