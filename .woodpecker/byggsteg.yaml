@@ -6,7 +6,7 @@ steps:
         branch: [trunk]
     environment:
       BYGGSTEG_KEY:
-        from_secret: BYGGSTEG_KEY            
+        from_secret: BYGGSTEG_KEY
     commands: |
       apt-get update
       apt-get install -y curl
