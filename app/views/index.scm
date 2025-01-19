@@ -68,6 +68,10 @@
             (dd (@ (class ,dd-face))
                 ,(G_ "Scala project test with SBT"))
             (dt (@ (class ,dt-face))
+                (code "sbt-testcontainers-test"))
+            (dd (@ (class ,dd-face))
+                ,(G_ "Scala project test with SBT, testcontainers and Podman"))
+            (dt (@ (class ,dt-face))
                 (code "trivial"))
             (dd (@ (class ,dd-face))
                 ,(G_

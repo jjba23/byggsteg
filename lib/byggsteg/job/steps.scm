@@ -91,10 +91,11 @@
   (define* (sbt-testcontainers-test-step #:key project branch-name)
     (let* ((clone-dir (string-append job-clone-location project "/"
                                      branch-name)))
+      (call-with-new-thread (lambda()
+                              (do-in-clone-dir clone-dir
+                                               '("podman system service --time=600 unix:///tmp/podman.sock"))))
       (do-in-clone-dir clone-dir
-                       '(
-                         ;;"podman system service --time=300 unix:///tmp/podman.sock &"
-                         "DOCKER_HOST=unix:///tmp/podman.sock sbt test"))))
+                       '("DOCKER_HOST=unix:///tmp/podman.sock sbt test"))))
   (export sbt-testcontainers-test-step))
 
 

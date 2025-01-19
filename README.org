@@ -78,6 +78,8 @@ You should either pass a string or a list of strings of job names.
 
 ~sbt-test~ - Scala project test with SBT.
 
+~sbt-testcontainers-test~ - Scala project test with SBT using testcontainers in Podman.
+
 ~trivial~ - Allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.
 
 As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
