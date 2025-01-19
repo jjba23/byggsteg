@@ -92,7 +92,8 @@
     (let* ((clone-dir (string-append job-clone-location project "/"
                                      branch-name)))
       (do-in-clone-dir clone-dir
-                       '("podman system service --time=300 unix:///tmp/podman.sock &"
+                       '(
+                         ;;"podman system service --time=300 unix:///tmp/podman.sock &"
                          "DOCKER_HOST=unix:///tmp/podman.sock sbt test"))))
   (export sbt-testcontainers-test-step))
 
