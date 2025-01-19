@@ -3,8 +3,10 @@ steps:
     image: debian
     when:
       - event: [push]
-        branch: [trunk]        
-    secrets: [BYGGSTEG_KEY]    
+        branch: [trunk]
+    environment:
+      BYGGSTEG_KEY:
+        from_secret: BYGGSTEG_KEY            
     commands: |
       apt update
       apt install -y curl
