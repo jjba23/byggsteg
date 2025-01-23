@@ -46,10 +46,10 @@
                  "hover:text-teal-400"
                  "cursor-pointer"
                  "p-1"
-                 "border-b-2"
+                 ;; "border-b-2"
                  "font-mono"
-                 "border-b-teal-600"
-                 "text-md"
+                 ;;"border-b-teal-600"
+                 "text-sm"
                  "font-bold") " "))
 ;;
 ;; Forms
