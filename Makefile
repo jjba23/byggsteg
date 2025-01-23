@@ -25,6 +25,9 @@ BYGGSTEG_DB="byggsteg.db"
 COPYRIGHT_HOLDERS="Josep Bigorra & Mu Lei"
 I18N_LOCATION="sys/i18n/locale"
 
+# System details
+GUIX_VERSION := $(shell guix --version)
+
 .PHONY: dir-install dir-uninstall dev server production-server fmt init-db compile-i18n new-i18n join-i18n init-i18n-nl init-i18n-en merge-i18n-nl merge-i18n-en
 
 # Logging helpers
@@ -106,11 +109,19 @@ dir-uninstall:
 	$(call byggsteg-log-info,"cleaning byggsteg installation")
 	rm -rfv $(BYGGSTEG_LOCATION)/* || true
 
+watchexec:
+	watchexec -i "dist/**" -r -e scm,css,js -- "make server"
+
 # Target to start a development server for byggsteg
 # Use watchexec to watch for file changes and restart the server on changes
 dev:
 	$(call byggsteg-log-info,"starting development server for byggsteg")
-	watchexec -i "dist/**" -r -e scm,css,js -- "make server"
+ifdef GUIX_VERSION
+	guix shell -m manifest.scm -- make watchexec
+else
+	make watchexec
+endif
+
 
 # Target to start the byggsteg server
 # Start the server with the default configuration
@@ -121,7 +132,7 @@ server:
 # Target to start the byggsteg server with production configuration
 production-server:
 	$(call byggsteg-log-info,"starting production byggsteg server")
-	art work -c conf/production.conf
+	guix shell -m manifest.scm -- art work -c conf/production.conf
 
 # Target to format source code files according to the style guide
 # Find all .scm files and format them using 'guix style'
