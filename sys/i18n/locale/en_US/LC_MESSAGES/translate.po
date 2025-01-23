@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-18 22:39+0100\n"
+"POT-Creation-Date: 2025-01-19 16:01+0100\n"
 "PO-Revision-Date: 2025-01-16 12:50+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -53,25 +53,29 @@ msgstr ""
 msgid "Scala project test with SBT"
 msgstr ""
 
-#: app/views/index.scm:72 app/views/index.scm:76
+#: app/views/index.scm:72 app/views/index.scm:76 app/views/index.scm:81
 msgid ""
 "As a fallback, if no other task matches are found, byggsteg will default to "
 "doing a make build."
 msgstr ""
 
-#: app/views/index.scm:73
+#: app/views/index.scm:73 app/views/index.scm:78
 msgid "Allow passing arbitrary list of commands (via trivial-cmds field)"
+msgstr ""
+
+#: app/views/index.scm:73
+msgid "Scala project test with SBT, testcontainers and Podman"
 msgstr ""
 
 #: app/views/index.scm:77 app/views/index.scm:78 app/views/index.scm:80
 #: app/views/index.scm:81 app/views/index.scm:85 app/views/index.scm:86
 #: app/views/index.scm:87 app/views/index.scm:88 app/views/index.scm:92
-#: app/views/index.scm:96
+#: app/views/index.scm:96 app/views/index.scm:98
 msgid "welcome to byggsteg"
 msgstr ""
 
-#: app/views/index.scm:85 app/views/index.scm:89 app/views/index.scm:95
-#: app/views/index.scm:97
+#: app/views/index.scm:85 app/views/index.scm:89 app/views/index.scm:93
+#: app/views/index.scm:95 app/views/index.scm:97
 msgid ""
 "byggsteg aims to be the hackable continuous integration and delivery system, "
 "allowing engineers to deliver software quicker and with less friction"
@@ -83,12 +87,13 @@ msgid "run job"
 msgstr ""
 
 #: app/views/jobs.scm:47 lib/byggsteg/html.scm:150 lib/byggsteg/html.scm:156
-#: lib/byggsteg/html.scm:157
+#: lib/byggsteg/html.scm:157 lib/byggsteg/html.scm:164
 msgid "learn writing a byggsteg pipeline"
 msgstr ""
 
 #: app/views/jobs.scm:61 lib/byggsteg/html.scm:149 lib/byggsteg/html.scm:164
 #: lib/byggsteg/html.scm:170 lib/byggsteg/html.scm:171
+#: lib/byggsteg/html.scm:178
 msgid "submit"
 msgstr ""
 
@@ -111,19 +116,19 @@ msgstr ""
 
 #: app/views/logs.scm:46 app/views/logs.scm:52 app/views/logs.scm:146
 #: app/views/logs.scm:152 lib/byggsteg/html.scm:176 lib/byggsteg/html.scm:182
-#: lib/byggsteg/html.scm:183
+#: lib/byggsteg/html.scm:183 lib/byggsteg/html.scm:190
 msgid "job succeeded"
 msgstr ""
 
 #: app/views/logs.scm:49 app/views/logs.scm:55 app/views/logs.scm:149
 #: app/views/logs.scm:155 lib/byggsteg/html.scm:179 lib/byggsteg/html.scm:185
-#: lib/byggsteg/html.scm:186
+#: lib/byggsteg/html.scm:186 lib/byggsteg/html.scm:193
 msgid "job failed"
 msgstr ""
 
 #: app/views/logs.scm:51 app/views/logs.scm:57 app/views/logs.scm:151
 #: app/views/logs.scm:157 lib/byggsteg/html.scm:181 lib/byggsteg/html.scm:187
-#: lib/byggsteg/html.scm:188
+#: lib/byggsteg/html.scm:188 lib/byggsteg/html.scm:195
 msgid "job in progress"
 msgstr ""
 
@@ -170,35 +175,41 @@ msgid "logs"
 msgstr ""
 
 #: lib/byggsteg/html.scm:93 lib/byggsteg/html.scm:95 lib/byggsteg/html.scm:100
+#: lib/byggsteg/html.scm:102
 msgid "byggsteg is the hackable Guile CI/CD system"
 msgstr ""
 
 #: lib/byggsteg/html.scm:96 lib/byggsteg/html.scm:98 lib/byggsteg/html.scm:103
+#: lib/byggsteg/html.scm:106
 msgid "byggsteg is free software, available under the GNU GPL v3 or newer."
 msgstr ""
 
 #: lib/byggsteg/html.scm:102 lib/byggsteg/html.scm:107
+#: lib/byggsteg/html.scm:110
 msgid "find the source code here"
 msgstr ""
 
 #: lib/byggsteg/html.scm:107 lib/byggsteg/html.scm:112
+#: lib/byggsteg/html.scm:115
 msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS"
 msgstr ""
 
 #: lib/byggsteg/html.scm:110 lib/byggsteg/html.scm:115
+#: lib/byggsteg/html.scm:118
 msgid "Copyright © 2025 - Josep Bigorra & Mu Lei"
 msgstr ""
 
 #: lib/byggsteg/html.scm:111 lib/byggsteg/html.scm:113
-#: lib/byggsteg/html.scm:118
+#: lib/byggsteg/html.scm:118 lib/byggsteg/html.scm:121
 msgid "byggsteg means “build step” in Norwegian."
 msgstr ""
 
 #: lib/byggsteg/html.scm:119 lib/byggsteg/html.scm:125
+#: lib/byggsteg/html.scm:132
 msgid "profile name"
 msgstr ""
 
 #: lib/byggsteg/job/pipeline.scm:153 lib/byggsteg/job/pipeline.scm:156
-#: lib/byggsteg/job/pipeline.scm:160
+#: lib/byggsteg/job/pipeline.scm:158 lib/byggsteg/job/pipeline.scm:160
 msgid "starting new job"
 msgstr ""

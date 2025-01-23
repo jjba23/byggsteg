@@ -3,11 +3,13 @@ steps:
     image: debian
     when:
       - event: [push]
-        branch: [trunk]        
-    secrets: [BYGGSTEG_KEY]    
+        branch: [trunk]
+    environment:
+      BYGGSTEG_KEY:
+        from_secret: BYGGSTEG_KEY
     commands: |
-      apt update
-      apt install -y curl
+      apt-get update
+      apt-get install -y curl
       curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
         -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
         --data-urlencode 'username=Joe' \
