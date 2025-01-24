@@ -266,8 +266,7 @@ SQL databases.  This package implements the interface for SQLite.")))
         Simple routines for converting between binary and hex-and-dash string UUIDs are included.")
      (license license:gpl3+))))
 
-(packages->manifest (list (specification->package "guile@3.0")
-                          (specification->package "make")
+(packages->manifest (list (specification->package "make")
                           (specification->package "gettext")
                           guile-next guile-ares-rs
                           artanis-next sss-guile-dbi sss-guile-dbd-sqlite3))
