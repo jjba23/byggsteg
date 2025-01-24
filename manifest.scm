@@ -269,5 +269,6 @@ SQL databases.  This package implements the interface for SQLite.")))
 (packages->manifest (list (specification->package "guile@3.0")
                           (specification->package "make")
                           (specification->package "gettext")
+                          guile-next guile-ares-rs
                           artanis-next sss-guile-dbi sss-guile-dbd-sqlite3))
 
