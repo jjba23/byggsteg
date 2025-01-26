@@ -181,3 +181,7 @@ init-i18n-es:
 	$(call byggsteg-msginit,"es_ES")
 merge-i18n-es:
 	$(call byggsteg-merge,"es_ES")
+
+# Development REPL
+repl:
+	guix shell -m manifest.scm -- guile --fresh-auto-compile -c '((@ (ares server) run-nrepl-server))'
