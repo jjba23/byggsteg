@@ -84,9 +84,11 @@
   (let* ((G_ (:i18n rc))
          (welcome-html `((div (h2 (@ (class ,h2-face))
                                   ,(G_ "welcome to byggsteg")))
-                         (div (@ (class "py-3 flex flex-row flex-wrap justify-center items-center gap-6"))
+                         (div (@ (class
+                                  "py-3 flex flex-row flex-wrap justify-center items-center gap-6"))
                               ,(locale-choose-form G_)
-                              (div (@ (class "max-w-prose bg-stone-800 rounded-xl p-4"))
+                              (div (@ (class
+                                       "max-w-prose bg-stone-800 rounded-xl p-4"))
                                    (span (@ (class "text-stone-300 text-sm"))
                                          ,(G_
                                            "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction"))))

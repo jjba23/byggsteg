@@ -40,7 +40,8 @@
                        (form (@ (action "/login")
                                 (enctype "application/x-www-form-urlencoded")
                                 (method "POST")
-                                (class "rounded-xl bg-stone-800 p-4 flex flex-col gap-4"))
+                                (class
+                                 "rounded-xl bg-stone-800 p-4 flex flex-col gap-4"))
                              (div (@ (class
                                       "grid grid-cols-1 sm:grid-cols-3 gap-x-4"))
                                   (div (label (@ (class ,label-face)

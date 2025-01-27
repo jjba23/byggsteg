@@ -48,7 +48,7 @@
                  "p-1"
                  ;; "border-b-2"
                  "font-mono"
-                 ;;"border-b-teal-600"
+                 ;; "border-b-teal-600"
                  "text-sm"
                  "font-bold") " "))
 ;;
