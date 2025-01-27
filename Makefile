@@ -145,7 +145,6 @@ fmt:
 init-db:
 	$(call byggsteg-log-info,"initializing a new database")
 	-rm -v $(BYGGSTEG_DB) $(BYGGSTEG_DB)-shm $(BYGGSTEG_DB)-wal
-	touch 
 	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
 
 # Compile translation files to .mo files
