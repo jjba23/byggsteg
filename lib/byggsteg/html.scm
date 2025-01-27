@@ -24,7 +24,6 @@
   #:use-module (byggsteg job pipeline)
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
-  #:use-module (byggsteg prelude)
   #:use-module (sxml simple)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
