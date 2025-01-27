@@ -205,8 +205,8 @@ msgstr ""
 
 #: lib/byggsteg/html.scm:110 lib/byggsteg/html.scm:115
 #: lib/byggsteg/html.scm:118
-msgid "Copyright © 2025 - Josep Bigorra & Mu Lei"
-msgstr "Copyright © 2025 - Josep Bigorra & Mu Lei"
+msgid "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut"
+msgstr ""
 
 #: lib/byggsteg/html.scm:111 lib/byggsteg/html.scm:113
 #: lib/byggsteg/html.scm:118 lib/byggsteg/html.scm:121

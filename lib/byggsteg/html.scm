@@ -117,7 +117,7 @@
                  (em ,(G_ "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
               (p (@ (class "mt-2 px-2 py-1"))
                  (em (@ (class "text-sm text-stone-300"))
-                     ,(G_ "Copyright © 2025 - Josep Bigorra & Mu Lei")))
+                     ,(G_ "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
               (p (@ (class "mt-2 px-2 py-1"))
                  (span (@ (class "text-xs text-stone-300"))
                        ,(G_ "byggsteg means “build step” in Norwegian."))))
