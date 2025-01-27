@@ -23,7 +23,6 @@
   #:use-module (byggsteg process)
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
-  #:use-module (byggsteg prelude)
   #:use-module (byggsteg html)
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)
@@ -84,9 +83,11 @@
   (let* ((G_ (:i18n rc))
          (welcome-html `((div (h2 (@ (class ,h2-face))
                                   ,(G_ "welcome to byggsteg")))
-                         (div (@ (class "py-3 flex flex-row flex-wrap justify-center items-center gap-6"))
+                         (div (@ (class
+                                  "py-3 flex flex-row flex-wrap justify-center items-center gap-6"))
                               ,(locale-choose-form G_)
-                              (div (@ (class "max-w-prose bg-stone-800 rounded-xl p-4"))
+                              (div (@ (class
+                                       "max-w-prose bg-stone-800 rounded-xl p-4"))
                                    (span (@ (class "text-stone-300 text-sm"))
                                          ,(G_
                                            "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction"))))
