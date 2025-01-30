@@ -127,7 +127,7 @@ endif
 # Start the server with the default configuration
 server:
 	$(call byggsteg-log-info,"starting byggsteg server")
-	art work
+	guix shell -m manifest.scm -- art work
 
 # Target to start the byggsteg server with production configuration
 production-server:
