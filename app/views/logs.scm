@@ -71,7 +71,7 @@
                                           (class ,danger-button-face))
                                        ,(G_ "delete"))))
          (log-html `((div (@ (class
-                              "flex flex-row flex-wrap align-middle gap-6 py-3 px-3"))
+                              "flex flex-row flex-wrap align-middle gap-6 py-3"))
                           (h2 (@ (class ,h2-face))
                               ,(G_ "viewing logs"))
                           ,job-status)
