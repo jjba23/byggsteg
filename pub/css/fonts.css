@@ -4,40 +4,40 @@
     font-family: 'Adwaita Mono';
     font-style: normal;
     font-weight: 400;
-    src: url('/ttf/AdwaitaMono-Regular.ttf') format('ttf');
+    src: url('/ttf/AdwaitaMono-Regular.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Adwaita Mono';
     font-style: italic;
     font-weight: 400;
-    src: url('/ttf/AdwaitaMono-Italic.ttf') format('ttf');
+    src: url('/ttf/AdwaitaMono-Italic.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Adwaita Mono';
     font-style: normal;
     font-weight: 700;
-    src: url('/ttf/AdwaitaMono-Bold.ttf') format('ttf');
+    src: url('/ttf/AdwaitaMono-Bold.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Adwaita Mono';
     font-style: italic;
     font-weight: 700;
-    src: url('/ttf/AdwaitaMono-BoldItalic.ttf') format('ttf');
+    src: url('/ttf/AdwaitaMono-BoldItalic.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Adwaita Sans';
     font-style: normal;
     font-weight: 400;
-    src: url('/ttf/AdwaitaSans-Regular.ttf') format('ttf');
+    src: url('/ttf/AdwaitaSans-Regular.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Adwaita Sans';
     font-style: italic;
     font-weight: 400;
-    src: url('/ttf/AdwaitaSans-Italic.ttf') format('ttf');
+    src: url('/ttf/AdwaitaSans-Italic.ttf') format('truetype');
 }
