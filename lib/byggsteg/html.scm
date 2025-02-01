@@ -97,7 +97,7 @@
 (define-public (page-footer G_)
   `((div (@ (class
              "flex flex-wrap flex-row gap-6 justify-between px-2 sm:px-5 py-3 bg-stone-800"))
-         (div (@ (class "block text-left font-mono max-w-prose"))
+         (div (@ (class "block text-left font-sans max-w-prose"))
               (p (@ (class " px-2 py-1"))
                  (em (@ (class "text-sm text-stone-300"))
                      ,(G_ "byggsteg is the hackable Guile CI/CD system")))
@@ -117,7 +117,8 @@
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
               (p (@ (class "mt-2 px-2 py-1"))
                  (em (@ (class "text-sm text-stone-300"))
-                     ,(G_ "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
+                     ,(G_
+                       "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
               (p (@ (class "mt-2 px-2 py-1"))
                  (span (@ (class "text-xs text-stone-300"))
                        ,(G_ "byggsteg means “build step” in Norwegian."))))
@@ -189,18 +190,18 @@
          (success (assoc-ref (car job) "job_success"))
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
-                       ((equal? success 1)
-                        `(h2 (@ (class "text-green-700 text-sm font-mono"))
-                             ,(G_ "job succeeded")))
-                       ((equal? failure 1)
-                        `(h2 (@ (class "text-red-700 text-sm font-mono"))
-                             ,(G_ "job failed")))
-                       (else `(h2 (@ (class "text-sky-600 text-sm font-mono"))
-                                  ,(G_ "job in progress"))))))
+                      ((equal? success 1)
+                       `(h2 (@ (class "text-green-700 text-sm font-sans"))
+                            ,(G_ "job succeeded")))
+                      ((equal? failure 1)
+                       `(h2 (@ (class "text-red-700 text-sm font-sans"))
+                            ,(G_ "job failed")))
+                      (else `(h2 (@ (class "text-sky-600 text-sm font-sans"))
+                                 ,(G_ "job in progress"))))))
     `((div (@ (class "flex flex-col gap-1"))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
-              ,(string-append "~>  " log-filename))
+              ,(string-append "→  " log-filename))
            (div (@ (class "ml-4"))
                 ,job-status)))))
 
@@ -210,7 +211,7 @@
     `((div (@ (class "flex flex-col gap-2"))
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
-              ,(string-append "~>  "
+              ,(string-append "→  "
                               (safe-base64-decode (assoc-ref profile
                                                              "human_id"))))))))
 
