@@ -116,18 +116,14 @@ watchexec:
 # Use watchexec to watch for file changes and restart the server on changes
 dev:
 	$(call byggsteg-log-info,"starting development server for byggsteg")
-ifdef GUIX_VERSION
-	guix shell -m manifest.scm -- make watchexec
-else
 	make watchexec
-endif
 
 
 # Target to start the byggsteg server
 # Start the server with the default configuration
 server:
 	$(call byggsteg-log-info,"starting byggsteg server")
-	art work
+	guix shell -m manifest.scm -- art work
 
 # Target to start the byggsteg server with production configuration
 production-server:
