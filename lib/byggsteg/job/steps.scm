@@ -28,7 +28,7 @@
 
 (begin
   (define-syntax-rule (display-cmd cmd)
-    (display (format #f "\n~~> running command: ~a\n" cmd)))
+    (display (format #f "\n→ running command: ~a\n" cmd)))
   (export display-cmd))
 
 (begin

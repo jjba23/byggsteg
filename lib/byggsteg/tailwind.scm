@@ -29,7 +29,7 @@
 ;; Buttons
 ;;
 (define base-button
-  `("rounded-xl" "p-2" "w-fit" "text-sm" "font-mono" "font-bold"))
+  `("rounded-xl" "p-2" "w-fit" "text-sm" "font-sans" "font-bold"))
 
 (define-public button-face
   (string-join (append base-button
@@ -47,7 +47,7 @@
                  "cursor-pointer"
                  "p-1"
                  ;; "border-b-2"
-                 "font-mono"
+                 "font-sans"
                  ;; "border-b-teal-600"
                  "text-sm"
                  "font-bold") " "))
@@ -84,21 +84,21 @@
 ;; Headers
 ;;
 (define-public h2-face
-  (string-join '("text-2xl" "text-stone-300" "font-bold" "font-mono") " "))
+  (string-join '("text-2xl" "text-stone-300" "font-bold" "font-sans") " "))
 
 (define-public h4-face
-  (string-join '("text-lg" "text-stone-400" "font-bold" "font-mono") " "))
+  (string-join '("text-lg" "text-stone-400" "font-bold" "font-sans") " "))
 
 (define-public brand-title-face
   (string-join '("text-2xl" "text-teal-500" "hover:border-b-teal-400"
-                 "hover:text-teal-400" "font-bold" "font-mono") " "))
+                 "hover:text-teal-400" "font-bold" "font-sans") " "))
 
 ;;
 ;; Links
 ;;
 (define-public dash-link-face
   (string-join '("text-stone-300" "hover:text-stone-100" "font-bold"
-                 "cursor-pointer" "text-md" "font-mono") " "))
+                 "cursor-pointer" "text-md" "font-sans") " "))
 
 (define-public link-face
   (string-join '("text-teal-500" "hover:text-teal-400" "font-bold"

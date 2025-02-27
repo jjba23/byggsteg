@@ -77,7 +77,7 @@
                                                           (value ,(assoc-ref p
                                                                    "id"))
                                                           (class
-                                                           "rounded-xl border font-mono p-2")))
+                                                           "rounded-xl border font-sans p-2")))
                                                 (button (@ (type "submit")
                                                            (class ,danger-button-face))
                                                         ,(G_ "delete"))))
