@@ -50,8 +50,7 @@
                             (display (format #f "\n~a...\n" (gettext "initializing byggsteg queue worker")))
                             (set! is-worker-running #t)
                             (use-modules (byggsteg job pipeline))
-                            (while #t (do-pip))))))
+                            (while #t (run-infallible-pipeline))))))
 
 (run-before-run! worker)
-
 

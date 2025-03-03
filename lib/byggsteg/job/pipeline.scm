@@ -144,11 +144,11 @@ byggsteg worker will sleep for ~a seconds
            (task-or-tasks (assoc-ref kv
                                      'task))
            (tasks (cond
-                    ((list? task-or-tasks)
-                     task-or-tasks)
-                    ((string? task-or-tasks)
-                     (list task-or-tasks))
-                    (else task-or-tasks)))
+                   ((list? task-or-tasks)
+                    task-or-tasks)
+                   ((string? task-or-tasks)
+                    (list task-or-tasks))
+                   (else task-or-tasks)))
            (trivial-cmds (assoc-ref kv
                                     'trivial-cmds)))
       
@@ -198,3 +198,12 @@ byggsteg worker will sleep for ~a seconds
         )))
   (export job-pipeline))
 
+
+(begin
+  (define (run-infallible-pipeline)
+    (catch #t
+      (lambda()
+        (do-pip))
+      (lambda(key . args)
+        (display (format #f "\n===========\nexception occured running pipeline: ~a\n===========\n" key)))))
+  (export run-infallible-pipeline))
