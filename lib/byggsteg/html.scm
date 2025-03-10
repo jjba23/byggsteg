@@ -85,7 +85,8 @@
                                   items-center
                                   bg-stone-800))))
          (h1 (@ (class ,brand-title-face))
-             (a (@ (href "/")(class ,(->css '(flex flex-row gap-2 items-center))))
+             (a (@ (href "/")
+                   (class ,(->css '(flex flex-row gap-2 items-center))))
                 ,(hyg-icon #:type 'gear-fine)
                 (span "byggsteg")))
          (div (@ (class ,(->css '(flex flex-row flex-wrap items-center gap-3))))
@@ -217,18 +218,20 @@
          (success (assoc-ref (car job) "job_success"))
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
-                      ((equal? success 1)
-                       `(h2 (@ (class "text-green-700 text-sm font-sans"))
-                            ,(G_ "job succeeded")))
-                      ((equal? failure 1)
-                       `(h2 (@ (class "text-red-700 text-sm font-sans"))
-                            ,(G_ "job failed")))
-                      (else `(h2 (@ (class "text-sky-600 text-sm font-sans"))
-                                 ,(G_ "job in progress"))))))
+                       ((equal? success 1)
+                        `(h2 (@ (class "text-green-800 text-sm font-sans"))
+                             ,(G_ "job succeeded")))
+                       ((equal? failure 1)
+                        `(h2 (@ (class "text-red-700 text-sm font-sans"))
+                             ,(G_ "job failed")))
+                       (else `(h2 (@ (class "text-sky-600 text-sm font-sans"))
+                                  ,(G_ "job in progress"))))))
     `((div (@ (class "flex flex-col gap-1"))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
-              ,(string-append "→  " log-filename))
+              (div (@ (class ,(->css '(flex flex-wrap gap-2 items-center))))
+                   (span ,(hyg-icon #:type 'scroll))
+                   (span ,log-filename)))
            (div (@ (class "ml-4"))
                 ,job-status)))))
 
@@ -238,9 +241,9 @@
     `((div (@ (class "flex flex-col gap-2"))
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
-              ,(string-append "→  "
-                              (unescape-str (assoc-ref profile
-                                                       "human_id"))))))))
+              (div (@ (class ,(->css '(flex flex-wrap gap-2 items-center))))
+                   (span ,(hyg-icon #:type 'code))
+                   (span ,(unescape-str (assoc-ref profile "human_id")))))))))
 
 (begin
   (define-syntax-rule (if-job-was-updated-html job html)

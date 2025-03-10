@@ -50,7 +50,7 @@
            (G_ (:i18n rc))
            (job-status (cond
                          ((equal? success 1)
-                          `(h2 (@ (class "text-xl text-green-700 font-sans"))
+                          `(h2 (@ (class "text-xl text-green-800 font-sans"))
                                ,(G_ "job succeeded")))
                          ((equal? failure 1)
                           `(h2 (@ (class "text-xl text-red-700 font-sans"))
@@ -122,8 +122,20 @@
 
                        ,delete-button
 
-                       (pre (@ (class ,pre-face))
-                            ,detail-data)
+                       (details (@ (class ,(->css '(my-4))))
+                                (summary (@ (class ,(->css '(cursor-pointer
+                                                             text-stone-400
+                                                             hover:text-stone-200
+                                                             block))))
+                                         (div (@ (class ,(->css '(flex
+                                                                  flex-row
+                                                                  gap-2
+                                                                  items-center))))
+                                              (span ,(hyg-icon #:type 'code))
+                                              (span ,(G_
+                                                      "inspect the job's lambda expression"))))
+                                (pre (@ (class ,pre-face))
+                                     ,detail-data))
                        (pre (@ (class ,pre-face))
                             ,log-data))))
       
@@ -164,7 +176,8 @@
                                      '()))))
            (logs-html `((div (@ (class
                                  "w-full flex flex-col gap-4 align-center"))
-                             (h2 (@ (class ,h2-face)) "jobs")
+                             (h2 (@ (class ,h2-face))
+                                 ,(G_ "logs"))
                              (div (@ (class
                                       "rounded-xl bg-stone-800 flex flex-col gap-4 py-4 px-2"))
                                   ,jobs-html)

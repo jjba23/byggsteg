@@ -38,18 +38,18 @@
                                    #:condition (where #:job_in_progress 1)
                                    #:order-by '(created_at asc)))
            (logs-of-in-progress (cond
-                                 ((nil? jobs-in-progress)
-                                  '())
-                                 (else ($log 'get
-                                             #:ret 'all
-                                             #:condition (where #:job_id (map (lambda 
-                                                                                  (j)
-                                                                                
-                                                                                
-                                                                                (assoc-ref
-                                                                                 j
-                                                                                 "id"))
-                                                                              jobs-in-progress))))))
+                                  ((nil? jobs-in-progress)
+                                   '())
+                                  (else ($log 'get
+                                              #:ret 'all
+                                              #:condition (where #:job_id (map (lambda 
+                                                                                       (j)
+                                                                                 
+                                                                                 
+                                                                                 (assoc-ref
+                                                                                  j
+                                                                                  "id"))
+                                                                           jobs-in-progress))))))
            (job-log-map (map (lambda (l)
                                `(,(assoc-ref l "job_id") unquote l))
                              logs-of-in-progress)))
@@ -59,10 +59,10 @@
                                 #:log (assoc-ref job-log-map
                                                  (assoc-ref j "id"))))
                 jobs-in-progress)
-      ;;       (display (format #f "
+      ;; (display (format #f "
       ;; byggsteg worker will sleep for ~a seconds
       ;; "
-      ;;                        sleep-seconds))
+      ;; sleep-seconds))
       (sleep sleep-seconds)))
   (export do-pip))
 
@@ -130,8 +130,7 @@
 (begin
   (define* (job-pipeline #:key job log)
     (let* ((old-log-data (unescape-str (assoc-ref log "log_data")))
-           (kv-thunk (eval-string (unescape-str (assoc-ref job
-                                                           "job_data"))))
+           (kv-thunk (eval-string (unescape-str (assoc-ref job "job_data"))))
            (kv (kv-thunk))
            (project (assoc-ref kv
                                'project))
@@ -142,11 +141,11 @@
            (task-or-tasks (assoc-ref kv
                                      'task))
            (tasks (cond
-                   ((list? task-or-tasks)
-                    task-or-tasks)
-                   ((string? task-or-tasks)
-                    (list task-or-tasks))
-                   (else task-or-tasks)))
+                    ((list? task-or-tasks)
+                     task-or-tasks)
+                    ((string? task-or-tasks)
+                     (list task-or-tasks))
+                    (else task-or-tasks)))
            (trivial-cmds (assoc-ref kv
                                     'trivial-cmds)))
       
@@ -196,12 +195,15 @@
         )))
   (export job-pipeline))
 
-
 (begin
   (define (run-infallible-pipeline)
     (catch #t
-      (lambda()
-        (do-pip))
-      (lambda(key . args)
-        (display (format #f "\n===========\nexception occured running pipeline: ~a\n===========\n" key)))))
+           (lambda ()
+             (do-pip))
+           (lambda (key . args)
+             (display (format #f "
+===========
+exception occured running pipeline: ~a
+===========
+" key)))))
   (export run-infallible-pipeline))

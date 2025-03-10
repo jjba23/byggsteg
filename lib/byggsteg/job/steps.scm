@@ -51,7 +51,9 @@
     (let* ((clone-dir (string-append job-clone-location project "/"
                                      branch-name)))
       (do-in-clone-dir clone-dir
-                       (list (format #f "sudo herd enable ~a && sudo herd restart ~a" project project)))))
+                       (list (format #f
+                              "sudo herd enable ~a && sudo herd restart ~a"
+                              project project)))))
   (export pull-and-restart-step))
 
 (begin

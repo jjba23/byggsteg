@@ -31,12 +31,12 @@
                  (kv (read-url-encoded-body body))
                  (user-lang (uri-decode (car (assoc-ref kv "user-lang")))))
             (:cookies-set! rc
-             'lang "lang" user-lang)
+                           'lang "lang" user-lang)
             (:cookies-setattr! rc
-             'lang
-             #:expires 12000000
-             #:path "/"
-             #:http-only #t)
+                               'lang
+                               #:expires 12000000
+                               #:path "/"
+                               #:http-only #t)
             (redirect-to rc
                          (string->uri (format #f "~a/"
                                               (current-myhost))))))
