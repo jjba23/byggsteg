@@ -43,7 +43,7 @@
                                                       from
                                                       'log
                                                       (format #f
-                                                       " ORDER BY created_at ASC LIMIT ~a OFFSET ~a"
+                                                       " ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
                                                        query-limit
                                                        query-offset)
 
