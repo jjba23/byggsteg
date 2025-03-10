@@ -29,15 +29,26 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let* ((offset (cond
-                       ((not (nil? (get-from-qstr rc "offset")))
-                        (get-from-qstr rc "offset"))
-                       (else 0)))
-              (limit 60)
-              (logs ($log 'get
-                          ;; #:ret limit
-                          #:order-by '(created_at desc)
-                          ))
+       (let* ((query-offset (cond
+                             ((not (nil? (get-from-qstr rc "offset")))
+                              (string->number (get-from-qstr rc "offset")))
+                             (else 0)))
+              (query-limit (cond
+                            ((not (nil? (get-from-qstr rc "limit")))
+                             (string->number (get-from-qstr rc "limit")))
+                            (else 40)))
+              (logs (DB-get-all-rows (DB-query (get-conn-from-pool!)
+                                               (->sql select
+                                                      *
+                                                      from
+                                                      'log
+                                                      (format #f
+                                                              " ORDER BY created_at ASC LIMIT ~a OFFSET ~a"
+                                                              query-limit
+                                                              query-offset)
+
+                                                      ))))
+
               (job-ids (map (lambda (l)
                               (assoc-ref l "job_id")) logs))
               (jobs (cond
@@ -56,7 +67,11 @@
                                  logs)))
          
          (response-emit (:mime rc
-                         (logs-page rc jobs-of-logs logs))))))
+                         (logs-page #:rc rc
+                                    #:jobs-of-logs jobs-of-logs
+                                    #:logs logs
+                                    #:offset query-offset
+                                    #:limit query-limit))))))
 
 (get "/logs/:id"
      #:mime 'xml

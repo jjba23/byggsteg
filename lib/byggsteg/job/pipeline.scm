@@ -59,10 +59,10 @@
                                 #:log (assoc-ref job-log-map
                                                  (assoc-ref j "id"))))
                 jobs-in-progress)
-      (display (format #f "
-byggsteg worker will sleep for ~a seconds
-"
-                       sleep-seconds))
+      ;;       (display (format #f "
+      ;; byggsteg worker will sleep for ~a seconds
+      ;; "
+      ;;                        sleep-seconds))
       (sleep sleep-seconds)))
   (export do-pip))
 
