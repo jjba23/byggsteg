@@ -17,7 +17,6 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (app views jobs)
-  #:use-module (byggsteg base64)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)

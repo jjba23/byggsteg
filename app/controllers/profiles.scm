@@ -24,8 +24,8 @@
         (byggsteg process)
         (byggsteg uuid)
         (byggsteg auth)
-        (byggsteg base64)
         (byggsteg preferences)
+        (byggsteg query-escape)
         (app views profiles)
         (app models profile)
         (artanis i18n)
@@ -73,34 +73,34 @@
                  (new-uuid (string-replace-substring (uuidgen) "\n" ""))
                  (found-profile ($profile 'get
                                           #:ret 'top
-                                          #:condition (where #:human_id (safe-base64-encode
+                                          #:condition (where #:human_id (escape-str
                                                                          profile-name)))))
             
             (cond
-              ((not (nil? found-profile))
-               (DB-query (DB-open rc)
-                         (->sql update
-                                'profile set
-                                `((profile_data ,(safe-base64-encode
-                                                  profile-data))
-                                  (updated_at ,(current-time)))
-                                (where #:human_id (safe-base64-encode
-                                                   profile-name))))
-               (redirect-to rc
-                            (string->uri (format #f "~a/profiles/~a"
-                                                 (current-myhost)
-                                                 (assoc-ref found-profile "id")))
-                            #:status 302))
-              (else ($profile 'set
-                              #:id new-uuid
-                              #:human_id (safe-base64-encode profile-name)
-                              #:profile_data (safe-base64-encode profile-data)
-                              #:created_at (current-time))
-                    (redirect-to rc
-                                 (string->uri (format #f "~a/profiles/~a"
-                                                      (current-myhost)
-                                                      new-uuid))
-                                 #:status 302)))))
+             ((not (nil? found-profile))
+              (DB-query (DB-open rc)
+                        (->sql update
+                               'profile set
+                               `((profile_data ,(escape-str
+                                                 profile-data))
+                                 (updated_at ,(current-time)))
+                               (where #:human_id (escape-str
+                                                  profile-name))))
+              (redirect-to rc
+                           (string->uri (format #f "~a/profiles/~a"
+                                                (current-myhost)
+                                                (assoc-ref found-profile "id")))
+                           #:status 302))
+             (else ($profile 'set
+                             #:id new-uuid
+                             #:human_id (escape-str profile-name)
+                             #:profile_data (escape-str profile-data)
+                             #:created_at (current-time))
+                   (redirect-to rc
+                                (string->uri (format #f "~a/profiles/~a"
+                                                     (current-myhost)
+                                                     new-uuid))
+                                #:status 302)))))
         (protected-endpoint rc do-submit)))
 
 (post "/profiles/manage/delete"

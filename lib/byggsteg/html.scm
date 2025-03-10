@@ -17,13 +17,13 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (byggsteg html)
-  #:use-module (byggsteg base64)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
   #:use-module (byggsteg job pipeline)
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg query-escape)
   #:use-module (sxml simple)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
@@ -210,21 +210,21 @@
                  ,(G_ "submit"))))
 
 (define-public (make-job-link G_ job log)
-  (let* ((log-filename (safe-base64-decode (assoc-ref log "human_id")))
+  (let* ((log-filename (unescape-str (assoc-ref log "human_id")))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
                             (assoc-ref log "id")))
          (success (assoc-ref (car job) "job_success"))
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
-                       ((equal? success 1)
-                        `(h2 (@ (class "text-green-700 text-sm font-sans"))
-                             ,(G_ "job succeeded")))
-                       ((equal? failure 1)
-                        `(h2 (@ (class "text-red-700 text-sm font-sans"))
-                             ,(G_ "job failed")))
-                       (else `(h2 (@ (class "text-sky-600 text-sm font-sans"))
-                                  ,(G_ "job in progress"))))))
+                      ((equal? success 1)
+                       `(h2 (@ (class "text-green-700 text-sm font-sans"))
+                            ,(G_ "job succeeded")))
+                      ((equal? failure 1)
+                       `(h2 (@ (class "text-red-700 text-sm font-sans"))
+                            ,(G_ "job failed")))
+                      (else `(h2 (@ (class "text-sky-600 text-sm font-sans"))
+                                 ,(G_ "job in progress"))))))
     `((div (@ (class "flex flex-col gap-1"))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
@@ -239,8 +239,8 @@
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
               ,(string-append "→  "
-                              (safe-base64-decode (assoc-ref profile
-                                                             "human_id"))))))))
+                              (unescape-str (assoc-ref profile
+                                                       "human_id"))))))))
 
 (begin
   (define-syntax-rule (if-job-was-updated-html job html)

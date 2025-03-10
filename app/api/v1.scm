@@ -19,13 +19,13 @@
 (define-restful-api v1)
 
 (import (ice-9 string-fun)
-        (byggsteg base64)
         (byggsteg preferences)
         (byggsteg auth)
         (byggsteg url)
         (byggsteg uuid)
         (byggsteg log)
         (ice-9 textual-ports)
+        (byggsteg query-escape)
         (byggsteg job pipeline)
         (app models job)
         (app models log))
@@ -49,8 +49,8 @@
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (safe-base64-encode log-filename)
-                  #:job_data (safe-base64-encode job-code)
+                  #:human_id (escape-str log-filename)
+                  #:job_data (escape-str job-code)
                   #:job_success 0
                   #:job_in_progress 1
                   #:job_failed 0
@@ -58,15 +58,15 @@
 
             ($log 'set
                   #:id new-log-uuid
-                  #:human_id (safe-base64-encode log-filename)
+                  #:human_id (escape-str log-filename)
                   #:job_id new-job-uuid
                   #:log_data ""
                   #:created_at (current-time))
 
             (:mime rc
-                   `((log-id unquote new-log-uuid)
-                     (human-id unquote
-                               (safe-base64-encode log-filename))))))
+             `((log-id unquote new-log-uuid)
+               (human-id unquote
+                         (escape-str log-filename))))))
 
         (protected-api-endpoint rc do-submit)))
 

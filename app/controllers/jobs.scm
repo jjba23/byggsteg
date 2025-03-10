@@ -23,9 +23,9 @@
         (web uri)
         (byggsteg preferences)
         (byggsteg auth)
-        (byggsteg base64)
         (byggsteg process)
         (byggsteg uuid)
+        (byggsteg query-escape)
         (byggsteg job pipeline)
         (byggsteg log)
         (ice-9 string-fun)
@@ -61,8 +61,8 @@
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (safe-base64-encode log-filename)
-                  #:job_data (safe-base64-encode job-code)
+                  #:human_id (escape-str log-filename)
+                  #:job_data (escape-str job-code)
                   #:job_success 0
                   #:job_in_progress 1
                   #:job_failed 0
@@ -70,7 +70,7 @@
 
             ($log 'set
                   #:id new-log-uuid
-                  #:human_id (safe-base64-encode log-filename)
+                  #:human_id (escape-str log-filename)
                   #:job_id new-job-uuid
                   #:log_data ""
                   #:created_at (current-time))

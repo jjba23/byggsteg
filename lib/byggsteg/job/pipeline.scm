@@ -21,10 +21,10 @@
   #:use-module (byggsteg process)
   #:use-module (byggsteg job steps)
   #:use-module (byggsteg uuid)
+  #:use-module (byggsteg query-escape)
   #:use-module (artanis artanis)
   #:use-module (app models log)
   #:use-module (app models job)
-  #:use-module (byggsteg base64)
   #:use-module (app models job)
   #:use-module (app models log)
   #:use-module (ice-9 string-fun)
@@ -129,9 +129,9 @@ byggsteg worker will sleep for ~a seconds
 
 (begin
   (define* (job-pipeline #:key job log)
-    (let* ((old-log-data (safe-base64-decode (assoc-ref log "log_data")))
-           (kv-thunk (eval-string (safe-base64-decode (assoc-ref job
-                                                                 "job_data"))))
+    (let* ((old-log-data (unescape-str (assoc-ref log "log_data")))
+           (kv-thunk (eval-string (unescape-str (assoc-ref job
+                                                           "job_data"))))
            (kv (kv-thunk))
            (project (assoc-ref kv
                                'project))
@@ -180,7 +180,7 @@ byggsteg worker will sleep for ~a seconds
         (DB-query (get-conn-from-pool!)
                   (->sql update
                          'log set
-                         `((log_data ,(safe-base64-encode new-log-data))
+                         `((log_data ,(escape-str new-log-data))
                            (updated_at ,(current-time)))
                          (where #:id (assoc-ref log "id"))))
 

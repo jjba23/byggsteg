@@ -17,13 +17,13 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (app views profiles)
-  #:use-module (byggsteg base64)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg html)
+  #:use-module (byggsteg query-escape)
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
@@ -33,21 +33,21 @@
   #:use-module (ice-9 string-fun))
 
 (define-public (profile-page rc p)
-  (let* ((profile-name (safe-base64-decode (assoc-ref p "human_id")))
-         (profile-data (safe-base64-decode (assoc-ref p "profile_data")))
+  (let* ((profile-name (unescape-str (assoc-ref p "human_id")))
+         (profile-data (unescape-str (assoc-ref p "profile_data")))
          (G_ (:i18n rc)))
     (byggsteg-html-template G_
                             #:title "byggsteg"
                             #:body `((div (@ (class
-                                              "flex flex-row flex-wrap align-center gap-6 px-3"))
+                                               "flex flex-row flex-wrap align-center gap-6 px-3"))
                                           (h2 (@ (class ,h2-face))
                                               ,(G_ "profile details"))
                                           (h3 (@ (class
-                                                  "text-stone-300 text-xl"))
+                                                   "text-stone-300 text-xl"))
                                               ,profile-name))
                                      
                                      (div (@ (class
-                                              "flex flex-row flex-wrap gap-4"))
+                                               "flex flex-row flex-wrap gap-4"))
                                           (form (@ (method "POST")
                                                    (action
                                                     "/jobs/manage/submit")
@@ -75,9 +75,9 @@
                                                           (required "")
                                                           (hidden "")
                                                           (value ,(assoc-ref p
-                                                                   "id"))
+                                                                             "id"))
                                                           (class
-                                                           "rounded-xl border font-sans p-2")))
+                                                            "rounded-xl border font-sans p-2")))
                                                 (button (@ (type "submit")
                                                            (class ,danger-button-face))
                                                         ,(G_ "delete"))))

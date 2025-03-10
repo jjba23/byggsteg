@@ -17,12 +17,12 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (app views logs)
-  #:use-module (byggsteg base64)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg query-escape)
   #:use-module (web uri)
   #:use-module (artanis artanis)
   #:use-module (ice-9 i18n)
@@ -37,22 +37,22 @@
 (define-public (log-page rc job log)
   (let* ((log-id (assoc-ref log "id"))
          (job-id (assoc-ref job "id"))
-         (log-filename (safe-base64-decode (assoc-ref log "human_id")))
-         (log-data (safe-base64-decode (assoc-ref log "log_data")))
-         (detail-data (safe-base64-decode (assoc-ref job "job_data")))
+         (log-filename (unescape-str (assoc-ref log "human_id")))
+         (log-data (unescape-str (assoc-ref log "log_data")))
+         (detail-data (unescape-str (assoc-ref job "job_data")))
          (success (assoc-ref job "job_success"))
          (in_progress (assoc-ref job "job_in_progress"))
          (failure (assoc-ref job "job_failed"))
          (G_ (:i18n rc))
          (job-status (cond
-                       ((equal? success 1)
-                        `(h2 (@ (class "text-xl text-green-700 font-sans"))
-                             ,(G_ "job succeeded")))
-                       ((equal? failure 1)
-                        `(h2 (@ (class "text-xl text-red-700 font-sans"))
-                             ,(G_ "job failed")))
-                       (else `(h2 (@ (class "text-xl text-sky-600 font-sans"))
-                                  ,(G_ "job in progress")))))
+                      ((equal? success 1)
+                       `(h2 (@ (class "text-xl text-green-700 font-sans"))
+                            ,(G_ "job succeeded")))
+                      ((equal? failure 1)
+                       `(h2 (@ (class "text-xl text-red-700 font-sans"))
+                            ,(G_ "job failed")))
+                      (else `(h2 (@ (class "text-xl text-sky-600 font-sans"))
+                                 ,(G_ "job in progress")))))
          (delete-button `(form (@ (method "POST")
                                   (enctype "application/x-www-form-urlencoded")
                                   (action "/jobs/manage/delete"))
@@ -70,7 +70,7 @@
                                           (class ,danger-button-face))
                                        ,(G_ "delete"))))
          (log-html `((div (@ (class
-                              "flex flex-row flex-wrap align-middle gap-6 py-3"))
+                               "flex flex-row flex-wrap align-middle gap-6 py-3"))
                           (h2 (@ (class ,h2-face))
                               ,(G_ "viewing logs"))
                           ,job-status)
@@ -80,22 +80,22 @@
                      (div (@ (class "flex flex-col gap-4"))
                           ,(if-job-was-updated-html job
                                                     `(em (@ (class
-                                                             "text-stone-400 text-sm font-mono"))
+                                                              "text-stone-400 text-sm font-mono"))
                                                          ,(format #f
-                                                           "took ~a seconds"
-                                                           (- (assoc-ref job
-                                                               "updated_at")
-                                                              (assoc-ref job
-                                                               "created_at")))))
+                                                                  "took ~a seconds"
+                                                                  (- (assoc-ref job
+                                                                                "updated_at")
+                                                                     (assoc-ref job
+                                                                                "created_at")))))
                           (small (@ (class "text-stone-400 text-sm font-mono"))
                                  ,(format #f "~a: ~a"
                                           (G_ "started at")
                                           (strftime "%c"
                                                     (localtime (assoc-ref job
-                                                                "created_at")))))
+                                                                          "created_at")))))
                           ,(if-job-was-updated-html job
                                                     `(small (@ (class
-                                                                "text-stone-400 text-sm font-mono"))
+                                                                 "text-stone-400 text-sm font-mono"))
                                                             ,(format #f
                                                                      "~a: ~a"
                                                                      (G_
