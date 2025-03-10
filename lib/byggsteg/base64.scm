@@ -21,14 +21,16 @@
 
 (define-public (safe-base64-encode s)
   (cond
-    ((and (not (equal? "" s))
-          (not (null? s)))
-     (nss:base64-encode s))
-    (else s)))
+   ((not (equal? "" s))
+    (nss:base64-encode s))
+   (else s)))
 
 (define-public (safe-base64-decode s)
-  (cond
-    ((and (not (equal? "" s))
-          (not (null? s)))
-     (nss:base64-decode s))
-    (else s)))
+  (catch #t
+    (lambda ()
+      (cond
+       ((not (equal? "" s))
+        (nss:base64-decode s))
+       (else s)))
+    (lambda (key . args)
+      s)))

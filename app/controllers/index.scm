@@ -20,7 +20,6 @@
 
 (import (byggsteg html)
         (byggsteg url)
-        (byggsteg debug)
         (web uri)
         (artanis i18n)
         (artanis i18n locale)

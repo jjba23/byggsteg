@@ -25,7 +25,6 @@
   #:use-module (app models log)
   #:use-module (app models job)
   #:use-module (byggsteg base64)
-  #:use-module (byggsteg debug)
   #:use-module (app models job)
   #:use-module (app models log)
   #:use-module (ice-9 string-fun)
@@ -39,24 +38,23 @@
                                    #:condition (where #:job_in_progress 1)
                                    #:order-by '(created_at asc)))
            (logs-of-in-progress (cond
-                                  ((nil? jobs-in-progress)
-                                   '())
-                                  (else ($log 'get
-                                              #:ret 'all
-                                              #:condition (where #:job_id (map (lambda 
-                                                                                       (j)
-                                                                                 
-                                                                                 
-                                                                                 (assoc-ref
-                                                                                  j
-                                                                                  "id"))
-                                                                           jobs-in-progress))))))
+                                 ((nil? jobs-in-progress)
+                                  '())
+                                 (else ($log 'get
+                                             #:ret 'all
+                                             #:condition (where #:job_id (map (lambda 
+                                                                                  (j)
+                                                                                
+                                                                                
+                                                                                (assoc-ref
+                                                                                 j
+                                                                                 "id"))
+                                                                              jobs-in-progress))))))
            (job-log-map (map (lambda (l)
                                `(,(assoc-ref l "job_id") unquote l))
                              logs-of-in-progress)))
       
       (for-each (lambda (j)
-                  (debug-print j)
                   (job-pipeline #:job j
                                 #:log (assoc-ref job-log-map
                                                  (assoc-ref j "id"))))

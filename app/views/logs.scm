@@ -23,7 +23,6 @@
   #:use-module (byggsteg process)
   #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
-  #:use-module (byggsteg debug)
   #:use-module (web uri)
   #:use-module (artanis artanis)
   #:use-module (ice-9 i18n)

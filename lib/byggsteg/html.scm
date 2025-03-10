@@ -29,7 +29,10 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
+  #:use-module (byggsteg prelude)
   #:use-module (web uri)
+  #:use-module (hygguile abstraction)
+  #:use-module (hygguile components icon)
   #:use-module (artanis artanis)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
@@ -47,56 +50,75 @@
           ;; (maybe-auto-refresh `())
           )
       
-      `(html (head (title ,title)
-                   (link (@ (rel "preconnect")
-                            (href "https://fonts.googleapis.com")))
-                   (link (@ (rel "preconnect")
-                            (href "https://fonts.gstatic.com")
-                            (crossorigin "")))
-                   (link (@ (rel "stylesheet")
-                            (href
-                             "https://fonts.cdnfonts.com/css/liberation-sans")))
-                   (link (@ (rel "stylesheet")
-                            (href "/css/fonts.css")))
+      `("<!DOCTYPE html>" (html (@ (lang en))
+                                (head (title ,title)
+                                      (style ,(assoc-ref asset-library
+                                                         "pub/css/fonts.css"))
+                                      (style ,(assoc-ref asset-library
+                                               "pub/css/phosphor.css"))
 
-                   ,maybe-auto-refresh
-                   (meta (@ (name "viewport")
-                            (content "width=device-width, initial-scale=1.0")))
-                   (script (@ (src "https://cdn.tailwindcss.com")) "")
-                   (script (@ (src "/js/tailwind.config.js")) ()))
-             (body (@ (class "bg-stone-900"))
-                   (div (@ (class "flex flex-col h-screen justify-between"))
-                        (div ,(page-top G_)
-                             (div (@ (class "my-4 container mx-auto"))
-                                  ,@body))
-                        ,(page-footer G_))))))
+                                      ,maybe-auto-refresh
+                                      (meta (@ (name viewport)
+                                               (content
+                                                "width=device-width, initial-scale=1.0")))
+                                      (script ,(assoc-ref asset-library
+                                                "pub/js/tailwind.js"))
+                                      (script ,(assoc-ref asset-library
+                                                "pub/js/tailwind.config.js")))
+                                (body (@ (class "bg-stone-900"))
+                                      (div (@ (class
+                                               "flex flex-col h-screen justify-between"))
+                                           (div ,(page-top G_)
+                                                (div (@ (class
+                                                         "my-4 container mx-auto"))
+                                                     ,@body))
+                                           ,(page-footer G_)))))))
   (export byggsteg-html-template))
 
 (define-public (page-top G_)
-  `((div (@ (class
-             "flex flex-row flex-wrap gap-6 py-3 px-2 sm:px-5 items-center bg-stone-800"))
+  `((div (@ (class ,(->css '(flex flex-row
+                                  flex-wrap
+                                  gap-6
+                                  py-3
+                                  px-2
+                                  sm:px-5
+                                  items-center
+                                  bg-stone-800))))
          (h1 (@ (class ,brand-title-face))
-             (a (@ (href "/")) "🚧 byggsteg"))
-         (div (@ (class "flex flex-row flex-wrap items-center gap-3"))
+             (a (@ (href "/")(class ,(->css '(flex flex-row gap-2 items-center))))
+                ,(hyg-icon #:type 'gear-fine)
+                (span "byggsteg")))
+         (div (@ (class ,(->css '(flex flex-row flex-wrap items-center gap-3))))
               (a (@ (href "/logs")
                     (class ,nav-button-face))
-                 ,(G_ "logs"))
+                 ,(hyg-icon #:type 'scroll)
+                 (span ,(G_ "logs")))
               (a (@ (href "/jobs/request")
                     (class ,nav-button-face))
-                 ,(G_ "run job"))
+                 ,(hyg-icon #:type 'circuitry)
+                 (span ,(G_ "run job")))
               (a (@ (href "/profiles")
                     (class ,nav-button-face))
-                 ,(G_ "profiles"))
+                 ,(hyg-icon #:type 'folder)
+                 (span ,(G_ "profiles")))
               (a (@ (href "/profiles/manage/create")
                     (class ,nav-button-face))
-                 ,(G_ "new profile"))
+                 ,(hyg-icon #:type 'plus)
+                 (span ,(G_ "new profile")))
               (a (@ (href "/login")
                     (class ,nav-button-face))
-                 ,(G_ "login"))))))
+                 ,(hyg-icon #:type 'sign-in)
+                 (span ,(G_ "login")))))))
 
 (define-public (page-footer G_)
-  `((div (@ (class
-             "flex flex-wrap flex-row gap-6 justify-between px-2 sm:px-5 py-3 bg-stone-800"))
+  `((div (@ (class ,(->css '(flex flex-wrap
+                                  flex-row
+                                  gap-6
+                                  justify-between
+                                  px-2
+                                  sm:px-5
+                                  py-3
+                                  bg-stone-800))))
          (div (@ (class "block text-left font-sans max-w-prose"))
               (p (@ (class " px-2 py-1"))
                  (em (@ (class "text-sm text-stone-300"))
@@ -105,18 +127,23 @@
                  (em (@ (class "text-sm text-stone-300"))
                      ,(G_
                        "byggsteg is free software, available under the GNU GPL v3 or newer.")))
-              (div (@ (class
-                       "mt-2 flex flex-row flex-wrap gap-4 align-center px-2 py-1"))
-                   (p (@ (class "text-sm text-stone-300"))
+              (div (@ (class ,(->css '(mt-2 flex
+                                            flex-row
+                                            flex-wrap
+                                            gap-4
+                                            align-center
+                                            px-2
+                                            py-1))))
+                   (p (@ (class ,(->css '(text-sm text-stone-300))))
                       ,(G_ "find the source code here"))
                    (a (@ (class ,link-face)
                          (href "https://codeberg.org/jjba23/byggsteg"))
                       "https://codeberg.org/jjba23/byggsteg"))
-              (p (@ (class "text-xs text-stone-300 px-2 py-1"))
+              (p (@ (class ,(->css '(text-xs text-stone-300 px-2 py-1))))
                  (em ,(G_
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
-              (p (@ (class "mt-2 px-2 py-1"))
-                 (em (@ (class "text-sm text-stone-300"))
+              (p (@ (class ,(->css '(mt-2 px-2 py-1))))
+                 (em (@ (class ,(->css '(text-sm text-stone-300))))
                      ,(G_
                        "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
               (p (@ (class "mt-2 px-2 py-1"))
@@ -145,15 +172,15 @@
   `(div (form (@ (action "/preferences/locale")
                  (enctype "application/x-www-form-urlencoded")
                  (method "POST")
-                 (class "flex flex-row gap-4 flex-wrap"))
+                 (class ,(->css '(flex flex-row gap-4 flex-wrap))))
               (select (@ (name "user-lang")
                          (class ,input-face))
                       (option (@ (value "en_US")) "English")
                       (option (@ (value "nl_NL")) "Nederlands")
                       (option (@ (value "es_ES")) "Español"))
               (button (@ (type "submit")
-                         (class "text-white bg-teal-600 rounded-xl p-1"))
-                      "&nbsp;✓&nbsp;"))))
+                         (class ,(->css '(text-white bg-teal-600 rounded-xl
+                                                     p-1)))) "&nbsp;✓&nbsp;"))))
 
 (define-public (job-form G_ route is-profile)
   `(form (@ (method "POST")
@@ -190,14 +217,14 @@
          (success (assoc-ref (car job) "job_success"))
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
-                      ((equal? success 1)
-                       `(h2 (@ (class "text-green-700 text-sm font-sans"))
-                            ,(G_ "job succeeded")))
-                      ((equal? failure 1)
-                       `(h2 (@ (class "text-red-700 text-sm font-sans"))
-                            ,(G_ "job failed")))
-                      (else `(h2 (@ (class "text-sky-600 text-sm font-sans"))
-                                 ,(G_ "job in progress"))))))
+                       ((equal? success 1)
+                        `(h2 (@ (class "text-green-700 text-sm font-sans"))
+                             ,(G_ "job succeeded")))
+                       ((equal? failure 1)
+                        `(h2 (@ (class "text-red-700 text-sm font-sans"))
+                             ,(G_ "job failed")))
+                       (else `(h2 (@ (class "text-sky-600 text-sm font-sans"))
+                                  ,(G_ "job in progress"))))))
     `((div (@ (class "flex flex-col gap-1"))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))

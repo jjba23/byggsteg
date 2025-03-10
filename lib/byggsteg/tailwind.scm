@@ -22,6 +22,7 @@
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
+  #:use-module (hygguile abstraction)
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 futures))
 
@@ -29,97 +30,98 @@
 ;; Buttons
 ;;
 (define base-button
-  `("rounded-xl" "p-2" "w-fit" "text-sm" "font-sans" "font-bold"))
+  `(rounded-xl p-2 w-fit text-sm font-sans font-bold))
 
 (define-public button-face
-  (string-join (append base-button
-                       '("bg-teal-700" "hover:bg-teal-800"
-                         "active:bg-teal-800" "text-stone-300")) " "))
+  (->css (append base-button
+                 '(bg-teal-700 hover:bg-teal-800 active:bg-teal-800
+                               text-stone-300))))
 
 (define-public danger-button-face
-  (string-join (append base-button
-                       '("bg-red-700" "hover:bg-red-800" "active:bg-red-800"
-                         "text-stone-300")) " "))
+  (->css (append base-button
+                 '(bg-red-700 hover:bg-red-800 active:bg-red-800
+                              text-stone-300))))
 
 (define-public nav-button-face
-  (string-join '("text-teal-600" "hover:border-b-teal-400"
-                 "hover:text-teal-400"
-                 "cursor-pointer"
-                 "p-1"
-                 ;; "border-b-2"
-                 "font-sans"
-                 ;; "border-b-teal-600"
-                 "text-sm"
-                 "font-bold") " "))
+  (->css '(text-teal-600 hover:border-b-teal-400
+                         hover:text-teal-400
+                         cursor-pointer
+                         p-1
+                         font-sans
+                         flex
+                         flex-row
+                         gap-1
+                         items-center
+                         text-sm
+                         font-bold)))
 ;;
 ;; Forms
 ;;
 (define-public input-face
-  (string-join '("rounded-xl" "border"
-                 "border-stone-600"
-                 "p-3"
-                 "text-md"
-                 "bg-stone-800"
-                 "text-stone-300"
-                 "font-mono") " "))
+  (->css '(rounded-xl border
+                      border-stone-600
+                      p-3
+                      text-md
+                      bg-stone-800
+                      text-stone-300
+                      font-mono)))
 
 (define-public textarea-face
-  (string-join '("rounded-xl" "border"
-                 "border-stone-600"
-                 "p-2"
-                 "w-full"
-                 "text-md"
-                 "bg-stone-800"
-                 "font-mono"
-                 "text-stone-300"
-                 "min-h-64") " "))
+  (->css '(rounded-xl border
+                      border-stone-600
+                      p-2
+                      w-full
+                      text-md
+                      bg-stone-800
+                      font-mono
+                      text-stone-300
+                      min-h-64)))
 
 (define-public label-face
-  (string-join '("text-stone-300" "text-sm" "font-bold" "py-2" "md:px-2") " "))
+  (->css '(text-stone-300 text-sm font-bold py-2 md:px-2)))
 
 (define-public hr-face
-  (string-join '("mx-8" "my-5" "border-t-2" "border-t-stone-600") " "))
+  (->css '(mx-8 my-5 border-t-2 border-t-stone-600)))
 
 ;;
 ;; Headers
 ;;
 (define-public h2-face
-  (string-join '("text-2xl" "text-stone-300" "font-bold" "font-sans") " "))
+  (->css '(text-2xl text-stone-300 font-bold font-sans)))
 
 (define-public h4-face
-  (string-join '("text-lg" "text-stone-400" "font-bold" "font-sans") " "))
+  (->css '(text-lg text-stone-400 font-bold font-sans)))
 
 (define-public brand-title-face
-  (string-join '("text-2xl" "text-teal-500" "hover:border-b-teal-400"
-                 "hover:text-teal-400" "font-bold" "font-sans") " "))
+  (->css '(text-2xl text-teal-500 hover:border-b-teal-400 hover:text-teal-400
+                    font-bold font-sans)))
 
 ;;
 ;; Links
 ;;
 (define-public dash-link-face
-  (string-join '("text-stone-300" "hover:text-stone-100" "font-bold"
-                 "cursor-pointer" "text-md" "font-sans") " "))
+  (->css '(text-stone-300 hover:text-stone-100 font-bold cursor-pointer
+                          text-md font-sans)))
 
 (define-public link-face
-  (string-join '("text-teal-500" "hover:text-teal-400" "font-bold"
-                 "cursor-pointer" "text-sm") " "))
+  (->css '(text-teal-500 hover:text-teal-400 font-bold cursor-pointer text-sm)))
 
 ;;
 ;; Pre
 ;;
 (define-public pre-face
-  (string-join '("rounded-xl" "bg-stone-800"
-                 "p-4"
-                 "my-6"
-                 "text-md"
-                 "text-stone-300"
-                 "white-space-pre"
-                 "overflow-x-scroll") " "))
+  (->css '(rounded-xl bg-stone-800
+                      p-4
+                      my-6
+                      text-md
+                      text-stone-300
+                      white-space-pre
+                      overflow-x-scroll)))
 
 ;;
 ;; DL DD DT
 ;;
 (define-public dt-face
-  (string-join '("text-stone-300" "text-sm") " "))
+  (->css '(text-stone-300 text-sm)))
 (define-public dd-face
-  (string-join '("text-stone-400" "text-sm" "mb-2" "sm:ml-4") " "))
+  (->css '(text-stone-400 text-sm mb-2 sm:ml-4)))

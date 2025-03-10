@@ -48,11 +48,43 @@
         Simple routines for converting between binary and hex-and-dash string UUIDs are included.")
      (license license:gpl3+))))
 
+(define-public guile-hygguile
+  (let ((commit "f42a33a600e6a89f4bc322a84eacbfff0e006823")
+        (base32-sha-signature
+         "08a734svpipqfl7bc4dwpbp1sazn1gdnq5l6k9m16bahf8ls7gz6")
+        (revision "0"))
+    (package
+     (name "guile-hygguile")
+     (version (git-version "0.0.0" revision commit))
+     (source
+      (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/jjba23/hygguile.git")
+             (commit commit)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 base32-sha-signature))))
+     (build-system guile-build-system)
+     (native-inputs (list guile-3.0))
+     (arguments
+      (list
+       #:source-directory "src"))
+     (home-page "https://codeberg.org/jjba23/hygguile")
+     (synopsis
+      "SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects")
+     (description
+      "Cozy and professional user-interfaces for everyone.
+        SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects.
+        hygge + guile = hygguile")
+     (license license:lgpl3+))))
+
 (packages->manifest (list (specification->package "make")
                           (specification->package "gettext")
                           guile-next
                           guile-ares-rs
                           artanis
+                          guile-hygguile
                           guile-dbi
                           guile-dbd-sqlite3))
 

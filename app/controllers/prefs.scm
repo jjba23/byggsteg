@@ -20,7 +20,6 @@
 
 (import (byggsteg html)
         (byggsteg url)
-        (byggsteg debug)
         (web uri)
         (byggsteg auth))
 
@@ -31,14 +30,13 @@
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
                  (user-lang (uri-decode (car (assoc-ref kv "user-lang")))))
-            (debug-print user-lang)
             (:cookies-set! rc
-                           'lang "lang" user-lang)
+             'lang "lang" user-lang)
             (:cookies-setattr! rc
-                               'lang
-                               #:expires 12000000
-                               #:path "/"
-                               #:http-only #t)
+             'lang
+             #:expires 12000000
+             #:path "/"
+             #:http-only #t)
             (redirect-to rc
                          (string->uri (format #f "~a/"
                                               (current-myhost))))))
