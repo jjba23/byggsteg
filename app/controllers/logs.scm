@@ -29,17 +29,23 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let* ((logs ($log 'get
-                          #:ret 'all
-                          #:order-by '(created_at desc)))
+       (let* ((offset (cond
+                       ((not (nil? (get-from-qstr rc "offset")))
+                        (get-from-qstr rc "offset"))
+                       (else 0)))
+              (limit 60)
+              (logs ($log 'get
+                          ;; #:ret limit
+                          #:order-by '(created_at desc)
+                          ))
               (job-ids (map (lambda (l)
                               (assoc-ref l "job_id")) logs))
               (jobs (cond
-                      ((not (nil? job-ids))
-                       ($job 'get
-                             #:ret 'all
-                             #:condition (where #:id job-ids)))
-                      (else '())))
+                     ((not (nil? job-ids))
+                      ($job 'get
+                            #:ret 'all
+                            #:condition (where #:id job-ids)))
+                     (else '())))
               (job-map (map (lambda (j)
                               (list (assoc-ref j "id") j)) jobs))
 
@@ -50,7 +56,7 @@
                                  logs)))
          
          (response-emit (:mime rc
-                               (logs-page rc jobs-of-logs logs))))))
+                         (logs-page rc jobs-of-logs logs))))))
 
 (get "/logs/:id"
      #:mime 'xml
