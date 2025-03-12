@@ -30,33 +30,33 @@
      #:i18n '(cookie "lang")
      (lambda (rc)
        (let* ((query-offset (cond
-                              ((not (nil? (get-from-qstr rc "offset")))
-                               (string->number (get-from-qstr rc "offset")))
-                              (else 0)))
+                             ((not (nil? (get-from-qstr rc "offset")))
+                              (string->number (get-from-qstr rc "offset")))
+                             (else 0)))
               (query-limit (cond
-                             ((not (nil? (get-from-qstr rc "limit")))
-                              (string->number (get-from-qstr rc "limit")))
-                             (else 40)))
+                            ((not (nil? (get-from-qstr rc "limit")))
+                             (string->number (get-from-qstr rc "limit")))
+                            (else 24)))
               (logs (DB-get-all-rows (DB-query (get-conn-from-pool!)
                                                (->sql select
                                                       *
                                                       from
                                                       'log
                                                       (format #f
-                                                       " ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                                                       query-limit
-                                                       query-offset)
+                                                              " ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
+                                                              query-limit
+                                                              query-offset)
 
                                                       ))))
 
               (job-ids (map (lambda (l)
                               (assoc-ref l "job_id")) logs))
               (jobs (cond
-                      ((not (nil? job-ids))
-                       ($job 'get
-                             #:ret 'all
-                             #:condition (where #:id job-ids)))
-                      (else '())))
+                     ((not (nil? job-ids))
+                      ($job 'get
+                            #:ret 'all
+                            #:condition (where #:id job-ids)))
+                     (else '())))
               (job-map (map (lambda (j)
                               (list (assoc-ref j "id") j)) jobs))
 
@@ -67,11 +67,11 @@
                                  logs)))
          
          (response-emit (:mime rc
-                               (logs-page #:rc rc
-                                          #:jobs-of-logs jobs-of-logs
-                                          #:logs logs
-                                          #:offset query-offset
-                                          #:limit query-limit))))))
+                         (logs-page #:rc rc
+                                    #:jobs-of-logs jobs-of-logs
+                                    #:logs logs
+                                    #:offset query-offset
+                                    #:limit query-limit))))))
 
 (get "/logs/:id"
      #:mime 'xml
