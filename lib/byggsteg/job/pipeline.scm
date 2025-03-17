@@ -204,6 +204,8 @@
              (display (format #f "
 ===========
 exception occured running pipeline: ~a
+~a
 ===========
-" key)))))
+" key
+                              args)))))
   (export run-infallible-pipeline))
