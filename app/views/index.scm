@@ -27,15 +27,16 @@
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
   #:use-module (artanis i18n sxml)
+  #:use-module (hygguile abstraction)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 
 (define (job-type-expl G_)
-  `(div (@ (class "max-w-prose p-4"))
+  `(div (@ (class ,(->css '(max-w-prose p-4))))
         (h4 (@ (class ,h4-face))
             ,(G_ "job types"))
-        (dl (@ (class "p-4"))
+        (dl (@ (class ,(->css '(p-4))))
             (dt (@ (class ,dt-face))
                 (code "stack-test"))
             (dd (@ (class ,dd-face))
@@ -74,7 +75,7 @@
             (dd (@ (class ,dd-face))
                 ,(G_
                   "Allow passing arbitrary list of commands (via trivial-cmds field)")))
-        (p (@ (class "text-stone-300 text-sm"))
+        (p (@ (class ,(->css '(text-stone-300 text-sm))))
            ,(G_
              "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))
 
@@ -82,14 +83,21 @@
   (let* ((G_ (:i18n rc))
          (welcome-html `((div (h2 (@ (class ,h2-face))
                                   ,(G_ "welcome to byggsteg")))
-                         (div (@ (class
-                                  "py-3 flex flex-row flex-wrap justify-center items-center gap-6"))
+                         (div (@ (class ,(->css '(py-3 flex
+                                                       flex-row
+                                                       flex-wrap
+                                                       justify-center
+                                                       items-center
+                                                       gap-6))))
                               ,(locale-choose-form G_)
-                              (div (@ (class
-                                       "max-w-prose bg-stone-800 rounded-xl p-4"))
-                                   (span (@ (class "text-stone-300 text-sm"))
-                                         ,(G_
-                                           "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction"))))
+                              (div (@ (class ,(->css '(max-w-prose
+                                                       bg-stone-800 rounded-xl
+                                                       p-4))))
+                                   (span (@ (class ,(->css '(text-stone-300
+                                                             text-sm))))
+                                         ,(G_ (string-append
+                                               "byggsteg aims to be the hackable continuous integration and delivery system, "
+                                               "allowing engineers to deliver software quicker and with less friction")))))
 
                          ,(job-type-expl G_))))
     (byggsteg-html-template G_

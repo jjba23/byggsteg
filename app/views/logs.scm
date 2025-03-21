@@ -45,80 +45,86 @@
            (log-data (unescape-str (assoc-ref log "log_data")))
            (detail-data (unescape-str (assoc-ref job "job_data")))
            (success (assoc-ref job "job_success"))
-           (in_progress (assoc-ref job "job_in_progress"))
+           (in-progress (assoc-ref job "job_in_progress"))
            (failure (assoc-ref job "job_failed"))
            (G_ (:i18n rc))
+           (dl-class (->css '(py-3)))
+           (dt-class (->css '(font-sans text-xs text-stone-400 font-bold pt-2)))
+           (dd-class (->css '(pl-3 font-sans text-sm text-stone-400
+                                   font-medium)))
            (job-status (cond
                          ((equal? success 1)
-                          `(h2 (@ (class "text-xl text-green-800 font-sans"))
+                          `(h2 (@ (class ,(->css '(text-xl text-green-800
+                                                           font-sans))))
                                ,(G_ "job succeeded")))
                          ((equal? failure 1)
-                          `(h2 (@ (class "text-xl text-red-700 font-sans"))
+                          `(h2 (@ (class ,(->css '(text-xl text-red-700
+                                                           font-sans))))
                                ,(G_ "job failed")))
-                         (else `(h2 (@ (class "text-xl text-sky-600 font-sans"))
+                         (else `(h2 (@ (class ,(->css '(text-xl text-sky-600
+                                                                font-sans))))
                                     ,(G_ "job in progress")))))
-           (delete-button `(form (@ (method "POST")
-                                    (enctype
-                                     "application/x-www-form-urlencoded")
+           (delete-button `(form (@ (method POST)
+                                    (enctype application/x-www-form-urlencoded)
                                     (action "/jobs/manage/delete"))
-                                 (input (@ (id "log-id")
-                                           (name "log-id")
-                                           (required "")
-                                           (hidden "")
+                                 (input (@ (id log-id)
+                                           (name log-id)
+                                           (required true)
+                                           (hidden true)
                                            (value ,log-id)))
                                  (input (@ (id "job-id")
                                            (name "job-id")
-                                           (required "")
-                                           (hidden "")
+                                           (required true)
+                                           (hidden true)
                                            (value ,job-id)))
-                                 (button (@ (type "submit")
-                                            (class ,danger-button-face))
-                                         ,(G_ "delete"))))
-           (log-html `((div (@ (class
-                                "flex flex-row flex-wrap align-middle gap-6 py-3"))
+                                 ,(hyg-icon-button #:icon 'trash
+                                                   #:content (G_ "delete")
+                                                   #:type 'submit
+                                                   #:background 'bg-red-700
+                                                   #:hover-background 'hover:bg-red-800)))
+           (log-html `((div (@ (class ,(->css '(flex flex-row flex-wrap
+                                                     align-middle gap-6 py-3))))
                             (h2 (@ (class ,h2-face))
                                 ,(G_ "viewing logs"))
                             ,job-status)
-                       (h3 (@ (class "text-stone-300 text-lg font-sans"))
+                       (h3 (@ (class ,(->css '(text-stone-300 text-lg
+                                                              font-sans py-3))))
                            ,log-filename)
 
-                       (div (@ (class "flex flex-col gap-4"))
-                            ,(if-job-was-updated-html job
-                                                      `(em (@ (class
-                                                               "text-stone-400 text-sm font-mono"))
+                       (dl (@ (class ,dl-class))
+                           ,(if-job-was-updated-html job
+                                                     `((dt (@ (class ,dt-class))
+                                                           ,(G_ "time taken"))
+                                                       (dd (@ (class ,dd-class))
                                                            ,(format #f
-                                                             "took ~a seconds"
+                                                             "~a seconds"
                                                              (- (assoc-ref job
                                                                  "updated_at")
                                                                 (assoc-ref job
-                                                                 "created_at")))))
-                            (small (@ (class
-                                       "text-stone-400 text-sm font-mono"))
-                                   ,(format #f "~a: ~a"
-                                            (G_ "started at")
-                                            (strftime "%c"
-                                                      (localtime (assoc-ref
-                                                                  job
-                                                                  "created_at")))))
-                            ,(if-job-was-updated-html job
-                                                      `(small (@ (class
-                                                                  "text-stone-400 text-sm font-mono"))
-                                                              ,(format #f
-                                                                "~a: ~a"
-                                                                (G_
-                                                                 "updated at")
-                                                                (strftime "%c"
-                                                                 (localtime (assoc-ref
-                                                                             job
-                                                                             "updated_at")))))))
-
-                       (div (@ (class "flex flex-wrap flex-row gap-4"))
-                            (small (@ (class
-                                       "text-stone-400 text-sm font-mono"))
-                                   ,(format #f "uuid: ~a" job-id))
-                            (small (@ (class
-                                       "text-stone-400 text-sm font-mono"))
-                                   ,(format #f "log uuid: ~a" log-id)))
+                                                                 "created_at"))))))
+                           (dt (@ (class ,dt-class))
+                               ,(G_ "started at"))
+                           (dd (@ (class ,dd-class))
+                               ,(strftime "%c"
+                                          (localtime (assoc-ref job
+                                                                "created_at"))))
+                           ,(if-job-was-updated-html job
+                                                     `((dt (@ (class ,dt-class))
+                                                           ,(G_ "updated at"))
+                                                       (dd (@ (class ,dd-class))
+                                                           ,(strftime "%c"
+                                                                      (localtime
+                                                                       (assoc-ref
+                                                                        job
+                                                                        "updated_at"))))))
+                           (dt (@ (class ,dt-class))
+                               ,(G_ "uuid"))
+                           (dd (@ (class ,dd-class))
+                               ,job-id)
+                           (dt (@ (class ,dt-class))
+                               ,(G_ "log uuid"))
+                           (dd (@ (class ,dd-class))
+                               ,log-id))
 
                        ,delete-button
 
@@ -142,7 +148,7 @@
       (byggsteg-html-template G_
                               #:title "byggsteg"
                               #:body log-html
-                              #:should-auto-refresh #t)))
+                              #:should-auto-refresh in-progress)))
   (export log-page))
 
 (begin
@@ -157,7 +163,8 @@
                                             (car (assoc-ref jobs-of-logs
                                                             (assoc-ref l "id")))
                                             l)) logs))
-           (page-buttons `((div (@ (class "flex flex-row flex-wrap gap-3 my-4"))
+           (page-buttons `((div (@ (class ,(->css '(flex flex-row flex-wrap
+                                                         gap-3 my-4))))
                                 ,(if (> offset 0)
                                      `((a (@ (href ,(format #f
                                                      "/logs?offset=~a&limit=~a"
@@ -174,12 +181,16 @@
                                                             #:content (G_
                                                                        "next"))))
                                      '()))))
-           (logs-html `((div (@ (class
-                                 "w-full flex flex-col gap-4 align-center"))
+           (logs-html `((div (@ (class ,(->css '(w-full flex flex-col gap-4
+                                                        align-center))))
                              (h2 (@ (class ,h2-face))
                                  ,(G_ "logs"))
-                             (div (@ (class
-                                      "rounded-xl bg-stone-800 flex flex-col gap-4 py-4 px-2"))
+                             (div (@ (class ,(->css '(rounded-xl bg-stone-800
+                                                                 flex
+                                                                 flex-col
+                                                                 gap-4
+                                                                 py-4
+                                                                 px-2))))
                                   ,jobs-html)
                              ,page-buttons))))
       (byggsteg-html-template G_

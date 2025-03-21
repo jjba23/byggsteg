@@ -65,12 +65,14 @@
                                                 "pub/js/tailwind.js"))
                                       (script ,(assoc-ref asset-library
                                                 "pub/js/tailwind.config.js")))
-                                (body (@ (class "bg-stone-900"))
-                                      (div (@ (class
-                                               "flex flex-col h-screen justify-between"))
+                                (body (@ (class ,(->css '(bg-stone-900))))
+                                      (div (@ (class ,(->css '(flex flex-col
+                                                               h-screen
+                                                               justify-between))))
                                            (div ,(page-top G_)
-                                                (div (@ (class
-                                                         "my-4 container mx-auto"))
+                                                (div (@ (class ,(->css '(my-4
+                                                                         container
+                                                                         mx-auto))))
                                                      ,@body))
                                            ,(page-footer G_)))))))
   (export byggsteg-html-template))
@@ -120,12 +122,12 @@
                                   sm:px-5
                                   py-3
                                   bg-stone-800))))
-         (div (@ (class "block text-left font-sans max-w-prose"))
-              (p (@ (class " px-2 py-1"))
-                 (em (@ (class "text-sm text-stone-300"))
+         (div (@ (class ,(->css '(block text-left font-sans max-w-prose))))
+              (p (@ (class ,(->css '(px-2 py-1))))
+                 (em (@ (class ,(->css '(text-sm text-stone-300))))
                      ,(G_ "byggsteg is the hackable Guile CI/CD system")))
-              (p (@ (class " px-2 py-1"))
-                 (em (@ (class "text-sm text-stone-300"))
+              (p (@ (class ,(->css '(px-2 py-1))))
+                 (em (@ (class ,(->css '(text-sm text-stone-300))))
                      ,(G_
                        "byggsteg is free software, available under the GNU GPL v3 or newer.")))
               (div (@ (class ,(->css '(mt-2 flex
@@ -147,66 +149,65 @@
                  (em (@ (class ,(->css '(text-sm text-stone-300))))
                      ,(G_
                        "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
-              (p (@ (class "mt-2 px-2 py-1"))
-                 (span (@ (class "text-xs text-stone-300"))
+              (p (@ (class ,(->css '(mt-2 px-2 py-1))))
+                 (span (@ (class ,(->css '(text-xs text-stone-300))))
                        ,(G_ "byggsteg means “build step” in Norwegian."))))
          (div (@ (class ""))
               ,footer-logo))))
 
 (define footer-logo
-  `(div (img (@ (class "w-48 h-auto")
+  `(div (img (@ (class ,(->css '(w-48 h-auto)))
                 (src "/img/byggsteg-logo.png")))))
 
 (define-public (maybe-profile-name G_ is-profile)
   (cond
     ((equal? is-profile #t)
-     `((label (@ (for "profile-name")
-                 (class "text-stone-300 font-bold"))
+     `((label (@ (for profile-name)
+                 (class ,(->css '(text-stone-300 font-bold))))
               ,(G_ "profile name"))
-       (input (@ (id "profile-name")
-                 (name "profile-name")
-                 (required "")
+       (input (@ (id profile-name)
+                 (name profile-name)
+                 (required true)
                  (class ,input-face)))))
     (else `())))
 
 (define-public (locale-choose-form G_)
   `(div (form (@ (action "/preferences/locale")
-                 (enctype "application/x-www-form-urlencoded")
-                 (method "POST")
+                 (enctype application/x-www-form-urlencoded)
+                 (method POST)
                  (class ,(->css '(flex flex-row gap-4 flex-wrap))))
-              (select (@ (name "user-lang")
-                         (class ,input-face))
-                      (option (@ (value "en_US")) "English")
-                      (option (@ (value "nl_NL")) "Nederlands")
-                      (option (@ (value "es_ES")) "Español"))
-              (button (@ (type "submit")
+              (select (@ (name user-lang))
+                      (option (@ (value en_US)) "English")
+                      (option (@ (value nl_NL)) "Nederlands")
+                      (option (@ (value es_ES)) "Español"))
+              (button (@ (type submit)
                          (class ,(->css '(text-white bg-teal-600 rounded-xl
                                                      p-1)))) "&nbsp;✓&nbsp;"))))
 
 (define-public (job-form G_ route is-profile)
-  `(form (@ (method "POST")
+  `(form (@ (method POST)
             (action ,route)
-            (enctype "application/x-www-form-urlencoded")
-            (charset "utf-8")
-            (class "flex flex-col justify-center gap-4"))
+            (enctype application/x-www-form-urlencoded)
+            (charset utf-8)
+            (class ,(->css '(flex flex-col justify-center gap-4))))
 
          ,(maybe-profile-name G_ is-profile)
 
-         (p (@ (class "flex flex-row flex-wrap gap-4"))
-            (span (@ (class "text-stone-400 text-sm"))
+         (p (@ (class ,(->css '(flex flex-row flex-wrap gap-4))))
+            (span (@ (class ,(->css '(text-stone-400 text-sm))))
                   ,(G_ "learn writing a byggsteg pipeline"))
             (a (@ (class ,link-face)
                   (href "https://codeberg.org/jjba23/byggsteg"))
                "https://codeberg.org/jjba23/byggsteg"))
 
-         (label (@ (for "job-code")
+         (label (@ (for job-code)
                    (class ,label-face)) "job code:")
-         (textarea (@ (id "job-code")
-                      (name "job-code")
-                      (required "")
+         (textarea (@ (id job-code)
+                      (name job-code)
+                      (required true)
                       (class ,textarea-face)) "")
 
-         (button (@ (type "submit")
+         (button (@ (type submit)
                     (class ,button-face))
                  ,(G_ "submit"))))
 
@@ -219,14 +220,17 @@
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
                        ((equal? success 1)
-                        `(h2 (@ (class "text-green-800 text-sm font-sans"))
+                        `(h2 (@ (class ,(->css '(text-green-800 text-sm
+                                                                font-sans))))
                              ,(G_ "job succeeded")))
                        ((equal? failure 1)
-                        `(h2 (@ (class "text-red-700 text-sm font-sans"))
+                        `(h2 (@ (class ,(->css '(text-red-700 text-sm
+                                                              font-sans))))
                              ,(G_ "job failed")))
-                       (else `(h2 (@ (class "text-sky-600 text-sm font-sans"))
+                       (else `(h2 (@ (class ,(->css '(text-sky-600 text-sm
+                                                                   font-sans))))
                                   ,(G_ "job in progress"))))))
-    `((div (@ (class "flex flex-col gap-1"))
+    `((div (@ (class ,(->css '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
               (div (@ (class ,(->css '(flex flex-wrap gap-2 items-center))))
@@ -238,7 +242,7 @@
 (define-public (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"
                                 (assoc-ref profile "id"))))
-    `((div (@ (class "flex flex-col gap-2"))
+    `((div (@ (class ,(->css '(flex flex-col gap-2))))
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
               (div (@ (class ,(->css '(flex flex-wrap gap-2 items-center))))

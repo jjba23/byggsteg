@@ -26,6 +26,7 @@
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
+  #:use-module (hygguile abstraction)
   #:use-module (artanis i18n sxml)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
@@ -36,30 +37,32 @@
          (login-html `((h2 (@ (class ,h2-face))
                            ,(G_ "login to byggsteg"))
                        (form (@ (action "/login")
-                                (enctype "application/x-www-form-urlencoded")
-                                (method "POST")
-                                (class
-                                 "rounded-xl bg-stone-800 p-4 flex flex-col gap-4"))
-                             (div (@ (class
-                                      "grid grid-cols-1 sm:grid-cols-3 gap-x-4"))
+                                (enctype application/x-www-form-urlencoded)
+                                (method POST)
+                                (class ,(->css '(rounded-xl bg-stone-800 p-4
+                                                            flex flex-col
+                                                            gap-4))))
+                             (div (@ (class ,(->css '(grid grid-cols-1
+                                                           sm:grid-cols-3
+                                                           gap-x-4))))
                                   (div (label (@ (class ,label-face)
-                                                 (for "username"))
+                                                 (for username))
                                               ,(G_ "username"))
-                                       (input (@ (type "text")
+                                       (input (@ (type text)
                                                  (class ,input-face)
-                                                 (name "username")) ""))
+                                                 (name username)) ""))
                                   (div (label (@ (class ,label-face)
-                                                 (for "password"))
+                                                 (for password))
                                               ,(G_ "password"))
-                                       (input (@ (type "password")
+                                       (input (@ (type password)
                                                  (class ,input-face)
-                                                 (name "password")) "")))
-                             (button (@ (type "submit")
+                                                 (name password)) "")))
+                             (button (@ (type submit)
                                         (class ,button-face))
                                      ,(G_ "login"))))))
     
     (byggsteg-html-template G_
                             #:title "byggsteg"
-                            #:body `((div (@ (class "px-3 py-3"))
+                            #:body `((div (@ (class ,(->css '(px-3 py-3))))
                                           ,login-html)))))
 

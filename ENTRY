@@ -29,7 +29,19 @@
              (artanis irregex))
 ;; Put whatever you want to be called before server initilization here
 
-(init-server #:statics '(png gif jpg jpeg ico html js json csv xml css woff woff2 ttf))
+(init-server #:statics '(png gif
+                             jpg
+                             jpeg
+                             ico
+                             html
+                             js
+                             json
+                             csv
+                             xml
+                             css
+                             woff
+                             woff2
+                             ttf))
 (add-to-load-path (string-append (current-toplevel) "/lib"))
 ;; Put whatever you want to be called before server running here
 
@@ -41,16 +53,33 @@
 ;; Set base locale for gettext at startup
 (setlocale LC_MESSAGES "en_US.UTF-8")
 
-(define is-worker-running #f)
+;; Store the thread object belonging to the byggsteg queue worker
+(define worker-thread
+  #f)
 
-(define (worker)
-  (unless is-worker-running
-    (call-with-new-thread (lambda()
-                            (sleep 3) ; delay worker start
-                            (display (format #f "\n~a...\n" (gettext "initializing byggsteg queue worker")))
-                            (set! is-worker-running #t)
-                            (use-modules (byggsteg job pipeline))
-                            (while #t (run-infallible-pipeline))))))
+;; Procedure to start the byggsteg queue worker to process jobs that haven't completed yet
+;; this is preferrably done in a different thread
+(define (start-worker)
+  (let* ((t (call-with-new-thread (lambda ()
+                                    (sleep 3) ;delay worker start
+                                    (display (format #f
+                                                     "\n~a...\n"
+                                                     (gettext
+                                                      "initializing byggsteg queue worker")))
 
-(run-before-run! worker)
+                                    (use-modules (byggsteg job
+                                                           pipeline))
+                                    (while #t
+                                      (run-infallible-pipeline))))))
+    (set! worker-thread t)))
 
+;; Add hook on before running the Artanis application to start the queue worker
+(run-before-run! start-worker)
+
+;; Procedure to stop the byggsteg queue worker
+(define (cancel-worker)
+  (display "\nterminating byggsteg queue worker\n")
+  (cancel-thread worker-thread))
+
+;; Add a hook on SIGINT to stop the queue worker
+(run-when-sigint! cancel-worker)

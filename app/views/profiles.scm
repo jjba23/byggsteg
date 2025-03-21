@@ -28,6 +28,7 @@
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
   #:use-module (artanis i18n sxml)
+  #:use-module (hygguile abstraction)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
@@ -35,67 +36,60 @@
 (define-public (profile-page rc p)
   (let* ((profile-name (unescape-str (assoc-ref p "human_id")))
          (profile-data (unescape-str (assoc-ref p "profile_data")))
-         (G_ (:i18n rc)))
+         (G_ (:i18n rc))
+         (body `((div (@ (class ,(->css '(flex flex-row flex-wrap align-center
+                                               gap-6 px-3))))
+                      (h2 (@ (class ,h2-face))
+                          ,(G_ "profile details"))
+                      (h3 (@ (class ,(->css '(text-stone-300 text-xl))))
+                          ,profile-name))
+                 
+                 (div (@ (class ,(->css '(flex flex-row flex-wrap gap-4 my-4))))
+                      (form (@ (method POST)
+                               (action "/jobs/manage/submit")
+                               (enctype application/x-www-form-urlencoded)
+                               (charset utf-8))
+
+                            (textarea (@ (id job-code)
+                                         (name job-code)
+                                         (required "")
+                                         (hidden ""))
+                                      ,profile-data)
+
+                            (button (@ (type submit)
+                                       (class ,button-face))
+                                    ,(G_ "start new job")))
+
+                      (form (@ (method POST)
+                               (enctype application/x-www-form-urlencoded)
+                               (action "/profiles/manage/delete"))
+                            (input (@ (id profile-id)
+                                      (name profile-id)
+                                      (required "")
+                                      (hidden "")
+                                      (value ,(assoc-ref p "id"))
+                                      (class ,(->css '(rounded-xl border
+                                                                  font-sans
+                                                                  p-2)))))
+                            (button (@ (type submit)
+                                       (class ,danger-button-face))
+                                    ,(G_ "delete"))))
+
+                 (form (@ (method "POST")
+                          (enctype application/x-www-form-urlencoded)
+                          (action "/profiles/manage/submit"))
+                       (input (@ (hidden "")
+                                 (name profile-name)
+                                 (value ,profile-name)))
+                       (textarea (@ (class ,textarea-face)
+                                    (name job-code))
+                                 ,profile-data)
+                       (button (@ (type submit)
+                                  (class ,button-face))
+                               ,(G_ "save"))))))
     (byggsteg-html-template G_
                             #:title "byggsteg"
-                            #:body `((div (@ (class
-                                              "flex flex-row flex-wrap align-center gap-6 px-3"))
-                                          (h2 (@ (class ,h2-face))
-                                              ,(G_ "profile details"))
-                                          (h3 (@ (class
-                                                  "text-stone-300 text-xl"))
-                                              ,profile-name))
-                                     
-                                     (div (@ (class
-                                              "flex flex-row flex-wrap gap-4 my-4"))
-                                          (form (@ (method "POST")
-                                                   (action
-                                                    "/jobs/manage/submit")
-                                                   (enctype
-                                                    "application/x-www-form-urlencoded")
-                                                   (charset "utf-8"))
-
-                                                (textarea (@ (id "job-code")
-                                                             (name "job-code")
-                                                             (required "")
-                                                             (hidden ""))
-                                                          ,profile-data)
-
-                                                (button (@ (type "submit")
-                                                           (class ,button-face))
-                                                        ,(G_ "start new job")))
-
-                                          (form (@ (method "POST")
-                                                   (enctype
-                                                    "application/x-www-form-urlencoded")
-                                                   (action
-                                                    "/profiles/manage/delete"))
-                                                (input (@ (id "profile-id")
-                                                          (name "profile-id")
-                                                          (required "")
-                                                          (hidden "")
-                                                          (value ,(assoc-ref p
-                                                                   "id"))
-                                                          (class
-                                                           "rounded-xl border font-sans p-2")))
-                                                (button (@ (type "submit")
-                                                           (class ,danger-button-face))
-                                                        ,(G_ "delete"))))
-
-                                     (form (@ (method "POST")
-                                              (enctype
-                                               "application/x-www-form-urlencoded")
-                                              (action
-                                               "/profiles/manage/submit"))
-                                           (input (@ (hidden "")
-                                                     (name "profile-name")
-                                                     (value ,profile-name)))
-                                           (textarea (@ (class ,textarea-face)
-                                                        (name "job-code"))
-                                                     ,profile-data)
-                                           (button (@ (type "submit")
-                                                      (class ,button-face))
-                                                   ,(G_ "save")))))))
+                            #:body body)))
 
 (define-public (add-profile-form-page rc)
   (let* ((G_ (:i18n rc)))
@@ -113,7 +107,13 @@
                             #:title "byggsteg"
                             #:body `((h2 (@ (class ,h2-face))
                                          ,(G_ "profiles"))
-                                     (div (@ (class
-                                              "w-full rounded-xl bg-stone-800 p-4 flex flex-col gap-4 align-center"))
+                                     (div (@ (class ,(->css '(w-full
+                                                              rounded-xl
+                                                              bg-stone-800
+                                                              p-4
+                                                              flex
+                                                              flex-col
+                                                              gap-4
+                                                              align-center))))
                                           ,profiles-html)))))
 
