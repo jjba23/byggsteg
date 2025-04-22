@@ -3,10 +3,7 @@
 
 /byggsteg/ means "build step" in the Norwegian language, and is a CI/CD orchestrator written in Guile Scheme.
 
-byggsteg uses plain Guile, SXML, SQLite3 and some basic POSIX / UNIX utilities.
-
-It is built with the mighty GNU Artanis web-framework.
-
+byggsteg is written in Lisp (Guile Scheme), leverages SXML, SQLite3, some basic POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
 
 ** What is byggsteg ?
 
