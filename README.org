@@ -136,7 +136,7 @@ byggsteg is licensed under the GNU GPL v3 License or newer.
 
 byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
 
-[[file:docs/BENCHMARKS.org][See some of byggsteg's benchmarks here]]
+[[file:docs/benchmarks.org][See some of byggsteg's benchmarks here]]
 
 -----
 
@@ -217,4 +217,4 @@ byggsteg is a community driven effort and as such, can use your help in translat
 
 ** Project management
 
-Find the [[file:docs/MANAGEMENT.org][project management of byggsteg here]].
+Find the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][project management of byggsteg here]].
