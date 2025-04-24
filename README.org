@@ -3,10 +3,7 @@
 
 /byggsteg/ means "build step" in the Norwegian language, and is a CI/CD orchestrator written in Guile Scheme.
 
-byggsteg uses plain Guile, SXML, SQLite3 and some basic POSIX / UNIX utilities.
-
-It is built with the mighty GNU Artanis web-framework.
-
+byggsteg is written in Lisp (Guile Scheme), leverages SXML, SQLite3, some basic POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
 
 ** What is byggsteg ?
 
@@ -136,7 +133,7 @@ byggsteg is licensed under the GNU GPL v3 License or newer.
 
 byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
 
-[[file:docs/BENCHMARKS.org][See some of byggsteg's benchmarks here]]
+[[file:docs/benchmarks.org][See some of byggsteg's benchmarks here]]
 
 -----
 
@@ -217,4 +214,4 @@ byggsteg is a community driven effort and as such, can use your help in translat
 
 ** Project management
 
-Find the [[file:docs/MANAGEMENT.org][project management of byggsteg here]].
+Find the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][project management of byggsteg here]].
