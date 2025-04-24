@@ -37,7 +37,7 @@
                              ((not (nil? (get-from-qstr rc "limit")))
                               (string->number (get-from-qstr rc "limit")))
                              (else 24)))
-              (logs (DB-get-all-rows (DB-query (get-conn-from-pool!)
+              (logs (DB-get-all-rows (DB-query (DB-open rc)
                                                (->sql select
                                                       *
                                                       from
