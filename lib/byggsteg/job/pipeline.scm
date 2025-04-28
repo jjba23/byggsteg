@@ -198,14 +198,15 @@
 (begin
   (define (run-infallible-pipeline)
     (catch #t
-           (lambda ()
-             (do-pip))
-           (lambda (key . args)
-             (display (format #f "
+      (lambda ()
+        (do-pip))
+      (lambda (key . args)
+        (display (format #f "
 ===========
 exception occured running pipeline: ~a
 ~a
 ===========
 " key
-                              args)))))
+args))
+        (sleep 1))))
   (export run-infallible-pipeline))
