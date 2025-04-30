@@ -207,5 +207,6 @@ exception occured running pipeline: ~a
 ~a
 ===========
 " key
-                              args)))))
+                              args))
+             (sleep 1))))
   (export run-infallible-pipeline))

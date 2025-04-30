@@ -219,3 +219,4 @@ byggsteg is a community driven effort and as such, can use your help in translat
 ** Project management
 
 Find the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][project management of byggsteg here]].
+
