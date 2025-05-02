@@ -141,7 +141,7 @@ fmt:
 init-db:
 	$(call byggsteg-log-info,"initializing a new database")
 	-rm -v $(BYGGSTEG_DB) $(BYGGSTEG_DB)-shm $(BYGGSTEG_DB)-wal
-	sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
+	guix shell -m manifest.scm -- sqlite3 byggsteg.db 'PRAGMA journal_mode=WAL;'
 
 # Compile translation files to .mo files
 compile-i18n:

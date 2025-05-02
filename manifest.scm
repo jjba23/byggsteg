@@ -103,5 +103,6 @@
                           artanis
                           guile-hygguile
                           guile-dbi
+                          sqlite
                           guile-dbd-sqlite3))
 

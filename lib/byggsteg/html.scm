@@ -43,10 +43,10 @@
                                    #:key title body
                                    (should-auto-refresh #f))
     (let ((maybe-auto-refresh (cond
-                               ((equal? should-auto-refresh #t)
-                                `(meta (@ (content "10")
-                                          (http-equiv "refresh")) ()))
-                               (else `()))) )
+                                ((equal? should-auto-refresh #t)
+                                 `(meta (@ (content "10")
+                                           (http-equiv "refresh")) ()))
+                                (else `()))))
       
       ;; (maybe-auto-refresh `())
       
@@ -55,20 +55,20 @@
                                       (style ,(assoc-ref asset-library
                                                          "pub/css/fonts.css"))
                                       (style ,(assoc-ref asset-library
-                                                         "pub/css/phosphor.css"))
+                                               "pub/css/phosphor.css"))
 
                                       ,maybe-auto-refresh
                                       (meta (@ (name viewport)
                                                (content
                                                 "width=device-width, initial-scale=1.0")))
                                       (script ,(assoc-ref asset-library
-                                                          "pub/js/tailwind.js"))
+                                                "pub/js/tailwind.js"))
                                       (script ,(assoc-ref asset-library
-                                                          "pub/js/tailwind.config.js")))
+                                                "pub/js/tailwind.config.js")))
                                 (body (@ (class ,(->css '(bg-stone-900))))
                                       (div (@ (class ,(->css '(flex flex-col
-                                                                    h-screen
-                                                                    justify-between))))
+                                                               h-screen
+                                                               justify-between))))
                                            (div ,(page-top G_)
                                                 (div (@ (class ,(->css '(my-4
                                                                          container
@@ -152,24 +152,26 @@
               (p (@ (class ,(->css '(mt-2 px-2 py-1))))
                  (span (@ (class ,(->css '(text-xs text-stone-300))))
                        ,(G_ "byggsteg means “build step” in Norwegian."))))
-         (div (@ (class ""))
-              ,footer-logo))))
+         (div (@ (class "")) " "))))
 
-(define footer-logo
-  `(div (img (@ (class ,(->css '(w-48 h-auto rounded-2xl)))
-                (src "https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png")))))
+(define-public project-logo
+  `(div (@ (class ,(->css '(bg-stone-700 rounded-2xl p-4 shadow))))
+        (img (@ (loading lazy)
+                (class ,(->css '(w-64 h-auto rounded-2xl)))
+                (src
+                 "https://jointhefreeworld.org/static-assets/byggsteg/logo.png")))))
 
 (define-public (maybe-profile-name G_ is-profile)
   (cond
-   ((equal? is-profile #t)
-    `((label (@ (for profile-name)
-                (class ,(->css '(text-stone-300 font-bold))))
-             ,(G_ "profile name"))
-      (input (@ (id profile-name)
-                (name profile-name)
-                (required true)
-                (class ,input-face)))))
-   (else `())))
+    ((equal? is-profile #t)
+     `((label (@ (for profile-name)
+                 (class ,(->css '(text-stone-300 font-bold))))
+              ,(G_ "profile name"))
+       (input (@ (id profile-name)
+                 (name profile-name)
+                 (required true)
+                 (class ,input-face)))))
+    (else `())))
 
 (define-public (locale-choose-form G_)
   `(div (form (@ (action "/preferences/locale")

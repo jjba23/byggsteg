@@ -33,7 +33,7 @@
   #:use-module (ice-9 string-fun))
 
 (define (job-type-expl G_)
-  `(div (@ (class ,(->css '(max-w-prose p-4))))
+  `(div (@ (class ,(->css '(max-w-prose p-4 bg-stone-700 rounded-xl))))
         (h4 (@ (class ,h4-face))
             ,(G_ "job types"))
         (dl (@ (class ,(->css '(p-4))))
@@ -87,23 +87,24 @@
   (let* ((G_ (:i18n rc))
          (welcome-html `((div (h2 (@ (class ,h2-face))
                                   ,(G_ "welcome to byggsteg")))
-                         (div (@ (class ,(->css '(py-3 flex
+                         ,(locale-choose-form G_)
+                         (div (@ (class ,(->css '(my-6 p-6 flex
                                                        flex-row
                                                        flex-wrap
                                                        justify-center
-                                                       items-center
                                                        gap-6))))
-                              ,(locale-choose-form G_)
-                              (div (@ (class ,(->css '(max-w-prose
-                                                       bg-stone-800 rounded-xl
-                                                       p-4))))
-                                   (span (@ (class ,(->css '(text-stone-300
-                                                             text-sm))))
-                                         ,(G_ (string-append
-                                               "byggsteg aims to be the hackable continuous integration and delivery system, "
-                                               "allowing engineers to deliver software quicker and with less friction")))))
 
-                         ,(job-type-expl G_))))
+                              (div (@(class ,(->css '(flex flex-col gap-4 items-center))))
+                                   (div (@ (class ,(->css '(max-w-prose
+                                                            bg-stone-700 rounded-xl
+                                                            p-4))))
+                                        (span (@ (class ,(->css '(text-stone-300
+                                                                  text-lg))))
+                                              ,(G_ (string-append
+                                                    "byggsteg aims to be the hackable continuous integration and delivery system, "
+                                                    "allowing engineers to deliver software quicker and with less friction"))))
+                                   ,project-logo)
+                              (div ,(job-type-expl G_))))))
     (byggsteg-html-template G_
                             #:title (format #f "byggsteg - ~a"
                                             (G_ "welcome to byggsteg"))

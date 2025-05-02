@@ -34,7 +34,7 @@
 
 (define-public button-face
   (->css (append base-button
-                 '(bg-orange-700 hover:bg-orange-800 active:bg-orange-800
+                 '(bg-orange-700 hover:bg-orange-700 active:bg-orange-700
                                  text-stone-300))))
 
 (define-public danger-button-face
@@ -43,7 +43,7 @@
                               text-stone-300))))
 
 (define-public nav-button-face
-  (->css '(text-orange-600 hover:border-b-orange-400
+  (->css '(text-orange-500 hover:border-b-orange-400
                            hover:text-orange-400
                            cursor-pointer
                            p-1
@@ -87,10 +87,10 @@
 ;; Headers
 ;;
 (define-public h2-face
-  (->css '(text-2xl text-stone-300 font-bold font-sans)))
+  (->css '(text-2xl text-stone-300 font-bold font-sans my-4)))
 
 (define-public h4-face
-  (->css '(text-lg text-stone-400 font-bold font-sans)))
+  (->css '(text-lg text-stone-400 font-bold font-sans my-3)))
 
 (define-public brand-title-face
   (->css '(text-2xl text-orange-500 hover:border-b-orange-400 hover:text-orange-400
@@ -104,7 +104,7 @@
                           text-md font-sans)))
 
 (define-public link-face
-  (->css '(text-orange-500 hover:text-orange-400 font-bold cursor-pointer text-sm)))
+  (->css '(text-orange-400 hover:text-orange-300 font-bold cursor-pointer text-sm)))
 
 ;;
 ;; Pre
