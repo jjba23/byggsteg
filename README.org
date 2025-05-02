@@ -1,11 +1,11 @@
 #+title: byggsteg
 #+options: num:nil
 
-/byggsteg/ means "build step" in the Norwegian language, and is a CI/CD orchestrator written in Guile Scheme.
+[[https://jointhefreeworld.org/static-assets/badges/GNU-Guix-c48702.png]] [[https://jointhefreeworld.org/static-assets/badges/Scheme-Guile-d0730f.png]]
 
-byggsteg is written in Lisp (Guile Scheme), leverages SXML, SQLite3, some basic POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
+byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme), leverages SXML, SQLite3, some POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
 
-** What is byggsteg ?
+* What is byggsteg ?
 
 byggsteg is a free software project with the aim of developing a suite of functionalities to allow engineers to deliver software quicker and with less friction.
 
@@ -15,6 +15,7 @@ The aim of byggsteg is to release you from your dependency on proprietary system
 This allows you to create continuous integration and continuous delivery (CI & CD) pipelines in an easy way that are tailored to your needs and which you fully control.
 
 Easily deploy stuff, for example to your private VPS, self-hosting or to cloud.
+/byggsteg/ means "build step" in the Norwegian language.
 
 I don't mind having the software building and testing happening in the same machine as where I run the production workloads, since I am looking for supreme cost-efficiency, but it's highly recommended that you do separate these things, if you can afford it.
 
@@ -60,7 +61,7 @@ TODO: A sandbox where pipeline expressions get run.
 
 -----
 
-** Types of jobs
+* Types of jobs
 
 When defining a pipeline alist, the task field can be either a single step, or multiple.
 You should either pass a string or a list of strings of job names.
@@ -87,7 +88,7 @@ You should either pass a string or a list of strings of job names.
 
 As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
 
-** Authentication
+* Authentication
 
 Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles.
 
@@ -97,7 +98,7 @@ Refer to [[file:db/migration/user_20250103093008.scm]] and edit the password fie
 
 Then do a ~art migrate up user~ to add your users.
 
-** Starting a job
+* Starting a job
 
 After logging in, you can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
 
@@ -131,11 +132,11 @@ You can query for the job status via the UI or also via the REST API. You could 
   # }
 #+end_src
 
-** Licensing
+* Licensing
 
 byggsteg is licensed under the GNU GPL v3 License or newer.
 
-** Performance
+* Performance
 
 byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
 
@@ -143,7 +144,7 @@ byggsteg is quite a performant implementation of a CI/CD system and the numbers 
 
 -----
 
-** Using
+* Using
 
 It is recommended to use tagged releases of byggsteg, as those are considered as stable by the developers.
 
@@ -192,7 +193,18 @@ An example shepherd service for byggsteg could look like this:
 
 -----
 
-** Code owners
+* Code of conduct
+
+This project adheres to the jointhefreeworld code of conduct. Find it here:
+
+https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-code-of-conduct/index.html
+
+In summary, we foster an inclusive, respectful, and cooperative environment for all contributors and users of this free software project. Inspired by the ideals of the GNU Project, we strive to uphold freedom, equality, and community as guiding principles. We believe that collaboration in a community of mutual respect is essential to creating excellent free software.
+
+
+-----
+
+* Code owners
 
 The project's main branch is ~trunk~. Find a list of roles and people involved in the project.
 
@@ -208,9 +220,7 @@ MFL has write permissions to all branches (except trunk) and can open PRs.
 Other contributors must fork byggsteg and create a pull request to contribute back.
 After productive collaboration other kinds of roles can be added and assigned.
 
------
-
-** Translation effort
+* Translation effort
 
 byggsteg is a community driven effort and as such, can use your help in translating to several different languages.
 
@@ -218,7 +228,7 @@ byggsteg is a community driven effort and as such, can use your help in translat
 - Dutch language (nl_NL) :: 100% translated
 - Spanish language (es_ES) :: 100% translated
 
-** Project management
+* Project management
 
 Find the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][project management of byggsteg here]].
 
