@@ -70,61 +70,66 @@
   (define* (run-pipeline-task #:key project branch-name task
                               (trivial-cmds '()))
     (cond
-      ;; Stack test + sdist
-      ((equal? task "stack-test")
-       (stack-step #:project project
-                   #:branch-name branch-name
-                   #:stack-task "test")
-       (stack-step #:project project
-                   #:branch-name branch-name
-                   #:stack-task "sdist --tar-dir ."))
+     ;; Stack test + sdist
+     ((equal? task "stack-test")
+      (stack-step #:project project
+                  #:branch-name branch-name
+                  #:stack-task "test")
+      (stack-step #:project project
+                  #:branch-name branch-name
+                  #:stack-task "sdist --tar-dir ."))
 
-      ;; Stack build + sdist
-      ((equal? task "stack-build")
-       (stack-step #:project project
-                   #:branch-name branch-name
-                   #:stack-task "build")
-       (stack-step #:project project
-                   #:branch-name branch-name
-                   #:stack-task "sdist --tar-dir ."))
+     ;; Stack build + sdist
+     ((equal? task "stack-build")
+      (stack-step #:project project
+                  #:branch-name branch-name
+                  #:stack-task "build")
+      (stack-step #:project project
+                  #:branch-name branch-name
+                  #:stack-task "sdist --tar-dir ."))
 
-      ;; Byggsteg version update
-      ((equal? task "byggsteg-version")
-       (byggsteg-version-step #:project project
-                              #:branch-name branch-name))
-
-      ;; Nix generic build
-      ((equal? task "nix-build")
-       (nix-build-step #:project project
-                       #:branch-name branch-name))
-
-      ;; Herd pull and restart
-      ((equal? task "pull-and-restart")
-       (pull-and-restart-step #:project project
-                              #:branch-name branch-name))
-
-      ;; Scala SBT test
-      ((equal? task "sbt-test")
-       (sbt-test-step #:project project
-                      #:branch-name branch-name))
-      ((equal? task "sbt-testcontainers-test")
-       (sbt-testcontainers-test-step #:project project
-                                     #:branch-name branch-name))
-
-      ;; Pull and make deploy
-      ((equal? task "pull-and-deploy")
-       (pull-and-deploy-step #:project project
+     ;; Byggsteg version update
+     ((equal? task "byggsteg-version")
+      (byggsteg-version-step #:project project
                              #:branch-name branch-name))
 
-      ;; Trivial - Allow user to specify all commands
-      ((equal? task "trivial")
-       (trivial-step #:project project
-                     #:branch-name branch-name
-                     #:cmds trivial-cmds))
+     ;; Nix generic build
+     ((equal? task "nix-build")
+      (nix-build-step #:project project
+                      #:branch-name branch-name))
 
-      ;; Otherwise attempt generic `make build'
-      (else (make-build-step #:project project
-                             #:branch-name branch-name))))
+     ;; Herd pull and restart
+     ((equal? task "pull-and-restart")
+      (pull-and-restart-step #:project project
+                             #:branch-name branch-name))
+
+     ;; Scala SBT test
+     ((equal? task "sbt-test")
+      (sbt-test-step #:project project
+                     #:branch-name branch-name))
+     ((equal? task "sbt-testcontainers-test")
+      (sbt-testcontainers-test-step #:project project
+                                    #:branch-name branch-name))
+
+     ;; Pull and make deploy
+     ((equal? task "pull-and-deploy")
+      (pull-and-deploy-step #:project project
+                            #:branch-name branch-name))
+
+     ;; make test
+     ((equal? task "make-test")
+      (make-test-step #:project project
+                      #:branch-name branch-name))
+
+     ;; Trivial - Allow user to specify all commands
+     ((equal? task "trivial")
+      (trivial-step #:project project
+                    #:branch-name branch-name
+                    #:cmds trivial-cmds))
+
+     ;; Otherwise attempt generic `make build'
+     (else (make-build-step #:project project
+                            #:branch-name branch-name))))
   (export run-pipeline-task))
 
 (begin

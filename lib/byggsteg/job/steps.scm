@@ -73,6 +73,14 @@
   (export make-build-step))
 
 (begin
+  (define* (make-test-step #:key project branch-name)
+    (let* ((clone-dir (string-append job-clone-location project "/"
+                                     branch-name)))
+      (do-in-clone-dir clone-dir
+                       '("make test"))))
+  (export make-test-step))
+
+(begin
   (define* (nix-build-step #:key project branch-name)
     (let* ((clone-dir (string-append job-clone-location project "/"
                                      branch-name)))

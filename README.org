@@ -61,6 +61,8 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 When defining a pipeline alist, the task field can be either a single step, or multiple.
 You should either pass a string or a list of strings of job names.
 
+~make-test~ - Run test suite with ~make test~.
+
 ~stack-test~ - Haskell project build and test with Stack + Hackage bundle.
 
 ~stack-build~ - Haskell project build with Stack + Hackage bundle.

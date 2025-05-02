@@ -43,32 +43,32 @@
                                    #:key title body
                                    (should-auto-refresh #f))
     (let ((maybe-auto-refresh (cond
-                                ((equal? should-auto-refresh #t)
-                                 `(meta (@ (content "10")
-                                           (http-equiv "refresh")) ()))
-                                (else `())))
-          ;; (maybe-auto-refresh `())
-          )
+                               ((equal? should-auto-refresh #t)
+                                `(meta (@ (content "10")
+                                          (http-equiv "refresh")) ()))
+                               (else `()))) )
+      
+      ;; (maybe-auto-refresh `())
       
       `("<!DOCTYPE html>" (html (@ (lang en))
                                 (head (title ,title)
                                       (style ,(assoc-ref asset-library
                                                          "pub/css/fonts.css"))
                                       (style ,(assoc-ref asset-library
-                                               "pub/css/phosphor.css"))
+                                                         "pub/css/phosphor.css"))
 
                                       ,maybe-auto-refresh
                                       (meta (@ (name viewport)
                                                (content
                                                 "width=device-width, initial-scale=1.0")))
                                       (script ,(assoc-ref asset-library
-                                                "pub/js/tailwind.js"))
+                                                          "pub/js/tailwind.js"))
                                       (script ,(assoc-ref asset-library
-                                                "pub/js/tailwind.config.js")))
+                                                          "pub/js/tailwind.config.js")))
                                 (body (@ (class ,(->css '(bg-stone-900))))
                                       (div (@ (class ,(->css '(flex flex-col
-                                                               h-screen
-                                                               justify-between))))
+                                                                    h-screen
+                                                                    justify-between))))
                                            (div ,(page-top G_)
                                                 (div (@ (class ,(->css '(my-4
                                                                          container

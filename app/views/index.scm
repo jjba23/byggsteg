@@ -38,6 +38,10 @@
             ,(G_ "job types"))
         (dl (@ (class ,(->css '(p-4))))
             (dt (@ (class ,dt-face))
+                (code "make-test"))
+            (dd (@ (class ,dd-face))
+                ,(G_ "Run test suite with `make test'"))
+            (dt (@ (class ,dt-face))
                 (code "stack-test"))
             (dd (@ (class ,dd-face))
                 ,(G_
