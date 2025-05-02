@@ -34,8 +34,8 @@
 
 (define-public button-face
   (->css (append base-button
-                 '(bg-teal-700 hover:bg-teal-800 active:bg-teal-800
-                               text-stone-300))))
+                 '(bg-orange-700 hover:bg-orange-800 active:bg-orange-800
+                                 text-stone-300))))
 
 (define-public danger-button-face
   (->css (append base-button
@@ -43,17 +43,17 @@
                               text-stone-300))))
 
 (define-public nav-button-face
-  (->css '(text-teal-600 hover:border-b-teal-400
-                         hover:text-teal-400
-                         cursor-pointer
-                         p-1
-                         font-sans
-                         flex
-                         flex-row
-                         gap-1
-                         items-center
-                         text-sm
-                         font-bold)))
+  (->css '(text-orange-600 hover:border-b-orange-400
+                           hover:text-orange-400
+                           cursor-pointer
+                           p-1
+                           font-sans
+                           flex
+                           flex-row
+                           gap-1
+                           items-center
+                           text-sm
+                           font-bold)))
 ;;
 ;; Forms
 ;;
@@ -93,7 +93,7 @@
   (->css '(text-lg text-stone-400 font-bold font-sans)))
 
 (define-public brand-title-face
-  (->css '(text-2xl text-teal-500 hover:border-b-teal-400 hover:text-teal-400
+  (->css '(text-2xl text-orange-500 hover:border-b-orange-400 hover:text-orange-400
                     font-bold font-sans)))
 
 ;;
@@ -104,7 +104,7 @@
                           text-md font-sans)))
 
 (define-public link-face
-  (->css '(text-teal-500 hover:text-teal-400 font-bold cursor-pointer text-sm)))
+  (->css '(text-orange-500 hover:text-orange-400 font-bold cursor-pointer text-sm)))
 
 ;;
 ;; Pre

@@ -156,20 +156,20 @@
               ,footer-logo))))
 
 (define footer-logo
-  `(div (img (@ (class ,(->css '(w-48 h-auto)))
-                (src "/img/byggsteg-logo.png")))))
+  `(div (img (@ (class ,(->css '(w-48 h-auto rounded-2xl)))
+                (src "https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png")))))
 
 (define-public (maybe-profile-name G_ is-profile)
   (cond
-    ((equal? is-profile #t)
-     `((label (@ (for profile-name)
-                 (class ,(->css '(text-stone-300 font-bold))))
-              ,(G_ "profile name"))
-       (input (@ (id profile-name)
-                 (name profile-name)
-                 (required true)
-                 (class ,input-face)))))
-    (else `())))
+   ((equal? is-profile #t)
+    `((label (@ (for profile-name)
+                (class ,(->css '(text-stone-300 font-bold))))
+             ,(G_ "profile name"))
+      (input (@ (id profile-name)
+                (name profile-name)
+                (required true)
+                (class ,input-face)))))
+   (else `())))
 
 (define-public (locale-choose-form G_)
   `(div (form (@ (action "/preferences/locale")
@@ -181,7 +181,7 @@
                       (option (@ (value nl_NL)) "Nederlands")
                       (option (@ (value es_ES)) "Español"))
               (button (@ (type submit)
-                         (class ,(->css '(text-white bg-teal-600 rounded-xl
+                         (class ,(->css '(text-white bg-orange-600 rounded-xl
                                                      p-1)))) "&nbsp;✓&nbsp;"))))
 
 (define-public (job-form G_ route is-profile)
