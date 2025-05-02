@@ -14,9 +14,11 @@ View my live instance of byggsteg here: https://byggsteg.jointhefreeworld.org
 The aim of byggsteg is to release you from your dependency on proprietary systems like GitHub actions.
 This allows you to create continuous integration and continuous delivery (CI & CD) pipelines in an easy way that are tailored to your needs and which you fully control.
 
-My initial idea when developing byggsteg revolves around my projects, which are hosted on Codeberg and most of them deployed to my private VPS.
+Easily deploy stuff, for example to your private VPS, self-hosting or to cloud.
 
 I don't mind having the software building and testing happening in the same machine as where I run the production workloads, since I am looking for supreme cost-efficiency, but it's highly recommended that you do separate these things, if you can afford it.
+
+[[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
 
 And thus, I set out to build a CI/CD system, that on command can:
 - clone specified repo URL to an isolated folder for each branch (but caching by reusing same branch and doing ~git pull~)
@@ -43,6 +45,8 @@ Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code
 #+end_src
 
 Sending things in thunk form allows one to execute any code arbitrarily, inside the lambda expression. Be responsible and wary of who you give access to your byggsteg instance.
+
+TODO: A sandbox where pipeline expressions get run.
 
 #+begin_src scheme
   (lambda()
