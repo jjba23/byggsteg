@@ -148,7 +148,7 @@
       (byggsteg-html-template G_
                               #:title "byggsteg"
                               #:body log-html
-                              #:should-auto-refresh in-progress)))
+                              #:should-auto-refresh (equal? 0 in-progress))))
   (export log-page))
 
 (begin
