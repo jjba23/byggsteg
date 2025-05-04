@@ -93,8 +93,8 @@
   (->css '(text-lg text-stone-400 font-bold font-sans my-3)))
 
 (define-public brand-title-face
-  (->css '(text-2xl text-orange-500 hover:border-b-orange-400 hover:text-orange-400
-                    font-bold font-sans)))
+  (->css '(text-2xl text-orange-500 hover:border-b-orange-400
+                    hover:text-orange-400 font-bold font-sans)))
 
 ;;
 ;; Links
@@ -104,7 +104,8 @@
                           text-md font-sans)))
 
 (define-public link-face
-  (->css '(text-orange-400 hover:text-orange-300 font-bold cursor-pointer text-sm)))
+  (->css '(text-orange-400 hover:text-orange-300 font-bold cursor-pointer
+                           text-sm)))
 
 ;;
 ;; Pre

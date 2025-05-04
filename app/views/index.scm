@@ -88,16 +88,18 @@
          (welcome-html `((div (h2 (@ (class ,h2-face))
                                   ,(G_ "welcome to byggsteg")))
                          ,(locale-choose-form G_)
-                         (div (@ (class ,(->css '(my-6 p-6 flex
+                         (div (@ (class ,(->css '(my-6 p-6
+                                                       flex
                                                        flex-row
                                                        flex-wrap
                                                        justify-center
                                                        gap-6))))
 
-                              (div (@(class ,(->css '(flex flex-col gap-4 items-center))))
+                              (div (@ (class ,(->css '(flex flex-col gap-4
+                                                            items-center))))
                                    (div (@ (class ,(->css '(max-w-prose
-                                                            bg-stone-700 rounded-xl
-                                                            p-4))))
+                                                            bg-stone-700
+                                                            rounded-xl p-4))))
                                         (span (@ (class ,(->css '(text-stone-300
                                                                   text-lg))))
                                               ,(G_ (string-append

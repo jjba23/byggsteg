@@ -53,17 +53,17 @@
            (dd-class (->css '(pl-3 font-sans text-sm text-stone-400
                                    font-medium)))
            (job-status (cond
-                        ((equal? success 1)
-                         `(h2 (@ (class ,(->css '(text-xl text-green-800
-                                                          font-sans))))
-                              ,(G_ "job succeeded")))
-                        ((equal? failure 1)
-                         `(h2 (@ (class ,(->css '(text-xl text-red-700
-                                                          font-sans))))
-                              ,(G_ "job failed")))
-                        (else `(h2 (@ (class ,(->css '(text-xl text-sky-600
-                                                               font-sans))))
-                                   ,(G_ "job in progress")))))
+                         ((equal? success 1)
+                          `(h2 (@ (class ,(->css '(text-xl text-green-800
+                                                           font-sans))))
+                               ,(G_ "job succeeded")))
+                         ((equal? failure 1)
+                          `(h2 (@ (class ,(->css '(text-xl text-red-700
+                                                           font-sans))))
+                               ,(G_ "job failed")))
+                         (else `(h2 (@ (class ,(->css '(text-xl text-sky-600
+                                                                font-sans))))
+                                    ,(G_ "job in progress")))))
            (delete-button `(form (@ (method POST)
                                     (enctype application/x-www-form-urlencoded)
                                     (action "/jobs/manage/delete"))
@@ -97,11 +97,11 @@
                                                            ,(G_ "time taken"))
                                                        (dd (@ (class ,dd-class))
                                                            ,(format #f
-                                                                    "~a seconds"
-                                                                    (- (assoc-ref job
-                                                                                  "updated_at")
-                                                                       (assoc-ref job
-                                                                                  "created_at"))))))
+                                                             "~a seconds"
+                                                             (- (assoc-ref job
+                                                                 "updated_at")
+                                                                (assoc-ref job
+                                                                 "created_at"))))))
                            (dt (@ (class ,dt-class))
                                ,(G_ "started at"))
                            (dd (@ (class ,dd-class))

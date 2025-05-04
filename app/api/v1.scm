@@ -64,9 +64,9 @@
                   #:created_at (current-time))
 
             (:mime rc
-             `((log-id unquote new-log-uuid)
-               (human-id unquote
-                         (escape-str log-filename))))))
+                   `((log-id unquote new-log-uuid)
+                     (human-id unquote
+                               (escape-str log-filename))))))
 
         (protected-api-endpoint rc do-submit)))
 
