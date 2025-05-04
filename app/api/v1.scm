@@ -22,7 +22,7 @@
         (byggsteg preferences)
         (byggsteg auth)
         (byggsteg url)
-        (byggsteg uuid)
+        (uuid generate)
         (byggsteg log)
         (ice-9 textual-ports)
         (byggsteg query-escape)
@@ -43,8 +43,8 @@
                  (kvv (kvv-thunk))
                  (project (assoc-ref kvv
                                      'project))
-                 (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
-                 (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
+                 (new-job-uuid (generate-string-uuid))
+                 (new-log-uuid (generate-string-uuid))
                  (log-filename (new-project-log-filename project)))
             
             ($job 'set
@@ -64,9 +64,9 @@
                   #:created_at (current-time))
 
             (:mime rc
-                   `((log-id unquote new-log-uuid)
-                     (human-id unquote
-                               (escape-str log-filename))))))
+             `((log-id unquote new-log-uuid)
+               (human-id unquote
+                         (escape-str log-filename))))))
 
         (protected-api-endpoint rc do-submit)))
 

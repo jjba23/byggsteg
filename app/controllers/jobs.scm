@@ -24,7 +24,7 @@
         (byggsteg preferences)
         (byggsteg auth)
         (byggsteg process)
-        (byggsteg uuid)
+        (uuid generate)
         (byggsteg query-escape)
         (byggsteg job pipeline)
         (byggsteg log)
@@ -53,8 +53,8 @@
                  (kvv (kvv-thunk))
                  (project (assoc-ref kvv
                                      'project))
-                 (new-job-uuid (string-replace-substring (uuidgen) "\n" ""))
-                 (new-log-uuid (string-replace-substring (uuidgen) "\n" ""))
+                 (new-job-uuid (generate-string-uuid))
+                 (new-log-uuid (generate-string-uuid))
                  (log-filename (new-project-log-filename project))
                  (logs-link (format #f "~a/logs/~a"
                                     (current-myhost) new-log-uuid)))

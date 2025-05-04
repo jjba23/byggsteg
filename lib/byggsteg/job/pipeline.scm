@@ -20,7 +20,6 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg process)
   #:use-module (byggsteg job steps)
-  #:use-module (byggsteg uuid)
   #:use-module (byggsteg query-escape)
   #:use-module (artanis artanis)
   #:use-module (app models log)
@@ -32,24 +31,24 @@
 
 (begin
   (define* (do-pip)
-    (let* ((sleep-seconds 12)
+    (let* ((sleep-seconds 6)
            (jobs-in-progress ($job 'get
                                    #:ret 'all
                                    #:condition (where #:job_in_progress 1)
                                    #:order-by '(created_at asc)))
            (logs-of-in-progress (cond
-                                  ((nil? jobs-in-progress)
-                                   '())
-                                  (else ($log 'get
-                                              #:ret 'all
-                                              #:condition (where #:job_id (map (lambda 
-                                                                                       (j)
-                                                                                 
-                                                                                 
-                                                                                 (assoc-ref
-                                                                                  j
-                                                                                  "id"))
-                                                                           jobs-in-progress))))))
+                                 ((nil? jobs-in-progress)
+                                  '())
+                                 (else ($log 'get
+                                             #:ret 'all
+                                             #:condition (where #:job_id (map (lambda 
+                                                                                  (j)
+                                                                                
+                                                                                
+                                                                                (assoc-ref
+                                                                                 j
+                                                                                 "id"))
+                                                                              jobs-in-progress))))))
            (job-log-map (map (lambda (l)
                                `(,(assoc-ref l "job_id") unquote l))
                              logs-of-in-progress)))

@@ -31,24 +31,3 @@
          (process-output (get-string-all process)))
     (close-pipe process)
     (display process-output) process-output))
-
-(define-public (syscall-silent cmd)
-  (let* ((process (open-input-pipe cmd))
-         (process-output (get-string-all process)))
-    (close-pipe process) process-output))
-
-(define-public (syscall-to-log-file log-filename cmd)
-  (syscall-to-file log-filename cmd job-log-location))
-
-(define-public (syscall-to-profile-file log-filename cmd)
-  (syscall-to-file log-filename cmd profile-location))
-
-(define-public (syscall-to-detail-file log-filename cmd)
-  (syscall-to-file log-filename cmd job-detail-location))
-
-(define-public (syscall-to-file log-filename cmd location)
-  (let* ((log-file-port (open-file (string-append location log-filename) "a")))
-    (with-output-to-port log-file-port
-                         (lambda ()
-                           (syscall cmd)))
-    (close log-file-port)))

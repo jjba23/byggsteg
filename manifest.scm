@@ -26,6 +26,7 @@
              (gnu packages curl)
              (gnu packages bash)
              (gnu packages nss)
+             (gnu packages gnupg)
              (gnu packages guile-xyz)
              (gnu packages pkg-config)
              (guix build-system guile)
@@ -42,59 +43,88 @@
   (let ((commit "64002d74025f577e1eeea7bc51218a2c7929631f")
         (revision "0"))
     (package
-      (name "guile-uuid")
-      (version (git-version "0.0.0" revision commit))
-      (source
-       (origin
-         (method git-fetch)
-         (uri (git-reference
-               (url "https://codeberg.org/elb/guile-uuid.git")
-               (commit commit)))
-         (file-name (git-file-name name version))
-         (sha256
-          (base32 "1q6dqm2hzq75aa5mrrwgqdml864pdrxc98j7pyj1y0827phnzjfj"))))
-      (build-system guile-build-system)
-      (native-inputs (list guile-3.0 guile-gcrypt))
-      (home-page "https://codeberg.org/elb/guile-uuid")
-      (synopsis
-       "Guile-UUID is a UUID generation and manipulation module for GNU Guile.")
-      (description
-       "This package implements RFC 9562 UUIDs, and can generate versions 1 and 3–8 from that specification.
+     (name "guile-uuid")
+     (version (git-version "0.0.0" revision commit))
+     (source
+      (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/elb/guile-uuid.git")
+             (commit commit)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1q6dqm2hzq75aa5mrrwgqdml864pdrxc98j7pyj1y0827phnzjfj"))))
+     (build-system guile-build-system)
+     (native-inputs (list guile-3.0 guile-gcrypt))
+     (home-page "https://codeberg.org/elb/guile-uuid")
+     (synopsis
+      "Guile-UUID is a UUID generation and manipulation module for GNU Guile.")
+     (description
+      "This package implements RFC 9562 UUIDs, and can generate versions 1 and 3–8 from that specification.
         It provides parsing for UUIDs in standard hex-and-dash format of any variant and version.
         It can also query the variant and version of UUIDs from the RFC.
         Simple routines for converting between binary and hex-and-dash string UUIDs are included.")
-      (license license:gpl3+))))
+     (license license:gpl3+))))
 
 (define-public guile-hygguile
-  (let ((commit "f42a33a600e6a89f4bc322a84eacbfff0e006823")
+  (let ((commit "a5e617a6e37d54ad83c480045f9791a0e0f1f334")
         (base32-sha-signature
-         "08a734svpipqfl7bc4dwpbp1sazn1gdnq5l6k9m16bahf8ls7gz6")
+         "14pha7pn5p22gchkf4f2krgwkszizl9vyblwxwn8g5k97mmw8faq")
         (revision "0"))
     (package
-      (name "guile-hygguile")
-      (version (git-version "0.0.0" revision commit))
-      (source
-       (origin
-         (method git-fetch)
-         (uri (git-reference
-               (url "https://codeberg.org/jjba23/hygguile.git")
-               (commit commit)))
-         (file-name (git-file-name name version))
-         (sha256
-          (base32 base32-sha-signature))))
-      (build-system guile-build-system)
-      (native-inputs (list guile-3.0))
-      (arguments
-       (list
-        #:source-directory "src"))
-      (home-page "https://codeberg.org/jjba23/hygguile")
-      (synopsis
-       "SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects")
-      (description
-       "Cozy and professional user-interfaces for everyone.
+     (name "guile-hygguile")
+     (version (git-version "0.0.0" revision commit))
+     (source
+      (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/jjba23/hygguile.git")
+             (commit commit)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 base32-sha-signature))))
+     (build-system guile-build-system)
+     (native-inputs (list guile-3.0))
+     (arguments
+      (list
+       #:source-directory "src"))
+     (home-page "https://codeberg.org/jjba23/hygguile")
+     (synopsis
+      "SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects")
+     (description
+      "Cozy and professional user-interfaces for everyone.
         SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects.
         hygge + guile = hygguile")
-      (license license:lgpl3+))))
+     (license license:lgpl3+))))
+
+(define-public guile-kracht
+  (let ((commit "e8b893aec72b4e768b2ef7fbcad926f4cac0bebb")
+        (base32-sha-signature
+         "0p3z2mqy885pxq4bip6jmspikvc3ghbqhzr86z6h3m1a2x9h3p6h")
+        (revision "0"))
+    (package
+     (name "guile-kracht")
+     (version (git-version "0.0.1" revision commit))
+     (source
+      (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/jjba23/kracht.git")
+             (commit commit)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 base32-sha-signature))))
+     (build-system guile-build-system)
+     (native-inputs (list guile-3.0))
+     (arguments
+      (list
+       #:source-directory "src"))
+     (home-page "https://codeberg.org/jjba23/kracht")
+     (synopsis
+      "Good prelude for Guile Scheme, an opt-in enhancement to the standard library")
+     (description
+      "Good prelude for Guile Scheme, an opt-in enhancement to the standard library. kracht means power/strength in the Dutch language, and is also a recursive acronym which stands for: KRACHT Reliable And Consistent Helper Tools")
+     (license license:lgpl3+))))
 
 (packages->manifest (list (specification->package "make")
                           (specification->package "gettext")
@@ -102,6 +132,8 @@
                           guile-ares-rs
                           artanis
                           guile-hygguile
+                          guile-uuid
+                          guile-kracht
                           guile-dbi
                           sqlite
                           guile-dbd-sqlite3))
