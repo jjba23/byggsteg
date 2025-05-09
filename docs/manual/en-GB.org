@@ -189,9 +189,9 @@ byggsteg is quite a performant implementation of a CI/CD system and the numbers 
 
 * Authentication
 
-Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles.
+LucidPlan requires an authenticated session for performing administrative tasks such as creating/deleting tickets and projects.
 
-Upon starting a blank new byggsteg deployment you will have no users in the database.
+Upon starting a blank new lucidplan deployment you will have no users in the database.
 
 Check in ~db/migration~ and edit the password field, or add more users. An important note is that currently authentication works by using the username (NOT email) and the passwords should NOT contain any special characters.
 
