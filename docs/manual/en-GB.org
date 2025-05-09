@@ -216,7 +216,8 @@ Byggsteg uses SQLite by default but is also compatible with PostgreSQL and MySQL
 You can automate the creation of the database and the enabling of WAL mode for concurrent writes with ~make init-db~.
 
 You should then look at ~db/migration~ folder and edit the migration for the ~user~ table to your liking.
-You can run the migration with ~art migrate up user~.
+
+Then do a ~guix shell -m manifest.scm -- art migrate up user~ to add your users.
 
 If you are hacking away at the project, I would suggest using ~make dev~ since this will effectively run the project with hot-reloading capabilities and it will use the default ~artanis.conf~ where we configure hostname, db path, etc.
 
