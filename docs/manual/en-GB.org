@@ -98,16 +98,17 @@ byggsteg allows you to send code over the wire (HTTP) and save it too, in a thun
 
 Sending things in thunk form allows one to execute any code arbitrarily, inside the lambda expression. Be responsible and wary of who you give access to your byggsteg instance.
 
-TODO: A sandbox where pipeline expressions get run.
-
 #+begin_src scheme
-  (lambda()
-    (define my-project-name "wikimusic-api")
+(lambda()
+  (define my-project-name "wikimusic-api")
+  (define my-branch-name
+    (format #f "branch-num-~a" (* 2 (+ 3 (+ 8 10)))))
 
-    `((project . ,my-project-name)
-      (branch-name . "trunk")
-      (task . ("stack-build" "stack-test"))
-      (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
+  ;; remember that a ". ," and a "unquote" are equivalent
+  `((project . ,my-project-name)
+    (branch-name unquote my-branch-name)
+    (task . ("stack-build" "stack-test"))
+    (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
 -----
