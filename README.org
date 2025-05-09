@@ -21,22 +21,24 @@ I don't mind having the software building and testing happening in the same mach
 
 [[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
 
-And thus, I set out to build a CI/CD system, that on command can:
-- clone specified repo URL to an isolated folder for each branch (but caching by reusing same branch and doing ~git pull~)
-- navigate to that directory and perform a system command a.k.a. job (for a Haskell project ~stack test~ or ~stack build~ or a combination of those)
-- capture the log output of all steps and save it
-- record job in progress, success or failure
-- show dashboard with job statuses
 
-byggsteg is a deploy-your-own type tool, but if enough community interest is shown a SaaS offering in freedom might be a really good thing.
+----------
 
-byggsteg is built using the GNU Artanis web-framework. Make sure you install it before you proceed with using byggsteg.
+* Licensing
 
-Refer to the Artanis documentation: [[https://www.gnu.org/software/artanis/manual/manual.html][here]] .
+byggsteg is licensed under the GNU GPL v3 License or newer and is  built using the GNU Artanis web-framework.
+
+------
 
 [[file:pub/img/2025-03-10.png]]
 
-Jobs and profiles are simple Guile Scheme code. byggsteg allows you to send code over the wire (HTTP) and save it too, in a thunk form, for example :
+---------
+
+* Jobs and profiles
+
+Jobs are simple Lisp (Guile Scheme) code. Profiles are just saved jobs.
+
+byggsteg allows you to send code over the wire (HTTP) and save it too, in a thunk form, for example :
 #+begin_src  scheme
   (lambda()
     `((project . "free-alacarte")
@@ -59,139 +61,19 @@ TODO: A sandbox where pipeline expressions get run.
       (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
------
-
-* Types of jobs
-
-When defining a pipeline alist, the task field can be either a single step, or multiple.
-You should either pass a string or a list of strings of job names.
-
-~make-test~ - Run test suite with ~make test~.
-
-~stack-test~ - Haskell project build and test with Stack + Hackage bundle.
-
-~stack-build~ - Haskell project build with Stack + Hackage bundle.
-
-~nix-build~ - Nix build (flake).
-
-~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself.
-
-~pull-and-restart~ - Git pull and restart wanted shepherd service.
-
-~pull-and-deploy~ - Git pull and run a ~sudo make deploy~.
-
-~sbt-test~ - Scala project test with SBT.
-
-~sbt-testcontainers-test~ - Scala project test with SBT using testcontainers in Podman.
-
-~trivial~ - Allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.
-
-As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
-
-* Authentication
-
-Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles.
-
-Upon starting a blank new byggsteg deployment you will have no users in the database.
-
-Refer to [[file:db/migration/user_20250103093008.scm]] and edit the password field, or add more users. An important note is that currently authentication works by using the username (NOT email) and the passwords should NOT contain any special characters.
-
-Then do a ~art migrate up user~ to add your users.
-
-* Starting a job
-
-After logging in, you can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
-
-You could also do this for example from your favourite system programatically, or via cURL:
-
-#+begin_src sh
-  curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
-      -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
-      --data-urlencode 'username=myuser' \
-      --data-urlencode 'password=mypassword' \
-      --data-urlencode 'job-code=(lambda() `((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte")))'
-
-  #  {
-  #    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
-  #    "human-id": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
-  #  }
-#+end_src
-
-You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until success or failure is true.
-
-#+begin_src  shell
-  curl 'http://localhost:50002/api/v1/logs/ce24da08-1833-4821-b7e3-e2bacaa79326'
-  #
-  # {
-  #   "success": 1,
-  #   "failure": 0,
-  #   "in-progress": 0,
-  #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",  
-  #   "human-id": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
-  #   "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
-  # }
-#+end_src
-
-* Licensing
-
-byggsteg is licensed under the GNU GPL v3 License or newer.
-
-* Performance
-
-byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
-
-[[file:docs/benchmarks.org][See some of byggsteg's benchmarks here]]
 
 -----
 
-* Using
+* Byggsteg Manuals
 
-It is recommended to use tagged releases of byggsteg, as those are considered as stable by the developers.
+I strive to provide proper and extensive documentation on Byggsteg, available at your convenience.
 
-You can run byggsteg server by calling ~art work~ from the root directory. Refer to the ~Makefile~ for more convenient commands and variations.
+- Org format [[file:docs/manual/en-GB.org]]
 
-byggsteg exposes an HTML frontend (server-side-rendered SSR) and a REST API, and should be compatible with most UNIX like systems, but is best experiences with GNU Guix.
 
-An example shepherd service for byggsteg could look like this:
-#+begin_src scheme
-    (use-modules (gnu)
-                 (gnu services shepherd))
+[[https://jointhefreeworld.org/static-assets/byggsteg/img/logo-small.jpg]]
 
-    ;; ...............
-
-  (define (wolk-jjba-byggsteg-service config)
-    (list (shepherd-service (documentation "Run byggsteg as a daemon")
-                            (provision '(byggsteg))
-                            (requirement '())
-                            (start #~(make-forkexec-constructor '("make" "production-server")
-                                      #:directory
-                                      "/etc/byggsteg/job-clone/byggsteg/trunk"
-                                      #:environment-variables
-                                      (list
-                                       "GUILE_LOAD_PATH=/run/current-system/profile/share/guile/site/3.0"
-                                       "GUILE_DBD_PATH=/run/current-system/profile/lib"
-                                       "C_INCLUDE_PATH=/run/current-system/profile/include"
-                                       "GUILE_LOAD_COMPILED_PATH=/run/current-system/profile/lib/guile/3.0/site-ccache:/run/current-system/profile/share/guile/site/3.0"
-                                       "LIBRARY_PATH=/run/current-system/profile/lib"
-                                       "GIT_SSL_NO_VERIFY=1"
-                                       "LANG=nl_NL.UTF-8"
-                                       "PATH=/run/privileged/bin:/run/current-system/profile/bin:/run/current-system/profile/sbin")))
-                            (stop #~(make-kill-destructor))
-                            (auto-start? #t)
-                            (respawn? #t))))
-
-  (define wolk-jjba-byggsteg-service-type
-    (service-type (name 'byggsteg)
-                  (description "Run byggsteg as a daemon")
-                  (extensions (list (service-extension
-                                     shepherd-root-service-type
-                                     wolk-jjba-byggsteg-service)))
-                  (default-value '())))
-
-    ;; then load it with (service byggsteg-service-type)
-#+end_src
-
------
+--------
 
 * Code of conduct
 
@@ -202,33 +84,9 @@ https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-code-of-con
 In summary, we foster an inclusive, respectful, and cooperative environment for all contributors and users of this free software project. Inspired by the ideals of the GNU Project, we strive to uphold freedom, equality, and community as guiding principles. We believe that collaboration in a community of mutual respect is essential to creating excellent free software.
 
 
------
+--------
 
-* Code owners
+* Licensing
 
-The project's main branch is ~trunk~. Find a list of roles and people involved in the project.
-
-Only BDFL (Benevolent Dictator For Life) can merge PRs.
-Only BDFL is allowed to push directly to ~trunk~ in case a quick fix is needed.
-
-MFL (Maintainer For Life) can ascend to BDFL after extensive productive collaboration.
-MFL has write permissions to all branches (except trunk) and can open PRs.
-
-- *BDFL* :: @jjba23 - Josep Bigorra <jjbigorra@gmail.com>
-- *MFL* :: @NalaGinrut - Roy Mu <NalaGinrut@hardenedlinux.org>
-
-Other contributors must fork byggsteg and create a pull request to contribute back.
-After productive collaboration other kinds of roles can be added and assigned.
-
-* Translation effort
-
-byggsteg is a community driven effort and as such, can use your help in translating to several different languages.
-
-- English language (en_US) :: 100% translated
-- Dutch language (nl_NL) :: 100% translated
-- Spanish language (es_ES) :: 100% translated
-
-* Project management
-
-Find the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][project management of byggsteg here]].
+byggsteg is licensed under the GNU GPL v3 License or newer.
 
