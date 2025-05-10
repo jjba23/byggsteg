@@ -3,7 +3,7 @@
 #+email: jjbigorra@gmail.com
 #+language: en
 #+options: num:nil html-style:nil
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://jointhefreeworld.org/static/css/jointhefreeworld.css" />
 
 [[https://jointhefreeworld.org/static-assets/badges/GNU-Guix-c48702.png]] [[https://jointhefreeworld.org/static-assets/badges/Scheme-Guile-d0730f.png]]
 
