@@ -5,7 +5,7 @@
 
 byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme), leverages SXML, SQLite3, some POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
 
-[[https://www.buymeacoffee.com/jjbigorra][Please donate if you can, by clicking here]]. This helps us keep the underlying cloud infrastructure and the contributor's work hours going strong.
+If you like my work, please support me by [[https://bmc.link/jjbigorra][buying me a cup of coffee ☕]] so I can continue with a lot of motivation.
 
 * What is byggsteg ?
 
