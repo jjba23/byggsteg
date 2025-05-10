@@ -31,6 +31,7 @@
              (gnu packages pkg-config)
              (guix build-system guile)
              (gnu packages linux)
+             (gnu packages rust-apps)
              (gnu packages perl)
              (gnu packages compression)
              (gnu packages sqlite)
@@ -131,6 +132,8 @@
                           guile-uuid
                           guile-kracht
                           guile-dbi
+                          guile-gcrypt
+                          watchexec
                           sqlite
                           guile-dbd-sqlite3))
 
