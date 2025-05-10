@@ -77,9 +77,13 @@ byggsteg is a community driven effort and as such, can use your help in translat
 
 ------
   
-* Project management
+* Byggsteg Project
 
-Find the project management of byggsteg on my LucidPlan:  [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][https://lucidplan.jointhefreeworld.org/tickets/byggsteg]].
+Contributing to free software is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
+
+We welcome everyone to feel invited to the byggsteg Project, and encourage active contribution in all forms, to improve it and/or suggest improvements, brainstorm with me, make it more modular/flexible, etc, feel free to contact me <jjbigorra@gmail.com> to chat, discuss or report feedback.
+
+Find here the Backlog and Kanban boards for byggsteg: https://lucidplan.jointhefreeworld.org/tickets/byggsteg
 
 ------
 

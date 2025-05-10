@@ -5,6 +5,8 @@
 
 byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme), leverages SXML, SQLite3, some POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
 
+[[https://www.buymeacoffee.com/jjbigorra][Please donate if you can, by clicking here]]. This helps us keep the underlying cloud infrastructure and the contributor's work hours going strong.
+
 * What is byggsteg ?
 
 byggsteg is a free software project with the aim of developing a suite of functionalities to allow engineers to deliver software quicker and with less friction.
@@ -84,10 +86,15 @@ https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-code-of-con
 
 In summary, we foster an inclusive, respectful, and cooperative environment for all contributors and users of this free software project. Inspired by the ideals of the GNU Project, we strive to uphold freedom, equality, and community as guiding principles. We believe that collaboration in a community of mutual respect is essential to creating excellent free software.
 
+---------
 
---------
+* Byggsteg Project
 
-* Licensing
+Contributing to free software is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
 
-byggsteg is licensed under the GNU GPL v3 License or newer.
+We welcome everyone to feel invited to the byggsteg Project, and encourage active contribution in all forms, to improve it and/or suggest improvements, brainstorm with me, make it more modular/flexible, etc, feel free to contact me <jjbigorra@gmail.com> to chat, discuss or report feedback.
 
+Find here the Backlog and Kanban boards for byggsteg: https://lucidplan.jointhefreeworld.org/tickets/byggsteg
+
+
+-------
