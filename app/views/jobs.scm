@@ -28,7 +28,7 @@
   #:use-module (artanis artanis)
   #:use-module (artanis i18n sxml)
   #:use-module (artanis i18n locale)
-  #:use-module (hygguile abstraction)
+  #:use-module (hygguile hygguile)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 

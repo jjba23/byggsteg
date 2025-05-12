@@ -22,7 +22,7 @@
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
-  #:use-module (hygguile abstraction)
+  #:use-module (hygguile hygguile)
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 futures))
 
@@ -33,96 +33,99 @@
   `(rounded-xl p-2 w-fit text-sm font-sans font-bold))
 
 (define-public button-face
-  (->css (append base-button
-                 '(bg-orange-700 hover:bg-orange-700 active:bg-orange-700
-                                 text-stone-300))))
+  (mk-class (append base-button
+                    '(bg-orange-400 hover:bg-orange-500 active:bg-orange-500
+                                    text-stone-900 shadow-md))))
 
 (define-public danger-button-face
-  (->css (append base-button
-                 '(bg-red-700 hover:bg-red-800 active:bg-red-800
-                              text-stone-300))))
+  (mk-class (append base-button
+                    '(bg-red-700 hover:bg-red-800 active:bg-red-800
+                                 text-stone-300 shadow-md))))
 
 (define-public nav-button-face
-  (->css '(text-orange-500 hover:border-b-orange-400
-                           hover:text-orange-400
-                           cursor-pointer
-                           p-1
-                           font-sans
-                           flex
-                           flex-row
-                           gap-1
-                           items-center
-                           text-sm
-                           font-bold)))
+  (mk-class '(text-orange-400 hover:border-b-orange-400
+                              hover:text-orange-500
+                              cursor-pointer
+                              p-1
+                              font-sans
+                              flex
+                              flex-row
+                              gap-1
+                              items-center
+                              text-sm
+                              font-bold)))
 ;;
 ;; Forms
 ;;
 (define-public input-face
-  (->css '(rounded-xl border
-                      border-stone-600
-                      p-3
-                      text-md
-                      bg-stone-800
-                      text-stone-300
-                      font-mono)))
+  (mk-class '(rounded-xl border
+                         border-stone-600
+                         p-3
+                         text-md
+                         shadow-md
+                         bg-stone-900
+                         text-stone-300
+                         font-mono)))
 
 (define-public textarea-face
-  (->css '(rounded-xl border
-                      border-stone-600
-                      p-2
-                      w-full
-                      text-md
-                      bg-stone-800
-                      font-mono
-                      text-stone-300
-                      min-h-64)))
+  (mk-class '(rounded-xl border
+                         border-stone-600
+                         p-2
+                         w-full
+                         text-md
+                         shadow-md
+                         bg-stone-900
+                         font-mono
+                         text-stone-300
+                         min-h-64)))
 
 (define-public label-face
-  (->css '(text-stone-300 text-sm font-bold py-2 md:px-2)))
+  (mk-class '(text-stone-300 text-sm font-bold py-2 md:px-2)))
 
 (define-public hr-face
-  (->css '(mx-8 my-5 border-t-2 border-t-stone-600)))
+  (mk-class '(mx-8 my-5 border-t-2 border-t-stone-600)))
 
 ;;
 ;; Headers
 ;;
 (define-public h2-face
-  (->css '(text-2xl text-stone-300 font-bold font-sans my-4)))
+  (mk-class '(text-2xl text-stone-200 font-bold font-sans my-4)))
 
 (define-public h4-face
-  (->css '(text-lg text-stone-400 font-bold font-sans my-3)))
+  (mk-class '(text-lg text-stone-300 font-bold font-sans my-3)))
 
 (define-public brand-title-face
-  (->css '(text-2xl text-orange-500 hover:border-b-orange-400
-                    hover:text-orange-400 font-bold font-sans)))
+  (mk-class '(text-2xl text-orange-400 hover:border-b-orange-400
+                       hover:text-orange-500 font-bold font-sans)))
 
 ;;
 ;; Links
 ;;
 (define-public dash-link-face
-  (->css '(text-stone-300 hover:text-stone-100 font-bold cursor-pointer
-                          text-md font-sans)))
+  (mk-class '(text-stone-300 hover:text-orange-400 font-bold cursor-pointer
+                             text-md font-sans)))
 
 (define-public link-face
-  (->css '(text-orange-400 hover:text-orange-300 font-bold cursor-pointer
-                           text-sm)))
+  (mk-class '(text-orange-400 hover:text-orange-300 font-bold cursor-pointer
+                              text-sm)))
 
 ;;
 ;; Pre
 ;;
 (define-public pre-face
-  (->css '(rounded-xl bg-stone-800
-                      p-4
-                      my-6
-                      text-md
-                      text-stone-300
-                      white-space-pre
-                      overflow-x-scroll)))
+  (mk-class '(rounded-xl bg-stone-900
+                         p-4
+                         my-6
+                         text-md
+                         text-stone-300
+                         shadow-md
+                         white-space-pre
+                         overflow-x-scroll)))
 
 ;;
 ;; DL DD DT
 ;;
 (define-public dt-face
-  (->css '(text-stone-300 text-sm)))
+  (mk-class '(text-stone-300 text-sm)))
 (define-public dd-face
-  (->css '(text-stone-400 text-sm mb-2 sm:ml-4)))
+  (mk-class '(text-stone-400 text-sm mb-2 sm:ml-4)))

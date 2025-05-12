@@ -27,16 +27,16 @@
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
   #:use-module (artanis i18n sxml)
-  #:use-module (hygguile abstraction)
+  #:use-module (hygguile hygguile)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
 
 (define (job-type-expl G_)
-  `(div (@ (class ,(->css '(max-w-prose p-4 bg-stone-700 rounded-xl))))
+  `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-900 rounded-xl))))
         (h4 (@ (class ,h4-face))
             ,(G_ "job types"))
-        (dl (@ (class ,(->css '(p-4))))
+        (dl (@ (class ,(mk-class '(p-4))))
             (dt (@ (class ,dt-face))
                 (code "make-test"))
             (dd (@ (class ,dd-face))
@@ -79,7 +79,7 @@
             (dd (@ (class ,dd-face))
                 ,(G_
                   "Allow passing arbitrary list of commands (via trivial-cmds field)")))
-        (p (@ (class ,(->css '(text-stone-300 text-sm))))
+        (p (@ (class ,(mk-class '(text-stone-300 text-sm))))
            ,(G_
              "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))
 
@@ -88,20 +88,20 @@
          (welcome-html `((div (h2 (@ (class ,h2-face))
                                   ,(G_ "welcome to byggsteg")))
                          ,(locale-choose-form G_)
-                         (div (@ (class ,(->css '(my-6 p-6
-                                                       flex
-                                                       flex-row
-                                                       flex-wrap
-                                                       justify-center
-                                                       gap-6))))
+                         (div (@ (class ,(mk-class '(my-6 p-6
+                                                          flex
+                                                          flex-row
+                                                          flex-wrap
+                                                          justify-center
+                                                          gap-6))))
 
-                              (div (@ (class ,(->css '(flex flex-col gap-4
-                                                            items-center))))
-                                   (div (@ (class ,(->css '(max-w-prose
-                                                            bg-stone-700
-                                                            rounded-xl p-4))))
-                                        (span (@ (class ,(->css '(text-stone-300
-                                                                  text-lg))))
+                              (div (@ (class ,(mk-class '(flex flex-col gap-4
+                                                               items-center))))
+                                   (div (@ (class ,(mk-class '(max-w-prose
+                                                               bg-stone-900
+                                                               rounded-xl p-4))))
+                                        (span (@ (class ,(mk-class '(text-stone-300
+                                                                     text-lg))))
                                               ,(G_ (string-append
                                                     "byggsteg aims to be the hackable continuous integration and delivery system, "
                                                     "allowing engineers to deliver software quicker and with less friction"))))

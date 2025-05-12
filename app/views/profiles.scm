@@ -28,7 +28,7 @@
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
   #:use-module (artanis i18n sxml)
-  #:use-module (hygguile abstraction)
+  #:use-module (hygguile hygguile)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
@@ -37,14 +37,19 @@
   (let* ((profile-name (unescape-str (assoc-ref p "human_id")))
          (profile-data (unescape-str (assoc-ref p "profile_data")))
          (G_ (:i18n rc))
-         (body `((div (@ (class ,(->css '(flex flex-row flex-wrap align-center
-                                               gap-6 px-3))))
+         (body `((div (@ (class ,(mk-class '(flex flex-row
+                                                  flex-wrap
+                                                  align-center
+                                                  items-center
+                                                  gap-6
+                                                  px-3))))
                       (h2 (@ (class ,h2-face))
                           ,(G_ "profile details"))
-                      (h3 (@ (class ,(->css '(text-stone-300 text-xl))))
+                      (h3 (@ (class ,(mk-class '(text-stone-300 text-xl))))
                           ,profile-name))
                  
-                 (div (@ (class ,(->css '(flex flex-row flex-wrap gap-4 my-4))))
+                 (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-4
+                                                  my-4))))
                       (form (@ (method POST)
                                (action "/jobs/manage/submit")
                                (enctype application/x-www-form-urlencoded)
@@ -68,9 +73,8 @@
                                       (required "")
                                       (hidden "")
                                       (value ,(assoc-ref p "id"))
-                                      (class ,(->css '(rounded-xl border
-                                                                  font-sans
-                                                                  p-2)))))
+                                      (class ,(mk-class '(rounded-xl border
+                                                          font-sans p-2)))))
                             (button (@ (type submit)
                                        (class ,danger-button-face))
                                     ,(G_ "delete"))))
@@ -105,15 +109,22 @@
          (G_ (:i18n rc)))
     (byggsteg-html-template G_
                             #:title "byggsteg"
-                            #:body `((h2 (@ (class ,h2-face))
-                                         ,(G_ "profiles"))
-                                     (div (@ (class ,(->css '(w-full
-                                                              rounded-xl
-                                                              bg-stone-800
-                                                              p-4
-                                                              flex
-                                                              flex-col
-                                                              gap-4
-                                                              align-center))))
-                                          ,profiles-html)))))
+                            #:body `((div (@ (class ,(mk-class '(w-full flex
+                                                                 flex-col
+                                                                 gap-6
+                                                                 py-6
+                                                                 px-6
+                                                                 align-center))))
+                                          (h2 (@ (class ,h2-face))
+                                              ,(G_ "profiles"))
+                                          (div (@ (class ,(mk-class '(w-full
+                                                                      rounded-xl
+                                                                      bg-stone-900
+                                                                      flex
+                                                                      flex-col
+                                                                      gap-4
+                                                                      py-8
+                                                                      px-6
+                                                                      align-center))))
+                                               ,profiles-html))))))
 

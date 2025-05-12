@@ -30,9 +30,8 @@
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (web uri)
-  #:use-module (hygguile abstraction)
+  #:use-module (hygguile hygguile)
   #:use-module (kracht prelude)
-  #:use-module (hygguile components icon)
   #:use-module (artanis artanis)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
@@ -69,99 +68,101 @@
                                                 "pub/js/tailwind.js"))
                                       (script ,(assoc-ref asset-library
                                                 "pub/js/tailwind.config.js")))
-                                (body (@ (class ,(->css '(bg-stone-900))))
-                                      (div (@ (class ,(->css '(flex flex-col
-                                                               h-screen
-                                                               justify-between))))
+                                (body (@ (class ,(mk-class '(bg-stone-800))))
+                                      (div (@ (class ,(mk-class '(flex
+                                                                  flex-col
+                                                                  h-screen
+                                                                  justify-between))))
                                            (div ,(page-top G_)
-                                                (div (@ (class ,(->css '(my-4
-                                                                         container
-                                                                         mx-auto))))
+                                                (div (@ (class ,(mk-class '(my-4
+                                                                            container
+                                                                            mx-auto))))
                                                      ,@body))
                                            ,(page-footer G_)))))))
   (export byggsteg-html-template))
 
 (define-public (page-top G_)
-  `((div (@ (class ,(->css '(flex flex-row
-                                  flex-wrap
-                                  gap-6
-                                  py-3
-                                  px-2
-                                  sm:px-5
-                                  items-center
-                                  bg-stone-800))))
+  `((div (@ (class ,(mk-class '(flex flex-row
+                                     flex-wrap
+                                     gap-6
+                                     py-3
+                                     px-2
+                                     sm:px-5
+                                     items-center
+                                     bg-stone-900))))
          (h1 (@ (class ,brand-title-face))
              (a (@ (href "/")
-                   (class ,(->css '(flex flex-row gap-2 items-center))))
-                ,(hyg-icon #:type 'gear-fine)
+                   (class ,(mk-class '(flex flex-row gap-2 items-center))))
+                ,(icon #:type 'gear-fine)
                 (span "byggsteg")))
-         (div (@ (class ,(->css '(flex flex-row flex-wrap items-center gap-3))))
+         (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
+                                          gap-3))))
               (a (@ (href "/logs")
                     (class ,nav-button-face))
-                 ,(hyg-icon #:type 'scroll)
+                 ,(icon #:type 'scroll)
                  (span ,(G_ "logs")))
               (a (@ (href "/jobs/request")
                     (class ,nav-button-face))
-                 ,(hyg-icon #:type 'circuitry)
+                 ,(icon #:type 'circuitry)
                  (span ,(G_ "run job")))
               (a (@ (href "/profiles")
                     (class ,nav-button-face))
-                 ,(hyg-icon #:type 'folder)
+                 ,(icon #:type 'folder)
                  (span ,(G_ "profiles")))
               (a (@ (href "/profiles/manage/create")
                     (class ,nav-button-face))
-                 ,(hyg-icon #:type 'plus)
+                 ,(icon #:type 'plus)
                  (span ,(G_ "new profile")))
               (a (@ (href "/login")
                     (class ,nav-button-face))
-                 ,(hyg-icon #:type 'sign-in)
+                 ,(icon #:type 'sign-in)
                  (span ,(G_ "login")))))))
 
 (define-public (page-footer G_)
-  `((div (@ (class ,(->css '(flex flex-wrap
-                                  flex-row
-                                  gap-6
-                                  justify-between
-                                  px-2
-                                  sm:px-5
-                                  py-3
-                                  bg-stone-800))))
-         (div (@ (class ,(->css '(block text-left font-sans max-w-prose))))
-              (p (@ (class ,(->css '(px-2 py-1))))
-                 (em (@ (class ,(->css '(text-sm text-stone-300))))
+  `((div (@ (class ,(mk-class '(flex flex-wrap
+                                     flex-row
+                                     gap-6
+                                     justify-between
+                                     px-2
+                                     sm:px-5
+                                     py-3
+                                     bg-stone-900))))
+         (div (@ (class ,(mk-class '(block text-left font-sans max-w-prose))))
+              (p (@ (class ,(mk-class '(px-2 py-1))))
+                 (em (@ (class ,(mk-class '(text-sm text-stone-300))))
                      ,(G_ "byggsteg is the hackable Guile CI/CD system")))
-              (p (@ (class ,(->css '(px-2 py-1))))
-                 (em (@ (class ,(->css '(text-sm text-stone-300))))
+              (p (@ (class ,(mk-class '(px-2 py-1))))
+                 (em (@ (class ,(mk-class '(text-sm text-stone-300))))
                      ,(G_
                        "byggsteg is free software, available under the GNU GPL v3 or newer.")))
-              (div (@ (class ,(->css '(mt-2 flex
-                                            flex-row
-                                            flex-wrap
-                                            gap-4
-                                            align-center
-                                            px-2
-                                            py-1))))
-                   (p (@ (class ,(->css '(text-sm text-stone-300))))
+              (div (@ (class ,(mk-class '(mt-2 flex
+                                               flex-row
+                                               flex-wrap
+                                               gap-4
+                                               align-center
+                                               px-2
+                                               py-1))))
+                   (p (@ (class ,(mk-class '(text-sm text-stone-300))))
                       ,(G_ "find the source code here"))
                    (a (@ (class ,link-face)
                          (href "https://codeberg.org/jjba23/byggsteg"))
                       "https://codeberg.org/jjba23/byggsteg"))
-              (p (@ (class ,(->css '(text-xs text-stone-300 px-2 py-1))))
+              (p (@ (class ,(mk-class '(text-xs text-stone-300 px-2 py-1))))
                  (em ,(G_
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
-              (p (@ (class ,(->css '(mt-2 px-2 py-1))))
-                 (em (@ (class ,(->css '(text-sm text-stone-300))))
+              (p (@ (class ,(mk-class '(mt-2 px-2 py-1))))
+                 (em (@ (class ,(mk-class '(text-sm text-stone-300))))
                      ,(G_
                        "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
-              (p (@ (class ,(->css '(mt-2 px-2 py-1))))
-                 (span (@ (class ,(->css '(text-xs text-stone-300))))
+              (p (@ (class ,(mk-class '(mt-2 px-2 py-1))))
+                 (span (@ (class ,(mk-class '(text-xs text-stone-300))))
                        ,(G_ "byggsteg means “build step” in Norwegian."))))
          (div (@ (class "")) " "))))
 
 (define-public project-logo
-  `(div (@ (class ,(->css '(bg-stone-700 rounded-2xl p-4 shadow))))
+  `(div (@ (class ,(mk-class '(bg-stone-900 rounded-2xl p-4 shadow))))
         (img (@ (loading lazy)
-                (class ,(->css '(w-64 h-auto rounded-2xl)))
+                (class ,(mk-class '(w-48 h-auto rounded-2xl)))
                 (src
                  "https://jointhefreeworld.org/static-assets/byggsteg/logo.png")))))
 
@@ -169,7 +170,7 @@
   (cond
     ((equal? is-profile #t)
      `((label (@ (for profile-name)
-                 (class ,(->css '(text-stone-300 font-bold))))
+                 (class ,(mk-class '(text-stone-300 font-bold))))
               ,(G_ "profile name"))
        (input (@ (id profile-name)
                  (name profile-name)
@@ -181,26 +182,29 @@
   `(div (form (@ (action "/preferences/locale")
                  (enctype application/x-www-form-urlencoded)
                  (method POST)
-                 (class ,(->css '(flex flex-row gap-4 flex-wrap))))
-              (select (@ (name user-lang))
+                 (class ,(mk-class '(flex flex-row gap-4 flex-wrap))))
+              (select (@ (class ,(mk-class '(bg-stone-900 px-4 py-2 rounded-xl
+                                                          text-stone-100)))
+                         (name user-lang))
                       (option (@ (value en_US)) "English")
                       (option (@ (value nl_NL)) "Nederlands")
                       (option (@ (value es_ES)) "Español"))
               (button (@ (type submit)
-                         (class ,(->css '(text-white bg-orange-600 rounded-xl
-                                                     p-1)))) "&nbsp;✓&nbsp;"))))
+                         (class ,(mk-class '(text-white bg-orange-600
+                                                        rounded-xl p-1))))
+                      "&nbsp;✓&nbsp;"))))
 
 (define-public (job-form G_ route is-profile)
   `(form (@ (method POST)
             (action ,route)
             (enctype application/x-www-form-urlencoded)
             (charset utf-8)
-            (class ,(->css '(flex flex-col justify-center gap-4))))
+            (class ,(mk-class '(flex flex-col justify-center gap-4))))
 
          ,(maybe-profile-name G_ is-profile)
 
-         (p (@ (class ,(->css '(flex flex-row flex-wrap gap-4))))
-            (span (@ (class ,(->css '(text-stone-400 text-sm))))
+         (p (@ (class ,(mk-class '(flex flex-row flex-wrap gap-4))))
+            (span (@ (class ,(mk-class '(text-stone-400 text-sm))))
                   ,(G_ "learn writing a byggsteg pipeline"))
             (a (@ (class ,link-face)
                   (href "https://codeberg.org/jjba23/byggsteg"))
@@ -226,21 +230,21 @@
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
                        ((equal? success 1)
-                        `(h2 (@ (class ,(->css '(text-green-800 text-sm
-                                                                font-sans))))
+                        `(h2 (@ (class ,(mk-class '(text-green-800 text-sm
+                                                                   font-sans))))
                              ,(G_ "job succeeded")))
                        ((equal? failure 1)
-                        `(h2 (@ (class ,(->css '(text-red-700 text-sm
-                                                              font-sans))))
+                        `(h2 (@ (class ,(mk-class '(text-red-700 text-sm
+                                                                 font-sans))))
                              ,(G_ "job failed")))
-                       (else `(h2 (@ (class ,(->css '(text-sky-600 text-sm
-                                                                   font-sans))))
+                       (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm
+                                                         font-sans))))
                                   ,(G_ "job in progress"))))))
-    `((div (@ (class ,(->css '(flex flex-col gap-1))))
+    `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
-              (div (@ (class ,(->css '(flex flex-wrap gap-2 items-center))))
-                   (span ,(hyg-icon #:type 'scroll))
+              (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center))))
+                   (span ,(icon #:type 'scroll))
                    (span ,log-filename)))
            (div (@ (class "ml-4"))
                 ,job-status)))))
@@ -248,11 +252,11 @@
 (define-public (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"
                                 (assoc-ref profile "id"))))
-    `((div (@ (class ,(->css '(flex flex-col gap-2))))
+    `((div (@ (class ,(mk-class '(flex flex-col gap-2))))
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
-              (div (@ (class ,(->css '(flex flex-wrap gap-2 items-center))))
-                   (span ,(hyg-icon #:type 'code))
+              (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center))))
+                   (span ,(icon #:type 'code))
                    (span ,(unescape-str (assoc-ref profile "human_id")))))))))
 
 (begin

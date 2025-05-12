@@ -26,7 +26,7 @@
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
-  #:use-module (hygguile abstraction)
+  #:use-module (hygguile hygguile)
   #:use-module (artanis i18n sxml)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
@@ -39,12 +39,12 @@
                        (form (@ (action "/login")
                                 (enctype application/x-www-form-urlencoded)
                                 (method POST)
-                                (class ,(->css '(rounded-xl bg-stone-800 p-4
-                                                            flex flex-col
-                                                            gap-4))))
-                             (div (@ (class ,(->css '(grid grid-cols-1
-                                                           sm:grid-cols-3
-                                                           gap-x-4))))
+                                (class ,(mk-class '(rounded-xl bg-stone-900
+                                                               p-4 flex
+                                                               flex-col gap-4))))
+                             (div (@ (class ,(mk-class '(grid grid-cols-1
+                                                              sm:grid-cols-3
+                                                              gap-x-4))))
                                   (div (label (@ (class ,label-face)
                                                  (for username))
                                               ,(G_ "username"))
@@ -63,6 +63,6 @@
     
     (byggsteg-html-template G_
                             #:title "byggsteg"
-                            #:body `((div (@ (class ,(->css '(px-3 py-3))))
+                            #:body `((div (@ (class ,(mk-class '(px-3 py-3))))
                                           ,login-html)))))
 

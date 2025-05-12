@@ -30,9 +30,7 @@
   #:use-module (artanis artanis)
   #:use-module (artanis i18n sxml)
   #:use-module (artanis i18n locale)
-  #:use-module (hygguile abstraction)
-  #:use-module (hygguile components icon)
-  #:use-module (hygguile components button)
+  #:use-module (hygguile hygguile)
   #:use-module (byggsteg html)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun))
@@ -48,21 +46,23 @@
            (in-progress (assoc-ref job "job_in_progress"))
            (failure (assoc-ref job "job_failed"))
            (G_ (:i18n rc))
-           (dl-class (->css '(py-3)))
-           (dt-class (->css '(font-sans text-xs text-stone-400 font-bold pt-2)))
-           (dd-class (->css '(pl-3 font-sans text-sm text-stone-400
-                                   font-medium)))
+           (dl-class (mk-class '(py-3)))
+           (dt-class (mk-class '(font-sans text-xs text-stone-400 font-bold
+                                           pt-2)))
+           (dd-class (mk-class '(pl-3 font-sans text-sm text-stone-400
+                                      font-medium)))
            (job-status (cond
                          ((equal? success 1)
-                          `(h2 (@ (class ,(->css '(text-xl text-green-800
-                                                           font-sans))))
+                          `(h2 (@ (class ,(mk-class '(text-xl text-green-800
+                                                              font-sans))))
                                ,(G_ "job succeeded")))
                          ((equal? failure 1)
-                          `(h2 (@ (class ,(->css '(text-xl text-red-700
-                                                           font-sans))))
+                          `(h2 (@ (class ,(mk-class '(text-xl text-red-700
+                                                              font-sans))))
                                ,(G_ "job failed")))
-                         (else `(h2 (@ (class ,(->css '(text-xl text-sky-600
-                                                                font-sans))))
+                         (else `(h2 (@ (class ,(mk-class '(text-xl
+                                                           text-sky-600
+                                                           font-sans))))
                                     ,(G_ "job in progress")))))
            (delete-button `(form (@ (method POST)
                                     (enctype application/x-www-form-urlencoded)
@@ -77,18 +77,23 @@
                                            (required true)
                                            (hidden true)
                                            (value ,job-id)))
-                                 ,(hyg-icon-button #:icon 'trash
-                                                   #:content (G_ "delete")
-                                                   #:type 'submit
-                                                   #:background 'bg-red-700
-                                                   #:hover-background 'hover:bg-red-800)))
-           (log-html `((div (@ (class ,(->css '(flex flex-row flex-wrap
-                                                     align-middle gap-6 py-3))))
+                                 ,(icon-button #:icon 'trash
+                                               #:content (G_ "delete")
+                                               #:type 'submit
+                                               #:background 'bg-red-700
+                                               #:hover-background 'hover:bg-red-800)))
+           (log-html `((div (@ (class ,(mk-class '(flex flex-row
+                                                        flex-wrap
+                                                        align-center
+                                                        items-center
+                                                        gap-6
+                                                        py-3))))
                             (h2 (@ (class ,h2-face))
                                 ,(G_ "viewing logs"))
                             ,job-status)
-                       (h3 (@ (class ,(->css '(text-stone-300 text-lg
-                                                              font-sans py-3))))
+                       (h3 (@ (class ,(mk-class '(text-stone-300 text-lg
+                                                                 font-sans
+                                                                 py-3))))
                            ,log-filename)
 
                        (dl (@ (class ,dl-class))
@@ -128,16 +133,16 @@
 
                        ,delete-button
 
-                       (details (@ (class ,(->css '(my-4))))
-                                (summary (@ (class ,(->css '(cursor-pointer
-                                                             text-stone-400
-                                                             hover:text-stone-200
-                                                             block))))
-                                         (div (@ (class ,(->css '(flex
-                                                                  flex-row
-                                                                  gap-2
-                                                                  items-center))))
-                                              (span ,(hyg-icon #:type 'code))
+                       (details (@ (class ,(mk-class '(my-4))))
+                                (summary (@ (class ,(mk-class '(cursor-pointer
+                                                                text-stone-400
+                                                                hover:text-stone-200
+                                                                block))))
+                                         (div (@ (class ,(mk-class '(flex
+                                                                     flex-row
+                                                                     gap-2
+                                                                     items-center))))
+                                              (span ,(icon #:type 'code))
                                               (span ,(G_
                                                       "inspect the job's lambda expression"))))
                                 (pre (@ (class ,pre-face))
@@ -147,7 +152,13 @@
       
       (byggsteg-html-template G_
                               #:title "byggsteg"
-                              #:body log-html
+                              #:body `((div (@ (class ,(mk-class '(w-full flex
+                                                                   flex-col
+                                                                   gap-6
+                                                                   py-6
+                                                                   px-6
+                                                                   align-center))))
+                                            ,log-html))
                               #:should-auto-refresh (equal? 1 in-progress))))
   (export log-page))
 
@@ -163,34 +174,38 @@
                                             (car (assoc-ref jobs-of-logs
                                                             (assoc-ref l "id")))
                                             l)) logs))
-           (page-buttons `((div (@ (class ,(->css '(flex flex-row flex-wrap
-                                                         gap-3 my-4))))
+           (page-buttons `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
+                                                            gap-3 my-4))))
                                 ,(if (> offset 0)
                                      `((a (@ (href ,(format #f
                                                      "/logs?offset=~a&limit=~a"
                                                      (- offset limit) limit)))
-                                          ,(hyg-icon-button #:icon 'arrow-left
-                                                            #:content (G_
-                                                                       "previous"))))
+                                          ,(icon-button #:icon 'arrow-left
+                                                        #:content (G_
+                                                                   "previous"))))
                                      '())
                                 ,(if (= (length logs) limit)
                                      `((a (@ (href ,(format #f
                                                      "/logs?offset=~a&limit=~a"
                                                      (+ offset limit) limit)))
-                                          ,(hyg-icon-button #:icon 'arrow-right
-                                                            #:content (G_
-                                                                       "next"))))
+                                          ,(icon-button #:icon 'arrow-right
+                                                        #:content (G_ "next"))))
                                      '()))))
-           (logs-html `((div (@ (class ,(->css '(w-full flex flex-col gap-4
-                                                        align-center))))
+           (logs-html `((div (@ (class ,(mk-class '(w-full flex
+                                                           flex-col
+                                                           gap-4
+                                                           py-6
+                                                           px-6
+                                                           align-center))))
                              (h2 (@ (class ,h2-face))
                                  ,(G_ "logs"))
-                             (div (@ (class ,(->css '(rounded-xl bg-stone-800
-                                                                 flex
-                                                                 flex-col
-                                                                 gap-4
-                                                                 py-4
-                                                                 px-2))))
+                             (div (@ (class ,(mk-class '(rounded-xl
+                                                         bg-stone-900
+                                                         flex
+                                                         flex-col
+                                                         gap-4
+                                                         py-8
+                                                         px-6))))
                                   ,jobs-html)
                              ,page-buttons))))
       (byggsteg-html-template G_
