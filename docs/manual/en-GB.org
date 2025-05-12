@@ -37,7 +37,19 @@ Byggsteg and Artanis are written using GNU Guile, one of the best implementation
   
 [[https://jointhefreeworld.org/static-assets/byggsteg/img/logo-small.jpg]]
 
+
 ---------
+
+* Licensing
+
+byggsteg is licensed under the GNU GPL v3 License or newer and is  built using the GNU Artanis web-framework.
+
+------
+
+[[https://jointhefreeworld.org/static-assets/byggsteg/12-05-2025-small.png]]
+
+---------
+
 
 * Code of conduct
 
