@@ -144,12 +144,15 @@
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
             (div ,(em (G_
                        "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
-            (div (span (@ (class ,(mk-class '(text-xs text-stone-800
-                                                      dark:text-stone-300))))
-                       ,(G_ "byggsteg means “build step” in Norwegian."))))))
+            (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-3
+                                             align-center))))
+                 ,(p (G_ "version"))
+                 ,(mono (format #f "~a"
+                                (get-short-commit-sha)))))))
 
 (define-public project-logo
-  `(div (@ (class ,(mk-class '(bg-stone-900 rounded-2xl p-4 shadow))))
+  `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900 rounded-2xl p-4
+                                            shadow))))
         (img (@ (loading lazy)
                 (class ,(mk-class '(w-48 h-auto rounded-2xl)))
                 (src
@@ -164,12 +167,17 @@
     (else `())))
 
 (define-public (locale-choose-form G_)
-  `(div (form (@ (action "/preferences/locale")
+  `(div (@ (class ,(mk-class '(mt-2))))
+        (form (@ (action "/preferences/locale")
                  (enctype application/x-www-form-urlencoded)
                  (method POST)
                  (class ,(mk-class '(flex flex-row gap-4 flex-wrap))))
-              (select (@ (class ,(mk-class '(bg-stone-900 px-4 py-2 rounded-xl
-                                                          text-stone-100)))
+              (select (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900
+                                                          px-4
+                                                          py-2
+                                                          rounded-xl
+                                                          text-stone-900
+                                                          dark:text-stone-100)))
                          (name user-lang))
                       (option (@ (value en_US)) "English")
                       (option (@ (value nl_NL)) "Nederlands")

@@ -95,33 +95,29 @@
     (license license:lgpl3+)))
 
 (define-public guile-kracht
-  (let ((commit "e8b893aec72b4e768b2ef7fbcad926f4cac0bebb")
-        (base32-sha-signature
-         "0p3z2mqy885pxq4bip6jmspikvc3ghbqhzr86z6h3m1a2x9h3p6h")
-        (revision "0"))
-    (package
-      (name "guile-kracht")
-      (version (git-version "0.0.1" revision commit))
-      (source
-       (origin
-         (method git-fetch)
-         (uri (git-reference
-               (url "https://codeberg.org/jjba23/kracht.git")
-               (commit commit)))
-         (file-name (git-file-name name version))
-         (sha256
-          (base32 base32-sha-signature))))
-      (build-system guile-build-system)
-      (native-inputs (list guile-3.0))
-      (arguments
-       (list
-        #:source-directory "src"))
-      (home-page "https://codeberg.org/jjba23/kracht")
-      (synopsis
-       "Good prelude for Guile Scheme, an opt-in enhancement to the standard library")
-      (description
-       "Good prelude for Guile Scheme, an opt-in enhancement to the standard library. kracht means power/strength in the Dutch language, and is also a recursive acronym which stands for: KRACHT Reliable And Consistent Helper Tools")
-      (license license:lgpl3+))))
+  (package
+    (name "guile-kracht")
+    (version "0.0.5")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/jjba23/kracht.git")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1957aarwfha8mrqjygzl7j064j3h9xwaxl1qp54w6ypk5bx7f6bg"))))
+    (build-system guile-build-system)
+    (native-inputs (list guile-3.0))
+    (arguments
+     (list
+      #:source-directory "src"))
+    (home-page "https://codeberg.org/jjba23/kracht")
+    (synopsis
+     "Good prelude for Guile Scheme, an opt-in enhancement to the standard library")
+    (description
+     "Good prelude for Guile Scheme, an opt-in enhancement to the standard library. kracht means power/strength in the Dutch language, and is also a recursive acronym which stands for: KRACHT Reliable And Consistent Helper Tools")
+    (license license:lgpl3+)))
 
 (packages->manifest (list (specification->package "make")
                           (specification->package "gettext")
