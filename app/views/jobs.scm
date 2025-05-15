@@ -36,6 +36,6 @@
   (let* ((G_ (:i18n rc)))
     (byggsteg-html-template G_
                             #:title "byggsteg"
-                            #:body `(,(h2 
-                                       (G_ "run job"))
-                                     ,(job-form G_ "/jobs/manage/submit" #f)))))
+                            #:body `(,(h2 (G_ "run job")) ,(job-form G_
+                                                            "/jobs/manage/submit"
+                                                            #f)))))

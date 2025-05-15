@@ -77,9 +77,6 @@
 ;; Headers
 ;;
 
-
-
-
 (define-public brand-title-face
   (mk-class '(text-2xl text-orange-400 hover:border-b-orange-400
                        hover:text-orange-500 font-bold font-sans)))
@@ -88,8 +85,12 @@
 ;; Links
 ;;
 (define-public dash-link-face
-  (mk-class '(text-stone-800 dark:text-stone-300 hover:text-orange-400 font-bold cursor-pointer
-                             text-md font-sans)))
+  (mk-class '(text-stone-800 dark:text-stone-300
+                             hover:text-orange-400
+                             font-bold
+                             cursor-pointer
+                             text-md
+                             font-sans)))
 
 (define-public link-face
   (mk-class '(text-orange-400 hover:text-orange-300 font-bold cursor-pointer
@@ -98,7 +99,6 @@
 ;;
 ;; Pre
 ;;
-
 
 ;;
 ;; DL DD DT

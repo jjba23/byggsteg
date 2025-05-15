@@ -47,10 +47,10 @@
            (failure (assoc-ref job "job_failed"))
            (G_ (:i18n rc))
            (dl-class (mk-class '(py-3)))
-           (dt-class (mk-class '(font-sans text-xs text-stone-800 dark:text-stone-400 font-bold
-                                           pt-2)))
-           (dd-class (mk-class '(pl-3 font-sans text-sm text-stone-800 dark:text-stone-400
-                                      font-medium)))
+           (dt-class (mk-class '(font-sans text-xs text-stone-800
+                                           dark:text-stone-400 font-bold pt-2)))
+           (dd-class (mk-class '(pl-3 font-sans text-sm text-stone-800
+                                      dark:text-stone-400 font-medium)))
            (job-status (cond
                         ((equal? success 1)
                          `(h2 (@ (class ,(mk-class '(text-xl text-green-800
@@ -138,9 +138,11 @@
                                                                      flex-row
                                                                      gap-2
                                                                      items-center))))
-                                              (span ,(icon #:type 'code #:icon-css '(text-stone-800 dark:text-stone-200
-                                                                                                    hover:text-orange-700
-                                                                                                    dark:hover:text-orange-400)))
+                                              (span ,(icon #:type 'code
+                                                           #:icon-css '(text-stone-800
+                                                                        dark:text-stone-200
+                                                                        hover:text-orange-700
+                                                                        dark:hover:text-orange-400)))
                                               (span (@ (class ,(mk-class '(text-stone-800
                                                                            dark:text-stone-200
                                                                            hover:text-orange-700

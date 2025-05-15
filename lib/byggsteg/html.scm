@@ -157,11 +157,11 @@
 
 (define-public (maybe-profile-name G_ is-profile)
   (cond
-   ((equal? is-profile #t)
-    (input #:label (G_ "profile name")
-           #:required #t
-           #:name 'profile-name))
-   (else `())))
+    ((equal? is-profile #t)
+     (input #:label (G_ "profile name")
+            #:required #t
+            #:name 'profile-name))
+    (else `())))
 
 (define-public (locale-choose-form G_)
   `(div (form (@ (action "/preferences/locale")
@@ -188,8 +188,14 @@
 
          ,(maybe-profile-name G_ is-profile)
 
-         (p (@ (class ,(mk-class '(flex flex-row flex-wrap align-center items-center gap-4 py-2))))
-            (span (@ (class ,(mk-class '(text-stone-700 dark:text-stone-300 text-sm))))
+         (p (@ (class ,(mk-class '(flex flex-row
+                                        flex-wrap
+                                        align-center
+                                        items-center
+                                        gap-4
+                                        py-2))))
+            (span (@ (class ,(mk-class '(text-stone-700 dark:text-stone-300
+                                                        text-sm))))
                   ,(G_ "learn writing a byggsteg pipeline"))
             ,(a "https://codeberg.org/jjba23/byggsteg"))
 
