@@ -39,7 +39,7 @@
 
 (define-public asset-library
   (build-asset-library '("pub/css/fonts.css" "pub/css/phosphor.css"
-                         "pub/js/tailwind.js" "pub/js/tailwind.config.js")))
+                         "pub/js/tailwind.js")))
 
 (begin
   (define* (byggsteg-html-template G_
@@ -59,6 +59,15 @@
                                                          "pub/css/fonts.css"))
                                       (style ,(assoc-ref asset-library
                                                "pub/css/phosphor.css"))
+                                      (style (@ (type "text/tailwindcss"))
+                                       "
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --font-sans: \"Adwaita Sans\", sans-serif;
+  --font-mono: \"Adwaita Mono\", monospace;
+}
+")
 
                                       ,maybe-auto-refresh
                                       (meta (@ (name viewport)
@@ -66,9 +75,10 @@
                                                 "width=device-width, initial-scale=1.0")))
                                       (script ,(assoc-ref asset-library
                                                 "pub/js/tailwind.js"))
-                                      (script ,(assoc-ref asset-library
-                                                "pub/js/tailwind.config.js")))
-                                (body (@ (class ,(mk-class '(bg-stone-800))))
+                                      (script ,toggle-dark-theme-js)
+                                      (script ,remember-dark-theme-js))
+                                (body (@ (class ,(mk-class '(bg-stone-100
+                                                             dark:bg-stone-800))))
                                       (div (@ (class ,(mk-class '(flex
                                                                   flex-col
                                                                   h-screen
@@ -89,75 +99,54 @@
                                      px-2
                                      sm:px-5
                                      items-center
-                                     bg-stone-900))))
-         (h1 (@ (class ,brand-title-face))
-             (a (@ (href "/")
-                   (class ,(mk-class '(flex flex-row gap-2 items-center))))
-                ,(icon #:type 'gear-fine)
-                (span "byggsteg")))
+                                     shadow-md
+                                     bg-stone-200
+                                     dark:bg-stone-900))))
+
+         (a (@ (href "/")
+               (class ,(mk-class '(flex flex-row gap-2 items-center))))
+            ,(icon #:type 'gear-fine
+                   #:icon-css '(text-xl text-stone-800 dark:text-stone-200))
+            ,(h3 "byggsteg"))
          (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                           gap-3))))
-              (a (@ (href "/logs")
-                    (class ,nav-button-face))
-                 ,(icon #:type 'scroll)
-                 (span ,(G_ "logs")))
-              (a (@ (href "/jobs/request")
-                    (class ,nav-button-face))
-                 ,(icon #:type 'circuitry)
-                 (span ,(G_ "run job")))
-              (a (@ (href "/profiles")
-                    (class ,nav-button-face))
-                 ,(icon #:type 'folder)
-                 (span ,(G_ "profiles")))
-              (a (@ (href "/profiles/manage/create")
-                    (class ,nav-button-face))
-                 ,(icon #:type 'plus)
-                 (span ,(G_ "new profile")))
-              (a (@ (href "/login")
-                    (class ,nav-button-face))
-                 ,(icon #:type 'sign-in)
-                 (span ,(G_ "login")))))))
+              (a (@ (href "/logs"))
+                 ,(icon-button #:icon 'scroll
+                               #:content (G_ "logs")))
+              (a (@ (href "/jobs/request"))
+                 ,(icon-button #:icon 'circuitry
+                               #:content (G_ "run job")))
+              (a (@ (href "/profiles"))
+                 ,(icon-button #:icon 'folder
+                               #:content (G_ "profiles"))
+
+                 )
+              (a (@ (href "/profiles/manage/create"))
+                 ,(icon-button #:icon 'plus
+                               #:content (G_ "new profile")))
+              (a (@ (href "/login"))
+                 ,(icon-button #:icon 'sign-in
+                               #:content (G_ "login"))
+
+                 )
+              ,(ui-mode-button)))))
 
 (define-public (page-footer G_)
-  `((div (@ (class ,(mk-class '(flex flex-wrap
-                                     flex-row
-                                     gap-6
-                                     justify-between
-                                     px-2
-                                     sm:px-5
-                                     py-3
-                                     bg-stone-900))))
-         (div (@ (class ,(mk-class '(block text-left font-sans max-w-prose))))
-              (p (@ (class ,(mk-class '(px-2 py-1))))
-                 (em (@ (class ,(mk-class '(text-sm text-stone-300))))
-                     ,(G_ "byggsteg is the hackable Guile CI/CD system")))
-              (p (@ (class ,(mk-class '(px-2 py-1))))
-                 (em (@ (class ,(mk-class '(text-sm text-stone-300))))
-                     ,(G_
-                       "byggsteg is free software, available under the GNU GPL v3 or newer.")))
-              (div (@ (class ,(mk-class '(mt-2 flex
-                                               flex-row
-                                               flex-wrap
-                                               gap-4
-                                               align-center
-                                               px-2
-                                               py-1))))
-                   (p (@ (class ,(mk-class '(text-sm text-stone-300))))
-                      ,(G_ "find the source code here"))
-                   (a (@ (class ,link-face)
-                         (href "https://codeberg.org/jjba23/byggsteg"))
-                      "https://codeberg.org/jjba23/byggsteg"))
-              (p (@ (class ,(mk-class '(text-xs text-stone-300 px-2 py-1))))
-                 (em ,(G_
+  (footer `((div (@ (class ,(mk-class '(py-2))))
+                 ,(em (G_ "byggsteg is the hackable Guile CI/CD system")))
+            ,(p (G_
+                 "byggsteg is free software, available under the GNU GPL v3 or newer."))
+            (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-4
+                                             align-center))))
+                 ,(p (G_ "find the source code here"))
+                 ,(a "https://codeberg.org/jjba23/byggsteg"))
+            (div ,(em (G_
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
-              (p (@ (class ,(mk-class '(mt-2 px-2 py-1))))
-                 (em (@ (class ,(mk-class '(text-sm text-stone-300))))
-                     ,(G_
+            (div ,(em (G_
                        "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
-              (p (@ (class ,(mk-class '(mt-2 px-2 py-1))))
-                 (span (@ (class ,(mk-class '(text-xs text-stone-300))))
-                       ,(G_ "byggsteg means “build step” in Norwegian."))))
-         (div (@ (class "")) " "))))
+            (div (span (@ (class ,(mk-class '(text-xs text-stone-800
+                                                      dark:text-stone-300))))
+                       ,(G_ "byggsteg means “build step” in Norwegian."))))))
 
 (define-public project-logo
   `(div (@ (class ,(mk-class '(bg-stone-900 rounded-2xl p-4 shadow))))
@@ -243,9 +232,12 @@
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
-              (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center))))
-                   (span ,(icon #:type 'scroll))
-                   (span ,log-filename)))
+              (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
+                                               align-center))))
+                   (span ,(icon #:type 'scroll
+                                #:icon-css '(text-xl text-stone-800
+                                                     dark:text-stone-200)))
+                   ,(h4 log-filename)))
            (div (@ (class "ml-4"))
                 ,job-status)))))
 

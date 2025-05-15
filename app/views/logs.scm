@@ -80,21 +80,17 @@
                                  ,(icon-button #:icon 'trash
                                                #:content (G_ "delete")
                                                #:type 'submit
-                                               #:background 'bg-red-700
-                                               #:hover-background 'hover:bg-red-800)))
+                                               #:background '(bg-red-700)
+                                               #:hover-background '(hover:bg-red-800))))
            (log-html `((div (@ (class ,(mk-class '(flex flex-row
                                                         flex-wrap
                                                         align-center
                                                         items-center
                                                         gap-6
                                                         py-3))))
-                            (h2 (@ (class ,h2-face))
-                                ,(G_ "viewing logs"))
+                            ,(h2 (G_ "viewing logs"))
                             ,job-status)
-                       (h3 (@ (class ,(mk-class '(text-stone-300 text-lg
-                                                                 font-sans
-                                                                 py-3))))
-                           ,log-filename)
+                       ,(h3 log-filename)
 
                        (dl (@ (class ,dl-class))
                            ,(if-job-was-updated-html job
@@ -197,10 +193,10 @@
                                                            py-6
                                                            px-6
                                                            align-center))))
-                             (h2 (@ (class ,h2-face))
-                                 ,(G_ "logs"))
+                             ,(h2 (G_ "logs"))
                              (div (@ (class ,(mk-class '(rounded-xl
-                                                         bg-stone-900
+                                                         bg-stone-200
+                                                         dark:bg-stone-900
                                                          flex
                                                          flex-col
                                                          gap-4

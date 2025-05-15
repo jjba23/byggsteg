@@ -42,18 +42,6 @@
                     '(bg-red-700 hover:bg-red-800 active:bg-red-800
                                  text-stone-300 shadow-md))))
 
-(define-public nav-button-face
-  (mk-class '(text-orange-400 hover:border-b-orange-400
-                              hover:text-orange-500
-                              cursor-pointer
-                              p-1
-                              font-sans
-                              flex
-                              flex-row
-                              gap-1
-                              items-center
-                              text-sm
-                              font-bold)))
 ;;
 ;; Forms
 ;;

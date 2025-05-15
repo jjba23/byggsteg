@@ -34,32 +34,42 @@
 
 (define-public (login-page rc)
   (let* ((G_ (:i18n rc))
-         (login-html `((h2 (@ (class ,h2-face))
-                           ,(G_ "login to byggsteg"))
-                       (form (@ (action "/login")
-                                (enctype application/x-www-form-urlencoded)
-                                (method POST)
-                                (class ,(mk-class '(rounded-xl bg-stone-900
-                                                               p-4 flex
-                                                               flex-col gap-4))))
-                             (div (@ (class ,(mk-class '(grid grid-cols-1
-                                                              sm:grid-cols-3
-                                                              gap-x-4))))
-                                  (div (label (@ (class ,label-face)
-                                                 (for username))
-                                              ,(G_ "username"))
-                                       (input (@ (type text)
-                                                 (class ,input-face)
-                                                 (name username)) ""))
-                                  (div (label (@ (class ,label-face)
-                                                 (for password))
-                                              ,(G_ "password"))
-                                       (input (@ (type password)
-                                                 (class ,input-face)
-                                                 (name password)) "")))
-                             (button (@ (type submit)
-                                        (class ,button-face))
-                                     ,(G_ "login"))))))
+         (login-html `(,(h2 (G_ "login to byggsteg")) (form (@ (action
+                                                                "/login")
+                                                               (enctype
+                                                                application/x-www-form-urlencoded)
+                                                               (method POST)
+                                                               (class ,(mk-class '
+                                                                        (rounded-xl
+                                                                         bg-stone-200
+                                                                         dark:bg-stone-900
+                                                                         p-4
+                                                                         flex
+                                                                         flex-col
+                                                                         gap-4))))
+                                                            (div (@ (class ,(mk-class '
+                                                                             (flex
+                                                                              flex-row
+                                                                              flex-wrap
+                                                                              gap-6
+                                                                              items-center
+                                                                              justify-start))))
+                                                                 (div ,(input
+                                                                        #:label
+                                                                        (G_
+                                                                         "username")
+                                                                        #:name 'username
+                                                                        #:required
+                                                                        #t))
+                                                                 (div ,(input
+                                                                        #:label
+                                                                        (G_
+                                                                         "password")
+                                                                        #:name 'password
+                                                                        #:required
+                                                                        #t)))
+                                                            ,(submit-button (G_
+                                                                             "login"))))))
     
     (byggsteg-html-template G_
                             #:title "byggsteg"

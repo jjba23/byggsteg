@@ -33,7 +33,8 @@
   #:use-module (ice-9 string-fun))
 
 (define (job-type-expl G_)
-  `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-900 rounded-xl))))
+  `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-200 dark:bg-stone-900
+                                           rounded-xl))))
         (h4 (@ (class ,h4-face))
             ,(G_ "job types"))
         (dl (@ (class ,(mk-class '(p-4))))
