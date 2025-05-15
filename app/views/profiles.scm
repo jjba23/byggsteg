@@ -72,7 +72,7 @@
                                       (hidden "")
                                       (value ,(assoc-ref p "id"))
                                       (class ,(mk-class '(rounded-xl border
-                                                          font-sans p-2)))))
+                                                                     font-sans p-2)))))
                             (button (@ (type submit)
                                        (class ,danger-button-face))
                                     ,(G_ "delete"))))
@@ -93,6 +93,7 @@
                                                        border-stone-200
                                                        dark:border-stone-700
                                                        dark:text-stone-300
+                                                       bg-stone-200/75
                                                        dark:bg-stone-700/75
                                                        border-2
                                                        min-h-72
