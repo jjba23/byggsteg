@@ -70,8 +70,6 @@ I strive to provide proper and extensive documentation on Byggsteg, available at
 - Org format [[file:docs/manual/en-GB.org]]
 
 
-[[https://jointhefreeworld.org/static-assets/byggsteg/img/logo-small.jpg]]
-
 --------
 
 * Code of conduct
