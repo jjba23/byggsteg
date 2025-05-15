@@ -35,59 +35,59 @@
 (define (job-type-expl G_)
   `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-200 dark:bg-stone-900
                                            rounded-xl))))
-        (h4 (@ (class ,h4-face))
-            ,(G_ "job types"))
+        ,(h4 
+          (G_ "job types"))
         (dl (@ (class ,(mk-class '(p-4))))
             (dt (@ (class ,dt-face))
-                (code "make-test"))
+                ,(code "make-test"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Run test suite with `make test'"))
             (dt (@ (class ,dt-face))
-                (code "stack-test"))
+                ,(code "stack-test"))
             (dd (@ (class ,dd-face))
                 ,(G_
                   "Haskell project build and test with Stack + Hackage bundle"))
             (dt (@ (class ,dt-face))
-                (code "stack-build"))
+                ,(code "stack-build"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Haskell project build with Stack + Hackage bundle"))
             (dt (@ (class ,dt-face))
-                (code "nix-build"))
+                ,(code "nix-build"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Nix build (flake)"))
             (dt (@ (class ,dt-face))
-                (code "byggsteg-version"))
+                ,(code "byggsteg-version"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Byggsteg pull and restart GNU Shepherd daemon itself"))
             (dt (@ (class ,dt-face))
-                (code "pull-and-restart"))
+                ,(code "pull-and-restart"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Git pull and restart wanted GNU Shepherd service"))
             (dt (@ (class ,dt-face))
-                (code "pull-and-deploy"))
+                ,(code "pull-and-deploy"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Git pull and run a make deploy"))
             (dt (@ (class ,dt-face))
-                (code "sbt-test"))
+                ,(code "sbt-test"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Scala project test with SBT"))
             (dt (@ (class ,dt-face))
-                (code "sbt-testcontainers-test"))
+                ,(code "sbt-testcontainers-test"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Scala project test with SBT, testcontainers and Podman"))
             (dt (@ (class ,dt-face))
-                (code "trivial"))
+                ,(code "trivial"))
             (dd (@ (class ,dd-face))
                 ,(G_
                   "Allow passing arbitrary list of commands (via trivial-cmds field)")))
-        (p (@ (class ,(mk-class '(text-stone-300 text-sm))))
+        (p (@ (class ,(mk-class '(text-stone-800 dark:text-stone-300 text-sm py-2 px-6))))
            ,(G_
              "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))
 
 (define-public (welcome-page rc)
   (let* ((G_ (:i18n rc))
-         (welcome-html `((div (h2 (@ (class ,h2-face))
-                                  ,(G_ "welcome to byggsteg")))
+         (welcome-html `((div ,(h2 
+                                (G_ "welcome to byggsteg")))
                          ,(locale-choose-form G_)
                          (div (@ (class ,(mk-class '(my-6 p-6
                                                           flex
@@ -99,10 +99,11 @@
                               (div (@ (class ,(mk-class '(flex flex-col gap-4
                                                                items-center))))
                                    (div (@ (class ,(mk-class '(max-w-prose
-                                                               bg-stone-900
+                                                               bg-stone-200
+                                                               dark:bg-stone-900
                                                                rounded-xl p-4))))
-                                        (span (@ (class ,(mk-class '(text-stone-300
-                                                                     text-lg))))
+                                        (span (@ (class ,(mk-class '(text-stone-800 dark:text-stone-300
+                                                                                    text-lg))))
                                               ,(G_ (string-append
                                                     "byggsteg aims to be the hackable continuous integration and delivery system, "
                                                     "allowing engineers to deliver software quicker and with less friction"))))

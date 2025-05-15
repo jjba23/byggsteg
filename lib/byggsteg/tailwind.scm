@@ -76,11 +76,9 @@
 ;;
 ;; Headers
 ;;
-(define-public h2-face
-  (mk-class '(text-2xl text-stone-200 font-bold font-sans my-4)))
 
-(define-public h4-face
-  (mk-class '(text-lg text-stone-300 font-bold font-sans my-3)))
+
+
 
 (define-public brand-title-face
   (mk-class '(text-2xl text-orange-400 hover:border-b-orange-400
@@ -90,7 +88,7 @@
 ;; Links
 ;;
 (define-public dash-link-face
-  (mk-class '(text-stone-300 hover:text-orange-400 font-bold cursor-pointer
+  (mk-class '(text-stone-800 dark:text-stone-300 hover:text-orange-400 font-bold cursor-pointer
                              text-md font-sans)))
 
 (define-public link-face
@@ -100,20 +98,12 @@
 ;;
 ;; Pre
 ;;
-(define-public pre-face
-  (mk-class '(rounded-xl bg-stone-900
-                         p-4
-                         my-6
-                         text-md
-                         text-stone-300
-                         shadow-md
-                         white-space-pre
-                         overflow-x-scroll)))
+
 
 ;;
 ;; DL DD DT
 ;;
 (define-public dt-face
-  (mk-class '(text-stone-300 text-sm)))
+  (mk-class '(dark:text-stone-300 text-stone-700 text-sm py-4)))
 (define-public dd-face
-  (mk-class '(text-stone-400 text-sm mb-2 sm:ml-4)))
+  (mk-class '(dark:text-stone-300 text-stone-700 text-sm mb-2 sm:ml-4)))

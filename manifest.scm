@@ -70,7 +70,7 @@
 (define-public guile-hygguile
   (package
     (name "guile-hygguile")
-    (version "0.3.6")
+    (version "0.3.8")
     (source
      (origin
        (method git-fetch)
@@ -79,7 +79,7 @@
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1zjlxv5z67g8p0zl8357nvsd7rdwqq50v0dpcjc37jy272zch494"))))
+        (base32 "17vmf23fg8wrpawv10an23b8gcxdfi7ag9ln0sgznp1gd5sil0f3"))))
     (build-system guile-build-system)
     (native-inputs (list guile-3.0))
     (arguments

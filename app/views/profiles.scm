@@ -43,10 +43,8 @@
                                                   items-center
                                                   gap-6
                                                   px-3))))
-                      (h2 (@ (class ,h2-face))
-                          ,(G_ "profile details"))
-                      (h3 (@ (class ,(mk-class '(text-stone-300 text-xl))))
-                          ,profile-name))
+                      ,(h2 (G_ "profile details"))
+                      ,(h3 profile-name))
                  
                  (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-4
                                                   my-4))))
@@ -61,9 +59,10 @@
                                          (hidden ""))
                                       ,profile-data)
 
-                            (button (@ (type submit)
-                                       (class ,button-face))
-                                    ,(G_ "start new job")))
+                            ,(icon-button #:type 'submit
+                                          #:icon 'circuitry
+                                          #:content (G_ "start new job")
+                                          ))
 
                       (form (@ (method POST)
                                (enctype application/x-www-form-urlencoded)
@@ -74,23 +73,34 @@
                                       (hidden "")
                                       (value ,(assoc-ref p "id"))
                                       (class ,(mk-class '(rounded-xl border
-                                                          font-sans p-2)))))
+                                                                     font-sans p-2)))))
                             (button (@ (type submit)
                                        (class ,danger-button-face))
                                     ,(G_ "delete"))))
 
-                 (form (@ (method "POST")
+                 (form (@ (method POST)
                           (enctype application/x-www-form-urlencoded)
                           (action "/profiles/manage/submit"))
-                       (input (@ (hidden "")
-                                 (name profile-name)
-                                 (value ,profile-name)))
-                       (textarea (@ (class ,textarea-face)
-                                    (name job-code))
-                                 ,profile-data)
-                       (button (@ (type submit)
-                                  (class ,button-face))
-                               ,(G_ "save"))))))
+                       ,(input
+                         #:label (G_ "profile name")
+                         #:name 'profile-name
+                         #:value profile-name
+                         #:required #t)
+                       ,(textarea #:label (G_ "profile code") #:name 'job-code
+                                  #:value profile-data
+                                  #:textarea-css '(p-3 rounded-xl
+                                                       font-mono
+                                                       text-lg
+                                                       border-stone-200 dark:border-stone-700
+                                                       dark:text-stone-300
+                                                       dark:bg-stone-700/75
+                                                       border-2
+                                                       min-h-72
+                                                       shadow-md
+                                                       w-full)
+                                  #:required #t)
+                       
+                       (div ,(submit-button (G_ "save")))))))
     (byggsteg-html-template G_
                             #:title "byggsteg"
                             #:body body)))
@@ -99,8 +109,8 @@
   (let* ((G_ (:i18n rc)))
     (byggsteg-html-template G_
                             #:title "byggsteg"
-                            #:body `((h2 (@ (class ,h2-face))
-                                         ,(G_ "new profile"))
+                            #:body `(,(h2 
+                                       (G_ "new profile"))
                                      ,(job-form G_ "/profiles/manage/submit"
                                                 #t)))))
 
@@ -110,16 +120,17 @@
     (byggsteg-html-template G_
                             #:title "byggsteg"
                             #:body `((div (@ (class ,(mk-class '(w-full flex
-                                                                 flex-col
-                                                                 gap-6
-                                                                 py-6
-                                                                 px-6
-                                                                 align-center))))
-                                          (h2 (@ (class ,h2-face))
-                                              ,(G_ "profiles"))
+                                                                        flex-col
+                                                                        gap-6
+                                                                        py-6
+                                                                        px-6
+                                                                        align-center))))
+                                          ,(h2 
+                                            (G_ "profiles"))
                                           (div (@ (class ,(mk-class '(w-full
                                                                       rounded-xl
-                                                                      bg-stone-900
+                                                                      bg-stone-200
+                                                                      dark:bg-stone-900
                                                                       flex
                                                                       flex-col
                                                                       gap-4

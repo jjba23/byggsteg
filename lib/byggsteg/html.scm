@@ -157,15 +157,11 @@
 
 (define-public (maybe-profile-name G_ is-profile)
   (cond
-    ((equal? is-profile #t)
-     `((label (@ (for profile-name)
-                 (class ,(mk-class '(text-stone-300 font-bold))))
-              ,(G_ "profile name"))
-       (input (@ (id profile-name)
-                 (name profile-name)
-                 (required true)
-                 (class ,input-face)))))
-    (else `())))
+   ((equal? is-profile #t)
+    (input #:label (G_ "profile name")
+           #:required #t
+           #:name 'profile-name))
+   (else `())))
 
 (define-public (locale-choose-form G_)
   `(div (form (@ (action "/preferences/locale")
@@ -192,23 +188,16 @@
 
          ,(maybe-profile-name G_ is-profile)
 
-         (p (@ (class ,(mk-class '(flex flex-row flex-wrap gap-4))))
-            (span (@ (class ,(mk-class '(text-stone-400 text-sm))))
+         (p (@ (class ,(mk-class '(flex flex-row flex-wrap align-center items-center gap-4 py-2))))
+            (span (@ (class ,(mk-class '(text-stone-700 dark:text-stone-300 text-sm))))
                   ,(G_ "learn writing a byggsteg pipeline"))
-            (a (@ (class ,link-face)
-                  (href "https://codeberg.org/jjba23/byggsteg"))
-               "https://codeberg.org/jjba23/byggsteg"))
+            ,(a "https://codeberg.org/jjba23/byggsteg"))
 
-         (label (@ (for job-code)
-                   (class ,label-face)) "job code:")
-         (textarea (@ (id job-code)
-                      (name job-code)
-                      (required true)
-                      (class ,textarea-face)) "")
-
-         (button (@ (type submit)
-                    (class ,button-face))
-                 ,(G_ "submit"))))
+         ,(textarea #:label (G_ "job code")
+                    #:value ""
+                    #:name 'job-code
+                    #:required #t)
+         (div ,(submit-button (G_ "submit")))))
 
 (define-public (make-job-link G_ job log)
   (let* ((log-filename (unescape-str (assoc-ref log "human_id")))

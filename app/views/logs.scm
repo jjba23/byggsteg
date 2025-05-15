@@ -47,23 +47,23 @@
            (failure (assoc-ref job "job_failed"))
            (G_ (:i18n rc))
            (dl-class (mk-class '(py-3)))
-           (dt-class (mk-class '(font-sans text-xs text-stone-400 font-bold
+           (dt-class (mk-class '(font-sans text-xs text-stone-800 dark:text-stone-400 font-bold
                                            pt-2)))
-           (dd-class (mk-class '(pl-3 font-sans text-sm text-stone-400
+           (dd-class (mk-class '(pl-3 font-sans text-sm text-stone-800 dark:text-stone-400
                                       font-medium)))
            (job-status (cond
-                         ((equal? success 1)
-                          `(h2 (@ (class ,(mk-class '(text-xl text-green-800
-                                                              font-sans))))
-                               ,(G_ "job succeeded")))
-                         ((equal? failure 1)
-                          `(h2 (@ (class ,(mk-class '(text-xl text-red-700
-                                                              font-sans))))
-                               ,(G_ "job failed")))
-                         (else `(h2 (@ (class ,(mk-class '(text-xl
-                                                           text-sky-600
-                                                           font-sans))))
-                                    ,(G_ "job in progress")))))
+                        ((equal? success 1)
+                         `(h2 (@ (class ,(mk-class '(text-xl text-green-800
+                                                             font-sans))))
+                              ,(G_ "job succeeded")))
+                        ((equal? failure 1)
+                         `(h2 (@ (class ,(mk-class '(text-xl text-red-700
+                                                             font-sans))))
+                              ,(G_ "job failed")))
+                        (else `(h2 (@ (class ,(mk-class '(text-xl
+                                                          text-sky-600
+                                                          font-sans))))
+                                   ,(G_ "job in progress")))))
            (delete-button `(form (@ (method POST)
                                     (enctype application/x-www-form-urlencoded)
                                     (action "/jobs/manage/delete"))
@@ -98,11 +98,11 @@
                                                            ,(G_ "time taken"))
                                                        (dd (@ (class ,dd-class))
                                                            ,(format #f
-                                                             "~a seconds"
-                                                             (- (assoc-ref job
-                                                                 "updated_at")
-                                                                (assoc-ref job
-                                                                 "created_at"))))))
+                                                                    "~a seconds"
+                                                                    (- (assoc-ref job
+                                                                                  "updated_at")
+                                                                       (assoc-ref job
+                                                                                  "created_at"))))))
                            (dt (@ (class ,dt-class))
                                ,(G_ "started at"))
                            (dd (@ (class ,dd-class))
@@ -138,22 +138,26 @@
                                                                      flex-row
                                                                      gap-2
                                                                      items-center))))
-                                              (span ,(icon #:type 'code))
-                                              (span ,(G_
+                                              (span ,(icon #:type 'code #:icon-css '(text-stone-800 dark:text-stone-200
+                                                                                                    hover:text-orange-700
+                                                                                                    dark:hover:text-orange-400)))
+                                              (span (@ (class ,(mk-class '(text-stone-800
+                                                                           dark:text-stone-200
+                                                                           hover:text-orange-700
+                                                                           dark:hover:text-orange-400))))
+                                                    ,(G_
                                                       "inspect the job's lambda expression"))))
-                                (pre (@ (class ,pre-face))
-                                     ,detail-data))
-                       (pre (@ (class ,pre-face))
-                            ,log-data))))
+                                ,(pre detail-data))
+                       ,(pre log-data))))
       
       (byggsteg-html-template G_
                               #:title "byggsteg"
                               #:body `((div (@ (class ,(mk-class '(w-full flex
-                                                                   flex-col
-                                                                   gap-6
-                                                                   py-6
-                                                                   px-6
-                                                                   align-center))))
+                                                                          flex-col
+                                                                          gap-6
+                                                                          py-6
+                                                                          px-6
+                                                                          align-center))))
                                             ,log-html))
                               #:should-auto-refresh (equal? 1 in-progress))))
   (export log-page))
