@@ -46,10 +46,10 @@
                                    #:key title body
                                    (should-auto-refresh #f))
     (let ((maybe-auto-refresh (cond
-                                ((equal? should-auto-refresh #t)
-                                 `(meta (@ (content "10")
-                                           (http-equiv "refresh")) ()))
-                                (else `()))))
+                               ((equal? should-auto-refresh #t)
+                                `(meta (@ (content "10")
+                                          (http-equiv "refresh")) ()))
+                               (else `()))))
       
       ;; (maybe-auto-refresh `())
       
@@ -58,9 +58,9 @@
                                       (style ,(assoc-ref asset-library
                                                          "pub/css/fonts.css"))
                                       (style ,(assoc-ref asset-library
-                                               "pub/css/phosphor.css"))
+                                                         "pub/css/phosphor.css"))
                                       (style (@ (type "text/tailwindcss"))
-                                       "
+                                        "
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
@@ -73,8 +73,9 @@
                                       (meta (@ (name viewport)
                                                (content
                                                 "width=device-width, initial-scale=1.0")))
+                                      (meta (@(charset "UTF-8")))
                                       (script ,(assoc-ref asset-library
-                                                "pub/js/tailwind.js"))
+                                                          "pub/js/tailwind.js"))
                                       (script ,toggle-dark-theme-js)
                                       (script ,remember-dark-theme-js))
                                 (body (@ (class ,(mk-class '(bg-stone-100
