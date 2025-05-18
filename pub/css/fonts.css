@@ -31,13 +31,11 @@
 @font-face {
     font-family: 'Adwaita Sans';
     font-style: normal;
-    font-weight: 400;
     src: url('/ttf/AdwaitaSans-Regular.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Adwaita Sans';
     font-style: italic;
-    font-weight: 400;
     src: url('/ttf/AdwaitaSans-Italic.ttf') format('truetype');
 }
