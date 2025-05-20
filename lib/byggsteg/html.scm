@@ -46,10 +46,10 @@
                                    #:key title body
                                    (should-auto-refresh #f))
     (let ((maybe-auto-refresh (cond
-                               ((equal? should-auto-refresh #t)
-                                `(meta (@ (content "10")
-                                          (http-equiv "refresh")) ()))
-                               (else `()))))
+                                ((equal? should-auto-refresh #t)
+                                 `(meta (@ (content "10")
+                                           (http-equiv "refresh")) ()))
+                                (else `()))))
       
       ;; (maybe-auto-refresh `())
       
@@ -58,9 +58,9 @@
                                       (style ,(assoc-ref asset-library
                                                          "pub/css/fonts.css"))
                                       (style ,(assoc-ref asset-library
-                                                         "pub/css/phosphor.css"))
+                                               "pub/css/phosphor.css"))
                                       (style (@ (type "text/tailwindcss"))
-                                        "
+                                       "
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
@@ -73,9 +73,9 @@
                                       (meta (@ (name viewport)
                                                (content
                                                 "width=device-width, initial-scale=1.0")))
-                                      (meta (@(charset "UTF-8")))
+                                      (meta (@ (charset "UTF-8")))
                                       (script ,(assoc-ref asset-library
-                                                          "pub/js/tailwind.js"))
+                                                "pub/js/tailwind.js"))
                                       (script ,toggle-dark-theme-js)
                                       (script ,remember-dark-theme-js))
                                 (body (@ (class ,(mk-class '(bg-stone-100
@@ -213,7 +213,8 @@
                     #:name 'job-code
                     #:required #t
                     #:textarea-css '(p-3 rounded-xl
-                                         border-stone-200 dark:border-stone-700
+                                         border-stone-200
+                                         dark:border-stone-700
                                          dark:text-stone-300
                                          dark:bg-stone-700/75
                                          bg-stone-200/75
@@ -232,17 +233,17 @@
          (success (assoc-ref (car job) "job_success"))
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
-                      ((equal? success 1)
-                       `(h2 (@ (class ,(mk-class '(text-green-800 text-sm
-                                                                  font-sans))))
-                            ,(G_ "job succeeded")))
-                      ((equal? failure 1)
-                       `(h2 (@ (class ,(mk-class '(text-red-700 text-sm
-                                                                font-sans))))
-                            ,(G_ "job failed")))
-                      (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm
-                                                                     font-sans))))
-                                 ,(G_ "job in progress"))))))
+                       ((equal? success 1)
+                        `(h2 (@ (class ,(mk-class '(text-green-800 text-sm
+                                                                   font-sans))))
+                             ,(G_ "job succeeded")))
+                       ((equal? failure 1)
+                        `(h2 (@ (class ,(mk-class '(text-red-700 text-sm
+                                                                 font-sans))))
+                             ,(G_ "job failed")))
+                       (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm
+                                                         font-sans))))
+                                  ,(G_ "job in progress"))))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))

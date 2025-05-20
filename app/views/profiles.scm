@@ -72,7 +72,7 @@
                                       (hidden "")
                                       (value ,(assoc-ref p "id"))
                                       (class ,(mk-class '(rounded-xl border
-                                                                     font-sans p-2)))))
+                                                          font-sans p-2)))))
                             (button (@ (type submit)
                                        (class ,danger-button-face))
                                     ,(G_ "delete"))))
@@ -120,11 +120,12 @@
     (byggsteg-html-template G_
                             #:title "byggsteg"
                             #:body `((div (@ (class ,(mk-class '(w-full flex
-                                                                        flex-col
-                                                                        gap-6
-                                                                        py-6
-                                                                        px-6
-                                                                        align-center whitespace-break-spaces))))
+                                                                 flex-col
+                                                                 gap-6
+                                                                 py-6
+                                                                 px-6
+                                                                 align-center
+                                                                 whitespace-break-spaces))))
                                           ,(h2 (G_ "profiles"))
                                           (div (@ (class ,(mk-class '(w-full
                                                                       rounded-xl

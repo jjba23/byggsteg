@@ -180,26 +180,26 @@
                                                             gap-3 my-4))))
                                 ,(if (> offset 0)
                                      `((a (@ (href ,(format #f
-                                                            "/logs?offset=~a&limit=~a"
-                                                            (- offset limit) limit)))
+                                                     "/logs?offset=~a&limit=~a"
+                                                     (- offset limit) limit)))
                                           ,(icon-button #:icon 'arrow-left
                                                         #:content (G_
                                                                    "previous"))))
                                      '())
                                 ,(if (= (length logs) limit)
                                      `((a (@ (href ,(format #f
-                                                            "/logs?offset=~a&limit=~a"
-                                                            (+ offset limit) limit)))
+                                                     "/logs?offset=~a&limit=~a"
+                                                     (+ offset limit) limit)))
                                           ,(icon-button #:icon 'arrow-right
                                                         #:content (G_ "next"))))
                                      '()))))
            (logs-html `((div (@ (class ,(mk-class '(w-full flex
-                                                           flex-col
-                                                           gap-4
-                                                           py-6
-                                                           px-6
-                                                           align-center
-                                                           whitespace-break-spaces))))
+                                                    flex-col
+                                                    gap-4
+                                                    py-6
+                                                    px-6
+                                                    align-center
+                                                    whitespace-break-spaces))))
                              ,(h2 (G_ "logs"))
                              (div (@ (class ,(mk-class '(rounded-xl
                                                          bg-stone-200
