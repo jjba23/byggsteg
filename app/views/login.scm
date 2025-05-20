@@ -66,6 +66,7 @@
                                                                         (G_
                                                                          "password")
                                                                         #:name 'password
+                                                                        #:type 'password
                                                                         #:required
                                                                         #t)))
                                                             ,(submit-button (G_
