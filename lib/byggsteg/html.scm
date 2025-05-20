@@ -136,7 +136,7 @@
   (footer `((div (@ (class ,(mk-class '(py-2))))
                  ,(em (G_ "byggsteg is the hackable Guile CI/CD system")))
             ,(em (G_
-                 "byggsteg is free software, available under the GNU GPL v3 or newer."))
+                 "byggsteg is free software, available under the GNU AGPL v3 or newer"))
             (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-4
                                              align-center))))
                  ,(em (G_ "find the source code here"))

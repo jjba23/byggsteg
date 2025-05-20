@@ -181,7 +181,7 @@ msgstr ""
 
 #: lib/byggsteg/html.scm:96 lib/byggsteg/html.scm:98 lib/byggsteg/html.scm:103
 #: lib/byggsteg/html.scm:106
-msgid "byggsteg is free software, available under the GNU GPL v3 or newer."
+msgid "byggsteg is free software, available under the GNU AGPL v3 or newer"
 msgstr ""
 
 #: lib/byggsteg/html.scm:102 lib/byggsteg/html.scm:107

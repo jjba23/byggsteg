@@ -187,9 +187,9 @@ msgstr "byggsteg es el sistema CI/CD Guile hackeable"
 
 #: lib/byggsteg/html.scm:96 lib/byggsteg/html.scm:98 lib/byggsteg/html.scm:103
 #: lib/byggsteg/html.scm:106
-msgid "byggsteg is free software, available under the GNU GPL v3 or newer."
+msgid "byggsteg is free software, available under the GNU AGPL v3 or newer"
 msgstr ""
-"byggsteg es software gratuito, disponible sobre la licencia GNU GPL v3 o mas "
+"byggsteg es software gratuito, disponible sobre la licencia GNU AGPL v3 o mas "
 "nueva"
 
 #: lib/byggsteg/html.scm:102 lib/byggsteg/html.scm:107
