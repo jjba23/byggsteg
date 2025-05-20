@@ -144,7 +144,7 @@
             (div ,(em (G_
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
             (div ,(em (G_
-                       "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
+                       "Copyright © Josep Bigorra & NalaGinrut")))
             (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-3
                                              align-center))))
                  ,(em (G_ "version"))
