@@ -120,11 +120,11 @@
     (byggsteg-html-template G_
                             #:title "byggsteg"
                             #:body `((div (@ (class ,(mk-class '(w-full flex
-                                                                 flex-col
-                                                                 gap-6
-                                                                 py-6
-                                                                 px-6
-                                                                 align-center))))
+                                                                        flex-col
+                                                                        gap-6
+                                                                        py-6
+                                                                        px-6
+                                                                        align-center whitespace-break-spaces))))
                                           ,(h2 (G_ "profiles"))
                                           (div (@ (class ,(mk-class '(w-full
                                                                       rounded-xl

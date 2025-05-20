@@ -211,7 +211,17 @@
          ,(textarea #:label (G_ "job code")
                     #:value ""
                     #:name 'job-code
-                    #:required #t)
+                    #:required #t
+                    #:textarea-css '(p-3 rounded-xl
+                                         border-stone-200 dark:border-stone-700
+                                         dark:text-stone-300
+                                         dark:bg-stone-700/75
+                                         bg-stone-200/75
+                                         border-2
+                                         min-h-72
+                                         shadow-md
+                                         font-mono
+                                         min-w-prose))
          (div ,(submit-button (G_ "submit")))))
 
 (define-public (make-job-link G_ job log)
@@ -222,17 +232,17 @@
          (success (assoc-ref (car job) "job_success"))
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
-                       ((equal? success 1)
-                        `(h2 (@ (class ,(mk-class '(text-green-800 text-sm
-                                                                   font-sans))))
-                             ,(G_ "job succeeded")))
-                       ((equal? failure 1)
-                        `(h2 (@ (class ,(mk-class '(text-red-700 text-sm
-                                                                 font-sans))))
-                             ,(G_ "job failed")))
-                       (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm
-                                                         font-sans))))
-                                  ,(G_ "job in progress"))))))
+                      ((equal? success 1)
+                       `(h2 (@ (class ,(mk-class '(text-green-800 text-sm
+                                                                  font-sans))))
+                            ,(G_ "job succeeded")))
+                      ((equal? failure 1)
+                       `(h2 (@ (class ,(mk-class '(text-red-700 text-sm
+                                                                font-sans))))
+                            ,(G_ "job failed")))
+                      (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm
+                                                                     font-sans))))
+                                 ,(G_ "job in progress"))))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
