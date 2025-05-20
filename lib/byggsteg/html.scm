@@ -135,11 +135,11 @@
 (define-public (page-footer G_)
   (footer `((div (@ (class ,(mk-class '(py-2))))
                  ,(em (G_ "byggsteg is the hackable Guile CI/CD system")))
-            ,(p (G_
+            ,(em (G_
                  "byggsteg is free software, available under the GNU GPL v3 or newer."))
             (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-4
                                              align-center))))
-                 ,(p (G_ "find the source code here"))
+                 ,(em (G_ "find the source code here"))
                  ,(a "https://codeberg.org/jjba23/byggsteg"))
             (div ,(em (G_
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
@@ -147,7 +147,7 @@
                        "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut")))
             (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-3
                                              align-center))))
-                 ,(p (G_ "version"))
+                 ,(em (G_ "version"))
                  ,(mono (format #f "~a"
                                 (get-short-commit-sha)))))))
 
