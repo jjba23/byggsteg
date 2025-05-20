@@ -2,10 +2,12 @@
 #+author: Josep Bigorra
 #+email: jjbigorra@gmail.com
 #+language: en
-#+options: num:nil html-style:nil
+#+options: html-style:nil
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://jointhefreeworld.org/static/css/jointhefreeworld.css" />
 
-[[https://ci.codeberg.org/api/badges/13938/status.svg]] [[https://jointhefreeworld.org/static-assets/badges/GNU-Guix-c48702.png]] [[https://jointhefreeworld.org/static-assets/badges/Scheme-Guile-d0730f.png]]
+[[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/scheme-guile.svg]] [[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/gnu-guix.svg]]  
+[[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/gnu-make.svg]] 
+[[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/license-agpl3+.svg]]    [[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/license-fdl13+.svg]]
 
 You are reading the manual for Byggsteg.
 
@@ -23,8 +25,6 @@ Byggsteg enhances the use of Agile work methodologies in teams due to its fast-p
 
 Visit my instance of Byggsteg here: https://byggsteg.jointhefreeworld.org/
 
-This is free software (free as in freedom), licensed under the GNU General Public License v3 or newer.
-
 ------
 
 Byggsteg is powered by: Guile Scheme, GNU Artanis, SQLite, Tailwind CSS, GNU Make, Emacs
@@ -37,19 +37,20 @@ Byggsteg and Artanis are written using GNU Guile, one of the best implementation
   
 [[https://jointhefreeworld.org/static-assets/byggsteg/img/logo-small.jpg]]
 
-
----------
+------------------
 
 * Licensing
 
-byggsteg is licensed under the GNU GPL v3 License or newer and is  built using the GNU Artanis web-framework.
+byggsteg and all of its source code are free software, licensed under the GNU Affero General Public License v3 (or newer at your convenience).
 
-------
+https://www.gnu.org/licenses/agpl-3.0.nl.html
 
-[[https://jointhefreeworld.org/static-assets/byggsteg/12-05-2025-small.png]]
+The documentation and examples, including this document, which are provided with byggsteg, are all licensed under the GNU Free Documentation License v1.3 (or newer at your convenience).
 
----------
+https://www.gnu.org/licenses/fdl-1.3.html
 
+
+--------------
 
 * Code of conduct
 

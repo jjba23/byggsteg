@@ -1,7 +1,12 @@
 #+title: byggsteg
-#+options: num:nil
+#+author: Josep Bigorra
+#+email: jjbigorra@gmail.com
+#+language: en
 
-[[https://ci.codeberg.org/api/badges/13938/status.svg]] [[https://jointhefreeworld.org/static-assets/badges/GNU-Guix-c48702.png]] [[https://jointhefreeworld.org/static-assets/badges/Scheme-Guile-d0730f.png]]
+[[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/scheme-guile.svg]] [[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/gnu-guix.svg]]  
+[[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/gnu-make.svg]] 
+[[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/license-agpl3+.svg]]    [[https://codeberg.org/jjba23/ggg/raw/branch/trunk/dist/license-fdl13+.svg]]
+
 
 byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme), leverages SXML, SQLite3, some POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
 
@@ -23,14 +28,7 @@ I don't mind having the software building and testing happening in the same mach
 
 [[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
 
-
-----------
-
-* Licensing
-
-byggsteg is licensed under the GNU GPL v3 License or newer and is  built using the GNU Artanis web-framework.
-
----------
+--------------------
 
 * Jobs and profiles
 
@@ -61,7 +59,7 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 #+end_src
 
 
------
+----------------
 
 * Byggsteg Manuals
 
@@ -70,7 +68,19 @@ I strive to provide proper and extensive documentation on Byggsteg, available at
 - Org format [[file:docs/manual/en-GB.org]]
 
 
---------
+--------------
+
+* Licensing
+
+byggsteg and all of its source code are free software, licensed under the GNU Affero General Public License v3 (or newer at your convenience).
+
+https://www.gnu.org/licenses/agpl-3.0.nl.html
+
+The documentation and examples, including this document, which are provided with byggsteg, are all licensed under the GNU Free Documentation License v1.3 (or newer at your convenience).
+
+https://www.gnu.org/licenses/fdl-1.3.html
+
+---------
 
 * Code of conduct
 
