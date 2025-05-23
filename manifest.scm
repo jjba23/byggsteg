@@ -44,80 +44,80 @@
   (let ((commit "64002d74025f577e1eeea7bc51218a2c7929631f")
         (revision "0"))
     (package
-      (name "guile-uuid")
-      (version (git-version "0.0.0" revision commit))
-      (source
-       (origin
-         (method git-fetch)
-         (uri (git-reference
-               (url "https://codeberg.org/elb/guile-uuid.git")
-               (commit commit)))
-         (file-name (git-file-name name version))
-         (sha256
-          (base32 "1q6dqm2hzq75aa5mrrwgqdml864pdrxc98j7pyj1y0827phnzjfj"))))
-      (build-system guile-build-system)
-      (native-inputs (list guile-3.0 guile-gcrypt))
-      (home-page "https://codeberg.org/elb/guile-uuid")
-      (synopsis
-       "Guile-UUID is a UUID generation and manipulation module for GNU Guile.")
-      (description
-       "This package implements RFC 9562 UUIDs, and can generate versions 1 and 3–8 from that specification.
+     (name "guile-uuid")
+     (version (git-version "0.0.0" revision commit))
+     (source
+      (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/elb/guile-uuid.git")
+             (commit commit)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1q6dqm2hzq75aa5mrrwgqdml864pdrxc98j7pyj1y0827phnzjfj"))))
+     (build-system guile-build-system)
+     (native-inputs (list guile-3.0 guile-gcrypt))
+     (home-page "https://codeberg.org/elb/guile-uuid")
+     (synopsis
+      "Guile-UUID is a UUID generation and manipulation module for GNU Guile.")
+     (description
+      "This package implements RFC 9562 UUIDs, and can generate versions 1 and 3–8 from that specification.
         It provides parsing for UUIDs in standard hex-and-dash format of any variant and version.
         It can also query the variant and version of UUIDs from the RFC.
         Simple routines for converting between binary and hex-and-dash string UUIDs are included.")
-      (license license:gpl3+))))
+     (license license:gpl3+))))
 
 (define-public guile-hygguile
   (package
-    (name "guile-hygguile")
-    (version "0.3.8")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-             (url "https://codeberg.org/jjba23/hygguile.git")
-             (commit (string-append "v" version))))
-       (file-name (git-file-name name version))
-       (sha256
-        (base32 "17vmf23fg8wrpawv10an23b8gcxdfi7ag9ln0sgznp1gd5sil0f3"))))
-    (build-system guile-build-system)
-    (native-inputs (list guile-3.0))
-    (arguments
-     (list
-      #:source-directory "src"))
-    (home-page "https://codeberg.org/jjba23/hygguile")
-    (synopsis
-     "SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects")
-    (description
-     "Cozy and professional user-interfaces for everyone.
+   (name "guile-hygguile")
+   (version "0.5.1")
+   (source
+    (origin
+     (method git-fetch)
+     (uri (git-reference
+           (url "https://codeberg.org/jjba23/hygguile.git")
+           (commit (string-append "v" version))))
+     (file-name (git-file-name name version))
+     (sha256
+      (base32 "1slcf51gvizq7d7i165fa1md32p8zvcmal9wfs85kqnj0y5szfw0"))))
+   (build-system guile-build-system)
+   (native-inputs (list guile-3.0))
+   (arguments
+    (list
+     #:source-directory "src"))
+   (home-page "https://codeberg.org/jjba23/hygguile")
+   (synopsis
+    "SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects")
+   (description
+    "Cozy and professional user-interfaces for everyone.
         SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects.
         hygge + guile = hygguile")
-    (license license:lgpl3+)))
+   (license license:lgpl3+)))
 
 (define-public guile-kracht
   (package
-    (name "guile-kracht")
-    (version "0.0.5")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-             (url "https://codeberg.org/jjba23/kracht.git")
-             (commit (string-append "v" version))))
-       (file-name (git-file-name name version))
-       (sha256
-        (base32 "1957aarwfha8mrqjygzl7j064j3h9xwaxl1qp54w6ypk5bx7f6bg"))))
-    (build-system guile-build-system)
-    (native-inputs (list guile-3.0))
-    (arguments
-     (list
-      #:source-directory "src"))
-    (home-page "https://codeberg.org/jjba23/kracht")
-    (synopsis
-     "Good prelude for Guile Scheme, an opt-in enhancement to the standard library")
-    (description
-     "Good prelude for Guile Scheme, an opt-in enhancement to the standard library. kracht means power/strength in the Dutch language, and is also a recursive acronym which stands for: KRACHT Reliable And Consistent Helper Tools")
-    (license license:lgpl3+)))
+   (name "guile-kracht")
+   (version "0.1.2")
+   (source
+    (origin
+     (method git-fetch)
+     (uri (git-reference
+           (url "https://codeberg.org/jjba23/kracht.git")
+           (commit (string-append "v" version))))
+     (file-name (git-file-name name version))
+     (sha256
+      (base32 "08pgkj111sjwlkv3q30zqhrz2zxis06iknmb09qkmf3vh9ww1d73"))))
+   (build-system guile-build-system)
+   (native-inputs (list guile-3.0))
+   (arguments
+    (list
+     #:source-directory "src"))
+   (home-page "https://codeberg.org/jjba23/kracht")
+   (synopsis
+    "Good prelude for Guile Scheme, an opt-in enhancement to the standard library")
+   (description
+    "Good prelude for Guile Scheme, an opt-in enhancement to the standard library. kracht means power/strength in the Dutch language, and is also a recursive acronym which stands for: KRACHT Reliable And Consistent Helper Tools")
+   (license license:lgpl3+)))
 
 (packages->manifest (list (specification->package "make")
                           (specification->package "gettext")
