@@ -36,9 +36,6 @@ define byggsteg-log-info
 	@printf "\n\033[1m[info] $(shell date +%s) - %s\033[0m\n" $(1)
 endef
 
-define byggsteg-notify
-	@-notify-send $(1)
-endef
 
 # i18n helpers
 
@@ -153,7 +150,7 @@ compile-i18n:
 # Create new i18n template from source code
 new-i18n:
 	$(call byggsteg-log-info,"creating new i18n template from source code")
-	$(call byggsteg-xgettext,"")
+	$(call byggsteg-xgettext)
 
 # Update i18n template from source code
 join-i18n:
