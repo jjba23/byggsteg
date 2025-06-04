@@ -55,7 +55,7 @@
       (do-in-clone-dir clone-dir
                        (list (format #f
                               "sudo herd enable ~a || true && sudo herd restart ~a || true"
-                              project project)))))
+                              daemon-to-restart daemon-to-restart)))))
   (export pull-and-restart-step))
 
 (begin
@@ -155,12 +155,16 @@
   (export trivial-step))
 
 (begin
-  (define* (byggsteg-version-step #:key project branch-name)
+  (define* (byggsteg-version-step #:key project branch-name (daemon-name #f))
     (let* ((clone-dir (string-append job-clone-location project "/"
                                      branch-name))
+           (daemon-to-restart (if (not daemon-name)
+                                  project
+                                  daemon-name))
            (cmd (format #f
-                        (string-append "cd ~a && sudo herd restart byggsteg")
-                        clone-dir)))
+                        "cd ~a && sudo herd restart ~a || true"
+                        clone-dir
+                        daemon-to-restart)))
       (call-with-new-thread (lambda ()
                               (display-cmd cmd)
                               (sleep 2)

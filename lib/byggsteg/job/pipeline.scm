@@ -91,7 +91,8 @@
       ;; Byggsteg version update
       ((equal? task "byggsteg-version")
        (byggsteg-version-step #:project project
-                              #:branch-name branch-name))
+                              #:branch-name branch-name
+                              #:daemon-name daemon-name))
 
       ;; Nix generic build
       ((equal? task "nix-build")
