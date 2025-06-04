@@ -69,30 +69,30 @@
 
 (define-public guile-hygguile
   (package
-   (name "guile-hygguile")
-   (version "0.5.1")
-   (source
-    (origin
-     (method git-fetch)
-     (uri (git-reference
-           (url "https://codeberg.org/jjba23/hygguile.git")
-           (commit (string-append "v" version))))
-     (file-name (git-file-name name version))
-     (sha256
-      (base32 "1slcf51gvizq7d7i165fa1md32p8zvcmal9wfs85kqnj0y5szfw0"))))
-   (build-system guile-build-system)
-   (native-inputs (list guile-3.0))
-   (arguments
-    (list
-     #:source-directory "src"))
-   (home-page "https://codeberg.org/jjba23/hygguile")
-   (synopsis
-    "SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects")
-   (description
-    "Cozy and professional user-interfaces for everyone.
+    (name "guile-hygguile")
+    (version "0.5.4")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/jjba23/hygguile.git")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0mjcjmd2hi0009lpniacqmqgyl9wgm447dsfcpz4bljjiy6hi6pn"))))
+    (build-system guile-build-system)
+    (native-inputs (list guile-3.0))
+    (arguments
+     (list
+      #:source-directory "src"))
+    (home-page "https://codeberg.org/jjba23/hygguile")
+    (synopsis
+     "SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects")
+    (description
+     "Cozy and professional user-interfaces for everyone.
         SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects.
         hygge + guile = hygguile")
-   (license license:lgpl3+)))
+    (license license:lgpl3+)))
 
 (define-public guile-kracht
   (package

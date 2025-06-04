@@ -47,12 +47,14 @@
   (export stack-step))
 
 (begin
-  (define* (pull-and-restart-step #:key project branch-name)
+  (define* (pull-and-restart-step #:key project branch-name
+                                  (daemon-name #f))
     (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
+                                     branch-name))
+           (daemon-to-restart (if (not daemon-name) project daemon-name)))
       (do-in-clone-dir clone-dir
                        (list (format #f
-                              "sudo herd enable ~a && sudo herd restart ~a"
+                              "sudo herd enable ~a || true && sudo herd restart ~a || true"
                               project project)))))
   (export pull-and-restart-step))
 

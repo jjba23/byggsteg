@@ -67,6 +67,7 @@
 
 (begin
   (define* (run-pipeline-task #:key project branch-name task
+                              (daemon-name #f)
                               (trivial-cmds '()))
     (cond
       ;; Stack test + sdist
@@ -100,7 +101,8 @@
       ;; Herd pull and restart
       ((equal? task "pull-and-restart")
        (pull-and-restart-step #:project project
-                              #:branch-name branch-name))
+                              #:branch-name branch-name
+                              #:daemon-name daemon-name))
 
       ;; Scala SBT test
       ((equal? task "sbt-test")
@@ -142,6 +144,7 @@
                                    'branch-name))
            (clone-url (assoc-ref kv
                                  'clone-url))
+           (daemon-name (assoc-ref kv 'daemon-name))
            (task-or-tasks (assoc-ref kv
                                      'task))
            (tasks (cond
@@ -174,6 +177,7 @@
                                                       #:branch-name
                                                       branch-name
                                                       #:task task
+                                                      #:daemon-name daemon-name
                                                       #:trivial-cmds
                                                       trivial-cmds)) tasks))))
              (new-log-data (string-append old-log-data "\n" o)))
