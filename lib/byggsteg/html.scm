@@ -155,7 +155,9 @@
                                              align-center))))
                  ,(em (G_ "version"))
                  ,(mono (format #f "~a"
-                                (get-short-commit-sha)))))))
+                                (get-short-commit-sha))
+                        #:size 'text-sm
+                        #:weight 'font-light)))))
 
 (define-public project-logo
   `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900 rounded-2xl p-4
