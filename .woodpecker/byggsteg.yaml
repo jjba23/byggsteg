@@ -34,8 +34,6 @@ steps:
           (daemon-name . "byggsteg-daemon")
           (clone-url . "https://codeberg.org/jjba23/byggsteg")))
     commands: |
-      apt-get update
-      apt-get install -y curl
       curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
         -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
         --data-urlencode "username=$BYGGSTEG_USERNAME" \
