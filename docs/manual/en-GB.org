@@ -202,7 +202,16 @@ byggsteg is quite a performant implementation of a CI/CD system and the numbers 
 
 [[file:../benchmarks.org][See some of byggsteg's benchmarks here]]
 
-------
+------------
+
+* Integration with CIs
+
+Find a nice integration with Woodpecker here, complete with polling for status:
+
+https://codeberg.org/jjba23/byggsteg-woodpecker
+
+
+-------------
 
 
 * Authentication
