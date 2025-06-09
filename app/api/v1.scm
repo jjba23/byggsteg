@@ -91,6 +91,8 @@
                   (human-id unquote
                             (assoc-ref (car l) "human_id"))
                   (log-data unquote
-                            (unescape-str (assoc-ref (car l) "log_data")))
+                            (base64-encode (unescape-str (assoc-ref (car l)
+                                                          "log_data"))))
                   (job-data unquote
-                            (unescape-str (assoc-ref (car j) "job_data"))))))))
+                            (base64-encode (unescape-str (assoc-ref (car j)
+                                                          "job_data")))))))))
