@@ -27,6 +27,7 @@
         (ice-9 textual-ports)
         (byggsteg query-escape)
         (byggsteg job pipeline)
+        (byggsteg base64)
         (app models job)
         (app models log))
 
