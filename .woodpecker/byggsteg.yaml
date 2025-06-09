@@ -18,8 +18,8 @@
 
 variables:
   - &byggsteg_url 'https://byggsteg.jointhefreeworld.org'
-  - &byggsteg_submit_job_image 'jjba23/byggsteg-woodpecker-submit-job:v0.1.1'
-  - &byggsteg_poll_job_image 'jjba23/byggsteg-woodpecker-poll-job:v0.1.1'
+  - &byggsteg_submit_job_image 'jjba23/byggsteg-woodpecker-submit-job:v0.1.3'
+  - &byggsteg_poll_job_image 'jjba23/byggsteg-woodpecker-poll-job:v0.1.3'
   
 steps:
   submit-byggsteg-job-jointhefreeworld:
