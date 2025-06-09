@@ -23,150 +23,119 @@
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 threads))
+  #:use-module (ice-9 threads)
+  #:export (display-cmd do-in-clone-dir
+                        stack-step
+                        pull-and-restart-step
+                        pull-and-deploy-step
+                        make-build-step
+                        make-test-step
+                        nix-build-step
+                        sbt-test-step
+                        sbt-testcontainers-test-step
+                        git-details-step
+                        sys-details-step
+                        clone-repo-step
+                        trivial-step
+                        byggsteg-version-step))
 
-(begin
-  (define-syntax-rule (display-cmd cmd)
-    (display (format #f "\n→ running command: ~a\n" cmd)))
-  (export display-cmd))
+(define-syntax-rule (display-cmd cmd)
+  (display (format #f "\n→ running command: ~a\n" cmd)))
 
-(begin
-  (define-syntax-rule (do-in-clone-dir clone-dir cmds)
-    (let* ((command (format #f "cd ~a && ~a" clone-dir
-                            (string-join cmds " && "))))
-      (display-cmd command)
-      (syscall command)))
-  (export do-in-clone-dir))
+(define-syntax-rule (do-in-clone-dir clone-dir cmds)
+  (let* ((command (format #f "cd ~a && ~a" clone-dir
+                          (string-join cmds " && "))))
+    (display-cmd command)
+    (syscall command)))
 
-(begin
-  (define* (stack-step #:key project branch-name stack-task)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (do-in-clone-dir clone-dir
-                       (list (format #f "stack --nix ~a" stack-task)))))
-  (export stack-step))
+(define* (stack-step #:key project branch-name stack-task)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     (list (format #f "stack --nix ~a" stack-task)))))
 
-(begin
-  (define* (pull-and-restart-step #:key project branch-name
-                                  (daemon-name #f))
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (daemon-to-restart (if (not daemon-name) project daemon-name)))
-      (do-in-clone-dir clone-dir
-                       (list (format #f
-                              "sudo herd enable ~a || true && sudo herd restart ~a || true"
-                              daemon-to-restart daemon-to-restart)))))
-  (export pull-and-restart-step))
+(define* (pull-and-restart-step #:key project branch-name
+                                (daemon-name #f))
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+         (daemon-to-restart (if (not daemon-name) project daemon-name)))
+    (do-in-clone-dir clone-dir
+                     (list (format #f
+                            "sudo herd enable ~a || true && sudo herd restart ~a || true"
+                            daemon-to-restart daemon-to-restart)))))
 
-(begin
-  (define* (pull-and-deploy-step #:key project branch-name)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (do-in-clone-dir clone-dir
-                       '("sudo make deploy"))))
-  (export pull-and-deploy-step))
+(define* (pull-and-deploy-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("sudo make deploy"))))
 
-(begin
-  (define* (make-build-step #:key project branch-name)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (do-in-clone-dir clone-dir
-                       '("make build"))))
-  (export make-build-step))
+(define* (make-build-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("make build"))))
 
-(begin
-  (define* (make-test-step #:key project branch-name)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (do-in-clone-dir clone-dir
-                       '("make test"))))
-  (export make-test-step))
+(define* (make-test-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("make test"))))
 
-(begin
-  (define* (nix-build-step #:key project branch-name)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (do-in-clone-dir clone-dir
-                       '("nix build"))))
-  (export nix-build-step))
+(define* (nix-build-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("nix build"))))
 
-(begin
-  (define* (sbt-test-step #:key project branch-name)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (do-in-clone-dir clone-dir
-                       '("sbt test"))))
-  (export sbt-test-step))
+(define* (sbt-test-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("sbt test"))))
 
-(begin
-  (define* (sbt-testcontainers-test-step #:key project branch-name)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (call-with-new-thread (lambda ()
-                              (do-in-clone-dir clone-dir
-                                               '("podman system service --time=600 unix:///tmp/podman.sock"))))
-      (do-in-clone-dir clone-dir
-                       '("DOCKER_HOST=unix:///tmp/podman.sock sbt test"))))
-  (export sbt-testcontainers-test-step))
+(define* (sbt-testcontainers-test-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (call-with-new-thread (lambda ()
+                            (do-in-clone-dir clone-dir
+                                             '("podman system service --time=600 unix:///tmp/podman.sock"))))
+    (do-in-clone-dir clone-dir
+                     '("DOCKER_HOST=unix:///tmp/podman.sock sbt test"))))
 
-(begin
-  (define* (git-details-step #:key project branch-name)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (do-in-clone-dir clone-dir
-                       '("git log --name-status HEAD^..HEAD"))))
-  (export git-details-step))
+(define* (git-details-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("git log --name-status HEAD^..HEAD"))))
 
-(begin
-  (define* (sys-details-step #:key project branch-name)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (do-in-clone-dir clone-dir
-                       '("uname -a"))))
-  (export sys-details-step))
+(define* (sys-details-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("uname -a"))))
 
-(begin
-  (define* (clone-repo-step #:key project branch-name clone-url)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (should-clone (not (file-exists? clone-dir)))
-           (clone-cmd (format #f
-                              (string-append "mkdir -p ~a"
-                               " && git clone -b ~a ~a ~a || true")
-                              clone-dir
-                              branch-name
-                              clone-url
-                              clone-dir))
-           (pull-cmd (format #f "cd ~a && git pull" clone-dir)))
-      (cond
-        (should-clone (display-cmd clone-cmd)
-                      (syscall clone-cmd))
-        (else (display-cmd pull-cmd)
-              (syscall pull-cmd)))))
-  (export clone-repo-step))
+(define* (clone-repo-step #:key project branch-name clone-url)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+         (should-clone (not (file-exists? clone-dir)))
+         (clone-cmd (format #f
+                            (string-append "mkdir -p ~a"
+                             " && git clone -b ~a ~a ~a || true")
+                            clone-dir
+                            branch-name
+                            clone-url
+                            clone-dir))
+         (pull-cmd (format #f "cd ~a && git pull" clone-dir)))
+    (cond
+      (should-clone (display-cmd clone-cmd)
+                    (syscall clone-cmd))
+      (else (display-cmd pull-cmd)
+            (syscall pull-cmd)))))
 
-(begin
-  (define* (trivial-step #:key project branch-name cmds)
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name)))
-      (for-each (lambda (c)
-                  (display-cmd c)
-                  (syscall c)) cmds)))
-  (export trivial-step))
+(define* (trivial-step #:key project branch-name cmds)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (for-each (lambda (c)
+                (display-cmd c)
+                (syscall c)) cmds)))
 
-(begin
-  (define* (byggsteg-version-step #:key project branch-name (daemon-name #f))
-    (let* ((clone-dir (string-append job-clone-location project "/"
-                                     branch-name))
-           (daemon-to-restart (if (not daemon-name)
-                                  project
-                                  daemon-name))
-           (cmd (format #f
-                        "cd ~a && sudo herd restart ~a || true"
-                        clone-dir
-                        daemon-to-restart)))
-      (call-with-new-thread (lambda ()
-                              (display-cmd cmd)
-                              (sleep 2)
-                              (syscall cmd)))))
-  (export byggsteg-version-step))
+(define* (byggsteg-version-step #:key project branch-name
+                                (daemon-name #f))
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+         (daemon-to-restart (if (not daemon-name) project daemon-name))
+         (cmd (format #f "cd ~a && sudo herd restart ~a || true" clone-dir
+                      daemon-to-restart)))
+    (call-with-new-thread (lambda ()
+                            (display-cmd cmd)
+                            (sleep 2)
+                            (syscall cmd)))))
+
