@@ -16,9 +16,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
+variables:
+  - &byggsteg_url 'https://byggsteg.jointhefreeworld.org'
+  - &byggsteg_submit_job_image 'jjba23/byggsteg-woodpecker-submit-job:v0.1.1'
+  - &byggsteg_poll_job_image 'jjba23/byggsteg-woodpecker-poll-job:v0.1.1'
+  
 steps:
-  version-byggsteg-trigger-jointhefreeworld:
-    image: "jjba23/byggsteg-woodpecker:0.0.7"
+  submit-byggsteg-job-jointhefreeworld:
+    image: *byggsteg_submit_job_image
     when:
       - event: [ "push" ]
         branch: [ "trunk" ]
@@ -27,11 +32,23 @@ steps:
         from_secret: "BYGGSTEG_USERNAME"
       BYGGSTEG_KEY:
         from_secret: "BYGGSTEG_KEY"      
-      BYGGSTEG_URL: "https://byggsteg.jointhefreeworld.org"
+      BYGGSTEG_URL: *byggsteg_url
       BYGGSTEG_JOB_CODE: |
         (lambda()
           `((task . "byggsteg-version")
             (daemon-name . "byggsteg-daemon")
             (project . "%%CI_REPO_NAME%%")
             (branch-name . "%%CI_COMMIT_BRANCH%%")            
-            (clone-url . "%%CI_REPO_CLONE_URL%%")))      
+            (clone-url . "%%CI_REPO_CLONE_URL%%")))
+            
+  poll-byggsteg-job-jointhefreeworld:
+    image: *byggsteg_poll_job_image
+    when:
+      - event: [ "push" ]
+        branch: [ "trunk" ]
+    settings:
+      BYGGSTEG_USERNAME:
+        from_secret: "BYGGSTEG_USERNAME"
+      BYGGSTEG_KEY:
+        from_secret: "BYGGSTEG_KEY"      
+      BYGGSTEG_URL: *byggsteg_url
