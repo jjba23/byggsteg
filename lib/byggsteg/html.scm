@@ -38,8 +38,7 @@
   #:use-module (ice-9 threads))
 
 (define-public asset-library
-  (build-asset-library '("pub/css/phosphor.css"
-                         "pub/js/tailwind.js")))
+  (build-asset-library '("pub/js/tailwind.js")))
 
 (begin
   (define* (byggsteg-html-template G_
@@ -55,17 +54,18 @@
       
       `("<!DOCTYPE html>" (html (@ (lang en))
                                 (head (title ,title)
-                                    (link (@ (rel preconnect)
-                                             (href
-                                              "https://fonts.googleapis.com")))
-                                    (link (@ (rel preconnect)
-                                             (href "https://fonts.gstatic.com")
-                                             (crossorigin "")))
-                                    (link (@ (rel stylesheet)
-                                             (href
-                                              "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap")))
-                                    (style (@ (type "text/tailwindcss"))
-                                     "
+                                      (link (@ (rel preconnect)
+                                               (href
+                                                "https://fonts.googleapis.com")))
+                                      (link (@ (rel preconnect)
+                                               (href
+                                                "https://fonts.gstatic.com")
+                                               (crossorigin "")))
+                                      (link (@ (rel stylesheet)
+                                               (href
+                                                "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap")))
+                                      (style (@ (type "text/tailwindcss"))
+                                       "
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
@@ -73,8 +73,10 @@
   --font-mono: \"IBM Plex Mono\", monospace;
 }
 ")
-                                      (style ,(assoc-ref asset-library
-                                               "pub/css/phosphor.css"))
+                                      (link (@ (rel stylesheet)
+                                               (type text/css)
+                                               (href
+                                                "https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css")))
                                       ,maybe-auto-refresh
                                       (meta (@ (name viewport)
                                                (content
@@ -142,15 +144,14 @@
   (footer `((div (@ (class ,(mk-class '(py-2))))
                  ,(em (G_ "byggsteg is the hackable Guile CI/CD system")))
             ,(em (G_
-                 "byggsteg is free software, available under the GNU AGPL v3 or newer"))
+                  "byggsteg is free software, available under the GNU AGPL v3 or newer"))
             (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-4
                                              align-center))))
                  ,(em (G_ "find the source code here"))
                  ,(a "https://codeberg.org/jjba23/byggsteg"))
             (div ,(em (G_
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
-            (div ,(em (G_
-                       "Copyright © Josep Bigorra & NalaGinrut")))
+            (div ,(em (G_ "Copyright © Josep Bigorra & NalaGinrut")))
             (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-3
                                              align-center))))
                  ,(em (G_ "version"))
