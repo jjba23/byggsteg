@@ -188,3 +188,4 @@ deploy:
 	mkdir -pv $(DEPLOY_WWW)/manuals/byggsteg
 	rm -rfv $(DEPLOY_WWW)/manuals/byggsteg/index.html
 	mv -v docs/manual/en-GB.html $(DEPLOY_WWW)/manuals/byggsteg/index.html
+
