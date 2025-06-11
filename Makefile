@@ -20,6 +20,8 @@
 
 # Constants
 
+DEPLOY_WWW=/srv/http/jointhefreeworld.org
+
 BYGGSTEG_LOCATION="/etc/byggsteg"
 BYGGSTEG_DB="byggsteg.db"
 COPYRIGHT_HOLDERS="Josep Bigorra & Mu Lei"
