@@ -35,7 +35,7 @@ Byggsteg and Artanis are written using GNU Guile, one of the best implementation
 - *Cross-platform:* Runs anywhere that Guile Scheme can run, and exposes web endpoints, and is thus accessible from computers, phones, etc.
 - *Free Software*: Contribute to its development or extend it with your own custom features.
   
-[[https://jointhefreeworld.org/static-assets/byggsteg/img/logo-small.jpg]]
+[[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
 
 ------------------
 
