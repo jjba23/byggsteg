@@ -157,7 +157,23 @@ You should either pass a string or a list of strings of job names.
 
 As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
 
-------
+------------
+
+* Fields of a job
+
+~project~ is a string indicating the project's Git repository name
+
+~branch-name~ is a string indicating the name of the branch to checkout and run the job on
+
+~clone-url~ is a string which contains the HTTPS or SSH URL to clone the Git repository
+
+~task~ is either a string or a list of strings that indicate what tasks (pipeline steps) should be run
+
+~daemon-name~ is a string that indicates the name of the daemon, it's used in certain tasks like ~pull-and-restart~, if not specified, this will default to ~project~
+
+~trivial-cmds~ is a list of strings which represent commands to be run
+
+------------------
 
 * Starting a job
 
