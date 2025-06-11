@@ -32,3 +32,5 @@
        (response-emit (:mime rc
                              (welcome-page rc)))))
 
+
+(get "/robots.txt" static-page-emitter)
