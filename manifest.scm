@@ -37,6 +37,7 @@
              (gnu packages sqlite)
              (gnu packages texinfo)
              (gnu packages autotools)
+             (gnu packages emacs)
              ((guix licenses)
               #:prefix license:))
 
@@ -131,5 +132,6 @@
                           guile-gcrypt
                           watchexec
                           sqlite
+                          emacs
                           guile-dbd-sqlite3))
 

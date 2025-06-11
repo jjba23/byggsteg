@@ -35,7 +35,7 @@ steps:
       BYGGSTEG_URL: *byggsteg_url
       BYGGSTEG_JOB_CODE: |
         (lambda()
-          `((task . "byggsteg-version")
+          `((task . ("byggsteg-version" "pull-and-deploy"))
             (daemon-name . "byggsteg-daemon")
             (project . "%%CI_REPO_NAME%%")
             (branch-name . "%%CI_COMMIT_BRANCH%%")            
