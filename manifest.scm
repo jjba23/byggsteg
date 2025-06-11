@@ -71,7 +71,7 @@
 (define-public guile-hygguile
   (package
     (name "guile-hygguile")
-    (version "0.5.4")
+    (version "0.5.9")
     (source
      (origin
        (method git-fetch)
@@ -80,19 +80,22 @@
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "0mjcjmd2hi0009lpniacqmqgyl9wgm447dsfcpz4bljjiy6hi6pn"))))
+        (base32 "01xixcay0qsbkmd47j46ky6cqn278ayb78sdf2cgq5fn3rbgigsc"))))
     (build-system guile-build-system)
     (native-inputs (list guile-3.0))
     (arguments
      (list
       #:source-directory "src"))
     (home-page "https://codeberg.org/jjba23/hygguile")
-    (synopsis
-     "SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects")
+    (synopsis "Web UI component library for Guile Scheme projects")
     (description
-     "Cozy and professional user-interfaces for everyone.
-        SXML and TailwindCSS UI component library for Lisp (Guile Scheme) software projects.
-        hygge + guile = hygguile")
+     "Hygguile is a library that allows you to create cozy web user-interfaces
+using Guile Scheme, by defining an expressive domain-specific language (DSL),
+and by leveraging the power of S-expressions, SXML and TailwindCSS.
+
+The project aims to provide reusable, professional-looking and accessible
+web components, whose names resemble the HTML counterparts, thus
+easing the learning curve, and reducing the cognitive load.")
     (license license:lgpl3+)))
 
 (define-public guile-kracht
