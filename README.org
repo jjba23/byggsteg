@@ -65,7 +65,8 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 
 I strive to provide proper and extensive documentation on Byggsteg, available at your convenience.
 
-- Org format [[file:docs/manual/en-GB.org]]
+- Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
+- Org format: [[file:docs/manual/en-GB.org]]
 
 
 --------------
