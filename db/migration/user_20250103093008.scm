@@ -35,8 +35,8 @@
 (migrate-up (display "Adding user...")
             (add-test-user! #:name "Joe"
                             #:email "jjbigorra@gmail.com"
-                            #:password "macacosimao"
-                            #:salt "7f42b26c-92f5-499e-8199-e40afb86d1f1"
+                            #:password ""
+                            #:salt ""
                             ;; note: the ` is important due to Lisp quasi-quotation
                             ;; so as to have it interpreted as a list of symbols
                             #:permissions "`(byggsteg:modify-permissions
