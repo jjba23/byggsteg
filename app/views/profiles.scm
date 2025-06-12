@@ -20,7 +20,6 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
-  #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg html)
   #:use-module (byggsteg query-escape)

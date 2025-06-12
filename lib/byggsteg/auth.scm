@@ -18,10 +18,11 @@
 
 (define-module (byggsteg auth)
   #:use-module (web uri)
+  #:use-module (srfi srfi-1)
   #:use-module (artanis artanis)
   #:use-module (bewaking bewaking)
   #:use-module (byggsteg env)
-  #:export (protected-api-endpoint protected-endpoint
+  #:export (protected-api-endpoint protected-endpoint back-to-login
                                    protected-bewaking-endpoint))
 
 (define-syntax-rule (protected-api-endpoint rc happy-flow-thunk)
@@ -47,62 +48,26 @@
                                             (current-myhost)))
                        #:status 302))))
 
-(define-syntax-rule (protected-bewaking-endpoint rc happy-flow-thunk)
+(define* (protected-bewaking-endpoint #:key token needed-permissions
+                                      happy-flow-thunk unhappy-flow-thunk
+                                      rc)
   "Protect an HTTP endpoint with bewaking, preventing unauthorized access and redirecting to login page upon errors."
-  (begin
-    (display (format #f "\nx-bewaking-byggsteg: ~a\n"
-                     (:cookies-value rc
-                                     'x-bewaking-byggsteg)))
-    (display (format #f "\ndecrypted token: ~a\n"
-                     (decrypt-token #:encryption-key encryption-key
-                                    #:signing-key signing-key
-                                    #:token (:cookies-value rc
-                                                            'x-bewaking-byggsteg))))
-    (cond
-      ;; ((:session rc
-      ;; 'check)
-      ;; (happy-flow-thunk))
-      ;; ((:auth rc)
-      ;; (:session rc
-      ;; 'spawn)
-      ;; (happy-flow-thunk))
-      (else (redirect-to rc
-                         (string->uri (format #f "~a/login"
-                                              (current-myhost)))
-                         #:status 302)))))
+  (cond
+    ((not (equal? #f token))
+     (let* ((d (decrypt-token #:token token
+                              #:encryption-key encryption-key
+                              #:signing-key signing-key))
+            (has-all-permissions (lset<= eqv? needed-permissions
+                                         (assoc-ref d
+                                                    'owner-permissions))))
+       (cond
+         (has-all-permissions (happy-flow-thunk))
+         (else (unhappy-flow-thunk rc)))))
+    (else (unhappy-flow-thunk rc))))
 
-;; And the APIs:
-
-;; (:cookies-set! rc cookie-name key val)
-
-;; (:cookies-ref rc cookie-name key)
-
-;; (:cookies-setattr! rc cookie-name #:expir #f #:domain #f
-;;                    #:path #f #:secure #f #:http-only #f)
-
-;; (:cookies-remove! rc key) ; remove cookie from client
-;; (:cookies-value rc name) ; get cookie from the client
-
-;; For example:
-
-;; (get "/cookie" #:cookies '(names cc)
-;;      (lambda (rc)
-;;        (:cookies-set! rc 'cc "sid" "123321")
-;;        "ok"))
-
-;; (get "/cookie/:expires" #:cookies '(names cc)
-;;      (lambda (rc)
-;;        ;; link the cookie object with actual cookie
-;;        (:cookies-set! rc 'cc "sid" (:cookies-value rc "sid"))
-;;        (:cookies-setattr! rc 'cc #:expir (string->number (params rc "expires")))
-;;        "ok"))
-
-;; You should link the actual cookie "sid" to the created cookie ’cc, then you can control it. Otherwise it doesn’t work.
-
-;; You can use these commands in your console to see the results:
-
-;; curl --head localhost:3000/cookie
-;; # and
-;; curl --head localhost:3000/cookie/120
-
-
+(define (back-to-login rc)
+  (display "\nREDIRECTING TO LOGIN!\n")
+  (redirect-to rc
+               (string->uri (format #f "~a/login"
+                                    (current-myhost)))
+               #:status 302))

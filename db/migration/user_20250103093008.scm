@@ -37,6 +37,6 @@
                             #:email "jjbigorra@gmail.com"
                             #:password "macacosimao"
                             #:salt "7f42b26c-92f5-499e-8199-e40afb86d1f1"
-                            #:permissions "`(byggsteg:admin)")
+                            #:permissions "(byggsteg:admin)")
             (display "done.\n"))
 

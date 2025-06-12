@@ -22,7 +22,6 @@
         (byggsteg url)
         (byggsteg env)
         (web uri)
-        (byggsteg log)
         (byggsteg auth)
         (ice-9 string-fun)
         (app models user)
@@ -54,8 +53,8 @@
                                              (assoc-ref (car u) "email"))
                                       (name unquote (assoc-ref (car u) "username"))
                                       (permissions unquote
-                                                   (assoc-ref (car u)
-                                                              "permissions")))))
+                                                   (eval-string (assoc-ref (car u)
+                                                              "permissions"))))))
                (t (generate-token #:encryption-key encryption-key
                                   #:signing-key signing-key
                                   #:get-owner-details get-owner-details)))

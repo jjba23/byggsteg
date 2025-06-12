@@ -20,7 +20,6 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
-  #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg query-escape)
   #:use-module (web uri)
@@ -90,7 +89,7 @@
                                                         py-3))))
                             ,(h2 (G_ "viewing logs"))
                             ,job-status)
-                       ,(h3 log-filename)
+                       ,(h4 log-filename)
 
                        (dl (@ (class ,dl-class))
                            ,(if-job-was-updated-html job

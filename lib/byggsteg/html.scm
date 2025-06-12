@@ -21,7 +21,6 @@
   #:use-module (byggsteg url)
   #:use-module (byggsteg process)
   #:use-module (byggsteg job pipeline)
-  #:use-module (byggsteg log)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg query-escape)
   #:use-module (sxml simple)
@@ -243,26 +242,30 @@
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
                        ((equal? success 1)
-                        `(h2 (@ (class ,(mk-class '(text-green-800 text-sm
+                        `(h2 (@ (class ,(mk-class '(text-green-800 text-sm italic
                                                                    font-sans))))
                              ,(G_ "job succeeded")))
                        ((equal? failure 1)
-                        `(h2 (@ (class ,(mk-class '(text-red-700 text-sm
+                        `(h2 (@ (class ,(mk-class '(text-red-700 text-sm italic
                                                                  font-sans))))
                              ,(G_ "job failed")))
-                       (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm
+                       (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm italic
                                                          font-sans))))
                                   ,(G_ "job in progress"))))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
-                                               align-center))))
+                                               align-center break-words))))
                    (span ,(icon #:type 'scroll
                                 #:icon-css '(text-xl text-stone-800
                                                      dark:text-stone-200)))
-                   ,(h4 log-filename)))
-           (div (@ (class "ml-4"))
+                   ,(h4 log-filename)
+                   )
+              )
+           (div (@ (class "ml-6"))
+                ,(em (strftime "%c" (localtime (assoc-ref (car job) "created_at")))
+                   #:size 'text-sm)
                 ,job-status)))))
 
 (define-public (make-profile-link profile)

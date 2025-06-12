@@ -28,7 +28,6 @@
         (uuid generate)
         (byggsteg query-escape)
         (byggsteg job pipeline)
-        (byggsteg log)
         (ice-9 string-fun)
         (app models job)
         (app models log)
@@ -42,8 +41,7 @@
                              (job-request-form-page rc)))))
 
 (post "/jobs/manage/submit"
-      #:auth '(table user "username" "password")
-      #:session #t
+      #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-submit)
           (let* ((body (rc-body rc))
@@ -56,13 +54,12 @@
                                      'project))
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
-                 (log-filename (new-project-log-filename project))
                  (logs-link (format #f "~a/logs/~a"
                                     (current-myhost) new-log-uuid)))
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (escape-str log-filename)
+                  #:human_id (escape-str project)
                   #:job_data (escape-str job-code)
                   #:job_success 0
                   #:job_in_progress 1
@@ -71,7 +68,7 @@
 
             ($log 'set
                   #:id new-log-uuid
-                  #:human_id (escape-str log-filename)
+                  #:human_id (escape-str project)
                   #:job_id new-job-uuid
                   #:log_data ""
                   #:created_at (current-time))
@@ -79,7 +76,11 @@
             (redirect-to rc
                          (string->uri logs-link)
                          #:status 302)))
-        (protected-endpoint rc do-submit)))
+        (protected-bewaking-endpoint #:token (:cookies-value rc "x-bewaking-byggsteg")
+                                     #:needed-permissions '(byggsteg:admin)
+                                     #:rc rc
+                                     #:happy-flow-thunk do-submit
+                                     #:unhappy-flow-thunk back-to-login)))
 
 (post "/jobs/manage/delete"
       #:cookies '(names x-bewaking-byggsteg)
@@ -101,4 +102,9 @@
                          (string->uri (format #f "~a/logs"
                                               (current-myhost)))
                          #:status 302)))
-        (protected-bewaking-endpoint rc do-delete)))
+        (protected-bewaking-endpoint #:token (:cookies-value rc
+                                              "x-bewaking-byggsteg")
+                                     #:needed-permissions '(byggsteg:admin)
+                                     #:rc rc
+                                     #:happy-flow-thunk do-delete
+                                     #:unhappy-flow-thunk back-to-login)))

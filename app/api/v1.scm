@@ -23,7 +23,6 @@
         (byggsteg auth)
         (byggsteg url)
         (uuid generate)
-        (byggsteg log)
         (ice-9 textual-ports)
         (byggsteg query-escape)
         (byggsteg job pipeline)
