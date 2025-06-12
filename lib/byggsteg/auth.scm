@@ -20,10 +20,12 @@
   #:use-module (web uri)
 
   #:use-module (artanis artanis)
+  #:use-module (artanis route)
   #:use-module (bewaking bewaking)
   #:use-module (byggsteg env)
   #:export (protected-api-endpoint protected-endpoint back-to-login
-                                   bewaking-endpoint bewaking-api-endpoint))
+                                   unauthorized-api-message bewaking-endpoint
+                                   bewaking-api-endpoint))
 
 (define-syntax-rule (protected-api-endpoint rc happy-flow-thunk)
   "Protect an HTTP REST endpoint, preventing unauthorized access and returning proper error response."
@@ -49,10 +51,10 @@
                        #:status 302))))
 
 (define* (bewaking-endpoint #:key token-name
-                                      needed-permissions
-                                      happy-flow
-                                      unhappy-flow
-                                      rc)
+                            needed-permissions
+                            happy-flow
+                            unhappy-flow
+                            rc)
   "Protect an HTTP endpoint with bewaking, preventing unauthorized access and
 executing either happy-flow-thunk or unhappy-flow-thunk."
   (cond
@@ -73,21 +75,33 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
          (else (unhappy-flow rc)))))
     (else (unhappy-flow rc))))
 
-(define-syntax-rule (bewaking-api-endpoint #:key token-name
-                                      needed-permissions
-                                      happy-flow
-                                      unhappy-flow
-                                      rc)
+(define* (bewaking-api-endpoint #:key token-name
+                                needed-permissions
+                                happy-flow
+                                unhappy-flow
+                                rc)
   "Protect an HTTP REST endpoint with bewaking, preventing unauthorized access and
 executing either happy-flow-thunk or unhappy-flow-thunk."
   (cond
-    ((:auth rc)
-     (happy-flow))
+    ((not (equal? #f
+                  (get-header rc
+                              token-name)))
+     (let* ((d (decrypt-token #:token (get-header rc
+                                                  token-name)
+                              #:encryption-key encryption-key
+                              #:signing-key signing-key))
+            (has-needed-permissions (has-needed-permissions? #:needed
+                                     needed-permissions
+                                     #:present (assoc-ref d
+                                                          'owner-permissions))))
+       (cond
+         (has-needed-permissions (happy-flow))
+         (else (unhappy-flow rc)))))
     (else (unhappy-flow rc))))
 
 (define (unauthorized-api-message rc)
-  (:mime rc
-                 '((error . "You must be authenticated to use this API endpoint"))))
+  (response-emit '((error . "You must be authenticated to use this API endpoint"))
+                 #:status 401))
 
 (define (back-to-login rc)
   (redirect-to rc

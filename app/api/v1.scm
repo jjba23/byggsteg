@@ -27,7 +27,11 @@
         (byggsteg query-escape)
         (byggsteg job pipeline)
         (byggsteg base64)
+        (byggsteg env)
         (app models job)
+        (app models user)
+        (bewaking bewaking)
+        (artanis security nss)
         (app models log))
 
 (post "/api/v1/jobs/manage/submit"
@@ -43,7 +47,7 @@
                                      'project))
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
-                 (log-filename (new-project-log-filename project)))
+                 (log-filename project))
             
             ($job 'set
                   #:id new-job-uuid
@@ -68,6 +72,7 @@
 
         (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
                                #:needed-permissions '(byggsteg:job-create)
+                               #:rc rc
                                #:happy-flow do-submit
                                #:unhappy-flow unauthorized-api-message)))
 
@@ -97,3 +102,36 @@
                   (job-data unquote
                             (base64-encode (unescape-str (assoc-ref (car j)
                                                           "job_data")))))))))
+
+(post "/api/v1/login"
+      #:mime 'json
+      (lambda (rc)
+        (let* ((body (rc-body rc))
+               (kv (read-url-encoded-body body))
+               (email (uri-decode (car (assoc-ref kv "email"))))
+               (password (uri-decode (car (assoc-ref kv "password"))))
+               (u ($user 'get
+                         #:ret 'top
+                         #:condition (where #:email email)))
+               (get-owner-details (lambda ()
+                                    `((id unquote
+                                          (assoc-ref (car u) "id"))
+                                      (email unquote
+                                             (assoc-ref (car u) "email"))
+                                      (name unquote
+                                            (assoc-ref (car u) "username"))
+                                      (permissions unquote
+                                                   (eval-string (assoc-ref (car
+                                                                            u)
+                                                                 "permissions"))))))
+               (t (generate-token #:encryption-key encryption-key
+                                  #:signing-key signing-key
+                                  #:get-owner-details get-owner-details)))
+
+          (cond
+            ((equal? (string->sha-256 (string-append password
+                                                     (assoc-ref (car u) "salt")))
+                     (assoc-ref (car u) "password"))
+             (response-emit "" #:status 204 #:headers `((x-bewaking-byggsteg . ,t)) ))
+            (else (response-emit '((error . "invalid credentials, could not make token"))
+                                 #:status 401 #:headers '()))))))

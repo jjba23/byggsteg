@@ -180,7 +180,8 @@ As a fallback, if no other task matches are found, byggsteg will default to doin
 
 Bewaking is a nice library to help you secure your web applications with Guile Scheme: https://codeberg.org/jjba23/bewaking
 
-With bewaking we use secure tokens encrypted and stored in secure cookies.
+With bewaking we use secure tokens encrypted and stored in secure cookies (for browsers) and headers (for REST API)
+
 
 If you want to be a super user in byggsteg your token will need to have the ~byggsteg:modify-permissions~ role, effectively meaning you can give yourself and others all wanted roles and do everything.
 
@@ -190,6 +191,8 @@ See more of the roles here:
 - byggsteg:job-delete
 - byggsteg:profile-create
 - byggsteg:profile-delete
+- byggsteg:user-create
+- byggsteg:user-delete
 - byggsteg:modify-permissions
 
 ------------------
@@ -328,6 +331,19 @@ Firstly, make sure you use the Guix package manager, whether as a standalone dis
 I include a ~manifest.scm~ in the repo so that it's easy to run the project if you use the Guix package manager.
 
 If you want to run without Guix you should check that ~manifest.scm~ anyway since it will give you exactly the packages that you need.
+
+For running byggsteg yourself, you'll need to define and load a module called ~(byggsteg env)~ where you add some required environment variables. I recommend in the root of the project create a ~env.scm~  and exclude it from Git.
+
+#+begin_src scheme
+(define-module (byggsteg env))
+
+(define-public encryption-key "a2ebe4c5-4a78-4490-af83-cfb05a285bf9")
+
+(define-public signing-key "8d3a5bcc-973e-4f80-aa3d-33be33d6631c")
+
+
+#+end_src
+
 
 Then, you will need a database to be present in the root folder of the project (alongside ~app~, ~lib~, etc.).
 

@@ -57,27 +57,9 @@
                                                    (eval-string (assoc-ref (car
                                                                             u)
                                                                  "permissions"))))))
-               (_ (display (format #f "\nowner-details: ~s\n"
-                                   (get-owner-details))))
-               (_ (display (format #f "\nowner-details-permissions: ~s\n"
-                                   (assoc-ref (get-owner-details)
-                                              'permissions))))
                (t (generate-token #:encryption-key encryption-key
                                   #:signing-key signing-key
-                                  #:get-owner-details get-owner-details))
-               (_ (display (format #f "\nddtt: ~s"
-                                   (decrypt-token #:token t
-                                                  #:encryption-key
-                                                  encryption-key
-                                                  #:signing-key signing-key)))))
-          
-          (display (format #f "\nuser: ~a\n" u))
-          (display (format #f "\nlogin for email: ~a\n" email))
-          (display (format #f "\nhashed pass: ~a\n"
-                           (string->sha-256 (string-append password "asdf"))))
-          (display (format #f "\npass: ~a\n"
-                           (assoc-ref (car u) "password")))
-          (display (format #f "\nt: ~a\n" t))
+                                  #:get-owner-details get-owner-details)))
 
           (cond
             ((equal? (string->sha-256 (string-append password
