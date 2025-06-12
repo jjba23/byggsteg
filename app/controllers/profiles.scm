@@ -20,6 +20,7 @@
 
 (import (byggsteg html)
         (byggsteg url)
+        (byggsteg env)
         (web uri)
         (byggsteg process)
         (uuid generate)
@@ -61,8 +62,7 @@
                              (add-profile-form-page rc)))))
 
 (post "/profiles/manage/submit"
-      #:auth '(table user "username" "password")
-      #:session #t
+      #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-submit)
           (let* ((body (rc-body rc))
@@ -99,11 +99,14 @@
                                                       (current-myhost)
                                                       new-uuid))
                                  #:status 302)))))
-        (protected-endpoint rc do-submit)))
+        (protected-bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                                     #:needed-permissions '(byggsteg:profile-create)
+                                     #:rc rc
+                                     #:happy-flow-thunk do-submit
+                                     #:unhappy-flow-thunk back-to-login)))
 
 (post "/profiles/manage/delete"
-      #:auth '(table user "username" "password")
-      #:session #t
+      #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-delete)
           (let* ((body (rc-body rc))
@@ -118,4 +121,8 @@
                          (string->uri (format #f "~a/profiles"
                                               (current-myhost)))
                          #:status 302)))
-        (protected-endpoint rc do-delete)))
+        (protected-bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                                     #:needed-permissions '(byggsteg:profile-delete)
+                                     #:rc rc
+                                     #:happy-flow-thunk do-delete
+                                     #:unhappy-flow-thunk back-to-login)))

@@ -37,6 +37,11 @@
                             #:email "jjbigorra@gmail.com"
                             #:password "macacosimao"
                             #:salt "7f42b26c-92f5-499e-8199-e40afb86d1f1"
-                            #:permissions "(byggsteg:admin)")
+                            ;; note: the ` is important due to Lisp quasi-quotation
+                            ;; so as to have it interpreted as a list of symbols
+                            #:permissions "`(byggsteg:modify-permissions
+                                             byggsteg:job-create byggsteg:job-delete
+                                             byggsteg:profile-create byggsteg:profile-delete
+                                             byggsteg:users-create byggsteg:users-delete)")
             (display "done.\n"))
 

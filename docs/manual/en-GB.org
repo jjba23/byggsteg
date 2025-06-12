@@ -176,6 +176,24 @@ As a fallback, if no other task matches are found, byggsteg will default to doin
 
 ------------------
 
+* Authentication, Authorization, User management
+
+Bewaking is a nice library to help you secure your web applications with Guile Scheme: https://codeberg.org/jjba23/bewaking
+
+With bewaking we use secure tokens encrypted and stored in secure cookies.
+
+If you want to be a super user in byggsteg your token will need to have the ~byggsteg:modify-permissions~ role, effectively meaning you can give yourself and others all wanted roles and do everything.
+
+See more of the roles here:
+
+- byggsteg:job-create
+- byggsteg:job-delete
+- byggsteg:profile-create
+- byggsteg:profile-delete
+- byggsteg:modify-permissions
+
+------------------
+
 * Starting a job
 
 After logging in, you can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).

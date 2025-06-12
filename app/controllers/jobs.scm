@@ -76,8 +76,8 @@
             (redirect-to rc
                          (string->uri logs-link)
                          #:status 302)))
-        (protected-bewaking-endpoint #:token (:cookies-value rc "x-bewaking-byggsteg")
-                                     #:needed-permissions '(byggsteg:admin)
+        (protected-bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                                     #:needed-permissions '(byggsteg:job-create)
                                      #:rc rc
                                      #:happy-flow-thunk do-submit
                                      #:unhappy-flow-thunk back-to-login)))
@@ -102,9 +102,8 @@
                          (string->uri (format #f "~a/logs"
                                               (current-myhost)))
                          #:status 302)))
-        (protected-bewaking-endpoint #:token (:cookies-value rc
-                                              "x-bewaking-byggsteg")
-                                     #:needed-permissions '(byggsteg:admin)
+        (protected-bewaking-endpoint #:token-name 'x-bewaking-byggsteg 
+                                     #:needed-permissions '(byggsteg:job-delete)
                                      #:rc rc
                                      #:happy-flow-thunk do-delete
                                      #:unhappy-flow-thunk back-to-login)))

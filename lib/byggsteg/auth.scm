@@ -18,7 +18,7 @@
 
 (define-module (byggsteg auth)
   #:use-module (web uri)
-  #:use-module (srfi srfi-1)
+
   #:use-module (artanis artanis)
   #:use-module (bewaking bewaking)
   #:use-module (byggsteg env)
@@ -48,25 +48,32 @@
                                             (current-myhost)))
                        #:status 302))))
 
-(define* (protected-bewaking-endpoint #:key token needed-permissions
-                                      happy-flow-thunk unhappy-flow-thunk
+(define* (protected-bewaking-endpoint #:key token-name
+                                      needed-permissions
+                                      happy-flow-thunk
+                                      unhappy-flow-thunk
                                       rc)
-  "Protect an HTTP endpoint with bewaking, preventing unauthorized access and redirecting to login page upon errors."
+  "Protect an HTTP endpoint with bewaking, preventing unauthorized access and
+executing either happy-flow-thunk or unhappy-flow-thunk."
   (cond
-    ((not (equal? #f token))
-     (let* ((d (decrypt-token #:token token
+    ((not (equal? #f
+                  (:cookies-value rc
+                                  (symbol->string token-name))))
+     (let* ((d (decrypt-token #:token (:cookies-value rc
+                                                      (symbol->string
+                                                       token-name))
                               #:encryption-key encryption-key
                               #:signing-key signing-key))
-            (has-all-permissions (lset<= eqv? needed-permissions
-                                         (assoc-ref d
-                                                    'owner-permissions))))
+            (has-needed-permissions (has-needed-permissions? #:needed
+                                     needed-permissions
+                                     #:present (assoc-ref d
+                                                          'owner-permissions))))
        (cond
-         (has-all-permissions (happy-flow-thunk))
+         (has-needed-permissions (happy-flow-thunk))
          (else (unhappy-flow-thunk rc)))))
     (else (unhappy-flow-thunk rc))))
 
 (define (back-to-login rc)
-  (display "\nREDIRECTING TO LOGIN!\n")
   (redirect-to rc
                (string->uri (format #f "~a/login"
                                     (current-myhost)))
