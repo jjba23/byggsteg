@@ -18,20 +18,28 @@
 
 variables:
   - &byggsteg_url 'https://byggsteg.jointhefreeworld.org'
-  - &byggsteg_submit_job_image 'jjba23/byggsteg-woodpecker-submit-job:v0.1.3'
-  - &byggsteg_poll_job_image 'jjba23/byggsteg-woodpecker-poll-job:v0.1.3'
+  - &byggsteg_submit_job_image 'jjba23/byggsteg-woodpecker-submit-job:v0.1.6'
+  - &byggsteg_poll_job_image 'jjba23/byggsteg-woodpecker-poll-job:v0.1.6'
+  - &byggsteg_get_token_image 'jjba23/byggsteg-woodpecker-poll-job:v0.1.6'  
   
 steps:
+  get-byggsteg-token-jointhefreeworld:
+    image: *byggsteg_get_token_image
+    when:
+      - event: [ "push" ]
+      - branch: [ "trunk" ]
+    settings:
+      BYGGSTEG_EMAIL:
+        from_secret: "BYGGSTEG_EMAIL"
+      BYGGSTEG_PASSWORD:
+        from_secret: "BYGGSTEG_PASSWORD"            
+        
   submit-byggsteg-job-jointhefreeworld:
     image: *byggsteg_submit_job_image
     when:
       - event: [ "push" ]
         branch: [ "trunk" ]
     settings:
-      BYGGSTEG_USERNAME:
-        from_secret: "BYGGSTEG_USERNAME"
-      BYGGSTEG_KEY:
-        from_secret: "BYGGSTEG_KEY"      
       BYGGSTEG_URL: *byggsteg_url
       BYGGSTEG_JOB_CODE: |
         (lambda()
@@ -46,9 +54,5 @@ steps:
     when:
       - event: [ "push" ]
         branch: [ "trunk" ]
-    settings:
-      BYGGSTEG_USERNAME:
-        from_secret: "BYGGSTEG_USERNAME"
-      BYGGSTEG_KEY:
-        from_secret: "BYGGSTEG_KEY"      
+    settings:     
       BYGGSTEG_URL: *byggsteg_url
