@@ -16,8 +16,6 @@ byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme), leverages SXML,
 
 This manual documents the Byggsteg project, its functionalities and how to use it, host it yourself, and do related system administration tasks.
 
-Byggsteg is a project management for teams of all sizes and jobs.
-
 This is a flexible system made to simplify everyone's life, accessbile to all kinds of users and help you be more #agile in all your endeavours.
 
 If you like my work, please support me by [[https://bmc.link/jjbigorra][buying me a cup of coffee ☕]] so I can continue with a lot of motivation.
