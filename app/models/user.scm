@@ -24,9 +24,11 @@
                           (#:primary-key #:auto-increment))
                       (username char-field
                                 (#:not-null #:maxlen 256))
+                      (email char-field
+                             (#:not-null #:unique #:maxlen 256))
                       (password char-field
                                 (#:not-null #:maxlen 512))
                       (salt char-field
-                            (#:not-null #:maxlen 8))
-                      (email char-field
-                             (#:not-null #:maxlen 256)))
+                            (#:not-null #:maxlen 36))
+                      (permissions char-field
+                                   (#:maxlen 2048)))

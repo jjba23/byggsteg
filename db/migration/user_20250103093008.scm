@@ -21,7 +21,7 @@
 (use-modules (artanis artanis)
              (artanis security nss))
 
-(define* (add-test-user! #:key name email password salt)
+(define* (add-test-user! #:key name email password salt permissions)
   (let ((mt (map-table-from-DB (get-conn-from-pool!)))
         (real-pass (string->sha-256 (string-append password salt))))
     (mt 'set
@@ -29,12 +29,14 @@
         #:username name
         #:email email
         #:password real-pass
-        #:salt salt)))
+        #:salt salt
+        #:permissions permissions)))
 
 (migrate-up (display "Adding user...")
             (add-test-user! #:name "Joe"
                             #:email "jjbigorra@gmail.com"
-                            #:password ""
-                            #:salt "asdf")
+                            #:password "macacosimao"
+                            #:salt "7f42b26c-92f5-499e-8199-e40afb86d1f1"
+                            #:permissions "`(byggsteg:admin)")
             (display "done.\n"))
 
