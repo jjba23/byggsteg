@@ -42,31 +42,28 @@
               #:prefix license:))
 
 (define-public guile-uuid
-  (let ((commit "64002d74025f577e1eeea7bc51218a2c7929631f")
-        (revision "0"))
-    (package
-     (name "guile-uuid")
-     (version (git-version "0.0.0" revision commit))
-     (source
-      (origin
+  (package
+    (name "guile-uuid")
+    (version "0.9.0")
+    (source
+     (origin
        (method git-fetch)
        (uri (git-reference
              (url "https://codeberg.org/elb/guile-uuid.git")
-             (commit commit)))
+             (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1q6dqm2hzq75aa5mrrwgqdml864pdrxc98j7pyj1y0827phnzjfj"))))
-     (build-system guile-build-system)
-     (native-inputs (list guile-3.0 guile-gcrypt))
-     (home-page "https://codeberg.org/elb/guile-uuid")
-     (synopsis
-      "Guile-UUID is a UUID generation and manipulation module for GNU Guile.")
-     (description
-      "This package implements RFC 9562 UUIDs, and can generate versions 1 and 3–8 from that specification.
-        It provides parsing for UUIDs in standard hex-and-dash format of any variant and version.
-        It can also query the variant and version of UUIDs from the RFC.
-        Simple routines for converting between binary and hex-and-dash string UUIDs are included.")
-     (license license:gpl3+))))
+        (base32 "0g508aajkyi513wbhm1rhs03ilnb701lwlrvppkmc0vynydlk9ws"))))
+    (build-system guile-build-system)
+    (native-inputs (list guile-3.0 guile-gcrypt))
+    (home-page "https://codeberg.org/elb/guile-uuid")
+    (synopsis "UUID generation and manipulation library for Guile Scheme")
+    (description
+     "This package implements RFC 9562 UUIDs, and can generate versions
+1 and 3–8 from that specification. It also provides parsing for UUIDs in
+standard hex-and-dash format of any variant and version. Simple routines for converting
+between binary and hex-and-dash string UUIDs are included.")
+    (license license:gpl3+)))
 
 (define-public guile-hygguile
   (package
@@ -100,28 +97,28 @@ easing the learning curve, and reducing the cognitive load.")
 
 (define-public guile-kracht
   (package
-   (name "guile-kracht")
-   (version "0.1.2")
-   (source
-    (origin
-     (method git-fetch)
-     (uri (git-reference
-           (url "https://codeberg.org/jjba23/kracht.git")
-           (commit (string-append "v" version))))
-     (file-name (git-file-name name version))
-     (sha256
-      (base32 "08pgkj111sjwlkv3q30zqhrz2zxis06iknmb09qkmf3vh9ww1d73"))))
-   (build-system guile-build-system)
-   (native-inputs (list guile-3.0))
-   (arguments
-    (list
-     #:source-directory "src"))
-   (home-page "https://codeberg.org/jjba23/kracht")
-   (synopsis
-    "Good prelude for Guile Scheme, an opt-in enhancement to the standard library")
-   (description
-    "Good prelude for Guile Scheme, an opt-in enhancement to the standard library. kracht means power/strength in the Dutch language, and is also a recursive acronym which stands for: KRACHT Reliable And Consistent Helper Tools")
-   (license license:lgpl3+)))
+    (name "guile-kracht")
+    (version "0.1.2")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/jjba23/kracht.git")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "08pgkj111sjwlkv3q30zqhrz2zxis06iknmb09qkmf3vh9ww1d73"))))
+    (build-system guile-build-system)
+    (native-inputs (list guile-3.0))
+    (arguments
+     (list
+      #:source-directory "src"))
+    (home-page "https://codeberg.org/jjba23/kracht")
+    (synopsis
+     "Good prelude for Guile Scheme, an opt-in enhancement to the standard library")
+    (description
+     "Good prelude for Guile Scheme, an opt-in enhancement to the standard library. kracht means power/strength in the Dutch language, and is also a recursive acronym which stands for: KRACHT Reliable And Consistent Helper Tools")
+    (license license:lgpl3+)))
 
 (define-public guile-bewaking
   (package
@@ -142,7 +139,8 @@ easing the learning curve, and reducing the cognitive load.")
      (list
       #:source-directory "src"))
     (home-page "https://codeberg.org/jjba23/bewaking")
-    (synopsis "DSL and helpers for authentication/authorization in Guile Scheme projects")
+    (synopsis
+     "DSL and helpers for authentication/authorization in Guile Scheme projects")
     (description
      "bewaking helps you create and verify lifetime-limited encrypted digital credentials that carry
 specific user information securely, protected through multiple layers of cryptographic
