@@ -126,7 +126,7 @@ easing the learning curve, and reducing the cognitive load.")
 (define-public guile-bewaking
   (package
     (name "guile-bewaking")
-    (version "0.0.7")
+    (version "0.0.8")
     (source
      (origin
        (method git-fetch)
@@ -135,7 +135,7 @@ easing the learning curve, and reducing the cognitive load.")
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1ckkpsqr72srnxw0xszbi753d37fvkdjrk2pdjwpyx0pzflrk57y"))))
+        (base32 "0mjiyhiqzm465bxck6arwm9bh2jxg0bpz5d80zfzmvf2771dqgw1"))))
     (build-system guile-build-system)
     (native-inputs (list guile-uuid guile-gcrypt guile-3.0))
     (arguments
