@@ -32,7 +32,8 @@ steps:
       BYGGSTEG_EMAIL:
         from_secret: "BYGGSTEG_EMAIL"
       BYGGSTEG_PASSWORD:
-        from_secret: "BYGGSTEG_PASSWORD"            
+        from_secret: "BYGGSTEG_PASSWORD"
+      BYGGSTEG_URL: *byggsteg_url        
         
   submit-byggsteg-job-jointhefreeworld:
     image: *byggsteg_submit_job_image
