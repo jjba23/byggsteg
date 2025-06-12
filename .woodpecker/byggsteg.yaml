@@ -27,7 +27,7 @@ steps:
     image: *byggsteg_get_token_image
     when:
       - event: [ "push" ]
-      - branch: [ "trunk" ]
+        branch: [ "trunk" ]
     settings:
       BYGGSTEG_EMAIL:
         from_secret: "BYGGSTEG_EMAIL"
