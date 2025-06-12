@@ -41,9 +41,12 @@
                                                                (method POST)
                                                                (class ,(mk-class '
                                                                         (rounded-xl
-                                                                         bg-stone-200
+                                                                         bg-stone-200/50
                                                                          dark:bg-stone-900
                                                                          p-4
+                                                                         shadow-md
+                                                                         my-6
+                                                                         max-w-prose
                                                                          flex
                                                                          flex-col
                                                                          gap-4))))
@@ -57,8 +60,9 @@
                                                                  (div ,(input
                                                                         #:label
                                                                         (G_
-                                                                         "username")
-                                                                        #:name 'username
+                                                                         "email")
+                                                                        #:name 'email
+                                                                        #:type 'email
                                                                         #:required
                                                                         #t))
                                                                  (div ,(input

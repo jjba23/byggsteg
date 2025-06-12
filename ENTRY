@@ -43,6 +43,9 @@
                              woff2
                              ttf))
 (add-to-load-path (string-append (current-toplevel) "/lib"))
+
+
+
 ;; Put whatever you want to be called before server running here
 
 ;; Specify the directory where the MO file is located
@@ -52,6 +55,13 @@
 (textdomain "translate")
 ;; Set base locale for gettext at startup
 (setlocale LC_MESSAGES "en_US.UTF-8")
+
+(catch #t
+  (lambda()
+    (display "\nloading env.scm\n")
+    (load "env.scm"))
+  (lambda(key . args)
+    (display (format #f "error loading env.scm: ~a: ~a" key args))))
 
 ;; Store the thread object belonging to the byggsteg queue worker
 (define worker-thread

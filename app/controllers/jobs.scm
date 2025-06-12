@@ -20,6 +20,7 @@
 
 (import (byggsteg html)
         (byggsteg url)
+        (byggsteg env)
         (web uri)
         (byggsteg preferences)
         (byggsteg auth)
@@ -81,8 +82,7 @@
         (protected-endpoint rc do-submit)))
 
 (post "/jobs/manage/delete"
-      #:auth '(table user "username" "password")
-      #:session #t
+      #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-delete)
           (let* ((body (rc-body rc))
@@ -101,4 +101,4 @@
                          (string->uri (format #f "~a/logs"
                                               (current-myhost)))
                          #:status 302)))
-        (protected-endpoint rc do-delete)))
+        (protected-bewaking-endpoint rc do-delete)))
