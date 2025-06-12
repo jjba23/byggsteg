@@ -23,7 +23,7 @@
   #:use-module (bewaking bewaking)
   #:use-module (byggsteg env)
   #:export (protected-api-endpoint protected-endpoint back-to-login
-                                   protected-bewaking-endpoint))
+                                   bewaking-endpoint bewaking-api-endpoint))
 
 (define-syntax-rule (protected-api-endpoint rc happy-flow-thunk)
   "Protect an HTTP REST endpoint, preventing unauthorized access and returning proper error response."
@@ -48,10 +48,10 @@
                                             (current-myhost)))
                        #:status 302))))
 
-(define* (protected-bewaking-endpoint #:key token-name
+(define* (bewaking-endpoint #:key token-name
                                       needed-permissions
-                                      happy-flow-thunk
-                                      unhappy-flow-thunk
+                                      happy-flow
+                                      unhappy-flow
                                       rc)
   "Protect an HTTP endpoint with bewaking, preventing unauthorized access and
 executing either happy-flow-thunk or unhappy-flow-thunk."
@@ -69,9 +69,25 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
                                      #:present (assoc-ref d
                                                           'owner-permissions))))
        (cond
-         (has-needed-permissions (happy-flow-thunk))
-         (else (unhappy-flow-thunk rc)))))
-    (else (unhappy-flow-thunk rc))))
+         (has-needed-permissions (happy-flow))
+         (else (unhappy-flow rc)))))
+    (else (unhappy-flow rc))))
+
+(define-syntax-rule (bewaking-api-endpoint #:key token-name
+                                      needed-permissions
+                                      happy-flow
+                                      unhappy-flow
+                                      rc)
+  "Protect an HTTP REST endpoint with bewaking, preventing unauthorized access and
+executing either happy-flow-thunk or unhappy-flow-thunk."
+  (cond
+    ((:auth rc)
+     (happy-flow))
+    (else (unhappy-flow rc))))
+
+(define (unauthorized-api-message rc)
+  (:mime rc
+                 '((error . "You must be authenticated to use this API endpoint"))))
 
 (define (back-to-login rc)
   (redirect-to rc

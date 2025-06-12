@@ -32,8 +32,6 @@
 
 (post "/api/v1/jobs/manage/submit"
       #:mime 'json
-      #:auth '(table user "username" "password")
-      #:session #t
       (lambda (rc)
         (define (do-submit)
           (let* ((body (rc-body rc))
@@ -68,7 +66,10 @@
                      (human-id unquote
                                (escape-str log-filename))))))
 
-        (protected-api-endpoint rc do-submit)))
+        (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
+                               #:needed-permissions '(byggsteg:job-create)
+                               #:happy-flow do-submit
+                               #:unhappy-flow unauthorized-api-message)))
 
 (get "/api/v1/logs/:id"
      #:mime 'json

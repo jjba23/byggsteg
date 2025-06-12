@@ -76,11 +76,11 @@
             (redirect-to rc
                          (string->uri logs-link)
                          #:status 302)))
-        (protected-bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                                      #:needed-permissions '(byggsteg:job-create)
                                      #:rc rc
-                                     #:happy-flow-thunk do-submit
-                                     #:unhappy-flow-thunk back-to-login)))
+                                     #:happy-flow do-submit
+                                     #:unhappy-flow back-to-login)))
 
 (post "/jobs/manage/delete"
       #:cookies '(names x-bewaking-byggsteg)
@@ -102,8 +102,8 @@
                          (string->uri (format #f "~a/logs"
                                               (current-myhost)))
                          #:status 302)))
-        (protected-bewaking-endpoint #:token-name 'x-bewaking-byggsteg 
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg 
                                      #:needed-permissions '(byggsteg:job-delete)
                                      #:rc rc
-                                     #:happy-flow-thunk do-delete
-                                     #:unhappy-flow-thunk back-to-login)))
+                                     #:happy-flow do-delete
+                                     #:unhappy-flow back-to-login)))

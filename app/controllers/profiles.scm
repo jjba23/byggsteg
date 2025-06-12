@@ -99,11 +99,11 @@
                                                       (current-myhost)
                                                       new-uuid))
                                  #:status 302)))))
-        (protected-bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                                      #:needed-permissions '(byggsteg:profile-create)
                                      #:rc rc
-                                     #:happy-flow-thunk do-submit
-                                     #:unhappy-flow-thunk back-to-login)))
+                                     #:happy-flow do-submit
+                                     #:unhappy-flow back-to-login)))
 
 (post "/profiles/manage/delete"
       #:cookies '(names x-bewaking-byggsteg)
@@ -121,8 +121,8 @@
                          (string->uri (format #f "~a/profiles"
                                               (current-myhost)))
                          #:status 302)))
-        (protected-bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                                      #:needed-permissions '(byggsteg:profile-delete)
                                      #:rc rc
-                                     #:happy-flow-thunk do-delete
-                                     #:unhappy-flow-thunk back-to-login)))
+                                     #:happy-flow do-delete
+                                     #:unhappy-flow back-to-login)))
