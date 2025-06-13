@@ -270,47 +270,43 @@ plan:
       url: https://byggsteg.jointhefreeworld.org/logs
   - name: Fetch log by UUID
     request:
-      url: https://byggsteg.jointhefreeworld.org/logs/6c9b628e-6653-405d-82b1-95895c76d3a0
+      url: https://byggsteg.jointhefreeworld.org/logs/4868ce1e-d029-4fdb-bbbe-d54d1616a631
 
   
 #+end_src
 
 #+begin_example
-Fetch logs                https://byggsteg.jointhefreeworld.org/logs 200 OK 271ms
-Fetch log by UUID         https://byggsteg.jointhefreeworld.org/logs/6c9b628e-6653-405d-82b1-95895c76d3a0 200 OK 46ms
-
-
 Fetch logs                Total requests            100
 Fetch logs                Successful requests       100
 Fetch logs                Failed requests           0
-Fetch logs                Median time per request   202ms
-Fetch logs                Average time per request  243ms
-Fetch logs                Sample standard deviation 145ms
-Fetch logs                99.0'th percentile        725ms
-Fetch logs                99.5'th percentile        774ms
-Fetch logs                99.9'th percentile        774ms
+Fetch logs                Median time per request   164ms
+Fetch logs                Average time per request  173ms
+Fetch logs                Sample standard deviation 47ms
+Fetch logs                99.0'th percentile        315ms
+Fetch logs                99.5'th percentile        338ms
+Fetch logs                99.9'th percentile        338ms
 
 Fetch log by UUID         Total requests            100
 Fetch log by UUID         Successful requests       100
 Fetch log by UUID         Failed requests           0
-Fetch log by UUID         Median time per request   176ms
-Fetch log by UUID         Average time per request  204ms
-Fetch log by UUID         Sample standard deviation 124ms
-Fetch log by UUID         99.0'th percentile        639ms
-Fetch log by UUID         99.5'th percentile        664ms
-Fetch log by UUID         99.9'th percentile        664ms
+Fetch log by UUID         Median time per request   214ms
+Fetch log by UUID         Average time per request  196ms
+Fetch log by UUID         Sample standard deviation 71ms
+Fetch log by UUID         99.0'th percentile        295ms
+Fetch log by UUID         99.5'th percentile        297ms
+Fetch log by UUID         99.9'th percentile        297ms
 
-Time taken for tests      5.7 seconds
+Time taken for tests      4.7 seconds
 Total requests            200
 Successful requests       200
 Failed requests           0
-Requests per second       35.25 [#/sec]
-Median time per request   187ms
-Average time per request  223ms
-Sample standard deviation 136ms
-99.0'th percentile        709ms
-99.5'th percentile        725ms
-99.9'th percentile        774ms
+Requests per second       42.37 [#/sec]
+Median time per request   185ms
+Average time per request  184ms
+Sample standard deviation 62ms
+99.0'th percentile        297ms
+99.5'th percentile        315ms
+99.9'th percentile        338ms
 #+end_example
 
 
