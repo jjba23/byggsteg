@@ -208,16 +208,15 @@ After logging in, you can use the UI and visit ~/jobs/request~ or you can also i
 You could also do this for example from your favourite system programatically, or via cURL:
 
 #+begin_src sh
-  curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
-      -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
-      --data-urlencode 'username=myuser' \
-      --data-urlencode 'password=mypassword' \
-      --data-urlencode 'job-code=(lambda() `((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte")))'
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
+    -X POST -H 'content-type: application/x-www-form-urlencoded' \
+    -H 'x-bewaking-byggsteg: <your token here>' \
+    --data-urlencode 'job-code=(lambda() `((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte")))'
 
-  #  {
-  #    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
-  #    "human-id": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
-  #  }
+#  {
+#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
+#    "human-id": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
+#  }
 #+end_src
 
 You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until success or failure is true.
