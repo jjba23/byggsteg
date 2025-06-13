@@ -18,37 +18,12 @@
 
 (define-module (byggsteg auth)
   #:use-module (web uri)
-
   #:use-module (artanis artanis)
   #:use-module (artanis route)
   #:use-module (bewaking bewaking)
   #:use-module (byggsteg env)
-  #:export (protected-api-endpoint protected-endpoint back-to-login
-                                   unauthorized-api-message bewaking-endpoint
-                                   bewaking-api-endpoint))
-
-(define-syntax-rule (protected-api-endpoint rc happy-flow-thunk)
-  "Protect an HTTP REST endpoint, preventing unauthorized access and returning proper error response."
-  (cond
-    ((:auth rc)
-     (happy-flow-thunk))
-    (else (:mime rc
-                 '((error . "You must be authenticated to use this API endpoint"))))))
-
-(define-syntax-rule (protected-endpoint rc happy-flow-thunk)
-  "Protect an HTTP endpoint, preventing unauthorized access and redirecting to login page upon errors."
-  (cond
-    ((:session rc
-               'check)
-     (happy-flow-thunk))
-    ((:auth rc)
-     (:session rc
-               'spawn)
-     (happy-flow-thunk))
-    (else (redirect-to rc
-                       (string->uri (format #f "~a/login"
-                                            (current-myhost)))
-                       #:status 302))))
+  #:export (back-to-login unauthorized-api-message bewaking-endpoint
+                          bewaking-api-endpoint))
 
 (define* (bewaking-endpoint #:key token-name
                             needed-permissions
@@ -69,9 +44,12 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
             (has-needed-permissions (has-needed-permissions? #:needed
                                      needed-permissions
                                      #:present (assoc-ref d
-                                                          'owner-permissions))))
+                                                          'owner-permissions)))
+            (has-expired (is-token-expired? #:token t)))
        (cond
-         (has-needed-permissions (happy-flow))
+         ((and has-needed-permissions
+               (not has-expired))
+          (happy-flow))
          (else (unhappy-flow rc)))))
     (else (unhappy-flow rc))))
 
@@ -84,18 +62,19 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
 executing either happy-flow-thunk or unhappy-flow-thunk."
   (cond
     ((not (equal? #f
-                  (get-header rc
-                              token-name)))
-     (let* ((d (decrypt-token #:token (get-header rc
-                                                  token-name)
+                  (get-header rc token-name)))
+     (let* ((t (decrypt-token #:token (get-header rc token-name)
                               #:encryption-key encryption-key
                               #:signing-key signing-key))
             (has-needed-permissions (has-needed-permissions? #:needed
                                      needed-permissions
-                                     #:present (assoc-ref d
-                                                          'owner-permissions))))
+                                     #:present (assoc-ref t
+                                                          'owner-permissions)))
+            (has-expired (is-token-expired? #:token t)))
        (cond
-         (has-needed-permissions (happy-flow))
+         ((and has-needed-permissions
+               (not has-expired))
+          (happy-flow))
          (else (unhappy-flow rc)))))
     (else (unhappy-flow rc))))
 
