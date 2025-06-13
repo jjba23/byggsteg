@@ -180,10 +180,9 @@ Bewaking is a nice library to help you secure your web applications with Guile S
 
 With bewaking we use secure tokens encrypted and stored in secure cookies (for browsers) and headers (for REST API)
 
+If you want to be a super user in byggsteg your token will need to have the ~byggsteg:modify-permissions~ permission, effectively meaning you can give yourself and others all wanted permissions and do everything.
 
-If you want to be a super user in byggsteg your token will need to have the ~byggsteg:modify-permissions~ role, effectively meaning you can give yourself and others all wanted roles and do everything.
-
-See more of the roles here:
+See more of the permissions here:
 
 - byggsteg:job-create
 - byggsteg:job-delete
