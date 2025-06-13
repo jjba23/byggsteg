@@ -193,6 +193,12 @@ See more of the roles here:
 - byggsteg:user-delete
 - byggsteg:modify-permissions
 
+Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles. For web browsers you can simply use the login page, for scripts and headless usage, use the ~/api/v1/login~ endpoint and take the ~x-bewaking-byggsteg~ response header.
+
+Upon starting a blank new byggsteg deployment you will have no users in the database. Check in ~db/migration~ and edit the password field and salt, or add more users. An important note is that currently the passwords should NOT contain any special characters (letters and numbers are OK).
+
+Then do a ~guix shell -m manifest.scm -- art migrate up user~ to add your users.
+
 ------------------
 
 * Starting a job
@@ -238,6 +244,9 @@ Find a nice integration with Woodpecker here, complete with retries on submit an
 
 https://codeberg.org/jjba23/byggsteg-woodpecker
 
+These pipeline steps act as a bridge, allowing the Woodpecker CI system to leverage Byggsteg for its powerful Lisp-based CI/CD orchestration, especially when working with source code hosted on platforms like Codeberg.
+
+The pipeline steps are written in shell script, and use Alpine Linux images achieving a great performance, simplicity and minimalism.
 
 -------------
 
@@ -307,18 +316,6 @@ Sample standard deviation 136ms
 
 
 ------------
-
-* Authentication
-
-LucidPlan requires an authenticated session for performing administrative tasks such as creating/deleting tickets and projects.
-
-Upon starting a blank new lucidplan deployment you will have no users in the database.
-
-Check in ~db/migration~ and edit the password field, or add more users. An important note is that currently authentication works by using the username (NOT email) and the passwords should NOT contain any special characters.
-
-Then do a ~guix shell -m manifest.scm -- art migrate up user~ to add your users.
-
-------
 
 * Running Byggsteg
 
