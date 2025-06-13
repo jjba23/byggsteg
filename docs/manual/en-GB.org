@@ -333,7 +333,6 @@ For running byggsteg yourself, you'll need to define and load a module called ~(
 
 #+end_src
 
-
 Then, you will need a database to be present in the root folder of the project (alongside ~app~, ~lib~, etc.).
 
 Byggsteg uses SQLite by default but is also compatible with PostgreSQL and MySQL.

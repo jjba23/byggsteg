@@ -36,6 +36,7 @@
                                'lang
                                #:expires 12000000
                                #:path "/"
+                               #:secure #t
                                #:http-only #t)
             (redirect-to rc
                          (string->uri (format #f "~a/"
