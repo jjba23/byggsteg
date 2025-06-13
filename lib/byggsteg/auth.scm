@@ -36,14 +36,14 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
     ((not (equal? #f
                   (:cookies-value rc
                                   (symbol->string token-name))))
-     (let* ((d (decrypt-token #:token (:cookies-value rc
+     (let* ((t (decrypt-token #:token (:cookies-value rc
                                                       (symbol->string
                                                        token-name))
                               #:encryption-key encryption-key
                               #:signing-key signing-key))
             (has-needed-permissions (has-needed-permissions? #:needed
                                      needed-permissions
-                                     #:present (assoc-ref d
+                                     #:present (assoc-ref t
                                                           'owner-permissions)))
             (has-expired (is-token-expired? #:token t)))
        (cond
