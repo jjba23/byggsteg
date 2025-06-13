@@ -31,7 +31,7 @@
 
 (begin
   (define* (do-pip)
-    (let* ((sleep-seconds 6)
+    (let* ((sleep-seconds 3)
            (jobs-in-progress ($job 'get
                                    #:ret 'all
                                    #:condition (where #:job_in_progress 1)
