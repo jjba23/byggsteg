@@ -31,4 +31,4 @@
                       (salt char-field
                             (#:not-null #:maxlen 36))
                       (permissions char-field
-                                   (#:maxlen 2048)))
+                                   (#:maxlen 4096)))
