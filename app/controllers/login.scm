@@ -70,7 +70,7 @@
                               'x-bewaking-byggsteg "x-bewaking-byggsteg" t)
                (:cookies-setattr! rc
                                   'x-bewaking-byggsteg
-                                  #:expires (* 3600 72)
+                                  #:expires (* 3600 24 7)
                                   #:path "/"
                                   #:http-only #t)
                (redirect-to rc
