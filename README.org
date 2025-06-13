@@ -30,6 +30,16 @@ I don't mind having the software building and testing happening in the same mach
 
 --------------------
 
+* Byggsteg Manuals
+
+I strive to provide proper and extensive documentation on Byggsteg, available at your convenience.
+
+- Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
+- Org format: [[file:docs/manual/en-GB.org]]
+
+
+--------------
+
 * Jobs and profiles
 
 Jobs are simple Lisp (Guile Scheme) code. Profiles are just saved jobs.
@@ -60,16 +70,6 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 
 
 ----------------
-
-* Byggsteg Manuals
-
-I strive to provide proper and extensive documentation on Byggsteg, available at your convenience.
-
-- Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
-- Org format: [[file:docs/manual/en-GB.org]]
-
-
---------------
 
 * Licensing
 
