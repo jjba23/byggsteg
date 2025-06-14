@@ -27,6 +27,8 @@
   #:use-module (ice-9 string-fun)
   #:export (me-page users-page))
 
+
+
 (define* (me-page G_
                   #:key is-logged-in
                   token
@@ -78,8 +80,9 @@
                                                                     token
                                                                     'token-expires-at)))))))))
     (html-template G_
+                   #:title "byggsteg"
                    #:is-logged-in is-logged-in
-                   #:body `(div (@ (class ,(mk-class '(container mx-auto))))
+                   #:body `((div (@ (class ,(mk-class '(container mx-auto))))
                                 (div (@ (class ,(mk-class '(flex flex-col
                                                                  gap-6))))
                                      ,user-details
@@ -111,7 +114,7 @@
                                                                gap-2)))
                                            (href "/logout"))
                                         ,(icon-button #:icon 'sign-out
-                                                      #:content (G_ "logout"))))))))
+                                                      #:content (G_ "logout")))))))))
 
 (define row-class
   (mk-class '(flex flex-row gap-4)))
@@ -138,13 +141,16 @@
                      #:size 'text-xs)))
     ,(hr)))
 
+
+
 (define* (users-page G_
                      #:key users
                      token
                      is-logged-in)
   (html-template G_
+                 #:title "byggsteg"
                  #:is-logged-in is-logged-in
-                 #:body `(div (@ (class ,(mk-class '(container mx-auto))))
+                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
                               ,(h2 (G_ "User management"))
                               (div (@ (class ,(mk-class '(flex flex-col
                                                           gap-4
@@ -155,4 +161,5 @@
                                                           bg-stone-200
                                                           dark:bg-stone-900))))
                                    ,(map (lambda (u)
-                                           (render-user G_ u)) users)))))
+                                           (render-user G_ u)) users)
+                                   )))))

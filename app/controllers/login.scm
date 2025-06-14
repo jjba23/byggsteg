@@ -86,3 +86,23 @@
                                              "~a/login?login_failed=true"
                                              (current-myhost)))
                                #:status 302))))))
+
+(get "/logout"
+     #:mime 'xml
+     #:i18n '(cookie "lang")
+     #:cookies '(names x-bewaking-byggsteg)
+     (lambda (rc)
+       (begin
+           (:cookies-set! rc
+                          'x-bewaking-byggsteg "x-bewaking-byggsteg" "")
+           (:cookies-setattr! rc
+                              'x-bewaking-byggsteg
+                              #:expires 1
+                              #:path "/"
+                              #:secure #t
+                              #:http-only #t)
+
+           (redirect-to rc
+                        (string->uri (format #f "~a/"
+                                             (current-myhost)))
+                        #:status 302))))
