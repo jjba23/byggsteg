@@ -35,8 +35,6 @@
                                          "x-bewaking-byggsteg")
                                 #:encryption-key encryption-key
                                 #:signing-key signing-key))
-              (proj ($project 'get
-                              #:order-by '(human_id asc)))
               (user ($user 'get
                            #:ret 'top
                            #:condition (where #:id (assoc-ref t
@@ -44,7 +42,6 @@
          (response-emit (:mime rc
                                (me-page (:i18n rc)
                                         #:user (car user)
-                                        #:projects proj
                                         #:token t
                                         #:is-logged-in (:cookies-value rc
                                                         "x-bewaking-byggsteg")))))))
@@ -59,8 +56,6 @@
                                            "x-bewaking-byggsteg")
                                   #:encryption-key encryption-key
                                   #:signing-key signing-key))
-                (proj ($project 'get
-                                #:order-by '(human_id asc)))
                 (user ($user 'get
                              #:ret 'top
                              #:condition (where #:id (assoc-ref t
@@ -71,7 +66,6 @@
            (response-emit (:mime rc
                                  (users-page (:i18n rc)
                                              #:users users
-                                             #:projects proj
                                              #:token t
                                              #:is-logged-in (:cookies-value rc
                                                              "x-bewaking-byggsteg"))))))

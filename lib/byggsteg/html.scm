@@ -92,7 +92,7 @@
                                                                   flex-col
                                                                   h-screen
                                                                   justify-between))))
-                                           (div ,(page-top G_)
+                                           (div ,(page-top G_ #:is-logged-in is-logged-in)
                                                 (div (@ (class ,(mk-class '(my-4
                                                                             container
                                                                             mx-auto))))
@@ -100,7 +100,7 @@
                                            ,(page-footer G_)))))))
   (export byggsteg-html-template))
 
-(define-public (page-top G_)
+(define* (page-top G_ #:key is-logged-in)
   `((div (@ (class ,(mk-class '(flex flex-row
                                      flex-wrap
                                      gap-6
@@ -119,6 +119,29 @@
             ,(h3 "byggsteg"))
          (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                           gap-3))))
+                          ,(if (not is-logged-in)
+                 `((a (@ (class ,(mk-class '(text-sm lowercase
+                                                     text-white
+                                                     dark:text-black
+                                                     font-sans
+                                                     font-medium
+                                                     px-2
+                                                     flex-items-center
+                                                     gap-2)))
+                         (href "/login"))
+                      ,(icon-button #:icon 'sign-in
+                                    #:content (G_ "login"))))
+                 `((a (@ (class ,(mk-class '(text-sm lowercase
+                                                     text-white
+                                                     dark:text-black
+                                                     font-sans
+                                                     font-medium
+                                                     px-2
+                                                     flex-items-center
+                                                     gap-2)))
+                         (href "/me"))
+                      ,(icon-button #:icon 'user-circle
+                                    #:content (G_ "me")))))
               (a (@ (href "/logs"))
                  ,(icon-button #:icon 'scroll
                                #:content (G_ "logs")))
@@ -133,11 +156,6 @@
               (a (@ (href "/profiles/manage/create"))
                  ,(icon-button #:icon 'plus
                                #:content (G_ "new profile")))
-              (a (@ (href "/login"))
-                 ,(icon-button #:icon 'sign-in
-                               #:content (G_ "login"))
-
-                 )
               ,(ui-mode-button)))))
 
 (define-public (page-footer G_)

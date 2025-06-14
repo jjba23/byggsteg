@@ -30,10 +30,9 @@
 (define* (me-page G_
                   #:key is-logged-in
                   token
-                  user
-                  projects)
-  (write token)
-  (let ((user-details `((div (@ (class ,(mk-class '(py-8 px-4 max-w-prose))))
+                  user)
+
+  (let* ((user-details `((div (@ (class ,(mk-class '(py-8 px-4 max-w-prose))))
                              ,(h3 (format #f "~a &lt;~a&gt;"
                                           (assoc-ref user "username")
                                           (assoc-ref user "email")))
@@ -79,7 +78,6 @@
                                                                     token
                                                                     'token-expires-at)))))))))
     (html-template G_
-                   #:proj projects
                    #:is-logged-in is-logged-in
                    #:body `(div (@ (class ,(mk-class '(container mx-auto))))
                                 (div (@ (class ,(mk-class '(flex flex-col
@@ -142,11 +140,9 @@
 
 (define* (users-page G_
                      #:key users
-                     projects
                      token
                      is-logged-in)
   (html-template G_
-                 #:proj projects
                  #:is-logged-in is-logged-in
                  #:body `(div (@ (class ,(mk-class '(container mx-auto))))
                               ,(h2 (G_ "User management"))

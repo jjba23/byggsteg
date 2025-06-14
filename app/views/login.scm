@@ -29,9 +29,10 @@
   #:use-module (artanis i18n sxml)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
-  #:use-module (ice-9 string-fun))
+  #:use-module (ice-9 string-fun)
+  #:export (login-page))
 
-(define-public (login-page rc)
+(define* (login-page rc #:key is-logged-in)
   (let* ((G_ (:i18n rc))
          (login-html `(,(h2 (G_ "login to byggsteg")) (form (@ (action
                                                                 "/login")
