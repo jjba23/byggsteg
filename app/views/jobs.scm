@@ -29,12 +29,14 @@
   #:use-module (artanis i18n locale)
   #:use-module (hygguile hygguile)
   #:use-module (ice-9 textual-ports)
-  #:use-module (ice-9 string-fun))
+  #:use-module (ice-9 string-fun)
+  #:export (job-request-form-page ))
 
-(define-public (job-request-form-page rc)
+(define* (job-request-form-page rc #:key is-logged-in)
   (let* ((G_ (:i18n rc)))
     (byggsteg-html-template G_
                             #:title "byggsteg"
+                            #:is-logged-in is-logged-in
                             #:body `(,(h2 (G_ "run job")) ,(job-form G_
                                                             "/jobs/manage/submit"
                                                             #f)))))

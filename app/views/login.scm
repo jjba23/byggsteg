@@ -77,6 +77,7 @@
     
     (byggsteg-html-template G_
                             #:title "byggsteg"
+                            #:is-logged-in #f
                             #:body `((div (@ (class ,(mk-class '(px-3 py-3))))
                                           ,login-html)))))
 

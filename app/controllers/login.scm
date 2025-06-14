@@ -34,7 +34,9 @@
      #:i18n '(cookie "lang")
      (lambda (rc)
        (response-emit (:mime rc
-                             (login-page rc)))))
+                             (login-page rc
+                                         #:is-logged-in (:cookies-value rc
+                                                             "x-bewaking-byggsteg"))))))
 
 (post "/login"
       #:cookies '(names x-bewaking-byggsteg)

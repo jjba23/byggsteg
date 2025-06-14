@@ -29,7 +29,8 @@
   #:use-module (hygguile hygguile)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
-  #:use-module (ice-9 string-fun))
+  #:use-module (ice-9 string-fun)
+  #:export (welcome-page))
 
 (define (job-type-expl G_)
   `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-200 dark:bg-stone-900
@@ -83,7 +84,7 @@
            ,(G_
              "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))
 
-(define-public (welcome-page rc)
+(define* (welcome-page rc #:key is-logged-in)
   (let* ((G_ (:i18n rc))
          (welcome-html `((div ,(h2 (G_ "welcome to byggsteg")))
                          ,(locale-choose-form G_)
@@ -111,5 +112,6 @@
     (byggsteg-html-template G_
                             #:title (format #f "byggsteg - ~a"
                                             (G_ "welcome to byggsteg"))
+                            #:is-logged-in is-logged-in
                             #:body welcome-html)))
 

@@ -42,7 +42,8 @@
 (begin
   (define* (byggsteg-html-template G_
                                    #:key title body
-                                   (should-auto-refresh #f))
+                                   (should-auto-refresh #f)
+                                   (is-logged-in #f))
     (let ((maybe-auto-refresh (cond
                                 ((equal? should-auto-refresh #t)
                                  `(meta (@ (content "10")

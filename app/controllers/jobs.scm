@@ -38,7 +38,9 @@
      #:i18n '(cookie "lang")
      (lambda (rc)
        (response-emit (:mime rc
-                             (job-request-form-page rc)))))
+                             (job-request-form-page rc
+                                                    #:is-logged-in (:cookies-value rc
+                                                             "x-bewaking-byggsteg"))))))
 
 (post "/jobs/manage/submit"
       #:cookies '(names x-bewaking-byggsteg)

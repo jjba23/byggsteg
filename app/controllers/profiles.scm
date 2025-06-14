@@ -41,7 +41,9 @@
                              (profile-list-page rc
                                                 ($profile 'get
                                                           #:order-by '(human_id
-                                                                       asc)))))))
+                                                                       asc))
+                                                #:is-logged-in (:cookies-value rc
+                                                             "x-bewaking-byggsteg"))))))
 
 (get "/profiles/:id"
      #:mime 'xml
@@ -52,14 +54,18 @@
                           #:condition (where #:id (params rc "id")))))
          (response-emit (:mime rc
                                (profile-page rc
-                                             (car p)))))))
+                                             (car p)
+                                             #:is-logged-in (:cookies-value rc
+                                                             "x-bewaking-byggsteg")))))))
 
 (get "/profiles/manage/create"
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
        (response-emit (:mime rc
-                             (add-profile-form-page rc)))))
+                             (add-profile-form-page rc
+                                                    #:is-logged-in (:cookies-value rc
+                                                             "x-bewaking-byggsteg"))))))
 
 (post "/profiles/manage/submit"
       #:cookies '(names x-bewaking-byggsteg)

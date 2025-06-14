@@ -30,9 +30,10 @@
   #:use-module (hygguile hygguile)
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
-  #:use-module (ice-9 string-fun))
+  #:use-module (ice-9 string-fun)
+  #:export (profile-page add-profile-form-page profile-list-page))
 
-(define-public (profile-page rc p)
+(define* (profile-page rc p #:key is-logged-in)
   (let* ((profile-name (unescape-str (assoc-ref p "human_id")))
          (profile-data (unescape-str (assoc-ref p "profile_data")))
          (G_ (:i18n rc))
@@ -103,21 +104,24 @@
                        (div ,(submit-button (G_ "save")))))))
     (byggsteg-html-template G_
                             #:title "byggsteg"
+                            #:is-logged-in is-logged-in
                             #:body body)))
 
-(define-public (add-profile-form-page rc)
+(define* (add-profile-form-page rc #:key is-logged-in)
   (let* ((G_ (:i18n rc)))
     (byggsteg-html-template G_
                             #:title "byggsteg"
+                            #:is-logged-in is-logged-in
                             #:body `(,(h2 (G_ "new profile")) ,(job-form G_
                                                                 "/profiles/manage/submit"
                                                                 #t)))))
 
-(define-public (profile-list-page rc profiles)
+(define* (profile-list-page rc profiles #:key is-logged-in)
   (let* ((profiles-html (map make-profile-link profiles))
          (G_ (:i18n rc)))
     (byggsteg-html-template G_
                             #:title "byggsteg"
+                            #:is-logged-in is-logged-in
                             #:body `((div (@ (class ,(mk-class '(w-full flex
                                                                  flex-col
                                                                  gap-6

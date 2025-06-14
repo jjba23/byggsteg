@@ -32,10 +32,11 @@
   #:use-module (hygguile hygguile)
   #:use-module (byggsteg html)
   #:use-module (ice-9 textual-ports)
-  #:use-module (ice-9 string-fun))
+  #:use-module (ice-9 string-fun)
+  #:export (log-page logs-page))
 
-(begin
-  (define* (log-page rc job log)
+
+  (define* (log-page rc job log #:key is-logged-in)
     (let* ((log-id (assoc-ref log "id"))
            (job-id (assoc-ref job "id"))
            (log-filename (unescape-str (assoc-ref log "human_id")))
@@ -153,6 +154,7 @@
       
       (byggsteg-html-template G_
                               #:title "byggsteg"
+                              #:is-logged-in is-logged-in
                               #:body `((div (@ (class ,(mk-class '(w-full flex
                                                                    flex-col
                                                                    gap-6
@@ -161,14 +163,15 @@
                                                                    align-center))))
                                             ,log-html))
                               #:should-auto-refresh (equal? 1 in-progress))))
-  (export log-page))
 
-(begin
+
+
   (define* (logs-page #:key rc
                       jobs-of-logs
                       logs
                       offset
-                      limit)
+                      limit
+                      is-logged-in)
     (let* ((G_ (:i18n rc))
            (jobs-html (map (lambda (l)
                              (make-job-link G_
@@ -212,7 +215,8 @@
                              ,page-buttons))))
       (byggsteg-html-template G_
                               #:title "byggsteg"
+                              #:is-logged-in is-logged-in
                               #:body logs-html
                               #:should-auto-refresh #t)))
 
-  (export logs-page))
+

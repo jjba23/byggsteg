@@ -71,7 +71,9 @@
                                           #:jobs-of-logs jobs-of-logs
                                           #:logs logs
                                           #:offset query-offset
-                                          #:limit query-limit))))))
+                                          #:limit query-limit
+                                          #:is-logged-in (:cookies-value rc
+                                                             "x-bewaking-byggsteg")))))))
 
 (get "/logs/:id"
      #:mime 'xml
