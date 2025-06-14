@@ -102,14 +102,14 @@
                                   #:required #t)
 
                        (div ,(submit-button (G_ "save")))))))
-    (byggsteg-html-template G_
+    (html-template G_
                             #:title "byggsteg"
                             #:is-logged-in is-logged-in
                             #:body body)))
 
 (define* (add-profile-form-page rc #:key is-logged-in)
   (let* ((G_ (:i18n rc)))
-    (byggsteg-html-template G_
+    (html-template G_
                             #:title "byggsteg"
                             #:is-logged-in is-logged-in
                             #:body `(,(h2 (G_ "new profile")) ,(job-form G_
@@ -119,7 +119,7 @@
 (define* (profile-list-page rc profiles #:key is-logged-in)
   (let* ((profiles-html (map make-profile-link profiles))
          (G_ (:i18n rc)))
-    (byggsteg-html-template G_
+    (html-template G_
                             #:title "byggsteg"
                             #:is-logged-in is-logged-in
                             #:body `((div (@ (class ,(mk-class '(w-full flex

@@ -34,38 +34,46 @@
   #:use-module (artanis artanis)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
-  #:use-module (ice-9 threads))
+  #:use-module (ice-9 threads)
+  #:export (asset-library html-template
+                          page-top
+                          project-logo
+                          maybe-profile-name
+                          locale-choose-form
+                          job-form
+                          make-job-link
+                          make-profile-link
+                          if-job-was-updated-html))
 
-(define-public asset-library
+(define asset-library
   (build-asset-library '("pub/js/tailwind.js")))
 
-(begin
-  (define* (byggsteg-html-template G_
-                                   #:key title body
-                                   (should-auto-refresh #f)
-                                   (is-logged-in #f))
-    (let ((maybe-auto-refresh (cond
-                                ((equal? should-auto-refresh #t)
-                                 `(meta (@ (content "10")
-                                           (http-equiv "refresh")) ()))
-                                (else `()))))
-      
-      ;; (maybe-auto-refresh `())
-      
-      `("<!DOCTYPE html>" (html (@ (lang en))
-                                (head (title ,title)
-                                      (link (@ (rel preconnect)
-                                               (href
-                                                "https://fonts.googleapis.com")))
-                                      (link (@ (rel preconnect)
-                                               (href
-                                                "https://fonts.gstatic.com")
-                                               (crossorigin "")))
-                                      (link (@ (rel stylesheet)
-                                               (href
-                                                "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap")))
-                                      (style (@ (type "text/tailwindcss"))
-                                       "
+(define* (html-template G_
+                        #:key title
+                        body
+                        (should-auto-refresh #f)
+                        (is-logged-in #f))
+  (let ((maybe-auto-refresh (cond
+                              ((equal? should-auto-refresh #t)
+                               `(meta (@ (content "10")
+                                         (http-equiv "refresh")) ()))
+                              (else `()))))
+    
+    ;; (maybe-auto-refresh `())
+    
+    `("<!DOCTYPE html>" (html (@ (lang en))
+                              (head (title ,title)
+                                    (link (@ (rel preconnect)
+                                             (href
+                                              "https://fonts.googleapis.com")))
+                                    (link (@ (rel preconnect)
+                                             (href "https://fonts.gstatic.com")
+                                             (crossorigin "")))
+                                    (link (@ (rel stylesheet)
+                                             (href
+                                              "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap")))
+                                    (style (@ (type "text/tailwindcss"))
+                                     "
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
@@ -73,34 +81,35 @@
   --font-mono: \"IBM Plex Mono\", monospace;
 }
 ")
-                                      (link (@ (rel stylesheet)
-                                               (type text/css)
-                                               (href
-                                                "https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css")))
-                                      ,maybe-auto-refresh
-                                      (meta (@ (name viewport)
-                                               (content
-                                                "width=device-width, initial-scale=1.0")))
-                                      (meta (@ (charset "UTF-8")))
-                                      (script ,(assoc-ref asset-library
-                                                "pub/js/tailwind.js"))
-                                      (script ,toggle-dark-theme-js)
-                                      (script ,remember-dark-theme-js))
-                                (body (@ (class ,(mk-class '(bg-stone-100
-                                                             dark:bg-stone-800))))
-                                      (div (@ (class ,(mk-class '(flex
-                                                                  flex-col
-                                                                  h-screen
-                                                                  justify-between))))
-                                           (div ,(page-top G_ #:is-logged-in is-logged-in)
-                                                (div (@ (class ,(mk-class '(my-4
-                                                                            container
-                                                                            mx-auto))))
-                                                     ,@body))
-                                           ,(page-footer G_)))))))
-  (export byggsteg-html-template))
+                                    (link (@ (rel stylesheet)
+                                             (type text/css)
+                                             (href
+                                              "https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css")))
+                                    ,maybe-auto-refresh
+                                    (meta (@ (name viewport)
+                                             (content
+                                              "width=device-width, initial-scale=1.0")))
+                                    (meta (@ (charset "UTF-8")))
+                                    (script ,(assoc-ref asset-library
+                                                        "pub/js/tailwind.js"))
+                                    (script ,toggle-dark-theme-js)
+                                    (script ,remember-dark-theme-js))
+                              (body (@ (class ,(mk-class '(bg-stone-100
+                                                           dark:bg-stone-800))))
+                                    (div (@ (class ,(mk-class '(flex flex-col
+                                                                h-screen
+                                                                justify-between))))
+                                         (div ,(page-top G_
+                                                         #:is-logged-in
+                                                         is-logged-in)
+                                              (div (@ (class ,(mk-class '(my-4
+                                                                          container
+                                                                          mx-auto))))
+                                                   ,@body))
+                                         ,(page-footer G_)))))))
 
-(define* (page-top G_ #:key is-logged-in)
+(define* (page-top G_
+                   #:key is-logged-in)
   `((div (@ (class ,(mk-class '(flex flex-row
                                      flex-wrap
                                      gap-6
@@ -119,29 +128,29 @@
             ,(h3 "byggsteg"))
          (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                           gap-3))))
-                          ,(if (not is-logged-in)
-                 `((a (@ (class ,(mk-class '(text-sm lowercase
-                                                     text-white
-                                                     dark:text-black
-                                                     font-sans
-                                                     font-medium
-                                                     px-2
-                                                     flex-items-center
-                                                     gap-2)))
-                         (href "/login"))
-                      ,(icon-button #:icon 'sign-in
-                                    #:content (G_ "login"))))
-                 `((a (@ (class ,(mk-class '(text-sm lowercase
-                                                     text-white
-                                                     dark:text-black
-                                                     font-sans
-                                                     font-medium
-                                                     px-2
-                                                     flex-items-center
-                                                     gap-2)))
-                         (href "/me"))
-                      ,(icon-button #:icon 'user-circle
-                                    #:content (G_ "me")))))
+              ,(if (not is-logged-in)
+                   `((a (@ (class ,(mk-class '(text-sm lowercase
+                                                       text-white
+                                                       dark:text-black
+                                                       font-sans
+                                                       font-medium
+                                                       px-2
+                                                       flex-items-center
+                                                       gap-2)))
+                           (href "/login"))
+                        ,(icon-button #:icon 'sign-in
+                                      #:content (G_ "login"))))
+                   `((a (@ (class ,(mk-class '(text-sm lowercase
+                                                       text-white
+                                                       dark:text-black
+                                                       font-sans
+                                                       font-medium
+                                                       px-2
+                                                       flex-items-center
+                                                       gap-2)))
+                           (href "/me"))
+                        ,(icon-button #:icon 'user-circle
+                                      #:content (G_ "me")))))
               (a (@ (href "/logs"))
                  ,(icon-button #:icon 'scroll
                                #:content (G_ "logs")))
@@ -158,7 +167,7 @@
                                #:content (G_ "new profile")))
               ,(ui-mode-button)))))
 
-(define-public (page-footer G_)
+(define (page-footer G_)
   (footer `((div (@ (class ,(mk-class '(py-2))))
                  ,(em (G_ "byggsteg is the hackable Guile CI/CD system")))
             ,(em (G_
@@ -178,7 +187,7 @@
                         #:size 'text-sm
                         #:weight 'font-light)))))
 
-(define-public project-logo
+(define project-logo
   `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900 rounded-2xl p-4
                                             shadow))))
         (img (@ (loading lazy)
@@ -186,7 +195,7 @@
                 (src
                  "https://jointhefreeworld.org/static-assets/byggsteg/logo.png")))))
 
-(define-public (maybe-profile-name G_ is-profile)
+(define (maybe-profile-name G_ is-profile)
   (cond
     ((equal? is-profile #t)
      (input #:label (G_ "profile name")
@@ -194,7 +203,7 @@
             #:name 'profile-name))
     (else `())))
 
-(define-public (locale-choose-form G_)
+(define (locale-choose-form G_)
   `(div (@ (class ,(mk-class '(mt-2))))
         (form (@ (action "/preferences/locale")
                  (enctype application/x-www-form-urlencoded)
@@ -215,7 +224,7 @@
                                                         rounded-xl p-1))))
                       "&nbsp;✓&nbsp;"))))
 
-(define-public (job-form G_ route is-profile)
+(define (job-form G_ route is-profile)
   `(form (@ (method POST)
             (action ,route)
             (enctype application/x-www-form-urlencoded)
@@ -252,7 +261,7 @@
                                          min-w-prose))
          (div ,(submit-button (G_ "submit")))))
 
-(define-public (make-job-link G_ job log)
+(define (make-job-link G_ job log)
   (let* ((log-filename (unescape-str (assoc-ref log "human_id")))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
@@ -261,15 +270,17 @@
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
                        ((equal? success 1)
-                        `(h2 (@ (class ,(mk-class '(text-green-800 text-sm italic
+                        `(h2 (@ (class ,(mk-class '(text-green-800 text-sm
+                                                                   italic
                                                                    font-sans))))
                              ,(G_ "job succeeded")))
                        ((equal? failure 1)
-                        `(h2 (@ (class ,(mk-class '(text-red-700 text-sm italic
+                        `(h2 (@ (class ,(mk-class '(text-red-700 text-sm
+                                                                 italic
                                                                  font-sans))))
                              ,(G_ "job failed")))
-                       (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm italic
-                                                         font-sans))))
+                       (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm
+                                                         italic font-sans))))
                                   ,(G_ "job in progress"))))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
@@ -279,15 +290,14 @@
                    (span ,(icon #:type 'scroll
                                 #:icon-css '(text-xl text-stone-800
                                                      dark:text-stone-200)))
-                   ,(h4 log-filename)
-                   )
-              )
+                   ,(h4 log-filename)))
            (div (@ (class "ml-6"))
-                ,(em (strftime "%c" (localtime (assoc-ref (car job) "created_at")))
-                   #:size 'text-sm)
+                ,(em (strftime "%c"
+                               (localtime (assoc-ref (car job) "created_at")))
+                     #:size 'text-sm)
                 ,job-status)))))
 
-(define-public (make-profile-link profile)
+(define (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"
                                 (assoc-ref profile "id"))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-2))))
@@ -297,11 +307,10 @@
                    (span ,(icon #:type 'code))
                    (span ,(unescape-str (assoc-ref profile "human_id")))))))))
 
-(begin
-  (define-syntax-rule (if-job-was-updated-html job html)
-    "Render HTML conditionally for jobs that contain updated_at field"
-    (cond
-      ((equal? (assoc-ref job "updated_at") #f)
-       '())
-      (else html)))
-  (export if-job-was-updated-html))
+(define-syntax-rule (if-job-was-updated-html job html)
+  "Render HTML conditionally for jobs that contain updated_at field"
+  (cond
+    ((equal? (assoc-ref job "updated_at") #f)
+     '())
+    (else html)))
+

@@ -76,7 +76,7 @@
                                                             ,(submit-button (G_
                                                                              "login"))))))
     
-    (byggsteg-html-template G_
+    (html-template G_
                             #:title "byggsteg"
                             #:is-logged-in #f
                             #:body `((div (@ (class ,(mk-class '(px-3 py-3))))

@@ -152,7 +152,7 @@
                                 ,(pre detail-data))
                        ,(pre log-data))))
       
-      (byggsteg-html-template G_
+      (html-template G_
                               #:title "byggsteg"
                               #:is-logged-in is-logged-in
                               #:body `((div (@ (class ,(mk-class '(w-full flex
@@ -213,7 +213,7 @@
                                                          px-6))))
                                   ,jobs-html)
                              ,page-buttons))))
-      (byggsteg-html-template G_
+      (html-template G_
                               #:title "byggsteg"
                               #:is-logged-in is-logged-in
                               #:body logs-html

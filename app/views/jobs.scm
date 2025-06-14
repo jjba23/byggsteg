@@ -34,7 +34,7 @@
 
 (define* (job-request-form-page rc #:key is-logged-in)
   (let* ((G_ (:i18n rc)))
-    (byggsteg-html-template G_
+    (html-template G_
                             #:title "byggsteg"
                             #:is-logged-in is-logged-in
                             #:body `(,(h2 (G_ "run job")) ,(job-form G_

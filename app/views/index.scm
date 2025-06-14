@@ -109,7 +109,7 @@
                                                     "allowing engineers to deliver software quicker and with less friction"))))
                                    ,project-logo)
                               (div ,(job-type-expl G_))))))
-    (byggsteg-html-template G_
+    (html-template G_
                             #:title (format #f "byggsteg - ~a"
                                             (G_ "welcome to byggsteg"))
                             #:is-logged-in is-logged-in
