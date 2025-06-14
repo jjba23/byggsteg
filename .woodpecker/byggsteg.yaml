@@ -18,9 +18,9 @@
 
 variables:
   - &byggsteg_url 'https://byggsteg.jointhefreeworld.org'
-  - &byggsteg_submit_job_image 'docker.io/jjba23/byggsteg-woodpecker-submit-job:v0.1.22'
-  - &byggsteg_poll_job_image 'docker.io/jjba23/byggsteg-woodpecker-poll-job:v0.1.22'
-  - &byggsteg_get_token_image 'docker.io/jjba23/byggsteg-woodpecker-get-token:v0.1.22'
+  - &byggsteg_submit_job_image 'docker.io/jjba23/byggsteg-woodpecker-submit-job:v0.1.23'
+  - &byggsteg_poll_job_image 'docker.io/jjba23/byggsteg-woodpecker-poll-job:v0.1.23'
+  - &byggsteg_get_token_image 'docker.io/jjba23/byggsteg-woodpecker-get-token:v0.1.23'
   
 steps:
   get-byggsteg-token-jointhefreeworld:
