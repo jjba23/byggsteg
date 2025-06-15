@@ -36,7 +36,7 @@
   #:export (log-page logs-page))
 
 
-  (define* (log-page rc job log #:key is-logged-in)
+  (define* (log-page rc #:key job log is-logged-in)
     (let* ((log-id (assoc-ref log "id"))
            (job-id (assoc-ref job "id"))
            (log-filename (unescape-str (assoc-ref log "human_id")))

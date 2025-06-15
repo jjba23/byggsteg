@@ -87,5 +87,7 @@
                        #:condition (where #:id (assoc-ref (car l) "job_id")))))
          (response-emit (:mime rc
                                (log-page rc
-                                         (car j)
-                                         (car l)))))))
+                                         #:is-logged-in (:cookies-value rc
+                                                             "x-bewaking-byggsteg")
+                                         #:job (car j)
+                                         #:log (car l)))))))
