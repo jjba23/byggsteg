@@ -210,6 +210,7 @@
                                                          flex-col
                                                          gap-4
                                                          py-8
+                                                         shadow-lg
                                                          px-6))))
                                   ,jobs-html)
                              ,page-buttons))))

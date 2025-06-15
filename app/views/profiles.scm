@@ -137,6 +137,7 @@
                                                                       flex
                                                                       flex-col
                                                                       gap-4
+                                                                      shadow-lg
                                                                       py-8
                                                                       px-6
                                                                       align-center))))
