@@ -189,7 +189,7 @@
 
 (define project-logo
   `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900 rounded-2xl p-4
-                                            shadow))))
+                                            shadow-md))))
         (img (@ (loading lazy)
                 (class ,(mk-class '(w-48 h-auto rounded-2xl)))
                 (src

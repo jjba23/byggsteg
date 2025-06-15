@@ -34,6 +34,7 @@
 
 (define (job-type-expl G_)
   `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-200 dark:bg-stone-900
+                                           shadow-md
                                            rounded-xl))))
         ,(h4 (G_ "job types"))
         (dl (@ (class ,(mk-class '(p-4))))
@@ -98,6 +99,7 @@
                               (div (@ (class ,(mk-class '(flex flex-col gap-4
                                                                items-center))))
                                    (div (@ (class ,(mk-class '(max-w-prose
+                                                               shadow-md
                                                                bg-stone-200
                                                                dark:bg-stone-900
                                                                rounded-xl p-4))))
