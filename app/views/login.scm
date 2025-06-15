@@ -1,7 +1,6 @@
-;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
+;;; byggsteg - free and open project management for everyone
 
-;; Copyright © Josep Bigorra known as "jjba23" <jjbigorra@gmail.com>
-;; Copyright © Mu Lei known as "NalaGinrut" <NalaGinrut@gmail.com>
+;; Copyright © Josep Bigorra <jjbigorra@gmail.com>
 
 ;; byggsteg is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU Affero General Public License as published by
@@ -17,68 +16,74 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (app views login)
-  #:use-module (byggsteg preferences)
-  #:use-module (byggsteg url)
-  #:use-module (byggsteg process)
-  #:use-module (byggsteg tailwind)
   #:use-module (byggsteg html)
-  #:use-module (ice-9 i18n)
-  #:use-module (artanis i18n)
   #:use-module (artanis artanis)
-  #:use-module (hygguile hygguile)
+  #:use-module (artanis i18n)
   #:use-module (artanis i18n sxml)
   #:use-module (artanis i18n locale)
+  #:use-module (hygguile hygguile)
+  #:use-module (ice-9 i18n)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun)
   #:export (login-page))
 
-(define* (login-page rc #:key is-logged-in)
-  (let* ((G_ (:i18n rc))
-         (login-html `(,(h2 (G_ "login to byggsteg")) (form (@ (action
-                                                                "/login")
-                                                               (enctype
-                                                                application/x-www-form-urlencoded)
-                                                               (method POST)
-                                                               (class ,(mk-class '
-                                                                        (rounded-xl
-                                                                         bg-stone-200/50
-                                                                         dark:bg-stone-900
-                                                                         p-4
-                                                                         shadow-md
-                                                                         my-6
-                                                                         max-w-prose
-                                                                         flex
-                                                                         flex-col
-                                                                         gap-4))))
-                                                            (div (@ (class ,(mk-class '
-                                                                             (flex
-                                                                              flex-row
-                                                                              flex-wrap
-                                                                              gap-6
-                                                                              items-center
-                                                                              justify-start))))
-                                                                 (div ,(input
-                                                                        #:label
-                                                                        (G_
-                                                                         "email")
-                                                                        #:name 'email
-                                                                        #:type 'email
-                                                                        #:required
-                                                                        #t))
-                                                                 (div ,(input
-                                                                        #:label
-                                                                        (G_
-                                                                         "password")
-                                                                        #:name 'password
-                                                                        #:type 'password
-                                                                        #:required
-                                                                        #t)))
-                                                            ,(submit-button (G_
-                                                                             "login"))))))
-    
+(define* (login-page G_ #:key is-logged-in )
+  (let* ((login-form `(form (@ (action "/login")
+                              (class ,(mk-class '(w-full rounded-xl
+                                                         bg-stone-200/50
+                                                         dark:bg-stone-700/50
+                                                         p-4
+                                                         flex
+                                                         flex-row
+                                                         flex-wrap
+                                                         items-center
+                                                         gap-4
+                                                         shadow-md)))
+                              (method "POST"))
+                           ,(input #:label (G_ "email")
+                                   #:name "email"
+                                   #:type 'email
+                                   #:value ""
+                                   #:required #t)
+                           ,(input #:label (G_ "password")
+                                   #:name "password"
+                                   #:type 'password
+                                   #:value ""
+                                   #:required #t)
+                           (div ,(submit-button (G_ "login")))))
+        (reset-form `((form (@ (action "/password/reset")
+                               (class ,(mk-class '(w-full rounded-xl
+                                                   bg-stone-200/50
+                                                   dark:bg-stone-700/50
+                                                   p-4
+                                                   flex
+                                                   flex-row
+                                                   flex-wrap
+                                                   items-center
+                                                   gap-4
+                                                   shadow-md)))
+                               (method POST))
+                            ,(input #:label (G_ "account to reset (email)")
+                                    #:name "email"
+                                    #:type 'email
+                                    #:value ""
+                                    #:required #t)
+                            (div ,(icon-button #:icon 'password
+                                               #:type 'submit
+                                               #:content (G_ "reset password")))))))
     (html-template G_
-                            #:title "byggsteg"
-                            #:is-logged-in #f
-                            #:body `((div (@ (class ,(mk-class '(px-3 py-3))))
-                                          ,login-html)))))
+                   #:is-logged-in is-logged-in
+                   #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                                 (div (@ (class ,(mk-class '(w-full flex
+                                                                    flex-row
+                                                                    flex-wrap
+                                                                    gap-2))))
+                                      (div (@ (class ,(mk-class '(flex
+                                                                  flex-col
+                                                                  gap-8))))
+                                           ,(h2 (G_ "login to byggsteg"))
+                                           (div ,login-form)))
+                                 (div (@ (class ,(mk-class '(flex flex-col
+                                                                  gap-8))))
+                                      (div ,reset-form)))))))
 

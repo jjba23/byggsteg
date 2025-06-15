@@ -34,7 +34,7 @@
      #:i18n '(cookie "lang")
      (lambda (rc)
        (response-emit (:mime rc
-                             (login-page rc
+                             (login-page (:i18n rc)
                                          #:is-logged-in (:cookies-value rc
                                                              "x-bewaking-byggsteg"))))))
 

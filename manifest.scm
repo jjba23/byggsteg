@@ -159,6 +159,7 @@ and obfuscation techniques, a.k.a secure tokens.")
                           guile-gcrypt
                           guile-bewaking
                           watchexec
+                          guile-curl
                           sqlite
                           emacs
                           guile-dbd-sqlite3))
