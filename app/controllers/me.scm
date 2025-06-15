@@ -39,19 +39,32 @@
      #:cookies '(names x-bewaking-byggsteg)
      (lambda (rc)
        (let* ((t (decrypt-token #:token (:cookies-value rc
-                                         "x-bewaking-byggsteg")
+                                                        "x-bewaking-byggsteg")
                                 #:encryption-key encryption-key
                                 #:signing-key signing-key))
               (user ($user 'get
                            #:ret 'top
                            #:condition (where #:id (assoc-ref t
-                                                              'owner-id)))))
-         (response-emit (:mime rc
-                               (me-page (:i18n rc)
-                                        #:user (car user)
-                                        #:token t
-                                        #:is-logged-in (:cookies-value rc
-                                                        "x-bewaking-byggsteg")))))))
+                                                              'owner-id))))
+              (happy-flow (response-emit (:mime rc
+                                                (me-page (:i18n rc)
+                                                         #:user (car user)
+                                                         #:token t
+                                                         #:is-logged-in (:cookies-value
+                                                                         rc
+                                                                         "x-bewaking-byggsteg"))))))
+         
+         (catch #t
+                (lambda ()
+                  (happy-flow))
+                (lambda (key . args)
+                  (display (format #f
+                            "error getting user details-me page: ~a: ~a" key
+                            args))
+                  (redirect-to rc
+                               (string->uri (format #f "~a/login"
+                                                    (current-myhost)))
+                               #:status 302))))))
 
 (get "/users/manage"
      #:mime 'xml
@@ -82,7 +95,6 @@
                           #:rc rc
                           #:happy-flow go-to-users-management
                           #:unhappy-flow back-to-login)))
-
 
 (get "/password/reset/token/:token"
      #:mime 'xml
