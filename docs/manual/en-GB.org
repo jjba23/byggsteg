@@ -204,9 +204,9 @@ If running locally, it's recommended to use ~localhost~ instead of ~127.0.0.1~ a
 
 * Starting a job
 
-After logging in, you can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API via Guile Scheme in URL encoded form data (~application/x-www-form-urlencoded~).
+Byggsteg provides HTTP endpoints. After logging in, you can use the UI and visit ~/jobs/request~ or you can also invoke this via the REST API by first calling ~/api/v1/login~ with the right credentials and then calling ~/api/v1/jobs/manage/submit~.
 
-You could also do this for example from your favourite system programatically, or via cURL:
+You could also do this for example from your favourite programming language, or system, or via cURL, etc:
 
 #+begin_src sh
 curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
