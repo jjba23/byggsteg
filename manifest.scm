@@ -37,7 +37,9 @@
              (gnu packages sqlite)
              (gnu packages texinfo)
              (gnu packages autotools)
+             (gnu packages tls)
              (gnu packages emacs)
+             (gnu packages vim)             
              ((guix licenses)
               #:prefix license:))
 
@@ -162,6 +164,8 @@ and obfuscation techniques, a.k.a secure tokens.")
                           guile-curl
                           sqlite
                           emacs
+                          xxd
+                          openssl
                           guile-dbd-sqlite3))
 
 
