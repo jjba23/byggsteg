@@ -331,8 +331,6 @@ For running byggsteg yourself, you'll need to define and load a module called ~(
 (define-public signing-key "8d3a5bcc-973e-4f80-aa3d-33be33d6631c")
 
 
-
-
 (define-public pingwing-url
   "my-pingwing-host")
 
@@ -341,7 +339,6 @@ For running byggsteg yourself, you'll need to define and load a module called ~(
 
 (define-public pingwing-basic-auth-password
   "my-password")
-
 
 
 #+end_src
