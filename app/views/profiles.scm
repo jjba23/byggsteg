@@ -140,8 +140,19 @@
                                                              flex-col
                                                              gap-4
                                                              shadow-lg
-                                                             py-8
+                                                             my-6
+                                                             py-6
                                                              px-6
                                                              align-center))))
-                                      ,profiles-html))))))
+                                      ,profiles-html)
+                                 (a (@ (href "/profiles/manage/create"))
+                                    ,(icon-button #:icon 'plus
+                                                  #:content (G_ "new profile")
+                                                  #:size '(text-xs md:text-sm)
+                                                  #:extra-classes '(py-1
+                                                                    md:py-2
+                                                                    px-2
+                                                                    md:px-3
+                                                                    max-w-prose
+                                                                    cursor-pointer))))))))
 
