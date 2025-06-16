@@ -89,7 +89,7 @@
                                                       py-3))))
                           ,(h2 (G_ "viewing logs"))
                           ,job-status)
-                     ,(h4 log-filename
+                     ,(h3 log-filename
                           #:color '(text-stone-700 hover:text-orange-600
                                                    dark:text-stone-300
                                                    hover:dark:text-orange-300))
