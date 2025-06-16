@@ -198,6 +198,8 @@ Upon starting a blank new byggsteg deployment you will have no users in the data
 
 Then do a ~guix shell -m manifest.scm -- art migrate up user~ to add your users.
 
+If running locally, it's recommended to use ~localhost~ instead of ~127.0.0.1~ as this will work better with the authentication/authorization and other cookies.
+
 ------------------
 
 * Starting a job
