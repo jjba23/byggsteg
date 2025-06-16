@@ -24,12 +24,16 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
+  #:use-module (kracht prelude)
   #:export (base64-encode))
 
 (define (base64-encode s)
-  (catch #t
-         (lambda ()
-           (nss:base64-encode s))
-         (lambda (key . args)
-           (display (format #f "error encoding to base64: ~a: ~a" key args)) s)))
+  (syscall (format #f "echo -n '~a' | base64 --wrap=0" (string-replace-substring s "'" "&apos;"))))
+
+;;(define (base64-encode s)
+;; (catch #t
+;;        (lambda ()
+;;          (nss:base64-encode s))
+;;        (lambda (key . args)
+;;          (display (format #f "error encoding to base64: ~a: ~a" key args)) s)))
 
