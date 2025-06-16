@@ -39,8 +39,9 @@
      (lambda (rc)
        (response-emit (:mime rc
                              (job-request-form-page rc
-                                                    #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg"))))))
+                                                    #:is-logged-in (:cookies-value
+                                                                    rc
+                                                                    "x-bewaking-byggsteg"))))))
 
 (post "/jobs/manage/submit"
       #:cookies '(names x-bewaking-byggsteg)
@@ -79,10 +80,10 @@
                          (string->uri logs-link)
                          #:status 302)))
         (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
-                                     #:needed-permissions '(byggsteg:job-create)
-                                     #:rc rc
-                                     #:happy-flow do-submit
-                                     #:unhappy-flow back-to-login)))
+                           #:needed-permissions '(byggsteg:job-create)
+                           #:rc rc
+                           #:happy-flow do-submit
+                           #:unhappy-flow back-to-login)))
 
 (post "/jobs/manage/delete"
       #:cookies '(names x-bewaking-byggsteg)
@@ -104,8 +105,8 @@
                          (string->uri (format #f "~a/logs"
                                               (current-myhost)))
                          #:status 302)))
-        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg 
-                                     #:needed-permissions '(byggsteg:job-delete)
-                                     #:rc rc
-                                     #:happy-flow do-delete
-                                     #:unhappy-flow back-to-login)))
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                           #:needed-permissions '(byggsteg:job-delete)
+                           #:rc rc
+                           #:happy-flow do-delete
+                           #:unhappy-flow back-to-login)))

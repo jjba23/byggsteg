@@ -42,7 +42,7 @@
                                                                my-4))))
                                    ,(em (G_ "my unique id:"))
                                    ,(mono (assoc-ref user "id")
-                                          #:size 'text-xs))
+                                          #:size '(text-xs)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
                                                                gap-2
@@ -51,7 +51,7 @@
                                                                my-4))))
                                    ,(em (G_ "my permissions (in database):"))
                                    ,(pre (assoc-ref user "permissions")
-                                          #:size 'text-xs))
+                                         #:size '(text-xs)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
                                                                gap-2
@@ -61,9 +61,9 @@
                                    ,(em (G_
                                          "current session permissions (in token):"))
                                    ,(pre (format #f "~s"
-                                                  (assoc-ref token
-                                                             'owner-permissions))
-                                          #:size 'text-xs))
+                                                 (assoc-ref token
+                                                            'owner-permissions))
+                                         #:size '(text-xs)))
                               (div (@ (class ,(mk-class '(max-w-prose))))
                                    ,(em (G_
                                          "tip: if your session permissions don't match the DB consider logging out and logging in again"))))))
@@ -102,7 +102,7 @@
                                                           #:content (G_
                                                                      "reset password")))
 
-                                        (a (@ (href "/login"))
+                                      (a (@ (href "/login"))
                                          ,(icon-button #:icon 'sign-in
                                                        #:content (G_ "login")))
 
@@ -116,21 +116,21 @@
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "username"))
               ,(p (assoc-ref u "username")
-                  #:size 'text-sm))
+                  #:size '(text-sm)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "email"))
               ,(p (assoc-ref u "email")
-                  #:size 'text-sm))
+                  #:size '(text-sm)))
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "id"))
               ,(mono (assoc-ref u "id")
-                     #:size 'text-xs))
+                     #:size '(text-xs)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "permissions"))
               ,(mono (assoc-ref u "permissions")
-                     #:size 'text-xs)))
+                     #:size '(text-xs))))
     ,(hr)))
 
 (define* (users-page G_

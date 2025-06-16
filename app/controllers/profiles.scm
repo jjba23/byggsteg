@@ -42,8 +42,9 @@
                                                 ($profile 'get
                                                           #:order-by '(human_id
                                                                        asc))
-                                                #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg"))))))
+                                                #:is-logged-in (:cookies-value
+                                                                rc
+                                                                "x-bewaking-byggsteg"))))))
 
 (get "/profiles/:id"
      #:mime 'xml
@@ -64,8 +65,9 @@
      (lambda (rc)
        (response-emit (:mime rc
                              (add-profile-form-page rc
-                                                    #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg"))))))
+                                                    #:is-logged-in (:cookies-value
+                                                                    rc
+                                                                    "x-bewaking-byggsteg"))))))
 
 (post "/profiles/manage/submit"
       #:cookies '(names x-bewaking-byggsteg)
@@ -106,10 +108,10 @@
                                                       new-uuid))
                                  #:status 302)))))
         (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
-                                     #:needed-permissions '(byggsteg:profile-create)
-                                     #:rc rc
-                                     #:happy-flow do-submit
-                                     #:unhappy-flow back-to-login)))
+                           #:needed-permissions '(byggsteg:profile-create)
+                           #:rc rc
+                           #:happy-flow do-submit
+                           #:unhappy-flow back-to-login)))
 
 (post "/profiles/manage/delete"
       #:cookies '(names x-bewaking-byggsteg)
@@ -128,7 +130,7 @@
                                               (current-myhost)))
                          #:status 302)))
         (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
-                                     #:needed-permissions '(byggsteg:profile-delete)
-                                     #:rc rc
-                                     #:happy-flow do-delete
-                                     #:unhappy-flow back-to-login)))
+                           #:needed-permissions '(byggsteg:profile-delete)
+                           #:rc rc
+                           #:happy-flow do-delete
+                           #:unhappy-flow back-to-login)))

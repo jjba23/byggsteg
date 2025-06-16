@@ -184,8 +184,8 @@
                  ,(em (G_ "version"))
                  ,(mono (format #f "~a"
                                 (get-short-commit-sha))
-                        #:size 'text-sm
-                        #:weight 'font-light)))))
+                        #:size '(text-sm)
+                        #:weight '(font-light))))))
 
 (define project-logo
   `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900 rounded-2xl p-4
@@ -294,7 +294,7 @@
            (div (@ (class "ml-6"))
                 ,(em (strftime "%c"
                                (localtime (assoc-ref (car job) "created_at")))
-                     #:size 'text-sm)
+                     #:size '(text-sm))
                 ,job-status)))))
 
 (define (make-profile-link profile)

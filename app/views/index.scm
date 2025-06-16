@@ -34,8 +34,7 @@
 
 (define (job-type-expl G_)
   `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-200 dark:bg-stone-900
-                                           shadow-md
-                                           rounded-xl))))
+                                           shadow-md rounded-xl))))
         ,(h4 (G_ "job types"))
         (dl (@ (class ,(mk-class '(p-4))))
             (dt (@ (class ,dt-face))
@@ -85,7 +84,8 @@
            ,(G_
              "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))
 
-(define* (welcome-page rc #:key is-logged-in)
+(define* (welcome-page rc
+                       #:key is-logged-in)
   (let* ((G_ (:i18n rc))
          (welcome-html `((div ,(h2 (G_ "welcome to byggsteg")))
                          ,(locale-choose-form G_)
@@ -112,8 +112,8 @@
                                    ,project-logo)
                               (div ,(job-type-expl G_))))))
     (html-template G_
-                            #:title (format #f "byggsteg - ~a"
-                                            (G_ "welcome to byggsteg"))
-                            #:is-logged-in is-logged-in
-                            #:body welcome-html)))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "welcome to byggsteg"))
+                   #:is-logged-in is-logged-in
+                   #:body welcome-html)))
 

@@ -66,7 +66,9 @@
   (export do-pip))
 
 (begin
-  (define* (run-pipeline-task #:key project branch-name task
+  (define* (run-pipeline-task #:key project
+                              branch-name
+                              task
                               (daemon-name #f)
                               (trivial-cmds '()))
     (cond
@@ -145,7 +147,8 @@
                                    'branch-name))
            (clone-url (assoc-ref kv
                                  'clone-url))
-           (daemon-name (assoc-ref kv 'daemon-name))
+           (daemon-name (assoc-ref kv
+                                   'daemon-name))
            (task-or-tasks (assoc-ref kv
                                      'task))
            (tasks (cond
@@ -178,7 +181,8 @@
                                                       #:branch-name
                                                       branch-name
                                                       #:task task
-                                                      #:daemon-name daemon-name
+                                                      #:daemon-name
+                                                      daemon-name
                                                       #:trivial-cmds
                                                       trivial-cmds)) tasks))))
              (new-log-data (string-append old-log-data "\n" o)))

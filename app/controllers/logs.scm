@@ -73,7 +73,7 @@
                                           #:offset query-offset
                                           #:limit query-limit
                                           #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg")))))))
+                                                          "x-bewaking-byggsteg")))))))
 
 (get "/logs/:id"
      #:mime 'xml
@@ -88,6 +88,6 @@
          (response-emit (:mime rc
                                (log-page rc
                                          #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg")
+                                                         "x-bewaking-byggsteg")
                                          #:job (car j)
                                          #:log (car l)))))))

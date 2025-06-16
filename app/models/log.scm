@@ -32,4 +32,3 @@
                                   (#:not-null))
                       (updated_at date-field))
 
-

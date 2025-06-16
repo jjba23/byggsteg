@@ -36,7 +36,7 @@
        (response-emit (:mime rc
                              (login-page (:i18n rc)
                                          #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg"))))))
+                                                         "x-bewaking-byggsteg"))))))
 
 (post "/login"
       #:cookies '(names x-bewaking-byggsteg)
@@ -62,7 +62,7 @@
                (t (generate-token #:encryption-key encryption-key
                                   #:signing-key signing-key
                                   #:get-owner-details get-owner-details)))
-
+          
           (cond
             ((equal? (string->sha-256 (string-append password
                                                      (assoc-ref (car u) "salt")))
@@ -93,16 +93,16 @@
      #:cookies '(names x-bewaking-byggsteg)
      (lambda (rc)
        (begin
-           (:cookies-set! rc
-                          'x-bewaking-byggsteg "x-bewaking-byggsteg" "")
-           (:cookies-setattr! rc
-                              'x-bewaking-byggsteg
-                              #:expires 1
-                              #:path "/"
-                              #:secure #t
-                              #:http-only #t)
+         (:cookies-set! rc
+                        'x-bewaking-byggsteg "x-bewaking-byggsteg" "")
+         (:cookies-setattr! rc
+                            'x-bewaking-byggsteg
+                            #:expires 1
+                            #:path "/"
+                            #:secure #t
+                            #:http-only #t)
 
-           (redirect-to rc
-                        (string->uri (format #f "~a/"
-                                             (current-myhost)))
-                        #:status 302))))
+         (redirect-to rc
+                      (string->uri (format #f "~a/"
+                                           (current-myhost)))
+                      #:status 302))))

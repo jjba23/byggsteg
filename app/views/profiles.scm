@@ -33,7 +33,8 @@
   #:use-module (ice-9 string-fun)
   #:export (profile-page add-profile-form-page profile-list-page))
 
-(define* (profile-page rc p #:key is-logged-in)
+(define* (profile-page rc p
+                       #:key is-logged-in)
   (let* ((profile-name (unescape-str (assoc-ref p "human_id")))
          (profile-data (unescape-str (assoc-ref p "profile_data")))
          (G_ (:i18n rc))
@@ -103,43 +104,44 @@
 
                        (div ,(submit-button (G_ "save")))))))
     (html-template G_
-                            #:title "byggsteg"
-                            #:is-logged-in is-logged-in
-                            #:body body)))
+                   #:title "byggsteg"
+                   #:is-logged-in is-logged-in
+                   #:body body)))
 
-(define* (add-profile-form-page rc #:key is-logged-in)
+(define* (add-profile-form-page rc
+                                #:key is-logged-in)
   (let* ((G_ (:i18n rc)))
     (html-template G_
-                            #:title "byggsteg"
-                            #:is-logged-in is-logged-in
-                            #:body `(,(h2 (G_ "new profile")) ,(job-form G_
-                                                                "/profiles/manage/submit"
-                                                                #t)))))
+                   #:title "byggsteg"
+                   #:is-logged-in is-logged-in
+                   #:body `(,(h2 (G_ "new profile")) ,(job-form G_
+                                                       "/profiles/manage/submit"
+                                                       #t)))))
 
-(define* (profile-list-page rc profiles #:key is-logged-in)
+(define* (profile-list-page rc profiles
+                            #:key is-logged-in)
   (let* ((profiles-html (map make-profile-link profiles))
          (G_ (:i18n rc)))
     (html-template G_
-                            #:title "byggsteg"
-                            #:is-logged-in is-logged-in
-                            #:body `((div (@ (class ,(mk-class '(w-full flex
-                                                                 flex-col
-                                                                 gap-6
-                                                                 py-6
-                                                                 px-6
-                                                                 align-center
-                                                                 whitespace-break-spaces))))
-                                          ,(h2 (G_ "profiles"))
-                                          (div (@ (class ,(mk-class '(w-full
-                                                                      rounded-xl
-                                                                      bg-stone-200
-                                                                      dark:bg-stone-900
-                                                                      flex
-                                                                      flex-col
-                                                                      gap-4
-                                                                      shadow-lg
-                                                                      py-8
-                                                                      px-6
-                                                                      align-center))))
-                                               ,profiles-html))))))
+                   #:title "byggsteg"
+                   #:is-logged-in is-logged-in
+                   #:body `((div (@ (class ,(mk-class '(w-full flex
+                                                        flex-col
+                                                        gap-6
+                                                        py-6
+                                                        px-6
+                                                        align-center
+                                                        whitespace-break-spaces))))
+                                 ,(h2 (G_ "profiles"))
+                                 (div (@ (class ,(mk-class '(w-full rounded-xl
+                                                             bg-stone-200
+                                                             dark:bg-stone-900
+                                                             flex
+                                                             flex-col
+                                                             gap-4
+                                                             shadow-lg
+                                                             py-8
+                                                             px-6
+                                                             align-center))))
+                                      ,profiles-html))))))
 

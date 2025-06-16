@@ -127,11 +127,14 @@
                (t (generate-token #:encryption-key encryption-key
                                   #:signing-key signing-key
                                   #:get-owner-details get-owner-details)))
-
+          
           (cond
             ((equal? (string->sha-256 (string-append password
                                                      (assoc-ref (car u) "salt")))
                      (assoc-ref (car u) "password"))
-             (response-emit "" #:status 204 #:headers `((x-bewaking-byggsteg . ,t)) ))
+             (response-emit ""
+                            #:status 204
+                            #:headers `((x-bewaking-byggsteg unquote t))))
             (else (response-emit '((error . "invalid credentials, could not make token"))
-                                 #:status 401 #:headers '()))))))
+                                 #:status 401
+                                 #:headers '()))))))

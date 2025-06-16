@@ -21,7 +21,11 @@
 (use-modules (artanis artanis)
              (artanis security nss))
 
-(define* (add-test-user! #:key name email password salt permissions)
+(define* (add-test-user! #:key name
+                         email
+                         password
+                         salt
+                         permissions)
   (let ((mt (map-table-from-DB (get-conn-from-pool!)))
         (real-pass (string->sha-256 (string-append password salt))))
     (mt 'set
@@ -34,12 +38,13 @@
 
 (migrate-up (display "Adding user...")
             (add-test-user! #:name "Joe"
-                            #:email "jjbigorra@gmail.com"
-                            #:password ""
-                            #:salt ""
-                            ;; note: the ` is important due to Lisp quasi-quotation
-                            ;; so as to have it interpreted as a list of symbols
-                            #:permissions "`(byggsteg:modify-permissions
+             #:email "jjbigorra@gmail.com"
+             #:password ""
+             #:salt ""
+             ;; note: the ` is important due to Lisp quasi-quotation
+             ;; so as to have it interpreted as a list of symbols
+             #:permissions
+             "`(byggsteg:modify-permissions
                                              byggsteg:job-create byggsteg:job-delete
                                              byggsteg:profile-create byggsteg:profile-delete
                                              byggsteg:users-create byggsteg:users-delete)")

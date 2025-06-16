@@ -32,7 +32,6 @@
        (response-emit (:mime rc
                              (welcome-page rc
                                            #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg"))))))
-
+                                                           "x-bewaking-byggsteg"))))))
 
 (get "/robots.txt" static-page-emitter)

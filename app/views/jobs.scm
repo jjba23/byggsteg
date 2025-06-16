@@ -30,13 +30,13 @@
   #:use-module (hygguile hygguile)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun)
-  #:export (job-request-form-page ))
+  #:export (job-request-form-page))
 
-(define* (job-request-form-page rc #:key is-logged-in)
+(define* (job-request-form-page rc
+                                #:key is-logged-in)
   (let* ((G_ (:i18n rc)))
     (html-template G_
-                            #:title "byggsteg"
-                            #:is-logged-in is-logged-in
-                            #:body `(,(h2 (G_ "run job")) ,(job-form G_
-                                                            "/jobs/manage/submit"
-                                                            #f)))))
+                   #:title "byggsteg"
+                   #:is-logged-in is-logged-in
+                   #:body `(,(h2 (G_ "run job")) ,(job-form G_
+                                                   "/jobs/manage/submit" #f)))))
