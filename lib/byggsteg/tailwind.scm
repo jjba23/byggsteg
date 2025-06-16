@@ -85,8 +85,9 @@
 ;; Links
 ;;
 (define-public dash-link-face
-  (mk-class '(text-stone-800 dark:text-stone-300
-                             hover:text-orange-400
+  (mk-class '(text-stone-700 hover:text-orange-600
+                             dark:text-stone-300
+                             hover:dark:text-orange-300
                              font-bold
                              cursor-pointer
                              text-md

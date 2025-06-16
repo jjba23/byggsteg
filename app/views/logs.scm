@@ -53,16 +53,17 @@
                                     dark:text-stone-400 font-medium)))
          (job-status (cond
                        ((equal? success 1)
-                        `(h2 (@ (class ,(mk-class '(text-xl text-green-800
-                                                            font-sans))))
-                             ,(G_ "job succeeded")))
+                        (sub-h4 (G_ "job succeeded")
+                                #:color '(text-green-800 dark:text-green-400)
+                                #:size '(text-xl)))
                        ((equal? failure 1)
-                        `(h2 (@ (class ,(mk-class '(text-xl text-red-700
-                                                            font-sans))))
-                             ,(G_ "job failed")))
-                       (else `(h2 (@ (class ,(mk-class '(text-xl text-sky-600
-                                                                 font-sans))))
-                                  ,(G_ "job in progress")))))
+                        (sub-h4 (G_ "job failed")
+                                #:color '(text-red-800 dark:text-red-400)
+                                #:size '(text-xl)))
+                       (else (sub-h4 (G_ "job in progress")
+                                     #:color '(text-teal-800
+                                               dark:text-teal-400)
+                                     #:size '(text-xl)))))
          (delete-button `(form (@ (method POST)
                                   (enctype application/x-www-form-urlencoded)
                                   (action "/jobs/manage/delete"))
@@ -87,46 +88,35 @@
                                                       items-center
                                                       gap-6
                                                       py-3))))
-                          ,(h2 (G_ "viewing logs"))
+                          ,(h1 (G_ "viewing logs"))
                           ,job-status)
-                     ,(h3 log-filename
-                          #:color '(text-stone-700 hover:text-orange-600
-                                                   dark:text-stone-300
-                                                   hover:dark:text-orange-300))
+                     ,(h2 log-filename)
 
-                     (dl (@ (class ,dl-class))
-                         ,(if-job-was-updated-html job
-                                                   `((dt (@ (class ,dt-class))
-                                                         ,(G_ "time taken"))
-                                                     (dd (@ (class ,dd-class))
-                                                         ,(format #f
-                                                           "~a seconds"
-                                                           (- (assoc-ref job
-                                                               "updated_at")
-                                                              (assoc-ref job
-                                                               "created_at"))))))
-                         (dt (@ (class ,dt-class))
-                             ,(G_ "started at"))
-                         (dd (@ (class ,dd-class))
-                             ,(strftime "%c"
-                                        (localtime (assoc-ref job "created_at"))))
-                         ,(if-job-was-updated-html job
-                                                   `((dt (@ (class ,dt-class))
-                                                         ,(G_ "updated at"))
-                                                     (dd (@ (class ,dd-class))
-                                                         ,(strftime "%c"
-                                                                    (localtime
-                                                                     (assoc-ref
-                                                                      job
-                                                                      "updated_at"))))))
-                         (dt (@ (class ,dt-class))
-                             ,(G_ "uuid"))
-                         (dd (@ (class ,dd-class))
-                             ,job-id)
-                         (dt (@ (class ,dt-class))
-                             ,(G_ "log uuid"))
-                         (dd (@ (class ,dd-class))
-                             ,log-id))
+                     ,(dl `(,(if-job-was-updated-html job
+                                                      (list (dt (G_
+                                                                 "time taken"))
+                                                            (dd (format #f
+                                                                 "~a seconds"
+                                                                 (- (assoc-ref
+                                                                     job
+                                                                     "updated_at")
+                                                                    (assoc-ref
+                                                                     job
+                                                                     "created_at")))))) ,
+                            (dt (G_ "started at"))
+                            ,(dd (strftime "%c"
+                                           (localtime (assoc-ref job
+                                                                 "created_at"))))
+                            ,(if-job-was-updated-html job
+                                                      (list (dt (G_
+                                                                 "updated at"))
+                                                            (dd (strftime "%c"
+                                                                 (localtime (assoc-ref
+                                                                             job
+                                                                             "updated_at"))))))
+                            ,(dt (G_ "log uuid"))
+                            ,(dd (code log-id
+                                       #:size '(text-sm)))))
 
                      ,delete-button
 
@@ -200,7 +190,7 @@
                                                   px-6
                                                   align-center
                                                   whitespace-break-spaces))))
-                           ,(h2 (G_ "logs"))
+                           ,(h1 (G_ "logs"))
                            (div (@ (class ,(mk-class '(rounded-xl bg-stone-200
                                                        dark:bg-stone-900
                                                        flex

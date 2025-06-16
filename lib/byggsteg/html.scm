@@ -270,18 +270,17 @@
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond
                        ((equal? success 1)
-                        `(h2 (@ (class ,(mk-class '(text-green-800 text-sm
-                                                                   italic
-                                                                   font-sans))))
-                             ,(G_ "job succeeded")))
+                        (sub-h4 (G_ "job succeeded")
+                                #:color '(text-green-800 dark:text-green-400)
+                                #:size '(text-lg)))
                        ((equal? failure 1)
-                        `(h2 (@ (class ,(mk-class '(text-red-700 text-sm
-                                                                 italic
-                                                                 font-sans))))
-                             ,(G_ "job failed")))
-                       (else `(h2 (@ (class ,(mk-class '(text-sky-600 text-sm
-                                                         italic font-sans))))
-                                  ,(G_ "job in progress"))))))
+                        (sub-h4 (G_ "job failed")
+                                #:color '(text-red-800 dark:text-red-400)
+                                #:size '(text-lg)))
+                       (else (sub-h4 (G_ "job in progress")
+                                     #:color '(text-teal-800
+                                               dark:text-teal-400)
+                                     #:size '(text-lg))))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
@@ -290,7 +289,10 @@
                    (span ,(icon #:type 'scroll
                                 #:icon-css '(text-xl text-stone-800
                                                      dark:text-stone-200)))
-                   ,(h4 log-filename)))
+                   ,(h3 log-filename
+                        #:color '(text-stone-700 hover:text-orange-600
+                                                 dark:text-stone-300
+                                                 hover:dark:text-orange-300))))
            (div (@ (class "ml-6"))
                 ,(em (strftime "%c"
                                (localtime (assoc-ref (car job) "created_at")))
