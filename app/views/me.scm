@@ -318,10 +318,10 @@
                                              (action ,(format #f
                                                        "/users/edit/~a"
                                                        (assoc-ref u
-                                                        "identifier"))))
+                                                        "id"))))
                                           (input (@ (hidden "")
                                                     (value ,(assoc-ref u
-                                                             "identifier"))))
+                                                             "id"))))
                                           (div ,(input #:label (G_ "username")
                                                        #:value (assoc-ref u
                                                                 "username")
