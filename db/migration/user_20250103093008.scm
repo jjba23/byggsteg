@@ -47,6 +47,6 @@
              "`(byggsteg:modify-permissions
                                              byggsteg:job-create byggsteg:job-delete
                                              byggsteg:profile-create byggsteg:profile-delete
-                                             byggsteg:users-create byggsteg:users-delete)")
+                                             byggsteg:user-create byggsteg:user-delete)")
             (display "done.\n"))
 
