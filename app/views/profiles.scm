@@ -132,7 +132,7 @@
                                                         px-6
                                                         align-center
                                                         whitespace-break-spaces))))
-                                 ,(h2 (G_ "profiles"))
+                                 ,(h1 (G_ "profiles"))
                                  (div (@ (class ,(mk-class '(w-full rounded-xl
                                                              bg-stone-200
                                                              dark:bg-stone-900
@@ -141,7 +141,7 @@
                                                              gap-4
                                                              shadow-lg
                                                              my-6
-                                                             py-6
+                                                             py-8
                                                              px-6
                                                              align-center))))
                                       ,profiles-html)

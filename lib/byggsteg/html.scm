@@ -124,10 +124,17 @@
          (div (@ (class ,(mk-class '(px-4 py-1 w-full md:w-min))))
               (a (@ (href "/")
                     (class ,(mk-class '(flex flex-row gap-2 items-center))))
-                 ,(icon #:type 'gear-fine
-                        #:icon-css '(text-xl text-stone-800
-                                             dark:text-stone-200))
-                 ,(h3 "byggsteg")))
+                 ,(sub-h3 (list (icon #:type 'gear-fine
+                                      #:icon-css '(text-xl text-stone-700
+                                                   dark:text-stone-200
+                                                   hover:text-orange-800
+                                                   hover:dark:text-orange-300))
+                                "&nbsp;"
+                                (G_ "byggsteg"))
+                          #:color '(text-stone-700 dark:text-stone-200
+                                                   hover:text-orange-800
+                                                   hover:dark:text-orange-300)
+                          #:size '(text-xl lg:text-2xl))))
          (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                           gap-3))))
               ,(if (not is-logged-in)
@@ -311,7 +318,7 @@
                    (span ,(icon #:type 'scroll
                                 #:icon-css '(text-xl text-stone-800
                                                      dark:text-stone-200)))
-                   ,(h3 log-filename
+                   ,(h4 log-filename
                         #:color '(text-stone-700 hover:text-orange-600
                                                  dark:text-stone-300
                                                  hover:dark:text-orange-300))))
@@ -329,7 +336,10 @@
                  (href ,profiles-link))
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center))))
                    (span ,(icon #:type 'code))
-                   (span ,(unescape-str (assoc-ref profile "human_id")))))))))
+                   ,(h4 (unescape-str (assoc-ref profile "human_id"))
+                        #:color '(text-stone-700 hover:text-orange-600
+                                                 dark:text-stone-300
+                                                 hover:dark:text-orange-300))))))))
 
 (define-syntax-rule (if-job-was-updated-html job html)
   "Render HTML conditionally for jobs that contain updated_at field"
@@ -337,5 +347,4 @@
     ((equal? (assoc-ref job "updated_at") #f)
      '())
     (else html)))
-
 

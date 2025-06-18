@@ -140,8 +140,8 @@
                                                                          dark:hover:text-orange-400))))
                                                   ,(G_
                                                     "inspect the job's lambda expression"))))
-                              ,(pre detail-data))
-                     ,(pre log-data))))
+                              ,(pre detail-data #:size '(text-sm md:text-md)))
+                     ,(pre log-data  #:size '(text-sm md:text-md)))))
     
     (html-template G_
                    #:title "byggsteg"
