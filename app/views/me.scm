@@ -67,7 +67,7 @@
                               (div (@ (class ,(mk-class '(max-w-prose))))
                                    ,(em (G_
                                          "tip: if your session permissions don't match the DB consider logging out and logging in again"))))))
-         (has-modify-permissions (member 'lucidplan:modify-permissions
+         (has-modify-permissions (member 'byggsteg:modify-permissions
                                          (assoc-ref token
                                                     'owner-permissions)))
          (session-duration `((div (@ (class ,(mk-class '(py-8 px-4))))
