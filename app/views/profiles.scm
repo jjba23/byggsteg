@@ -54,7 +54,7 @@
                                (enctype application/x-www-form-urlencoded)
                                (charset utf-8))
 
-                            ,(textarea (@ (id job-code)
+                            (textarea (@ (id job-code)
                                          (name job-code)
                                          (required "")
                                          (hidden ""))
