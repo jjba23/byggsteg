@@ -27,6 +27,7 @@
         (curl)
         (byggsteg url)
         (uuid generate)
+        (byggsteg query-escape)
         (rnrs bytevectors)
         (json)
         (artanis security nss)
@@ -84,10 +85,7 @@
                               #:order-by '(username asc))))
            (response-emit (:mime rc
                                  (users-page (:i18n rc)
-                                             #:users users
-                                             #:token t
-                                             #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg"))))))
+                                             #:users users)))))
 
        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                           #:needed-permissions '(byggsteg:modify-permissions)
@@ -168,34 +166,9 @@
                                                       'owner-id)))
                       ($user 'get
                              #:ret 'top
-                             #:condition (where #:email (uri-decode (car email))))))
-               (_ ($password_reset 'mod
-                                   'row-delete
-                                   (where #:user_id (assoc-ref (car u) "id"))))
-               (reset-token (base16-encode (format #f "~a-~a-~a"
-                                                   (generate-string-uuid)
-                                                   (generate-string-uuid)
-                                                   (generate-string-uuid))))
-               (pr ($password_reset 'set
-                                    #:user_id (assoc-ref (car u) "id")
-                                    #:reset_token reset-token
-                                    #:created_at (current-time)))
-               (mail-payload `((task-type . send-email)
-                               (template . password-reset)
-                               (template-vars (system-name . Byggsteg)
-                                              (user unquote
-                                                    (assoc-ref (car u) "email"))
-                                              (reset-link unquote
-                                                          (format #f
-                                                           "~a/password/reset/token/~a"
-                                                           (current-myhost)
-                                                           reset-token)))
-                               (sender-name . "No Reply - Byggsteg")
-                               (sender-address . "noreply@byggsteg.jointhefreeworld.org")
-                               (subject . "Byggsteg - Password Reset")
-                               (recipients . #(((name unquote (assoc-ref (car u) "username")) (address unquote (assoc-ref (car u) "email"))))))))
+                             #:condition (where #:email (uri-decode (car email)))))))
           
-          (send-to-pingwing #:body mail-payload)
+          (request-password-reset u)
           (redirect-to rc
                        (string->uri (format #f "~a/?sent-password-reset=true"
                                             (current-myhost)))
@@ -250,3 +223,187 @@
                                      "~a/login?has-reset-password=true"
                                      (current-myhost)))
                        #:status 302))))
+
+(define (request-password-reset u)
+  (let* ((_ ($password_reset 'mod
+                             'row-delete
+                             (where #:user_id (assoc-ref (car u) "id"))))
+         (reset-token (base16-encode (format #f "~a-~a-~a"
+                                             (generate-string-uuid)
+                                             (generate-string-uuid)
+                                             (generate-string-uuid))))
+         (pr ($password_reset 'set
+                              #:user_id (assoc-ref (car u) "id")
+                              #:reset_token reset-token
+                              #:created_at (current-time)))
+         (mail-payload `((task-type . send-email) (template . password-reset)
+                         (template-vars (system-name . Byggsteg)
+                                        (user unquote
+                                              (assoc-ref (car u) "email"))
+                                        (reset-link unquote
+                                                    (format #f
+                                                     "~a/password/reset/token/~a"
+                                                     (current-myhost)
+                                                     reset-token)))
+                         (sender-name . "No Reply - Byggsteg")
+                         (sender-address . "noreply@byggsteg.jointhefreeworld.org")
+                         (subject . "Byggsteg - Password Reset")
+                         (recipients . #(((name unquote (assoc-ref (car u) "username")) (address unquote (assoc-ref (car u) "email"))))))))
+    (send-to-pingwing #:body mail-payload)))
+
+(get "/users/new"
+     #:mime 'xml
+     #:i18n '(cookie "lang")
+     #:cookies '(names x-bewaking-byggsteg)
+     (lambda (rc)
+       (define (go-to-new-user)
+         (let* ((t (decrypt-token #:token (:cookies-value rc
+                                           "x-bewaking-byggsteg")
+                                  #:encryption-key encryption-key
+                                  #:signing-key signing-key))
+                (user ($user 'get
+                             #:ret 'top
+                             #:condition (where #:id (assoc-ref t
+                                                                'owner-id))))
+                (users ($user 'get
+                              #:ret 'all
+                              #:order-by '(username asc))))
+           (response-emit (:mime rc
+                                 (new-user-page (:i18n rc))))))
+
+       (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                          #:needed-permissions '(byggsteg:modify-permissions)
+                          #:rc rc
+                          #:happy-flow go-to-new-user
+                          #:unhappy-flow back-to-login)))
+
+(get "/users/edit/:id"
+     #:mime 'xml
+     #:i18n '(cookie "lang")
+     #:cookies '(names x-bewaking-byggsteg)
+     (lambda (rc)
+       (define (go-to-edit-user)
+         (let* ((user (car ($user 'get
+                                  #:ret 'top
+                                  #:condition (where #:id (params rc "id"))))))
+           (response-emit (:mime rc
+                                 (edit-user-page (:i18n rc) user)))))
+
+       (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                          #:needed-permissions '(byggsteg:modify-permissions)
+                          #:rc rc
+                          #:happy-flow go-to-edit-user
+                          #:unhappy-flow back-to-login)))
+
+(define (from-checkbox body n)
+  (if (assoc-ref (read-url-encoded-body body)
+                 (uri-encode (symbol->string n))) n #f))
+(post "/users/new"
+      #:cookies '(names x-bewaking-byggsteg)
+      (lambda (rc)
+        (define (do-new-user)
+          (let* ((existing-token (if (:cookies-value rc "x-bewaking-byggsteg")
+                                     (decrypt-token #:token (:cookies-value rc
+                                                             "x-bewaking-byggsteg")
+                                                    #:encryption-key
+                                                    encryption-key
+                                                    #:signing-key signing-key)
+                                     #f))
+                 (body (rc-body rc))
+                 (kv (read-url-encoded-body body))
+                 (username (escape-str (uri-decode (car (assoc-ref kv
+                                                                   "username")))))
+                 (email (escape-str (uri-decode (car (assoc-ref kv "email")))))
+                 (permissions (filter (lambda (p)
+                                        (not (equal? #f p)))
+                                      (map (lambda (p)
+                                             (from-checkbox body p))
+                                           '(byggsteg:job-create
+                                             byggsteg:job-delete
+                                             byggsteg:profile-create
+                                             byggsteg:profile-delete
+                                             byggsteg:user-create
+                                             byggsteg:user-delete
+                                             byggsteg:modify-permissions))))
+                 (new-id (generate-string-uuid))
+                 (_ ($user 'set
+                           #:id new-id
+                           #:username username
+                           #:email email
+                           #:password ""
+                           #:salt ""
+                           #:permissions (format #f "`~s" permissions)))
+                 (u ($user 'get
+                           #:ret 'top
+                           #:condition (where #:id new-id))))
+            (write u)
+            (request-password-reset u)
+            (redirect-to rc
+                         (string->uri (format #f
+                                              "~a/users/manage/?created=true"
+                                              (current-myhost)))
+                         #:status 302)))
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                           #:needed-permissions '(byggsteg:modify-permissions)
+                           #:rc rc
+                           #:happy-flow do-new-user
+                           #:unhappy-flow back-to-login)))
+
+(post "/users/delete"
+      #:cookies '(names x-bewaking-byggsteg)
+      (lambda (rc)
+        (define (do-delete-user)
+          (let* ((body (rc-body rc))
+                 (id (assoc-ref (read-url-encoded-body body) "id"))
+                 (_ ($user 'mod
+                           'row-delete
+                           (where #:id id))))
+            (redirect-to rc
+                         (string->uri (format #f
+                                              "~a/users/manage/?deleted=true"
+                                              (current-myhost)))
+                         #:status 302)))
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                           #:needed-permissions '(byggsteg:modify-permissions)
+                           #:rc rc
+                           #:happy-flow do-delete-user
+                           #:unhappy-flow back-to-login)))
+
+(post "/users/edit/:id"
+      #:cookies '(names x-bewaking-byggsteg)
+      (lambda (rc)
+        (define (do-edit-user)
+          (let* ((body (rc-body rc))
+                 (kv (read-url-encoded-body body))
+                 (username (escape-str (uri-decode (car (assoc-ref kv
+                                                                   "username")))))
+                 (email (escape-str (uri-decode (car (assoc-ref kv "email")))))
+                 (permissions (filter (lambda (p)
+                                        (not (equal? #f p)))
+                                      (map (lambda (p)
+                                             (from-checkbox body p))
+                                           '(byggsteg:job-create
+                                             byggsteg:job-delete
+                                             byggsteg:profile-create
+                                             byggsteg:profile-delete
+                                             byggsteg:user-create
+                                             byggsteg:user-delete
+                                             byggsteg:modify-permissions))))
+                 (_ (DB-query (DB-open rc)
+                              (->sql update
+                                     'users set
+                                     `((username ,username)
+                                       (email ,email)
+                                       (permissions ,(format #f "`~s"
+                                                             permissions)))
+                                     (where #:id (params rc "id"))))))
+            (redirect-to rc
+                         (string->uri (format #f
+                                              "~a/users/manage/?edited=true"
+                                              (current-myhost)))
+                         #:status 302)))
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                           #:needed-permissions '(byggsteg:modify-permissions)
+                           #:rc rc
+                           #:happy-flow do-edit-user
+                           #:unhappy-flow back-to-login)))

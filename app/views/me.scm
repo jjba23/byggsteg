@@ -25,7 +25,8 @@
   #:use-module (ice-9 i18n)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun)
-  #:export (me-page users-page reset-password-page))
+  #:export (me-page users-page reset-password-page new-user-page
+                    edit-user-page))
 
 (define* (me-page G_
                   #:key is-logged-in token user)
@@ -134,16 +135,43 @@
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "permissions"))
               ,(mono (assoc-ref u "permissions")
-                     #:size '(text-xs))))
+                     #:size '(text-xs)))
+         (div (@ (class ,(mk-class '(flex flex-row gap-3))))
+              (div (@ (class ,(mk-class '(flex flex-row gap-3 flex-wrap))))
+                   (form (@ (method POST)
+                            (action "/users/delete"))
+                         (input (@ (name id)
+                                   (value ,(assoc-ref u "id"))
+                                   (hidden "")))
+                         ,(button (G_ "delete")
+                                  #:on-click (format #f
+                                              "return confirm('~a: ~a')"
+                                              (assoc-ref u "email")
+                                              (G_
+                                               "are you sure you want to delete this user?"))
+                                  #:type 'submit
+                                  #:background '(bg-red-700)
+                                  #:color '(text-stone-200)
+                                  #:hover-background '(hover:bg-red-900)))
+                   (a (@ (href ,(format #f "/users/edit/~a"
+                                        (assoc-ref u "id"))))
+                      ,(icon-button #:icon 'pencil
+                                    #:content (G_ "edit")))))
+
+         )
     ,(hr)))
 
 (define* (users-page G_
-                     #:key users token is-logged-in)
+                     #:key users)
   (html-template G_
                  #:title "byggsteg"
-                 #:is-logged-in is-logged-in
+                 #:is-logged-in #t
                  #:body `((div (@ (class ,(mk-class '(container mx-auto))))
                                ,(h2 (G_ "User management"))
+                               (div (@ (class ,(mk-class '(my-6))))
+                                    (a (@ (href "/users/new"))
+                                       ,(icon-button #:icon 'user-plus
+                                                     #:content (G_ "new user"))))
                                (div (@ (class ,(mk-class '(flex flex-col
                                                            gap-4
                                                            my-8
@@ -193,3 +221,144 @@
                                                   #:type 'password
                                                   #:required #t)
                                           (div ,(submit-button (G_ "reset")))))))))
+
+(define (make-permission-checkbox p)
+  `((div ,(input #:type 'checkbox
+                 #:input-flex-css '(my-2 flex flex-row gap-1)
+                 #:label (format #f "~a" p)
+                 #:name (format #f "~a" p)))))
+
+(define* (new-user-page G_)
+  (html-template G_
+                 #:title "byggsteg"
+                 #:is-logged-in #t
+                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                               (div ,(h2 (G_ "New User")))
+                               (div (@ (class ,(mk-class '(flex flex-col
+                                                           gap-4
+                                                           my-8
+                                                           py-8
+                                                           px-4
+                                                           rounded-xl
+                                                           bg-stone-200
+                                                           dark:bg-stone-900))))
+                                    (form (@ (method POST)
+                                             (action "/users/new"))
+                                          (div ,(input #:label (G_ "username")
+                                                       #:name 'username
+                                                       #:required #t))
+                                          (div ,(input #:label (G_ "email")
+                                                       #:name 'email
+                                                       #:type 'email
+                                                       #:required #t))
+                                          (div (@ (class ,(mk-class '(my-6))))
+                                               ,(sub-h4 (G_ "user permissions"))
+                                               (div (@ (class ,(mk-class '(flex
+                                                                           flex-col
+                                                                           gap-1))))
+
+                                                    ,(map
+                                                      make-permission-checkbox
+                                                      '(byggsteg:job-create
+                                                        byggsteg:job-delete
+                                                        byggsteg:profile-create
+                                                        byggsteg:profile-delete
+                                                        byggsteg:user-create
+                                                        byggsteg:user-delete
+                                                        byggsteg:modify-permissions)))
+                                               (div ,(submit-button (G_
+                                                                     "create"))))))))))
+
+(define* (make-edit-permission-checkbox p
+                                        #:key label
+                                        name
+                                        (type 'checkbox)
+                                        (checked #f)
+                                        (input-css '(p-3 max-w-prose
+                                                     rounded-xl
+                                                     border-stone-200
+                                                     dark:border-stone-700
+                                                     dark:text-stone-300
+                                                     bg-stone-200/75
+                                                     dark:bg-stone-700/75
+                                                     border-2
+                                                     shadow-md))
+                                        (label-css '(text-sm font-bold
+                                                     text-stone-600
+                                                     dark:text-stone-300))
+                                        (input-flex-css '(my-2 flex flex-row
+                                                               gap-1)))
+  
+  `((div (@ (class ,(mk-class input-flex-css)))
+         (label (@ (class ,(mk-class label-css))
+                   (for ,name))
+                ,label)
+         (input (@ (class ,(mk-class input-css))
+                   (name ,name)
+                   ,(if checked
+                        '(checked "")
+                        '(not-checked ""))
+                   (type ,(symbol->string type))) ""))))
+
+(define* (edit-user-page G_ u)
+  (html-template G_
+                 #:title "byggsteg"
+                 #:is-logged-in #t
+                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                               (div ,(h2 (G_ "Edit User")))
+                               (div (@ (class ,(mk-class '(flex flex-col
+                                                           gap-4
+                                                           my-8
+                                                           py-8
+                                                           px-4
+                                                           rounded-xl
+                                                           bg-stone-200
+                                                           dark:bg-stone-900))))
+                                    (form (@ (method POST)
+                                             (action ,(format #f
+                                                       "/users/edit/~a"
+                                                       (assoc-ref u
+                                                        "identifier"))))
+                                          (input (@ (hidden "")
+                                                    (value ,(assoc-ref u
+                                                             "identifier"))))
+                                          (div ,(input #:label (G_ "username")
+                                                       #:value (assoc-ref u
+                                                                "username")
+                                                       #:name 'username
+                                                       #:required #t))
+                                          (div ,(input #:label (G_ "email")
+                                                       #:name 'email
+                                                       #:value (assoc-ref u
+                                                                "email")
+                                                       #:type 'email
+                                                       #:required #t))
+                                          (div (@ (class ,(mk-class '(my-6))))
+                                               ,(sub-h4 (G_ "user permissions"))
+                                               (div (@ (class ,(mk-class '(flex
+                                                                           flex-col
+                                                                           gap-1))))
+
+                                                    ,(map (lambda (p)
+                                                            (make-edit-permission-checkbox
+                                                             p
+                                                             #:label (symbol->string
+                                                                      p)
+                                                             #:name p
+                                                             #:checked (not (nil?
+                                                                             (member
+                                                                              p
+
+                                                                              
+                                                                              (eval-string
+                                                                               (assoc-ref
+                                                                                u
+                                                                                "permissions")))))))
+                                                          '(byggsteg:job-create
+                                                            byggsteg:job-delete
+                                                            byggsteg:profile-create
+                                                            byggsteg:profile-delete
+                                                            byggsteg:user-create
+                                                            byggsteg:user-delete
+                                                            byggsteg:modify-permissions)))
+                                               (div ,(submit-button (G_ "edit"))))))))))
