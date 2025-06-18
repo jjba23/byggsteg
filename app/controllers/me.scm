@@ -391,7 +391,7 @@
                                              byggsteg:modify-permissions))))
                  (_ (DB-query (DB-open rc)
                               (->sql update
-                                     'users set
+                                     'user set
                                      `((username ,username)
                                        (email ,email)
                                        (permissions ,(format #f "`~s"
