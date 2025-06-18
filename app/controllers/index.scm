@@ -28,10 +28,13 @@
 (get "/"
      #:i18n '(cookie "lang")
      #:mime 'xml
+     #:cookies '(names x-bewaking-byggsteg lang)
      (lambda (rc)
        (response-emit (:mime rc
                              (welcome-page rc
                                            #:is-logged-in (:cookies-value rc
-                                                           "x-bewaking-byggsteg"))))))
+                                                           "x-bewaking-byggsteg")
+                                           #:selected-locale (:cookies-value
+                                                              rc "lang"))))))
 
 (get "/robots.txt" static-page-emitter)

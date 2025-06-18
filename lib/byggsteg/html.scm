@@ -232,26 +232,30 @@
             #:name 'profile-name))
     (else `())))
 
-(define (locale-choose-form G_)
-  `(div (@ (class ,(mk-class '(mt-2))))
-        (form (@ (action "/preferences/locale")
-                 (enctype application/x-www-form-urlencoded)
-                 (method POST)
-                 (class ,(mk-class '(flex flex-row gap-4 flex-wrap))))
-              (select (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900
-                                                          px-4
-                                                          py-2
-                                                          rounded-xl
-                                                          text-stone-900
-                                                          dark:text-stone-100)))
-                         (name user-lang))
-                      (option (@ (value en_US)) "English")
-                      (option (@ (value nl_NL)) "Nederlands")
-                      (option (@ (value es_ES)) "Español"))
-              (button (@ (type submit)
-                         (class ,(mk-class '(text-white bg-orange-600
-                                                        rounded-xl p-1))))
-                      "&nbsp;✓&nbsp;"))))
+(define* (locale-choose-form G_
+                             #:key selected-locale)
+  `((div (@ (class ,(mk-class '(mt-2))))
+         (form (@ (action "/preferences/locale")
+                  (enctype application/x-www-form-urlencoded)
+                  (method POST)
+                  (class ,(mk-class '(flex flex-row gap-4 flex-wrap))))
+               ,(select #:name 'user-lang
+                        #:options (list (option #:value 'en_US
+                                                #:content "English (US)"
+                                                #:selected-value
+                                                selected-locale)
+                                        (option #:value 'nl_NL
+                                                #:content "Nederlands"
+                                                #:selected-value
+                                                selected-locale)
+                                        (option #:value 'es_ES
+                                                #:content "Español"
+                                                #:selected-value
+                                                selected-locale)))
+               (button (@ (type submit)
+                          (class ,(mk-class '(text-white bg-orange-600
+                                                         rounded-xl p-1))))
+                       "&nbsp;✓&nbsp;")))))
 
 (define (job-form G_ route is-profile)
   `(form (@ (method POST)

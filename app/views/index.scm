@@ -85,10 +85,15 @@
              "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))
 
 (define* (welcome-page rc
-                       #:key is-logged-in)
+                       #:key is-logged-in selected-locale)
   (let* ((G_ (:i18n rc))
          (welcome-html `((div ,(h2 (G_ "welcome to byggsteg")))
-                         ,(locale-choose-form G_)
+                         ,(locale-choose-form G_
+                                              #:selected-locale (if
+                                                                 selected-locale
+                                                                 (string->symbol
+                                                                  selected-locale)
+                                                                 'en_US))
                          (div (@ (class ,(mk-class '(my-6 p-6
                                                           flex
                                                           flex-row

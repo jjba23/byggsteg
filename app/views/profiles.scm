@@ -90,7 +90,8 @@
                                   #:value profile-data
                                   #:textarea-css '(p-3 rounded-xl
                                                        font-mono
-                                                       text-sm md:text-md
+                                                       text-sm
+                                                       md:text-md
                                                        border-stone-200
                                                        dark:border-stone-700
                                                        dark:text-stone-300
