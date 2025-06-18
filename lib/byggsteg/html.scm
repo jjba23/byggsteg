@@ -130,7 +130,7 @@
                                                    hover:text-orange-800
                                                    hover:dark:text-orange-300))
                                 "&nbsp;"
-                                (G_ "byggsteg"))
+                                (G_ "Byggsteg"))
                           #:color '(text-stone-700 dark:text-stone-200
                                                    hover:text-orange-800
                                                    hover:dark:text-orange-300)
