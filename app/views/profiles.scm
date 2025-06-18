@@ -54,7 +54,7 @@
                                (enctype application/x-www-form-urlencoded)
                                (charset utf-8))
 
-                            (textarea (@ (id job-code)
+                            ,(textarea (@ (id job-code)
                                          (name job-code)
                                          (required "")
                                          (hidden ""))
@@ -90,7 +90,7 @@
                                   #:value profile-data
                                   #:textarea-css '(p-3 rounded-xl
                                                        font-mono
-                                                       text-lg
+                                                       text-sm md:text-md
                                                        border-stone-200
                                                        dark:border-stone-700
                                                        dark:text-stone-300
