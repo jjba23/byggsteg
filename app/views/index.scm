@@ -18,8 +18,6 @@
 
 (define-module (app views index)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg url)
-  #:use-module (byggsteg process)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg html)
   #:use-module (ice-9 i18n)
@@ -30,6 +28,7 @@
   #:use-module (artanis i18n locale)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun)
+  #:use-module (kracht prelude)
   #:export (welcome-page))
 
 (define (job-type-expl G_)

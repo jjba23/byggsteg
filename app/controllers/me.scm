@@ -25,9 +25,8 @@
         (byggsteg auth)
         (app views me)
         (curl)
-        (byggsteg url)
+        (kracht prelude)
         (uuid generate)
-        (byggsteg query-escape)
         (rnrs bytevectors)
         (json)
         (artanis security nss)
@@ -156,9 +155,9 @@
                                                   encryption-key
                                                   #:signing-key signing-key)
                                    #f))
-               (body (rc-body rc))
+               (body (alist-from-url-encoded-body (rc-body rc)))
                (email (if (not body) #f
-                          (assoc-ref (read-url-encoded-body body) "email")))
+                          (assoc-ref body "email")))
                (u (if (not email)
                       ($user 'get
                              #:ret 'top
@@ -166,7 +165,7 @@
                                                       'owner-id)))
                       ($user 'get
                              #:ret 'top
-                             #:condition (where #:email (uri-decode (car email)))))))
+                             #:condition (where #:email email)))))
           
           (request-password-reset u)
           (redirect-to rc
@@ -311,9 +310,9 @@
                                      #f))
                  (body (rc-body rc))
                  (kv (read-url-encoded-body body))
-                 (username (escape-str (uri-decode (car (assoc-ref kv
+                 (username (html-escape (uri-decode (car (assoc-ref kv
                                                                    "username")))))
-                 (email (escape-str (uri-decode (car (assoc-ref kv "email")))))
+                 (email (html-escape (uri-decode (car (assoc-ref kv "email")))))
                  (permissions (filter (lambda (p)
                                         (not (equal? #f p)))
                                       (map (lambda (p)
@@ -375,9 +374,9 @@
         (define (do-edit-user)
           (let* ((body (rc-body rc))
                  (kv (read-url-encoded-body body))
-                 (username (escape-str (uri-decode (car (assoc-ref kv
+                 (username (html-escape (uri-decode (car (assoc-ref kv
                                                                    "username")))))
-                 (email (escape-str (uri-decode (car (assoc-ref kv "email")))))
+                 (email (html-escape (uri-decode (car (assoc-ref kv "email")))))
                  (permissions (filter (lambda (p)
                                         (not (equal? #f p)))
                                       (map (lambda (p)

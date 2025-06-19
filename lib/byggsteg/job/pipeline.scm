@@ -18,9 +18,8 @@
 
 (define-module (byggsteg job pipeline)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg process)
   #:use-module (byggsteg job steps)
-  #:use-module (byggsteg query-escape)
+  #:use-module (kracht prelude)
   #:use-module (artanis artanis)
   #:use-module (app models log)
   #:use-module (app models job)
@@ -138,8 +137,8 @@
 
 (begin
   (define* (job-pipeline #:key job log)
-    (let* ((old-log-data (unescape-str (assoc-ref log "log_data")))
-           (kv-thunk (eval-string (unescape-str (assoc-ref job "job_data"))))
+    (let* ((old-log-data (html-unescape (assoc-ref log "log_data")))
+           (kv-thunk (eval-string (html-unescape (assoc-ref job "job_data"))))
            (kv (kv-thunk))
            (project (assoc-ref kv
                                'project))
@@ -192,7 +191,7 @@
         (DB-query (get-conn-from-pool!)
                   (->sql update
                          'log set
-                         `((log_data ,(escape-str new-log-data))
+                         `((log_data ,(html-escape new-log-data))
                            (updated_at ,(current-time)))
                          (where #:id (assoc-ref log "id"))))
 

@@ -19,7 +19,7 @@
 (define-artanis-controller prefs)
 
 (import (byggsteg html)
-        (byggsteg url)
+        (kracht prelude)
         (web uri)
         (byggsteg auth))
 

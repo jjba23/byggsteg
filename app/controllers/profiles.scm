@@ -19,14 +19,12 @@
 (define-artanis-controller profiles)
 
 (import (byggsteg html)
-        (byggsteg url)
         (byggsteg env)
         (web uri)
-        (byggsteg process)
         (uuid generate)
         (byggsteg auth)
         (byggsteg preferences)
-        (byggsteg query-escape)
+        (kracht prelude)
         (app views profiles)
         (app models profile)
         (artanis i18n)
@@ -81,7 +79,7 @@
                  (new-uuid (generate-string-uuid))
                  (found-profile ($profile 'get
                                           #:ret 'top
-                                          #:condition (where #:human_id (escape-str
+                                          #:condition (where #:human_id (html-escape
                                                                          profile-name)))))
             
             (cond
@@ -89,9 +87,9 @@
                (DB-query (DB-open rc)
                          (->sql update
                                 'profile set
-                                `((profile_data ,(escape-str profile-data))
+                                `((profile_data ,(html-escape profile-data))
                                   (updated_at ,(current-time)))
-                                (where #:human_id (escape-str profile-name))))
+                                (where #:human_id (html-escape profile-name))))
                (redirect-to rc
                             (string->uri (format #f "~a/profiles/~a"
                                                  (current-myhost)
@@ -99,8 +97,8 @@
                             #:status 302))
               (else ($profile 'set
                               #:id new-uuid
-                              #:human_id (escape-str profile-name)
-                              #:profile_data (escape-str profile-data)
+                              #:human_id (html-escape profile-name)
+                              #:profile_data (html-escape profile-data)
                               #:created_at (current-time))
                     (redirect-to rc
                                  (string->uri (format #f "~a/profiles/~a"

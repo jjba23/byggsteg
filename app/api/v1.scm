@@ -21,10 +21,9 @@
 (import (ice-9 string-fun)
         (byggsteg preferences)
         (byggsteg auth)
-        (byggsteg url)
         (uuid generate)
         (ice-9 textual-ports)
-        (byggsteg query-escape)
+        (kracht prelude)
         (byggsteg job pipeline)
         (byggsteg base64)
         (byggsteg env)
@@ -51,8 +50,8 @@
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (escape-str log-filename)
-                  #:job_data (escape-str job-code)
+                  #:human_id (html-escape log-filename)
+                  #:job_data (html-escape job-code)
                   #:job_success 0
                   #:job_in_progress 1
                   #:job_failed 0
@@ -60,7 +59,7 @@
 
             ($log 'set
                   #:id new-log-uuid
-                  #:human_id (escape-str log-filename)
+                  #:human_id (html-escape log-filename)
                   #:job_id new-job-uuid
                   #:log_data ""
                   #:created_at (current-time))
@@ -68,7 +67,7 @@
             (:mime rc
                    `((log-id unquote new-log-uuid)
                      (human-id unquote
-                               (escape-str log-filename))))))
+                               (html-escape log-filename))))))
 
         (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
                                #:needed-permissions '(byggsteg:job-create)
@@ -97,10 +96,10 @@
                   (human-id unquote
                             (assoc-ref (car l) "human_id"))
                   (log-data unquote
-                            (base64-encode (unescape-str (assoc-ref (car l)
+                            (base64-encode (html-unescape (assoc-ref (car l)
                                                           "log_data"))))
                   (job-data unquote
-                            (base64-encode (unescape-str (assoc-ref (car j)
+                            (base64-encode (html-unescape (assoc-ref (car j)
                                                           "job_data")))))))))
 
 (post "/api/v1/login"

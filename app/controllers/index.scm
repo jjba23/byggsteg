@@ -19,7 +19,6 @@
 (define-artanis-controller index)
 
 (import (byggsteg html)
-        (byggsteg url)
         (web uri)
         (artanis i18n)
         (artanis i18n locale)

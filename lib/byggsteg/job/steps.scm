@@ -18,7 +18,7 @@
 
 (define-module (byggsteg job steps)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg process)
+  #:use-module (kracht prelude)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)

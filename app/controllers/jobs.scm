@@ -19,14 +19,12 @@
 (define-artanis-controller jobs)
 
 (import (byggsteg html)
-        (byggsteg url)
         (byggsteg env)
         (web uri)
         (byggsteg preferences)
-        (byggsteg auth)
-        (byggsteg process)
+        (byggsteg auth)        
         (uuid generate)
-        (byggsteg query-escape)
+        (kracht prelude)
         (byggsteg job pipeline)
         (ice-9 string-fun)
         (app models job)
@@ -62,8 +60,8 @@
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (escape-str project)
-                  #:job_data (escape-str job-code)
+                  #:human_id (html-escape project)
+                  #:job_data (html-escape job-code)
                   #:job_success 0
                   #:job_in_progress 1
                   #:job_failed 0
@@ -71,7 +69,7 @@
 
             ($log 'set
                   #:id new-log-uuid
-                  #:human_id (escape-str project)
+                  #:human_id (html-escape project)
                   #:job_id new-job-uuid
                   #:log_data ""
                   #:created_at (current-time))

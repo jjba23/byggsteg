@@ -18,8 +18,7 @@
 
 (define-module (app views jobs)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg url)
-  #:use-module (byggsteg process)
+  #:use-module (kracht prelude)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg html)
   #:use-module (ice-9 i18n)
