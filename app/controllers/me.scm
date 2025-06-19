@@ -176,13 +176,11 @@
 (post "/password/do-reset"
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
-        (let* ((body (rc-body rc))
-               (kv (read-url-encoded-body body))
-               (email (uri-decode (car (assoc-ref kv "email"))))
-               (reset-token (uri-decode (car (assoc-ref kv "reset-token"))))
-               (new-password (uri-decode (car (assoc-ref kv "new-password"))))
-               (confirm-password (uri-decode (car (assoc-ref kv
-                                                   "confirm-password"))))
+        (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+               (email (assoc-ref body "email"))
+               (reset-token (assoc-ref body "reset-token"))
+               (new-password (assoc-ref body "new-password"))
+               (confirm-password (assoc-ref body "confirm-password"))
                (tt (car ($password_reset 'get
                                          #:ret 'top
                                          #:condition (where #:reset_token
@@ -295,8 +293,8 @@
                           #:unhappy-flow back-to-login)))
 
 (define (from-checkbox body n)
-  (if (assoc-ref (read-url-encoded-body body)
-                 (uri-encode (symbol->string n))) n #f))
+  (if (assoc-ref body (symbol->string n)) n #f))
+
 (post "/users/new"
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
@@ -308,11 +306,9 @@
                                                     encryption-key
                                                     #:signing-key signing-key)
                                      #f))
-                 (body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (username (html-escape (uri-decode (car (assoc-ref kv
-                                                                   "username")))))
-                 (email (html-escape (uri-decode (car (assoc-ref kv "email")))))
+                 (body (alist-from-url-encoded-body (rc-body rc)))
+                 (username (html-escape (assoc-ref body "username")))
+                 (email (html-escape (assoc-ref body "email")))
                  (permissions (filter (lambda (p)
                                         (not (equal? #f p)))
                                       (map (lambda (p)
@@ -352,8 +348,8 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-delete-user)
-          (let* ((body (rc-body rc))
-                 (id (assoc-ref (read-url-encoded-body body) "id"))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (id (assoc-ref body "id"))
                  (_ ($user 'mod
                            'row-delete
                            (where #:id id))))
@@ -372,11 +368,9 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-edit-user)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (username (html-escape (uri-decode (car (assoc-ref kv
-                                                                   "username")))))
-                 (email (html-escape (uri-decode (car (assoc-ref kv "email")))))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (username (html-escape (assoc-ref body "username")))
+                 (email (html-escape (assoc-ref body "email")))                 
                  (permissions (filter (lambda (p)
                                         (not (equal? #f p)))
                                       (map (lambda (p)

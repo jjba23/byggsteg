@@ -71,11 +71,9 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-submit)
-          (let* ((body (rc-body rc))
-                 (kv (pk 'body
-                         (read-url-encoded-body body)))
-                 (profile-data (uri-decode (car (assoc-ref kv "job-code"))))
-                 (profile-name (car (assoc-ref kv "profile-name")))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (profile-data (assoc-ref body "job-code"))
+                 (profile-name (assoc-ref body "profile-name"))
                  (new-uuid (generate-string-uuid))
                  (found-profile ($profile 'get
                                           #:ret 'top
