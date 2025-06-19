@@ -293,7 +293,8 @@
                           #:unhappy-flow back-to-login)))
 
 (define (from-checkbox body n)
-  (if (assoc-ref body (symbol->string n)) n #f))
+  (if (assoc-ref body
+                 (symbol->string n)) n #f))
 
 (post "/users/new"
       #:cookies '(names x-bewaking-byggsteg)
@@ -370,7 +371,7 @@
         (define (do-edit-user)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  (username (html-escape (assoc-ref body "username")))
-                 (email (html-escape (assoc-ref body "email")))                 
+                 (email (html-escape (assoc-ref body "email")))
                  (permissions (filter (lambda (p)
                                         (not (equal? #f p)))
                                       (map (lambda (p)

@@ -317,11 +317,9 @@
                                     (form (@ (method POST)
                                              (action ,(format #f
                                                        "/users/edit/~a"
-                                                       (assoc-ref u
-                                                        "id"))))
+                                                       (assoc-ref u "id"))))
                                           (input (@ (hidden "")
-                                                    (value ,(assoc-ref u
-                                                             "id"))))
+                                                    (value ,(assoc-ref u "id"))))
                                           (div ,(input #:label (G_ "username")
                                                        #:value (assoc-ref u
                                                                 "username")

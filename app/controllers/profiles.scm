@@ -113,9 +113,8 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-delete)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (profile-id (assoc-ref body "profile-id")))
             
             ($profile 'mod
                       'row-delete

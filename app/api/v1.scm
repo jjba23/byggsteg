@@ -37,11 +37,11 @@
       #:mime 'json
       (lambda (rc)
         (define (do-submit)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (job-code (uri-decode (car (assoc-ref kv "job-code"))))
-                 (kvv-thunk (eval-string job-code))
-                 (kvv (kvv-thunk))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 ;; TODO add sandbox eval and validation here
+                 (job-code (assoc-ref kv "job-code"))
+                 (user-provided-thunk (eval-string job-code))
+                 (kvv (user-provided-thunk))
                  (project (assoc-ref kvv
                                      'project))
                  (new-job-uuid (generate-string-uuid))
@@ -97,18 +97,17 @@
                             (assoc-ref (car l) "human_id"))
                   (log-data unquote
                             (base64-encode (html-unescape (assoc-ref (car l)
-                                                          "log_data"))))
+                                                           "log_data"))))
                   (job-data unquote
                             (base64-encode (html-unescape (assoc-ref (car j)
-                                                          "job_data")))))))))
+                                                           "job_data")))))))))
 
 (post "/api/v1/login"
       #:mime 'json
       (lambda (rc)
-        (let* ((body (rc-body rc))
-               (kv (read-url-encoded-body body))
-               (email (uri-decode (car (assoc-ref kv "email"))))
-               (password (uri-decode (car (assoc-ref kv "password"))))
+        (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+               (email (assoc-ref body "email"))
+               (password (assoc-ref body "password"))
                (u ($user 'get
                          #:ret 'top
                          #:condition (where #:email email)))

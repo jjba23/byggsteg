@@ -22,7 +22,7 @@
         (byggsteg env)
         (web uri)
         (byggsteg preferences)
-        (byggsteg auth)        
+        (byggsteg auth)
         (uuid generate)
         (kracht prelude)
         (byggsteg job pipeline)
@@ -45,12 +45,11 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-submit)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  ;; TODO add sandbox eval and validation here
-                 (job-code (uri-decode (car (assoc-ref kv "job-code"))))
-                 (kvv-thunk (eval-string job-code))
-                 (kvv (kvv-thunk))
+                 (job-code (assoc-ref body "job-code"))
+                 (user-provided-thunk (eval-string job-code))
+                 (kvv (user-provided-thunk))
                  (project (assoc-ref kvv
                                      'project))
                  (new-job-uuid (generate-string-uuid))
@@ -87,10 +86,9 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-delete)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (job-id (uri-decode (car (assoc-ref kv "job-id"))))
-                 (log-id (uri-decode (car (assoc-ref kv "log-id")))))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (job-id (assoc-ref body "job-id"))
+                 (log-id (assoc-ref body "log-id")))
             
             ($job 'mod
                   'row-delete
