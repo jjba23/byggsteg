@@ -39,7 +39,7 @@
         (define (do-submit)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  ;; TODO add sandbox eval and validation here
-                 (job-code (assoc-ref kv "job-code"))
+                 (job-code (assoc-ref body "job-code"))
                  (user-provided-thunk (eval-string job-code))
                  (kvv (user-provided-thunk))
                  (project (assoc-ref kvv
