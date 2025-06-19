@@ -18,11 +18,9 @@
 
 (define-module (app views profiles)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg url)
-  #:use-module (byggsteg process)
   #:use-module (byggsteg tailwind)
   #:use-module (byggsteg html)
-  #:use-module (byggsteg query-escape)
+  #:use-module (kracht prelude)
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
@@ -35,8 +33,8 @@
 
 (define* (profile-page rc p
                        #:key is-logged-in)
-  (let* ((profile-name (unescape-str (assoc-ref p "human_id")))
-         (profile-data (unescape-str (assoc-ref p "profile_data")))
+  (let* ((profile-name (html-unescape (assoc-ref p "human_id")))
+         (profile-data (html-unescape (assoc-ref p "profile_data")))
          (G_ (:i18n rc))
          (body `((div (@ (class ,(mk-class '(flex flex-row
                                                   flex-wrap

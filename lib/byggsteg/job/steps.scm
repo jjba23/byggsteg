@@ -18,7 +18,7 @@
 
 (define-module (byggsteg job steps)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg process)
+  #:use-module (kracht prelude)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
@@ -46,7 +46,7 @@
   (let* ((command (format #f "cd ~a && ~a" clone-dir
                           (string-join cmds " && "))))
     (display-cmd command)
-    (syscall command)))
+    (display (syscall command))))
 
 (define* (stack-step #:key project branch-name stack-task)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
@@ -118,15 +118,15 @@
          (pull-cmd (format #f "cd ~a && git pull" clone-dir)))
     (cond
       (should-clone (display-cmd clone-cmd)
-                    (syscall clone-cmd))
+                    (display (syscall clone-cmd)))
       (else (display-cmd pull-cmd)
-            (syscall pull-cmd)))))
+            (display (syscall pull-cmd))))))
 
 (define* (trivial-step #:key project branch-name cmds)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (for-each (lambda (c)
                 (display-cmd c)
-                (syscall c)) cmds)))
+                (display (syscall c))) cmds)))
 
 (define* (byggsteg-version-step #:key project branch-name
                                 (daemon-name #f))
@@ -137,5 +137,5 @@
     (call-with-new-thread (lambda ()
                             (display-cmd cmd)
                             (sleep 2)
-                            (syscall cmd)))))
+                            (display (syscall cmd))))))
 

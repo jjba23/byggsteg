@@ -19,14 +19,12 @@
 (define-artanis-controller profiles)
 
 (import (byggsteg html)
-        (byggsteg url)
         (byggsteg env)
         (web uri)
-        (byggsteg process)
         (uuid generate)
         (byggsteg auth)
         (byggsteg preferences)
-        (byggsteg query-escape)
+        (kracht prelude)
         (app views profiles)
         (app models profile)
         (artanis i18n)
@@ -73,15 +71,13 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-submit)
-          (let* ((body (rc-body rc))
-                 (kv (pk 'body
-                         (read-url-encoded-body body)))
-                 (profile-data (uri-decode (car (assoc-ref kv "job-code"))))
-                 (profile-name (car (assoc-ref kv "profile-name")))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (profile-data (assoc-ref body "job-code"))
+                 (profile-name (assoc-ref body "profile-name"))
                  (new-uuid (generate-string-uuid))
                  (found-profile ($profile 'get
                                           #:ret 'top
-                                          #:condition (where #:human_id (escape-str
+                                          #:condition (where #:human_id (html-escape
                                                                          profile-name)))))
             
             (cond
@@ -89,9 +85,9 @@
                (DB-query (DB-open rc)
                          (->sql update
                                 'profile set
-                                `((profile_data ,(escape-str profile-data))
+                                `((profile_data ,(html-escape profile-data))
                                   (updated_at ,(current-time)))
-                                (where #:human_id (escape-str profile-name))))
+                                (where #:human_id (html-escape profile-name))))
                (redirect-to rc
                             (string->uri (format #f "~a/profiles/~a"
                                                  (current-myhost)
@@ -99,8 +95,8 @@
                             #:status 302))
               (else ($profile 'set
                               #:id new-uuid
-                              #:human_id (escape-str profile-name)
-                              #:profile_data (escape-str profile-data)
+                              #:human_id (html-escape profile-name)
+                              #:profile_data (html-escape profile-data)
                               #:created_at (current-time))
                     (redirect-to rc
                                  (string->uri (format #f "~a/profiles/~a"
@@ -117,9 +113,8 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-delete)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (profile-id (uri-decode (car (assoc-ref kv "profile-id")))))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (profile-id (assoc-ref body "profile-id")))
             
             ($profile 'mod
                       'row-delete

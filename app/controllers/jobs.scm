@@ -19,14 +19,12 @@
 (define-artanis-controller jobs)
 
 (import (byggsteg html)
-        (byggsteg url)
         (byggsteg env)
         (web uri)
         (byggsteg preferences)
         (byggsteg auth)
-        (byggsteg process)
         (uuid generate)
-        (byggsteg query-escape)
+        (kracht prelude)
         (byggsteg job pipeline)
         (ice-9 string-fun)
         (app models job)
@@ -47,12 +45,11 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-submit)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  ;; TODO add sandbox eval and validation here
-                 (job-code (uri-decode (car (assoc-ref kv "job-code"))))
-                 (kvv-thunk (eval-string job-code))
-                 (kvv (kvv-thunk))
+                 (job-code (assoc-ref body "job-code"))
+                 (user-provided-thunk (eval-string job-code))
+                 (kvv (user-provided-thunk))
                  (project (assoc-ref kvv
                                      'project))
                  (new-job-uuid (generate-string-uuid))
@@ -62,8 +59,8 @@
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (escape-str project)
-                  #:job_data (escape-str job-code)
+                  #:human_id (html-escape project)
+                  #:job_data (html-escape job-code)
                   #:job_success 0
                   #:job_in_progress 1
                   #:job_failed 0
@@ -71,7 +68,7 @@
 
             ($log 'set
                   #:id new-log-uuid
-                  #:human_id (escape-str project)
+                  #:human_id (html-escape project)
                   #:job_id new-job-uuid
                   #:log_data ""
                   #:created_at (current-time))
@@ -89,10 +86,9 @@
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-delete)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (job-id (uri-decode (car (assoc-ref kv "job-id"))))
-                 (log-id (uri-decode (car (assoc-ref kv "log-id")))))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (job-id (assoc-ref body "job-id"))
+                 (log-id (assoc-ref body "log-id")))
             
             ($job 'mod
                   'row-delete

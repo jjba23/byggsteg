@@ -19,7 +19,6 @@
 (define-artanis-controller logs)
 
 (import (byggsteg html)
-        (byggsteg url)
         (byggsteg auth)
         (app views logs)
         (app models job)

@@ -21,10 +21,9 @@
 (import (ice-9 string-fun)
         (byggsteg preferences)
         (byggsteg auth)
-        (byggsteg url)
         (uuid generate)
         (ice-9 textual-ports)
-        (byggsteg query-escape)
+        (kracht prelude)
         (byggsteg job pipeline)
         (byggsteg base64)
         (byggsteg env)
@@ -38,11 +37,11 @@
       #:mime 'json
       (lambda (rc)
         (define (do-submit)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (job-code (uri-decode (car (assoc-ref kv "job-code"))))
-                 (kvv-thunk (eval-string job-code))
-                 (kvv (kvv-thunk))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 ;; TODO add sandbox eval and validation here
+                 (job-code (assoc-ref kv "job-code"))
+                 (user-provided-thunk (eval-string job-code))
+                 (kvv (user-provided-thunk))
                  (project (assoc-ref kvv
                                      'project))
                  (new-job-uuid (generate-string-uuid))
@@ -51,8 +50,8 @@
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (escape-str log-filename)
-                  #:job_data (escape-str job-code)
+                  #:human_id (html-escape log-filename)
+                  #:job_data (html-escape job-code)
                   #:job_success 0
                   #:job_in_progress 1
                   #:job_failed 0
@@ -60,7 +59,7 @@
 
             ($log 'set
                   #:id new-log-uuid
-                  #:human_id (escape-str log-filename)
+                  #:human_id (html-escape log-filename)
                   #:job_id new-job-uuid
                   #:log_data ""
                   #:created_at (current-time))
@@ -68,7 +67,7 @@
             (:mime rc
                    `((log-id unquote new-log-uuid)
                      (human-id unquote
-                               (escape-str log-filename))))))
+                               (html-escape log-filename))))))
 
         (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
                                #:needed-permissions '(byggsteg:job-create)
@@ -97,19 +96,18 @@
                   (human-id unquote
                             (assoc-ref (car l) "human_id"))
                   (log-data unquote
-                            (base64-encode (unescape-str (assoc-ref (car l)
-                                                          "log_data"))))
+                            (base64-encode (html-unescape (assoc-ref (car l)
+                                                           "log_data"))))
                   (job-data unquote
-                            (base64-encode (unescape-str (assoc-ref (car j)
-                                                          "job_data")))))))))
+                            (base64-encode (html-unescape (assoc-ref (car j)
+                                                           "job_data")))))))))
 
 (post "/api/v1/login"
       #:mime 'json
       (lambda (rc)
-        (let* ((body (rc-body rc))
-               (kv (read-url-encoded-body body))
-               (email (uri-decode (car (assoc-ref kv "email"))))
-               (password (uri-decode (car (assoc-ref kv "password"))))
+        (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+               (email (assoc-ref body "email"))
+               (password (assoc-ref body "password"))
                (u ($user 'get
                          #:ret 'top
                          #:condition (where #:email email)))

@@ -19,7 +19,7 @@
 (define-artanis-controller prefs)
 
 (import (byggsteg html)
-        (byggsteg url)
+        (kracht prelude)
         (web uri)
         (byggsteg auth))
 
@@ -27,9 +27,8 @@
       #:cookies '(names lang)
       (lambda (rc)
         (define (do-pref)
-          (let* ((body (rc-body rc))
-                 (kv (read-url-encoded-body body))
-                 (user-lang (uri-decode (car (assoc-ref kv "user-lang")))))
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (user-lang (assoc-ref body "user-lang")))
             (:cookies-set! rc
                            'lang "lang" user-lang)
             (:cookies-setattr! rc

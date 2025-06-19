@@ -18,11 +18,8 @@
 
 (define-module (byggsteg html)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg url)
-  #:use-module (byggsteg process)
   #:use-module (byggsteg job pipeline)
   #:use-module (byggsteg tailwind)
-  #:use-module (byggsteg query-escape)
   #:use-module (sxml simple)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
@@ -55,12 +52,9 @@
                         (is-logged-in #f))
   (let ((maybe-auto-refresh (cond
                               ((equal? should-auto-refresh #t)
-                               `(meta (@ (content "10")
+                               `(meta (@ (content "12")
                                          (http-equiv "refresh")) ()))
                               (else `()))))
-    
-    ;; (maybe-auto-refresh `())
-    
     `("<!DOCTYPE html>" (html (@ (lang en))
                               (head (title ,title)
                                     (link (@ (rel preconnect)
@@ -295,7 +289,7 @@
          (div ,(submit-button (G_ "submit")))))
 
 (define (make-job-link G_ job log)
-  (let* ((log-filename (unescape-str (assoc-ref log "human_id")))
+  (let* ((log-filename (html-unescape (assoc-ref log "human_id")))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
                             (assoc-ref log "id")))
@@ -340,7 +334,7 @@
                  (href ,profiles-link))
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center))))
                    (span ,(icon #:type 'code))
-                   ,(h4 (unescape-str (assoc-ref profile "human_id"))
+                   ,(h4 (html-unescape (assoc-ref profile "human_id"))
                         #:color '(text-stone-700 hover:text-orange-600
                                                  dark:text-stone-300
                                                  hover:dark:text-orange-300))))))))
