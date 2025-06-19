@@ -86,7 +86,9 @@
                                                                   gap-8))))
                                            ,(h2 (G_ "login to byggsteg"))
                                            (div ,login-form))
-                                      (div (@(class ,(mk-class '(flex flex-col gap-8))))
-                                          ,(h2 (G_ "reset password"))
+                                      (div (@ (class ,(mk-class '(flex
+                                                                  flex-col
+                                                                  gap-8))))
+                                           ,(h2 (G_ "reset password"))
                                            (div ,reset-form))))))))
 
