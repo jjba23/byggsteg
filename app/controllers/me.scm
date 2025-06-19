@@ -120,6 +120,7 @@
 (define* (send-to-pingwing #:key body)
   
   (let* ((handle (curl-easy-init))
+         (_ (write body))
          (_ (begin
               (curl-easy-setopt handle
                                 'post #t)
@@ -155,7 +156,8 @@
                                                   encryption-key
                                                   #:signing-key signing-key)
                                    #f))
-               (body (alist-from-url-encoded-body (rc-body rc)))
+               (body (if (not (rc-body rc)) #f
+                         (alist-from-url-encoded-body (rc-body rc))))
                (email (if (not body) #f
                           (assoc-ref body "email")))
                (u (if (not email)
