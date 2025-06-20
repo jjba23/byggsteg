@@ -43,6 +43,7 @@
 
 (post "/jobs/manage/submit"
       #:cookies '(names x-bewaking-byggsteg)
+      #:i18n '(cookie "lang")
       (lambda (rc)
         (define (do-submit)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
@@ -54,8 +55,17 @@
                                      'project))
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
-                 (logs-link (format #f "~a/logs/~a"
-                                    (current-myhost) new-log-uuid)))
+                 (G_ (:i18n rc))
+                 (logs-link (format #f
+                             "~a/logs/~a?notify-title=~a&notify-body=~a"
+
+                             (current-myhost)
+                             new-log-uuid
+                             (uri-encode (G_ "Job started successfully!"))
+                             (uri-encode (format #f "~a: ~a"
+                                                 (G_
+                                                  "A new job has been started at byggsteg with id")
+                                                 new-log-uuid)))))
             
             ($job 'set
                   #:id new-job-uuid

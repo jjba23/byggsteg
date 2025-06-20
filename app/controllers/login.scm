@@ -40,8 +40,10 @@
 
 (post "/login"
       #:cookies '(names x-bewaking-byggsteg)
+      #:i18n '(cookie "lang")
       (lambda (rc)
-        (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+        (let* ((G_ (:i18n rc))
+               (body (alist-from-url-encoded-body (rc-body rc)))
                (email (assoc-ref body "email"))
                (password (assoc-ref body "password"))
                (u ($user 'get
@@ -76,9 +78,10 @@
                                   #:secure #t
                                   #:http-only #t)
                (redirect-to rc
-                            (string->uri (format #f
-                                          "~a/logs?login_succeeded=true"
-                                          (current-myhost)))
+                            (string->uri (format #f "~a/logs?notify-title=~a"
+                                                 (current-myhost)
+                                                 (uri-encode (G_
+                                                              "You are now logged in successfully!"))))
                             #:status 302)))
             (else (redirect-to rc
                                (string->uri (format #f
