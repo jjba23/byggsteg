@@ -73,6 +73,12 @@
                                     ,(remember-dark-theme-js))
                               (body (@ (class ,(mk-class '(bg-stone-100
                                                            dark:bg-stone-800))))
+                                    (div (@ (id notification-tray)
+                                            (class ,(mk-class '(sm:fixed
+                                                                sm:z-40
+                                                                sm:top-8
+                                                                sm:right-8))))
+                                         "")
                                     (div (@ (class ,(mk-class '(flex flex-col
                                                                 h-screen
                                                                 justify-between))))
@@ -83,8 +89,7 @@
                                                                           container
                                                                           mx-auto))))
                                                    ,@body))
-                                         ,(page-footer G_))
-                                    ,notification-tray)))))
+                                         ,(page-footer G_)))))))
 
 (define* (page-top G_
                    #:key is-logged-in)
