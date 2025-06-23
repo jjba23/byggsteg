@@ -73,12 +73,7 @@
                                     ,(remember-dark-theme-js))
                               (body (@ (class ,(mk-class '(bg-stone-100
                                                            dark:bg-stone-800))))
-                                    (div (@ (id notification-tray)
-                                            (class ,(mk-class '(sm:fixed
-                                                                sm:z-40
-                                                                sm:top-8
-                                                                sm:right-8))))
-                                         "")
+                                    ,notification-tray
                                     (div (@ (class ,(mk-class '(flex flex-col
                                                                 h-screen
                                                                 justify-between))))
