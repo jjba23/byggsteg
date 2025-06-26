@@ -60,8 +60,8 @@
                                 #:color '(text-red-800 dark:text-red-400)
                                 #:size '(text-xl)))
                        (else (sub-h4 (G_ "job in progress")
-                                     #:color '(text-teal-800
-                                               dark:text-teal-400)
+                                     #:color '(text-blue-800
+                                               dark:text-blue-400)
                                      #:size '(text-xl)))))
          (delete-button `(form (@ (method POST)
                                   (enctype application/x-www-form-urlencoded)

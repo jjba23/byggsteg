@@ -295,8 +295,8 @@
                                 #:color '(text-red-800 dark:text-red-400)
                                 #:size '(text-lg)))
                        (else (sub-h4 (G_ "job in progress")
-                                     #:color '(text-teal-800
-                                               dark:text-teal-400)
+                                     #:color '(text-blue-800
+                                               dark:text-blue-400)
                                      #:size '(text-lg))))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
