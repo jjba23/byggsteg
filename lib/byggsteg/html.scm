@@ -62,8 +62,35 @@
                                              (content
                                               "width=device-width, initial-scale=1.0")))
                                     (meta (@ (charset UTF-8)))
+                                    (style "
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: fade 0.04s ease both;
+}
+
+@keyframes fade {
+  from { opacity: 0.3; }
+  to   { opacity: 1; }
+}
+")
                                     (script ,(assoc-ref asset-library
                                                         "pub/js/tailwind.js"))
+                                    (script (@ (type speculationrules))
+                                            "
+{
+  \"prerender\": [
+    {
+      \"where\": {
+        \"selector_matches\": \"a\"
+      }
+    }
+  ]
+}
+")
                                     ,(custom-fonts)
                                     ,(phosphor-icons)
                                     ,(custom-tailwind-theme)
@@ -179,8 +206,12 @@
                  ,(em (G_ "byggsteg is the hackable Guile CI/CD system")))
             ,(em (G_
                   "byggsteg is free software, available under the GNU AGPL v3 or newer"))
-            (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-4
-                                             align-center items-center))))
+            (div (@ (class ,(mk-class '(mt-2 flex
+                                             flex-row
+                                             flex-wrap
+                                             gap-4
+                                             align-center
+                                             items-center))))
                  ,(em (G_ "find the source code here"))
                  ,(a "https://codeberg.org/jjba23/byggsteg"
                      #:size '(text-sm)))
