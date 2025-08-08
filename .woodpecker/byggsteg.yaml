@@ -23,7 +23,6 @@ variables:
   - &byggsteg_get_token_image 'docker.io/jjba23/byggsteg-woodpecker-get-token:v0.1.32'
 
 clone:
-  name: "⬇️ Clone Git Repository"
   image: woodpeckerci/plugin-git
   settings:
     partial: false
