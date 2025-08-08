@@ -17,39 +17,40 @@
 # along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 variables:
-  - &byggsteg_url 'https://byggsteg.jointhefreeworld.org'
-  - &byggsteg_submit_job_image 'docker.io/jjba23/byggsteg-woodpecker-submit-job:v0.1.32'
-  - &byggsteg_poll_job_image 'docker.io/jjba23/byggsteg-woodpecker-poll-job:v0.1.32'
-  - &byggsteg_get_token_image 'docker.io/jjba23/byggsteg-woodpecker-get-token:v0.1.32'
+  - &jointhefreeworld_byggsteg_url 'https://byggsteg.jointhefreeworld.org'
+  - &submit_job_image 'docker.io/jjba23/byggsteg-woodpecker-submit-job:v0.1.32'
+  - &poll_job_image 'docker.io/jjba23/byggsteg-woodpecker-poll-job:v0.1.32'
+  - &get_token_image 'docker.io/jjba23/byggsteg-woodpecker-get-token:v0.1.32'
+  - &main_branch 'trunk'
 
 clone:
-  - name: "⬇️ Clone Git Repository"
+  - name: "⬇️ Clone Git repository"
     image: woodpeckerci/plugin-git
     settings:
-      partial: false
       depth: 1
 
 steps:
-  get-byggsteg-token-jointhefreeworld:
-    name: "🔒 Get Token @ Byggsteg"
-    image: *byggsteg_get_token_image
+  get-byggsteg-token:
+    name: "🔒 Get token @ Byggsteg"
+    image: *get_token_image
     when:
       - event: [ "push" ]
-        branch: [ "trunk" ]
+        branch: [ *main_branch ]
     settings:
       BYGGSTEG_EMAIL:
-        from_secret: "BYGGSTEG_EMAIL"
+        from_secret: BYGGSTEG_EMAIL
       BYGGSTEG_PASSWORD:
-        from_secret: "BYGGSTEG_PASSWORD"
-      BYGGSTEG_URL: *byggsteg_url        
+        from_secret: BYGGSTEG_PASSWORD
+      BYGGSTEG_URL: *jointhefreeworld_byggsteg_url        
         
-  submit-byggsteg-job-jointhefreeworld:
-    image: *byggsteg_submit_job_image
+  submit-byggsteg-job:
+    name: "💼 Submit job @ Byggsteg"
+    image: *submit_job_image
     when:
-      - event: [ "push" ]
-        branch: [ "trunk" ]
+      - event: [ push ]
+        branch: [ *main_branch ]
     settings:
-      BYGGSTEG_URL: *byggsteg_url
+      BYGGSTEG_URL: *jointhefreeworld_byggsteg_url
       BYGGSTEG_JOB_CODE: |
         (lambda()
           `((task . ("byggsteg-version" "pull-and-deploy"))
@@ -58,12 +59,13 @@ steps:
             (branch-name . "%%CI_COMMIT_BRANCH%%")            
             (clone-url . "%%CI_REPO_CLONE_URL%%")))
             
-  poll-byggsteg-job-jointhefreeworld:
-    image: *byggsteg_poll_job_image
+  poll-byggsteg-job:
+    name: "🔄 Poll job status @ Byggsteg"
+    image: *poll_job_image
     when:
-      - event: [ "push" ]
-        branch: [ "trunk" ]
+      - event: [ push ]
+        branch: [ *main_branch ]
     settings:     
-      BYGGSTEG_URL: *byggsteg_url
+      BYGGSTEG_URL: *jointhefreeworld_byggsteg_url
 
 
