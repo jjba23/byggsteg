@@ -21,14 +21,15 @@ variables:
   - &byggsteg_submit_job_image 'docker.io/jjba23/byggsteg-woodpecker-submit-job:v0.1.32'
   - &byggsteg_poll_job_image 'docker.io/jjba23/byggsteg-woodpecker-poll-job:v0.1.32'
   - &byggsteg_get_token_image 'docker.io/jjba23/byggsteg-woodpecker-get-token:v0.1.32'
-  
+
+clone:
+  name: "⬇️ Clone Git Repository"
+  image: woodpeckerci/plugin-git
+  settings:
+    partial: false
+    depth: 1
+
 steps:
-  clone:
-    name: "⬇️ Clone Git Repository"
-    image: woodpeckerci/plugin-git
-    settings:
-      partial: false
-      depth: 1
   get-byggsteg-token-jointhefreeworld:
     name: "🔒 Get Token @ Byggsteg"
     image: *byggsteg_get_token_image
