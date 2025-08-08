@@ -23,7 +23,14 @@ variables:
   - &byggsteg_get_token_image 'docker.io/jjba23/byggsteg-woodpecker-get-token:v0.1.32'
   
 steps:
+  clone:
+    name: "⬇️ Clone Git Repository"
+    image: woodpeckerci/plugin-git
+    settings:
+      partial: false
+      depth: 1
   get-byggsteg-token-jointhefreeworld:
+    name: "🔒 Get Token @ Byggsteg"
     image: *byggsteg_get_token_image
     when:
       - event: [ "push" ]
