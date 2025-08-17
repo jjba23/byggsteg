@@ -142,8 +142,7 @@ easing the learning curve, and reducing the cognitive load.")
      (list
       #:source-directory "src"))
     (home-page "https://codeberg.org/jjba23/bewaking")
-    (synopsis
-     "Authentication / Authorization library for Guile Scheme")
+    (synopsis "Authentication / Authorization library for Guile Scheme")
     (description
      "bewaking is a library that helps you with secure tokens.
 It allows you to create and verify lifetime-limited encrypted digital

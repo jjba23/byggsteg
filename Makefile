@@ -1,3 +1,5 @@
+.PHONY: docs test
+
 # byggsteg - the CI/CD orchestrator written in Guile Scheme
 
 # Copyright © Josep Bigorra known as "jjba23" <jjbigorra@gmail.com>
@@ -20,24 +22,21 @@
 
 # Constants
 
-DEPLOY_WWW=/srv/http/jointhefreeworld.org
+DEPLOY_WWW = /srv/http/jointhefreeworld.org
 
-BYGGSTEG_LOCATION="/etc/byggsteg"
-BYGGSTEG_DB="byggsteg.db"
-COPYRIGHT_HOLDERS="Josep Bigorra & Mu Lei"
-I18N_LOCATION="sys/i18n/locale"
+BYGGSTEG_LOCATION = "/etc/byggsteg"
+BYGGSTEG_DB = "byggsteg.db"
+COPYRIGHT_HOLDERS = "Josep Bigorra & Mu Lei"
+I18N_LOCATION = "sys/i18n/locale"
 
 # System details
 GUIX_VERSION := $(shell guix --version)
-
-.PHONY: dir-install dir-uninstall dev server production-server fmt init-db compile-i18n new-i18n join-i18n init-i18n-nl init-i18n-en merge-i18n-nl merge-i18n-en
 
 # Logging helpers
 
 define byggsteg-log-info
 	@printf "\n\033[1m[info] $(shell date +%s) - %s\033[0m\n" $(1)
 endef
-
 
 # i18n helpers
 
@@ -93,7 +92,6 @@ define byggsteg-xgettext
 		--from-code UTF-8
 endef
 
-
 # Target to prepare directories for the byggsteg project
 # Create the necessary directory for job cloning, if it doesn't exist
 # Change ownership of the byggsteg location to the current user
@@ -117,7 +115,6 @@ dev:
 	$(call byggsteg-log-info,"starting development server for byggsteg")
 	make watchexec
 
-
 # Target to start the byggsteg server
 # Start the server with the default configuration
 server:
@@ -133,8 +130,9 @@ production-server:
 # Find all .scm files and format them using 'guix style'
 fmt:
 	$(call byggsteg-log-info,"formatting all Scheme files")
-	find . -maxdepth 8 -name "*.scm" -type f -exec guix style -f {} \;
-
+	@-find . -maxdepth 8 -name "*.scm" -type f -exec guix style -f {} \;
+	$(call kracht-log-info,"formatting Makefile")
+	@-mbake format --config .mbake.toml Makefile
 
 # Initialize a new database and enable WAL mode for higher concurrent writes to SQLite 3
 init-db:
@@ -190,4 +188,3 @@ deploy:
 	mkdir -pv $(DEPLOY_WWW)/manuals/byggsteg
 	rm -rfv $(DEPLOY_WWW)/manuals/byggsteg/index.html
 	mv -v docs/manual/en-GB.html $(DEPLOY_WWW)/manuals/byggsteg/index.html
-
