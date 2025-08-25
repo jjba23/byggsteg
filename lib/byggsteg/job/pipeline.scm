@@ -57,95 +57,70 @@
                               #:log (assoc-ref job-log-map
                                                (assoc-ref j "id"))))
               jobs-in-progress)
-    ;; (display (format #f "
-    ;; byggsteg worker will sleep for ~a seconds
-    ;; "
-    ;; sleep-seconds))
     (sleep sleep-seconds)))
 
 (define* (run-pipeline-task #:key project
                             branch-name
                             task
+                            (env #f)
                             (daemon-name #f)
                             (trivial-cmds '()))
   (cond
-    ;; Stack test + sdist
-    ((equal? task "stack-test")
-     (stack-step #:project project
-                 #:branch-name branch-name
-                 #:stack-task "test")
-     (stack-step #:project project
-                 #:branch-name branch-name
-                 #:stack-task "sdist --tar-dir ."))
-
-    ;; Stack build + sdist
-    ((equal? task "stack-build")
-     (stack-step #:project project
-                 #:branch-name branch-name
-                 #:stack-task "build")
-     (stack-step #:project project
-                 #:branch-name branch-name
-                 #:stack-task "sdist --tar-dir ."))
-
     ;; Byggsteg version update
     ((equal? task "byggsteg-version")
      (byggsteg-version-step #:project project
                             #:branch-name branch-name
-                            #:daemon-name daemon-name))
-
-    ;; Nix generic build
-    ((equal? task "nix-build")
-     (nix-build-step #:project project
-                     #:branch-name branch-name))
+                            #:daemon-name daemon-name
+                            #:env env))
 
     ;; Herd pull and restart
     ((equal? task "pull-and-restart")
      (pull-and-restart-step #:project project
                             #:branch-name branch-name
-                            #:daemon-name daemon-name))
-
-    ;; Scala SBT test
-    ((equal? task "sbt-test")
-     (sbt-test-step #:project project
-                    #:branch-name branch-name))
-    ((equal? task "sbt-testcontainers-test")
-     (sbt-testcontainers-test-step #:project project
-                                   #:branch-name branch-name))
+                            #:daemon-name daemon-name
+                            #:env env))
 
     ;; Pull and make deploy
     ((equal? task "pull-and-deploy")
      (pull-and-deploy-step #:project project
-                           #:branch-name branch-name))
+                           #:branch-name branch-name
+                           #:env env))
 
     ;; maak deploy
     ((equal? task "maak-deploy")
      (maak-deploy-step #:project project
-                       #:branch-name branch-name))
+                       #:branch-name branch-name
+                       #:env env))
 
     ;; make test
     ((equal? task "make-test")
      (make-test-step #:project project
-                     #:branch-name branch-name))
+                     #:branch-name branch-name
+                     #:env env))
 
     ;; maak test
     ((equal? task "maak-test")
      (maak-test-step #:project project
-                     #:branch-name branch-name))
+                     #:branch-name branch-name
+                     #:env env))
 
     ;; Trivial - Allow user to specify all commands
     ((equal? task "trivial")
      (trivial-step #:project project
                    #:branch-name branch-name
-                   #:cmds trivial-cmds))
+                   #:cmds trivial-cmds
+                   #:env env))
 
     ;; maak build
     ((equal? task "maak-build")
      (maak-build-step #:project project
-                      #:branch-name branch-name))
+                      #:branch-name branch-name
+                      #:env env))
 
     ;; Otherwise attempt generic `make build'
     (else (make-build-step #:project project
-                           #:branch-name branch-name))))
+                           #:branch-name branch-name
+                           #:env env))))
 
 (define* (job-pipeline #:key job log)
   (let* ((old-log-data (html-unescape (assoc-ref log "log_data")))
@@ -161,6 +136,8 @@
                                  'daemon-name))
          (task-or-tasks (assoc-ref kv
                                    'task))
+         (env (assoc-ref kv
+                         'env))
          (tasks (cond
                   ((list? task-or-tasks)
                    task-or-tasks)
@@ -170,8 +147,7 @@
          (trivial-cmds (assoc-ref kv
                                   'trivial-cmds)))
     
-    (let* ((steps (list
-                        (lambda ()
+    (let* ((steps (list (lambda ()
                           (clone-repo-step #:project project
                                            #:branch-name branch-name
                                            #:clone-url clone-url))
@@ -187,6 +163,7 @@
                                                     #:branch-name branch-name
                                                     #:task task
                                                     #:daemon-name daemon-name
+                                                    #:env env
                                                     #:trivial-cmds
                                                     trivial-cmds)) tasks))
 

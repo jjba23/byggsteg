@@ -106,10 +106,10 @@ Jobs are simple Lisp (Guile Scheme) code. Profiles are just saved jobs.
 byggsteg allows you to send code over the wire (HTTP) and save it too, in a thunk form, for example :
 #+begin_src  scheme
   (lambda()
-    `((project . "free-alacarte")
+    `((project . "kracht")
       (branch-name . "trunk")
-      (task . "stack-test")
-      (clone-url . "https://codeberg.org/jjba23/free-alacarte")))
+      (task . "maak-test")
+      (clone-url . "https://codeberg.org/jjba23/kracht")))
 #+end_src
 
 Sending things in thunk form allows one to execute any code arbitrarily, inside the lambda expression. Be responsible and wary of who you give access to your byggsteg instance.
@@ -123,7 +123,7 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
   ;; remember that a ". ," and a "unquote" are equivalent
   `((project . ,my-project-name)
     (branch-name unquote my-branch-name)
-    (task . ("stack-build" "stack-test"))
+    (task . ("maak-test" "maak-build"))
     (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
@@ -136,23 +136,19 @@ You should either pass a string or a list of strings of job names.
 
 ~make-test~ - Run test suite with ~make test~.
 
-~stack-test~ - Haskell project build and test with Stack + Hackage bundle.
-
-~stack-build~ - Haskell project build with Stack + Hackage bundle.
-
-~nix-build~ - Nix build (flake).
+~maak-test~ - Run test suite with ~maak test~.
 
 ~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself.
 
 ~pull-and-restart~ - Git pull and restart wanted shepherd service.
 
+~maak-deploy~ - Deploy
+
 ~pull-and-deploy~ - Git pull and run a ~sudo make deploy~.
 
-~sbt-test~ - Scala project test with SBT.
-
-~sbt-testcontainers-test~ - Scala project test with SBT using testcontainers in Podman.
-
 ~trivial~ - Allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.
+
+~maak-build~ - Simple ~maak build~
 
 As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
 
@@ -170,7 +166,9 @@ As a fallback, if no other task matches are found, byggsteg will default to doin
 
 ~daemon-name~ is a string that indicates the name of the daemon, it's used in certain tasks like ~pull-and-restart~, if not specified, this will default to ~project~
 
-~trivial-cmds~ is a list of strings which represent commands to be run
+~env~ is a list of pairs that indicates which environment variables should be added to the environment.
+
+~trivial-cmds~ is a list of strings which represent commands to be run.
 
 ------------------
 
@@ -212,7 +210,7 @@ You could also do this for example from your favourite programming language, or 
 curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
     -X POST -H 'content-type: application/x-www-form-urlencoded' \
     -H 'x-bewaking-byggsteg: <your token here>' \
-    --data-urlencode 'job-code=(lambda() `((project . "free-alacarte")(branch-name . "trunk")(task . "stack-test")(clone-url . "https://codeberg.org/jjba23/free-alacarte")))'
+    --data-urlencode 'job-code=(lambda() `((project . "kracht")(branch-name . "trunk")(task . "maak-test")(clone-url . "https://codeberg.org/jjba23/kracht")))'
 
 #  {
 #    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",

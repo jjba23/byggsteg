@@ -35,7 +35,7 @@ I don't mind having the software building and testing happening in the same mach
 I strive to provide proper and extensive documentation on Byggsteg, available at your convenience.
 
 - Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
-- Org format: [[file:docs/manual/en-GB.org]]
+- Org format: [[file:docs/manual/en.org]]
 
 
 --------------
@@ -47,10 +47,10 @@ Jobs are simple Lisp (Guile Scheme) code. Profiles are just saved jobs.
 byggsteg allows you to send code over the wire (HTTP) and save it too, in a thunk form, for example :
 #+begin_src  scheme
   (lambda()
-    `((project . "free-alacarte")
+    `((project . "kracht")
       (branch-name . "trunk")
-      (task . "stack-test")
-      (clone-url . "https://codeberg.org/jjba23/free-alacarte")))
+      (task . "maak-test")
+      (clone-url . "https://codeberg.org/jjba23/kracht")))
 #+end_src
 
 Sending things in thunk form allows one to execute any code arbitrarily, inside the lambda expression. Be responsible and wary of who you give access to your byggsteg instance.
@@ -64,7 +64,7 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
   ;; remember that a ". ," and a "unquote" are equivalent
   `((project . ,my-project-name)
     (branch-name unquote my-branch-name)
-    (task . ("stack-build" "stack-test"))
+    (task . ("maak-test" "maak-build"))
     (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 

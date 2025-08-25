@@ -184,7 +184,7 @@ repl:
 # deploy: Deploys the manual HTML to a web server directory.
 deploy:
 	guix shell -m manifest.scm -- emacs -Q --batch \
-		--eval '(progn (find-file "$(shell realpath ./docs/manual/en-GB.org)")(org-html-export-to-html)(message "finished publishing Byggsteg manual"))'
+		--eval '(progn (find-file "$(shell realpath ./docs/manual/en.org)")(org-html-export-to-html)(message "finished publishing Byggsteg manual"))'
 	mkdir -pv $(DEPLOY_WWW)/manuals/byggsteg
 	rm -rfv $(DEPLOY_WWW)/manuals/byggsteg/index.html
-	mv -v docs/manual/en-GB.html $(DEPLOY_WWW)/manuals/byggsteg/index.html
+	mv -v docs/manual/en.html $(DEPLOY_WWW)/manuals/byggsteg/index.html

@@ -27,7 +27,6 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:export (display-cmd do-in-clone-dir
-                        stack-step
                         pull-and-restart-step
                         pull-and-deploy-step
                         maak-deploy-step
@@ -35,9 +34,6 @@
                         maak-build-step
                         make-test-step
                         maak-test-step
-                        nix-build-step
-                        sbt-test-step
-                        sbt-testcontainers-test-step
                         git-details-step
                         sys-details-step
                         clone-repo-step
@@ -59,12 +55,22 @@
   (stdout step-result-stdout)
   (cmd step-result-cmd))
 
-(define* ($ cmd)
-  (let* ((input+output (pipe))
+(define* ($ cmd
+            #:key (env #f))
+  (let* ((formatted-env (if (list? env)
+                            (map (lambda (e)
+                                   (format #f "~a=~a"
+                                           (car e)
+                                           (cdr e))) env)
+                            '()))
+         (input+output (pipe))
          (pid (spawn "bash"
                      (list "bash" "-c" cmd)
                      #:output (cdr input+output)
-                     #:error (cdr input+output)))
+                     #:error (cdr input+output)
+                     #:environment (if (list? env)
+                                       (append (environ) formatted-env)
+                                       (environ))))
          (_ (close-port (cdr input+output)))
          (out (get-string-all (car input+output)))
          (_ (close-port (car input+output)))
@@ -75,73 +81,66 @@
 (define-syntax-rule (display-cmd cmd)
   (format #f "\n→ running command: ~a\n" cmd))
 
-(define-syntax-rule (do-in-clone-dir clone-dir cmds)
+(define* (do-in-clone-dir clone-dir cmds
+                          #:key (env #f))
   (let* ((command (format #f "cd ~a && ~a" clone-dir
                           (string-join cmds " && "))))
     (display-cmd command)
-    ($ command)))
-
-(define* (stack-step #:key project branch-name stack-task)
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
-    (do-in-clone-dir clone-dir
-                     (list (format #f "stack --nix ~a" stack-task)))))
+    ($ command
+       #:env env)))
 
 (define* (pull-and-restart-step #:key project branch-name
+                                (env #f)
                                 (daemon-name #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
          (daemon-to-restart (if (not daemon-name) project daemon-name)))
     (do-in-clone-dir clone-dir
                      (list (format #f
                             "sudo herd enable ~a || true && sudo herd restart ~a || true"
-                            daemon-to-restart daemon-to-restart)))))
+                            daemon-to-restart daemon-to-restart))
+                     #:env env)))
 
-(define* (pull-and-deploy-step #:key project branch-name)
+(define* (pull-and-deploy-step #:key project branch-name
+                               (env #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (do-in-clone-dir clone-dir
-                     '("sudo make deploy"))))
+                     '("sudo make deploy")
+                     #:env env)))
 
-(define* (maak-deploy-step #:key project branch-name)
+(define* (maak-deploy-step #:key project branch-name
+                           (env #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (do-in-clone-dir clone-dir
-                     '("sudo maak deploy"))))
+                     '("sudo maak deploy")
+                     #:env env)))
 
-(define* (make-build-step #:key project branch-name)
+(define* (make-build-step #:key project branch-name
+                          (env #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (do-in-clone-dir clone-dir
-                     '("make build"))))
+                     '("make build")
+                     #:env env)))
 
-(define* (maak-build-step #:key project branch-name)
+(define* (maak-build-step #:key project branch-name
+                          (env #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (do-in-clone-dir clone-dir
-                     '("maak build"))))
+                     '("maak build")
+                     #:env env)))
 
-(define* (make-test-step #:key project branch-name)
+(define* (make-test-step #:key project branch-name
+                         (env #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (do-in-clone-dir clone-dir
-                     '("make test"))))
+                     '("make test")
+                     #:env env)))
 
-(define* (maak-test-step #:key project branch-name)
+(define* (maak-test-step #:key project branch-name
+                         (env #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (do-in-clone-dir clone-dir
-                     '("maak test"))))
-
-(define* (nix-build-step #:key project branch-name)
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
-    (do-in-clone-dir clone-dir
-                     '("nix build"))))
-
-(define* (sbt-test-step #:key project branch-name)
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
-    (do-in-clone-dir clone-dir
-                     '("sbt test"))))
-
-(define* (sbt-testcontainers-test-step #:key project branch-name)
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
-    (call-with-new-thread (lambda ()
-                            (do-in-clone-dir clone-dir
-                                             '("podman system service --time=600 unix:///tmp/podman.sock"))))
-    (do-in-clone-dir clone-dir
-                     '("DOCKER_HOST=unix:///tmp/podman.sock sbt test"))))
+                     '("maak test")
+                     #:env env)))
 
 (define* (git-details-step #:key project branch-name)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
@@ -168,20 +167,24 @@
       (should-clone ($ clone-cmd))
       (else ($ pull-cmd)))))
 
-(define* (trivial-step #:key project branch-name cmds)
+(define* (trivial-step #:key project branch-name cmds
+                       (env #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (map (lambda (c)
-           ($ c)) cmds)))
+           ($ c
+              #:env env)) cmds)))
 
 (define* (byggsteg-version-step #:key project branch-name
-                                (daemon-name #f))
+                                (daemon-name #f)
+                                (env #f))
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
          (daemon-to-restart (if (not daemon-name) project daemon-name))
          (cmd (format #f "cd ~a && sudo herd restart ~a || true" clone-dir
                       daemon-to-restart)))
     (call-with-new-thread (lambda ()
                             (sleep 3)
-                            ($ cmd)))
+                            ($ cmd
+                               #:env env)))
     (make-step-result #t "" cmd)))
 
 (define (flatten lst)
