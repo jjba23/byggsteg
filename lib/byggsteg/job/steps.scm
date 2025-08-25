@@ -223,10 +223,9 @@
                               (else (process-result result)))))
                         (make-step-result #f "" ""))))
          (rs (flatten (map do-step steps)))
-         (succeeded? (not (equal? #f
-                                  (find (lambda (x)
-                                          (equal? #f x))
-                                        (map step-result-succeeded? rs)))))
+         (succeeded? (not (any (lambda (s)
+                                 (equal? #f s))
+                               (map step-result-succeeded? rs))))
          (outsss (string-join outss "\n")))
     
     (make-step-result succeeded? outsss

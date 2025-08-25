@@ -195,7 +195,6 @@
                               #:outs (list (format #f "\n~a...\n"
                                                    (gettext "starting new job"))))))
       
-      (display (step-result-stdout result))
       (display (format #f "\nsucceeded?: ~a\n"
                        (step-result-succeeded? result)))
 
