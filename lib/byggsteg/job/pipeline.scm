@@ -170,60 +170,58 @@
          (trivial-cmds (assoc-ref kv
                                   'trivial-cmds)))
     
-    (let* ((o (with-output-to-string (lambda ()
-                                       (display (format #f "\n~a...\n"
-                                                        (gettext
-                                                         "starting new job")))
-                                       (sys-details-step #:project project
-                                                         #:branch-name
-                                                         branch-name)
-                                       (clone-repo-step #:project project
-                                                        #:branch-name
-                                                        branch-name
-                                                        #:clone-url clone-url)
-                                       (git-details-step #:project project
-                                                         #:branch-name
-                                                         branch-name)
-                                       (for-each (lambda (task)
-                                                   (run-pipeline-task
-                                                    #:project project
-                                                    #:branch-name branch-name
-                                                    #:task task
-                                                    #:daemon-name daemon-name
-                                                    #:trivial-cmds
-                                                    trivial-cmds)) tasks))))
-           (new-log-data (string-append old-log-data "\n" o)))
+    (let* ((o1 (list (format #f "\n~a...\n"
+                                 (gettext "starting new job"))))
+           (o2 (clone-repo-step #:project project
+                                 #:branch-name branch-name
+                                 #:clone-url clone-url))
+           (o3 (sys-details-step #:project project
+                                  #:branch-name branch-name))
+           (o4 (git-details-step #:project project
+                                  #:branch-name branch-name))
+           (o5 (map (lambda (task)
+                            (run-pipeline-task #:project project
+                                               #:branch-name branch-name
+                                               #:task task
+                                               #:daemon-name daemon-name
+                                               #:trivial-cmds trivial-cmds))
+                          tasks))
+           )
+
+      (display o1)
+      ;; (new-log-data (string-append old-log-data "\n" o))
       
-      (display o)
+      ;; (display (format #f "~a" o))
 
-      (DB-query (get-conn-from-pool!)
-                (->sql update
-                       'log set
-                       `((log_data ,(html-escape new-log-data))
-                         (updated_at ,(current-time)))
-                       (where #:id (assoc-ref log "id"))))
-
-      (DB-query (get-conn-from-pool!)
-                (->sql update
-                       'job set
-                       `((job_success 1)
-                         (job_in_progress 0)
-                         (job_failed 0)
-                         (updated_at ,(current-time)))
-                       (where #:id (assoc-ref job "id"))))
-
+      ;; (DB-query (get-conn-from-pool!)
+      ;; (->sql update
+      ;; 'log set
+      ;; `((log_data ,(html-escape new-log-data))
+      ;; (updated_at ,(current-time)))
+      ;; (where #:id (assoc-ref log "id"))))
+      
+      ;; (DB-query (get-conn-from-pool!)
+      ;; (->sql update
+      ;; 'job set
+      ;; `((job_success 1)
+      ;; (job_in_progress 0)
+      ;; (job_failed 0)
+      ;; (updated_at ,(current-time)))
+      ;; (where #:id (assoc-ref job "id"))))
+      
       )))
 
 (define (run-infallible-pipeline)
-  (catch #t
-         (lambda ()
-           (do-pip))
-         (lambda (key . args)
-           (display (format #f "
-===========
-exception occured running pipeline: ~a
-~a
-===========
-" key args))
-           (sleep 1))))
+  ;; (catch #t
+  ;; (lambda ()
+  ;; (do-pip))
+  ;; (lambda (key . args)
+  ;; (display (format #f "
+  ;; ===========
+  ;; exception occured running pipeline: ~a
+  ;; ~a
+  ;; ===========
+  ;; " key args))
+  ;; (sleep 1)))
+  (do-pip))
 

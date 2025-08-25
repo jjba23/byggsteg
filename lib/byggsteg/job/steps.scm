@@ -49,8 +49,7 @@
                         step-result-stdout
                         make-step-result
                         $
-                        display-cmd
-                        ))
+                        display-cmd))
 
 (define-record-type step-result
   (make-step-result succeeded? stdout) step-result?
@@ -60,16 +59,17 @@
 (define* ($ cmd)
   (let* ((stdout-port (open-output-string))
          (exit-val (with-output-to-port stdout-port
-                     (lambda() (system cmd))))
+                                        (lambda ()
+                                          (system cmd))))
          (exit-code (status:exit-val exit-val))
          (error-msg (format #f "
 Non-zero exit code when running!
 Command: ~a
 Exit code: ~a
 " cmd exit-code))
-         (stdout-str (get-string-all stdout-port)))
-    (make-step-result #t stdout-str)
-    ))
+         (stdout-str (get-output-string stdout-port)))
+    (display "STDOUT STR\n==========\n")(newline) (display stdout-str)
+    (make-step-result #t stdout-str)))
 
 (define-syntax-rule (display-cmd cmd)
   (display (format #f "\n→ running command: ~a\n" cmd)))
