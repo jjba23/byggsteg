@@ -26,214 +26,204 @@
   #:use-module (app models job)
   #:use-module (app models log)
   #:use-module (ice-9 string-fun)
-  #:use-module (ice-9 threads))
+  #:use-module (ice-9 threads)
+  #:export (do-pip run-pipeline-task job-pipeline run-infallible-pipeline))
 
-(begin
-  (define* (do-pip)
-    (let* ((sleep-seconds 3)
-           (jobs-in-progress ($job 'get
-                                   #:ret 'all
-                                   #:condition (where #:job_in_progress 1)
-                                   #:order-by '(created_at asc)))
-           (logs-of-in-progress (cond
-                                  ((nil? jobs-in-progress)
-                                   '())
-                                  (else ($log 'get
-                                              #:ret 'all
-                                              #:condition (where #:job_id (map (lambda 
-                                                                                       (j)
-                                                                                 
-                                                                                 
-                                                                                 (assoc-ref
-                                                                                  j
-                                                                                  "id"))
-                                                                           jobs-in-progress))))))
-           (job-log-map (map (lambda (l)
-                               `(,(assoc-ref l "job_id") unquote l))
-                             logs-of-in-progress)))
-      
-      (for-each (lambda (j)
-                  (job-pipeline #:job j
-                                #:log (assoc-ref job-log-map
-                                                 (assoc-ref j "id"))))
-                jobs-in-progress)
-      ;; (display (format #f "
-      ;; byggsteg worker will sleep for ~a seconds
-      ;; "
-      ;; sleep-seconds))
-      (sleep sleep-seconds)))
-  (export do-pip))
+(define* (do-pip)
+  (let* ((sleep-seconds 3)
+         (jobs-in-progress ($job 'get
+                                 #:ret 'all
+                                 #:condition (where #:job_in_progress 1)
+                                 #:order-by '(created_at asc)))
+         (logs-of-in-progress (cond
+                                ((nil? jobs-in-progress)
+                                 '())
+                                (else ($log 'get
+                                            #:ret 'all
+                                            #:condition (where #:job_id (map (lambda 
+                                                                                     (j)
+                                                                               
+                                                                               
+                                                                               (assoc-ref
+                                                                                j
+                                                                                "id"))
+                                                                         jobs-in-progress))))))
+         (job-log-map (map (lambda (l)
+                             `(,(assoc-ref l "job_id") unquote l))
+                           logs-of-in-progress)))
+    
+    (for-each (lambda (j)
+                (job-pipeline #:job j
+                              #:log (assoc-ref job-log-map
+                                               (assoc-ref j "id"))))
+              jobs-in-progress)
+    ;; (display (format #f "
+    ;; byggsteg worker will sleep for ~a seconds
+    ;; "
+    ;; sleep-seconds))
+    (sleep sleep-seconds)))
 
-(begin
-  (define* (run-pipeline-task #:key project
-                              branch-name
-                              task
-                              (daemon-name #f)
-                              (trivial-cmds '()))
-    (cond
-      ;; Stack test + sdist
-      ((equal? task "stack-test")
-       (stack-step #:project project
-                   #:branch-name branch-name
-                   #:stack-task "test")
-       (stack-step #:project project
-                   #:branch-name branch-name
-                   #:stack-task "sdist --tar-dir ."))
+(define* (run-pipeline-task #:key project
+                            branch-name
+                            task
+                            (daemon-name #f)
+                            (trivial-cmds '()))
+  (cond
+    ;; Stack test + sdist
+    ((equal? task "stack-test")
+     (stack-step #:project project
+                 #:branch-name branch-name
+                 #:stack-task "test")
+     (stack-step #:project project
+                 #:branch-name branch-name
+                 #:stack-task "sdist --tar-dir ."))
 
-      ;; Stack build + sdist
-      ((equal? task "stack-build")
-       (stack-step #:project project
-                   #:branch-name branch-name
-                   #:stack-task "build")
-       (stack-step #:project project
-                   #:branch-name branch-name
-                   #:stack-task "sdist --tar-dir ."))
+    ;; Stack build + sdist
+    ((equal? task "stack-build")
+     (stack-step #:project project
+                 #:branch-name branch-name
+                 #:stack-task "build")
+     (stack-step #:project project
+                 #:branch-name branch-name
+                 #:stack-task "sdist --tar-dir ."))
 
-      ;; Byggsteg version update
-      ((equal? task "byggsteg-version")
-       (byggsteg-version-step #:project project
-                              #:branch-name branch-name
-                              #:daemon-name daemon-name))
+    ;; Byggsteg version update
+    ((equal? task "byggsteg-version")
+     (byggsteg-version-step #:project project
+                            #:branch-name branch-name
+                            #:daemon-name daemon-name))
 
-      ;; Nix generic build
-      ((equal? task "nix-build")
-       (nix-build-step #:project project
+    ;; Nix generic build
+    ((equal? task "nix-build")
+     (nix-build-step #:project project
+                     #:branch-name branch-name))
+
+    ;; Herd pull and restart
+    ((equal? task "pull-and-restart")
+     (pull-and-restart-step #:project project
+                            #:branch-name branch-name
+                            #:daemon-name daemon-name))
+
+    ;; Scala SBT test
+    ((equal? task "sbt-test")
+     (sbt-test-step #:project project
+                    #:branch-name branch-name))
+    ((equal? task "sbt-testcontainers-test")
+     (sbt-testcontainers-test-step #:project project
+                                   #:branch-name branch-name))
+
+    ;; Pull and make deploy
+    ((equal? task "pull-and-deploy")
+     (pull-and-deploy-step #:project project
+                           #:branch-name branch-name))
+
+    ;; maak deploy
+    ((equal? task "maak-deploy")
+     (maak-deploy-step #:project project
                        #:branch-name branch-name))
 
-      ;; Herd pull and restart
-      ((equal? task "pull-and-restart")
-       (pull-and-restart-step #:project project
-                              #:branch-name branch-name
-                              #:daemon-name daemon-name))
+    ;; make test
+    ((equal? task "make-test")
+     (make-test-step #:project project
+                     #:branch-name branch-name))
 
-      ;; Scala SBT test
-      ((equal? task "sbt-test")
-       (sbt-test-step #:project project
+    ;; maak test
+    ((equal? task "maak-test")
+     (maak-test-step #:project project
+                     #:branch-name branch-name))
+
+    ;; Trivial - Allow user to specify all commands
+    ((equal? task "trivial")
+     (trivial-step #:project project
+                   #:branch-name branch-name
+                   #:cmds trivial-cmds))
+
+    ;; maak build
+    ((equal? task "maak-build")
+     (maak-build-step #:project project
                       #:branch-name branch-name))
-      ((equal? task "sbt-testcontainers-test")
-       (sbt-testcontainers-test-step #:project project
-                                     #:branch-name branch-name))
 
-      ;; Pull and make deploy
-      ((equal? task "pull-and-deploy")
-       (pull-and-deploy-step #:project project
-                             #:branch-name branch-name))
+    ;; Otherwise attempt generic `make build'
+    (else (make-build-step #:project project
+                           #:branch-name branch-name))))
 
-      ;; maak deploy
-      ((equal? task "maak-deploy")
-       (maak-deploy-step #:project project
-                       #:branch-name branch-name))
+(define* (job-pipeline #:key job log)
+  (let* ((old-log-data (html-unescape (assoc-ref log "log_data")))
+         (kv-thunk (eval-string (html-unescape (assoc-ref job "job_data"))))
+         (kv (kv-thunk))
+         (project (assoc-ref kv
+                             'project))
+         (branch-name (assoc-ref kv
+                                 'branch-name))
+         (clone-url (assoc-ref kv
+                               'clone-url))
+         (daemon-name (assoc-ref kv
+                                 'daemon-name))
+         (task-or-tasks (assoc-ref kv
+                                   'task))
+         (tasks (cond
+                  ((list? task-or-tasks)
+                   task-or-tasks)
+                  ((string? task-or-tasks)
+                   (list task-or-tasks))
+                  (else task-or-tasks)))
+         (trivial-cmds (assoc-ref kv
+                                  'trivial-cmds)))
+    
+    (let* ((o (with-output-to-string (lambda ()
+                                       (display (format #f "\n~a...\n"
+                                                        (gettext
+                                                         "starting new job")))
+                                       (sys-details-step #:project project
+                                                         #:branch-name
+                                                         branch-name)
+                                       (clone-repo-step #:project project
+                                                        #:branch-name
+                                                        branch-name
+                                                        #:clone-url clone-url)
+                                       (git-details-step #:project project
+                                                         #:branch-name
+                                                         branch-name)
+                                       (for-each (lambda (task)
+                                                   (run-pipeline-task
+                                                    #:project project
+                                                    #:branch-name branch-name
+                                                    #:task task
+                                                    #:daemon-name daemon-name
+                                                    #:trivial-cmds
+                                                    trivial-cmds)) tasks))))
+           (new-log-data (string-append old-log-data "\n" o)))
       
-      ;; make test
-      ((equal? task "make-test")
-       (make-test-step #:project project
-                       #:branch-name branch-name))
+      (display o)
 
-      ;; maak test
-      ((equal? task "maak-test")
-       (maak-test-step #:project project
-                       #:branch-name branch-name))
+      (DB-query (get-conn-from-pool!)
+                (->sql update
+                       'log set
+                       `((log_data ,(html-escape new-log-data))
+                         (updated_at ,(current-time)))
+                       (where #:id (assoc-ref log "id"))))
 
-      ;; Trivial - Allow user to specify all commands
-      ((equal? task "trivial")
-       (trivial-step #:project project
-                     #:branch-name branch-name
-                     #:cmds trivial-cmds))
+      (DB-query (get-conn-from-pool!)
+                (->sql update
+                       'job set
+                       `((job_success 1)
+                         (job_in_progress 0)
+                         (job_failed 0)
+                         (updated_at ,(current-time)))
+                       (where #:id (assoc-ref job "id"))))
 
-      ;; maak build
-      ((equal? task "maak-build")
-       (maak-build-step #:project project
-                       #:branch-name branch-name))
-      
-      ;; Otherwise attempt generic `make build'
-      (else (make-build-step #:project project
-                             #:branch-name branch-name))))
-  (export run-pipeline-task))
+      )))
 
-(begin
-  (define* (job-pipeline #:key job log)
-    (let* ((old-log-data (html-unescape (assoc-ref log "log_data")))
-           (kv-thunk (eval-string (html-unescape (assoc-ref job "job_data"))))
-           (kv (kv-thunk))
-           (project (assoc-ref kv
-                               'project))
-           (branch-name (assoc-ref kv
-                                   'branch-name))
-           (clone-url (assoc-ref kv
-                                 'clone-url))
-           (daemon-name (assoc-ref kv
-                                   'daemon-name))
-           (task-or-tasks (assoc-ref kv
-                                     'task))
-           (tasks (cond
-                    ((list? task-or-tasks)
-                     task-or-tasks)
-                    ((string? task-or-tasks)
-                     (list task-or-tasks))
-                    (else task-or-tasks)))
-           (trivial-cmds (assoc-ref kv
-                                    'trivial-cmds)))
-      
-      (let* ((o (with-output-to-string (lambda ()
-                                         (display (format #f "\n~a...\n"
-                                                          (gettext
-                                                           "starting new job")))
-                                         (sys-details-step #:project project
-                                                           #:branch-name
-                                                           branch-name)
-                                         (clone-repo-step #:project project
-                                                          #:branch-name
-                                                          branch-name
-                                                          #:clone-url
-                                                          clone-url)
-                                         (git-details-step #:project project
-                                                           #:branch-name
-                                                           branch-name)
-                                         (for-each (lambda (task)
-                                                     (run-pipeline-task
-                                                      #:project project
-                                                      #:branch-name
-                                                      branch-name
-                                                      #:task task
-                                                      #:daemon-name
-                                                      daemon-name
-                                                      #:trivial-cmds
-                                                      trivial-cmds)) tasks))))
-             (new-log-data (string-append old-log-data "\n" o)))
-        
-        (display o)
-
-        (DB-query (get-conn-from-pool!)
-                  (->sql update
-                         'log set
-                         `((log_data ,(html-escape new-log-data))
-                           (updated_at ,(current-time)))
-                         (where #:id (assoc-ref log "id"))))
-
-        (DB-query (get-conn-from-pool!)
-                  (->sql update
-                         'job set
-                         `((job_success 1)
-                           (job_in_progress 0)
-                           (job_failed 0)
-                           (updated_at ,(current-time)))
-                         (where #:id (assoc-ref job "id"))))
-
-        )))
-  (export job-pipeline))
-
-(begin
-  (define (run-infallible-pipeline)
-    (catch #t
-           (lambda ()
-             (do-pip))
-           (lambda (key . args)
-             (display (format #f "
+(define (run-infallible-pipeline)
+  (catch #t
+         (lambda ()
+           (do-pip))
+         (lambda (key . args)
+           (display (format #f "
 ===========
 exception occured running pipeline: ~a
 ~a
 ===========
-" key
-                              args))
-             (sleep 1))))
-  (export run-infallible-pipeline))
+" key args))
+           (sleep 1))))
+

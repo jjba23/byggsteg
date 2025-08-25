@@ -24,6 +24,8 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-9)
   #:export (display-cmd do-in-clone-dir
                         stack-step
                         pull-and-restart-step
@@ -40,7 +42,34 @@
                         sys-details-step
                         clone-repo-step
                         trivial-step
-                        byggsteg-version-step))
+                        byggsteg-version-step
+                        step-result
+                        step-result?
+                        step-result-succeeded?
+                        step-result-stdout
+                        make-step-result
+                        $
+                        display-cmd
+                        ))
+
+(define-record-type step-result
+  (make-step-result succeeded? stdout) step-result?
+  (succeeded? step-result-succeeded?)
+  (stdout step-result-stdout))
+
+(define* ($ cmd)
+  (let* ((stdout-port (open-output-string))
+         (exit-val (with-output-to-port stdout-port
+                     (lambda() (system cmd))))
+         (exit-code (status:exit-val exit-val))
+         (error-msg (format #f "
+Non-zero exit code when running!
+Command: ~a
+Exit code: ~a
+" cmd exit-code))
+         (stdout-str (get-string-all stdout-port)))
+    (make-step-result #t stdout-str)
+    ))
 
 (define-syntax-rule (display-cmd cmd)
   (display (format #f "\n→ running command: ~a\n" cmd)))
@@ -49,7 +78,7 @@
   (let* ((command (format #f "cd ~a && ~a" clone-dir
                           (string-join cmds " && "))))
     (display-cmd command)
-    (display (syscall command))))
+    ($ command)))
 
 (define* (stack-step #:key project branch-name stack-task)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
