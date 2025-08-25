@@ -47,6 +47,7 @@
                         step-result?
                         step-result-succeeded?
                         step-result-stdout
+                        run-steps
                         make-step-result
                         $
                         display-cmd))
@@ -166,9 +167,8 @@
 
 (define* (trivial-step #:key project branch-name cmds)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
-    (for-each (lambda (c)
-                (display-cmd c)
-                (display (syscall c))) cmds)))
+    (map (lambda (c)
+                ($ c)) cmds)))
 
 (define* (byggsteg-version-step #:key project branch-name
                                 (daemon-name #f))
@@ -181,3 +181,42 @@
                             (sleep 2)
                             (display (syscall cmd))))))
 
+(define (flatten lst)
+  (let loop ((lst lst) (acc '()))
+    (cond
+     ((null? lst) acc)
+     ((pair? lst) (loop (car lst) (loop (cdr lst) acc)))
+     (else (cons lst acc)))))
+
+(define* (run-steps steps
+                    #:key (outs '()))
+  (let* ((outss outs)
+         (no-errors? #t)
+         (process-result (lambda (r)
+                           (set! outss
+                                 (append outss
+                                         (list (step-result-stdout r))))
+
+                           (if (step-result-succeeded? r)
+                               (begin
+                                 (set! no-errors? #t) r)
+                               (begin
+                                 (set! no-errors? #f) r)
+                               )))
+
+         (do-step (lambda (step)
+                    (if no-errors?
+                        (begin
+                          (let* ((result (apply step
+                                                '())))
+                            (cond
+                              ((list? result)
+                               (map process-result result))
+                              (else (process-result result)))))
+                        (make-step-result #f ""))))
+         (rs (flatten (map do-step steps)))
+         (_ (write rs))
+         (succeeded? (not (equal? #f (find (lambda(x) (equal? #f x)) (map step-result-succeeded? rs)))))
+         (outss (string-join (map step-result-stdout rs) "\n")))
+    
+    (make-step-result succeeded? outss)))
