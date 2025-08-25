@@ -134,23 +134,17 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 When defining a pipeline alist, the task field can be either a single step, or multiple.
 You should either pass a string or a list of strings of job names.
 
-~make-test~ - Run test suite with ~make test~.
-
-~maak-test~ - Run test suite with ~maak test~.
-
-~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself.
+~make-test~ | ~maak-test~- Run test suite with make or maak.
 
 ~pull-and-restart~ - Git pull and restart wanted shepherd service.
 
-~maak-deploy~ - Deploy
+~pull-and-deploy~ | ~maak-deploy~ - Run a deploy with make or maak.
 
-~pull-and-deploy~ - Git pull and run a ~sudo make deploy~.
+~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself.
+
+~make-build~ |  ~maak-build~ - Run a build with make or maak (make-build is the fallback task).
 
 ~trivial~ - Allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.
-
-~maak-build~ - Simple ~maak build~
-
-As a fallback, if no other task matches are found, byggsteg will default to doing a ~make build~.
 
 ------------
 

@@ -37,7 +37,8 @@
         ,(h4 (G_ "job types"))
         (dl (@ (class ,(mk-class '(p-4))))
             (dt (@ (class ,dt-face))
-                ,(code "make-test") " | " ,(code "maak-test"))
+                ,(code "make-test") " | "
+                ,(code "maak-test"))
             (dd (@ (class ,dd-face))
                 ,(G_ "Run test suite with make or maak"))
             (dt (@ (class ,dt-face))
@@ -45,30 +46,25 @@
             (dd (@ (class ,dd-face))
                 ,(G_ "Git pull and restart wanted GNU Shepherd service"))
             (dt (@ (class ,dt-face))
-                ,(code "pull-and-deploy"))
-            (dd (@ (class ,dd-face))
-                ,(G_ "Git pull and run a make deploy"))
-            (dt (@ (class ,dt-face))
+                ,(code "pull-and-deploy") " | "
                 ,(code "maak-deploy"))
             (dd (@ (class ,dd-face))
-                ,(G_ "Run a maak deploy"))
+                ,(G_ "Run a deploy with make or maak"))
+            (dt (@ (class ,dt-face))
+                ,(code "make-build") " | "
+                ,(code "maak-build"))
+            (dd (@ (class ,dd-face))
+                ,(G_
+                  "Run a build with make or maak (make-build is the fallback task)"))
             (dt (@ (class ,dt-face))
                 ,(code "byggsteg-version"))
             (dd (@ (class ,dd-face))
-                ,(G_ "Byggsteg pull and restart GNU Shepherd daemon itself"))            
+                ,(G_ "Byggsteg pull and restart GNU Shepherd daemon itself"))
             (dt (@ (class ,dt-face))
                 ,(code "trivial"))
             (dd (@ (class ,dd-face))
                 ,(G_
-                  "Allow passing arbitrary list of commands (via trivial-cmds field)"))
-            (dt (@ (class ,dt-face))
-                ,(code "maak-build"))
-            (dd (@ (class ,dd-face))
-                ,(G_ "Run a maak build")))
-        (p (@ (class ,(mk-class '(text-stone-800 dark:text-stone-300 text-sm
-                                                 py-2 px-6))))
-           ,(G_
-             "As a fallback, if no other task matches are found, byggsteg will default to doing a make build."))))
+                  "Allow passing arbitrary list of commands (via trivial-cmds field)")))))
 
 (define* (welcome-page rc
                        #:key is-logged-in selected-locale)
