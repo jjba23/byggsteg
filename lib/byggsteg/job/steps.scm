@@ -47,30 +47,33 @@
                         step-result?
                         step-result-succeeded?
                         step-result-stdout
+                        step-result-cmd
                         run-steps
                         make-step-result
                         $
                         display-cmd))
 
 (define-record-type step-result
-  (make-step-result succeeded? stdout) step-result?
+  (make-step-result succeeded? stdout cmd) step-result?
   (succeeded? step-result-succeeded?)
-  (stdout step-result-stdout))
+  (stdout step-result-stdout)
+  (cmd step-result-cmd))
 
 (define* ($ cmd)
   (let* ((input+output (pipe))
          (pid (spawn "bash"
                      (list "bash" "-c" cmd)
-                     #:output (cdr input+output)))
+                     #:output (cdr input+output)
+                     #:error (cdr input+output)))
          (_ (close-port (cdr input+output)))
          (out (get-string-all (car input+output)))
          (_ (close-port (car input+output)))
          (ex (waitpid pid))
          (exit-code (status:exit-val (cdr ex))))
-    (make-step-result (equal? 0 exit-code) out)))
+    (make-step-result (equal? 0 exit-code) out cmd)))
 
 (define-syntax-rule (display-cmd cmd)
-  (display (format #f "\n→ running command: ~a\n" cmd)))
+  (format #f "\n→ running command: ~a\n" cmd))
 
 (define-syntax-rule (do-in-clone-dir clone-dir cmds)
   (let* ((command (format #f "cd ~a && ~a" clone-dir
@@ -168,7 +171,7 @@
 (define* (trivial-step #:key project branch-name cmds)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (map (lambda (c)
-                ($ c)) cmds)))
+           ($ c)) cmds)))
 
 (define* (byggsteg-version-step #:key project branch-name
                                 (daemon-name #f))
@@ -182,11 +185,16 @@
                             (display (syscall cmd))))))
 
 (define (flatten lst)
-  (let loop ((lst lst) (acc '()))
+  (let loop
+    ((lst lst)
+     (acc '()))
     (cond
-     ((null? lst) acc)
-     ((pair? lst) (loop (car lst) (loop (cdr lst) acc)))
-     (else (cons lst acc)))))
+      ((null? lst)
+       acc)
+      ((pair? lst)
+       (loop (car lst)
+             (loop (cdr lst) acc)))
+      (else (cons lst acc)))))
 
 (define* (run-steps steps
                     #:key (outs '()))
@@ -195,14 +203,14 @@
          (process-result (lambda (r)
                            (set! outss
                                  (append outss
-                                         (list (step-result-stdout r))))
+                                         (list (display-cmd (step-result-cmd r))
+                                               (step-result-stdout r))))
 
                            (if (step-result-succeeded? r)
                                (begin
                                  (set! no-errors? #t) r)
                                (begin
-                                 (set! no-errors? #f) r)
-                               )))
+                                 (set! no-errors? #f) r))))
 
          (do-step (lambda (step)
                     (if no-errors?
@@ -213,10 +221,13 @@
                               ((list? result)
                                (map process-result result))
                               (else (process-result result)))))
-                        (make-step-result #f ""))))
+                        (make-step-result #f "" ""))))
          (rs (flatten (map do-step steps)))
-         (_ (write rs))
-         (succeeded? (not (equal? #f (find (lambda(x) (equal? #f x)) (map step-result-succeeded? rs)))))
-         (outss (string-join (map step-result-stdout rs) "\n")))
+         (succeeded? (not (equal? #f
+                                  (find (lambda (x)
+                                          (equal? #f x))
+                                        (map step-result-succeeded? rs)))))
+         (outsss (string-join outss "\n")))
     
-    (make-step-result succeeded? outss)))
+    (make-step-result succeeded? outsss
+                      (string-join (map step-result-cmd rs) "\n"))))
