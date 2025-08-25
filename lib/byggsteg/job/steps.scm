@@ -28,8 +28,11 @@
                         stack-step
                         pull-and-restart-step
                         pull-and-deploy-step
+                        maak-deploy-step
                         make-build-step
+                        maak-build-step
                         make-test-step
+                        maak-test-step
                         nix-build-step
                         sbt-test-step
                         sbt-testcontainers-test-step
@@ -67,15 +70,30 @@
     (do-in-clone-dir clone-dir
                      '("sudo make deploy"))))
 
+(define* (maak-deploy-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("sudo maak deploy"))))
+
 (define* (make-build-step #:key project branch-name)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("make build"))))
 
+(define* (maak-build-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("maak build"))))
+
 (define* (make-test-step #:key project branch-name)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("make test"))))
+
+(define* (maak-test-step #:key project branch-name)
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+    (do-in-clone-dir clone-dir
+                     '("maak test"))))
 
 (define* (nix-build-step #:key project branch-name)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))

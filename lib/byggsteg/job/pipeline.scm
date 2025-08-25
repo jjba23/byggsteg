@@ -119,9 +119,19 @@
        (pull-and-deploy-step #:project project
                              #:branch-name branch-name))
 
+      ;; maak deploy
+      ((equal? task "maak-deploy")
+       (maak-deploy-step #:project project
+                       #:branch-name branch-name))
+      
       ;; make test
       ((equal? task "make-test")
        (make-test-step #:project project
+                       #:branch-name branch-name))
+
+      ;; maak test
+      ((equal? task "maak-test")
+       (maak-test-step #:project project
                        #:branch-name branch-name))
 
       ;; Trivial - Allow user to specify all commands
@@ -130,6 +140,11 @@
                      #:branch-name branch-name
                      #:cmds trivial-cmds))
 
+      ;; maak build
+      ((equal? task "maak-build")
+       (maak-build-step #:project project
+                       #:branch-name branch-name))
+      
       ;; Otherwise attempt generic `make build'
       (else (make-build-step #:project project
                              #:branch-name branch-name))))
