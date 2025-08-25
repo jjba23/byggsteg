@@ -28,6 +28,7 @@
   #:export (base64-encode))
 
 (define (base64-encode s)
-  (syscall (format #f "echo -n '~a' | base64 --wrap=0"
-                   (string-replace-substring s "'" "&apos;"))))
-
+  (syscall (format #f "cat << \\EOFEOF | base64 --wrap=0
+~a
+EOFEOF"
+                   s)))

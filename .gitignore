@@ -7,3 +7,4 @@ byggsteg.db-shm
 byggsteg.db-wal
 *.log
 env.scm
+.nrepl-port
