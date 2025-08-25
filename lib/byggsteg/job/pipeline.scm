@@ -171,7 +171,6 @@
                                   'trivial-cmds)))
     
     (let* ((steps (list
-
                         (lambda ()
                           (clone-repo-step #:project project
                                            #:branch-name branch-name
@@ -197,7 +196,7 @@
                                                    (gettext "starting new job"))))))
       
       (display (step-result-stdout result))
-      (display (format #f "succeeded?: ~a"
+      (display (format #f "\nsucceeded?: ~a\n"
                        (step-result-succeeded? result)))
 
       (DB-query (get-conn-from-pool!)
@@ -218,18 +217,18 @@
 
       )))
 
-;; (define (run-infallible-pipeline)
-;;   (catch #t
-;;          (lambda ()
-;;            (do-pip))
-;;          (lambda (key . args)
-;;            (display (format #f "
-;;   ===========
-;;   exception occured running pipeline: ~a
-;;   ~a
-;;   ===========
-;;   " key
-;;                             args))
-;;            (sleep 1))))
+(define (run-infallible-pipeline)
+  (catch #t
+         (lambda ()
+           (do-pip))
+         (lambda (key . args)
+           (display (format #f "
+  ===========
+  exception occured running pipeline: ~a
+  ~a
+  ===========
+  " key
+                            args))
+           (sleep 1))))
 
-(define (run-infallible-pipeline) (do-pip))
+;;(define (run-infallible-pipeline) (do-pip))
