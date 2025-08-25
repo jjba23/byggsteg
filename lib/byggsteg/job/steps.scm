@@ -57,19 +57,16 @@
   (stdout step-result-stdout))
 
 (define* ($ cmd)
-  (let* ((stdout-port (open-output-string))
-         (exit-val (with-output-to-port stdout-port
-                                        (lambda ()
-                                          (system cmd))))
-         (exit-code (status:exit-val exit-val))
-         (error-msg (format #f "
-Non-zero exit code when running!
-Command: ~a
-Exit code: ~a
-" cmd exit-code))
-         (stdout-str (get-output-string stdout-port)))
-    (display "STDOUT STR\n==========\n")(newline) (display stdout-str)
-    (make-step-result #t stdout-str)))
+  (let* ((input+output (pipe))
+         (pid (spawn "bash"
+                     (list "bash" "-c" cmd)
+                     #:output (cdr input+output)))
+         (_ (close-port (cdr input+output)))
+         (out (get-string-all (car input+output)))
+         (_ (close-port (car input+output)))
+         (ex (waitpid pid))
+         (exit-code (status:exit-val (cdr ex))))
+    (make-step-result (equal? 0 exit-code) out)))
 
 (define-syntax-rule (display-cmd cmd)
   (display (format #f "\n→ running command: ~a\n" cmd)))
@@ -164,10 +161,8 @@ Exit code: ~a
                             clone-dir))
          (pull-cmd (format #f "cd ~a && git pull" clone-dir)))
     (cond
-      (should-clone (display-cmd clone-cmd)
-                    (display (syscall clone-cmd)))
-      (else (display-cmd pull-cmd)
-            (display (syscall pull-cmd))))))
+      (should-clone ($ clone-cmd))
+      (else ($ pull-cmd)))))
 
 (define* (trivial-step #:key project branch-name cmds)
   (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))

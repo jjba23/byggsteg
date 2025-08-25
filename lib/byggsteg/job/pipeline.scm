@@ -171,28 +171,30 @@
                                   'trivial-cmds)))
     
     (let* ((o1 (list (format #f "\n~a...\n"
-                                 (gettext "starting new job"))))
+                             (gettext "starting new job"))))
            (o2 (clone-repo-step #:project project
-                                 #:branch-name branch-name
-                                 #:clone-url clone-url))
+                                #:branch-name branch-name
+                                #:clone-url clone-url))
            (o3 (sys-details-step #:project project
-                                  #:branch-name branch-name))
+                                 #:branch-name branch-name))
            (o4 (git-details-step #:project project
-                                  #:branch-name branch-name))
+                                 #:branch-name branch-name))
            (o5 (map (lambda (task)
-                            (run-pipeline-task #:project project
-                                               #:branch-name branch-name
-                                               #:task task
-                                               #:daemon-name daemon-name
-                                               #:trivial-cmds trivial-cmds))
-                          tasks))
-           )
-
+                      (run-pipeline-task #:project project
+                                         #:branch-name branch-name
+                                         #:task task
+                                         #:daemon-name daemon-name
+                                         #:trivial-cmds trivial-cmds)) tasks)))
+      
       (display o1)
+      (display o2)
+      (display o3)
+      (display o4)
+      (display o5)
       ;; (new-log-data (string-append old-log-data "\n" o))
       
       ;; (display (format #f "~a" o))
-
+      
       ;; (DB-query (get-conn-from-pool!)
       ;; (->sql update
       ;; 'log set

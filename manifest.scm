@@ -168,5 +168,6 @@ user sessions on the web or authenticating API calls.")
                           guile-curl
                           sqlite
                           emacs
+                          bash-minimal
                           guile-dbd-sqlite3))
 
