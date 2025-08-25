@@ -218,11 +218,13 @@
                           (let* ((result (apply step
                                                 '())))
                             (cond
-                              ((list? result)
-                               (map process-result result))
-                              (else (process-result result)))))
+                              ((step-result? result)
+                               (process-result result))
+                              (else (map process-result
+                                         (flatten result))))))
                         (make-step-result #f "" ""))))
-         (rs (flatten (map do-step steps)))
+         (rs (flatten (map do-step
+                           (flatten steps))))
          (succeeded? (not (any (lambda (s)
                                  (equal? #f s))
                                (map step-result-succeeded? rs))))
