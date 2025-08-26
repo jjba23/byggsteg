@@ -169,10 +169,17 @@
 
 (define* (trivial-step #:key project branch-name cmds
                        (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+         (no-errors? #t))
     (map (lambda (c)
-           ($ c
-              #:env env)) cmds)))
+           (if (not no-errors?)
+               (make-step-result #f "" "")
+               (let* ((res ($ c
+                              #:env env)))
+                 (if (step-result-succeeded? res)
+                     (set! no-errors? #t)
+                     (set! no-errors? #f))
+                 res))) cmds)))
 
 (define* (byggsteg-version-step #:key project branch-name
                                 (daemon-name #f)
