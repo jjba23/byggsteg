@@ -162,7 +162,7 @@
                             branch-name
                             clone-url
                             clone-dir))
-         (pull-cmd (format #f "cd ~a && git pull" clone-dir)))
+         (pull-cmd (format #f "cd ~a && git reset --hard && git pull" clone-dir)))
     (cond
       (should-clone ($ clone-cmd))
       (else ($ pull-cmd)))))
