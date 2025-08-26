@@ -203,29 +203,37 @@
                     #:key (outs '()))
   (let* ((outss outs)
          (no-errors? #t)
-         (process-result (lambda (r)
-                           (set! outss
-                                 (append outss
-                                         (list (display-cmd (step-result-cmd r))
-                                               (step-result-stdout r))))
-
-                           (if (step-result-succeeded? r)
-                               (begin
-                                 (set! no-errors? #t) r)
-                               (begin
-                                 (set! no-errors? #f) r))))
+         (circuit-breaker (lambda (result)
+                            (if (and (step-result? result)
+                                     (step-result-succeeded? result))
+                                (begin
+                                  (set! no-errors? #t) result)
+                                (begin
+                                  (set! no-errors? #f) result))))
+         (stdout-appender (lambda (r)
+                            (set! outss
+                                  (append outss
+                                          (list (display-cmd (step-result-cmd
+                                                              r))
+                                                (step-result-stdout r))))))
 
          (do-step (lambda (step)
-                    (if no-errors?
+                    (if (not no-errors?)
+                        (make-step-result #f "" "")
                         (begin
                           (let* ((result (apply step
                                                 '())))
                             (cond
                               ((step-result? result)
-                               (process-result result))
-                              (else (map process-result
-                                         (flatten result))))))
-                        (make-step-result #f "" ""))))
+                               (stdout-appender result)
+                               (circuit-breaker result))
+                              (else (map (lambda (r)
+                                           (if (not no-errors?)
+                                               (make-step-result #f "" "")
+                                               (begin
+                                                 (stdout-appender r)
+                                                 (circuit-breaker r))))
+                                         (flatten result)))))))))
          (rs (flatten (map do-step
                            (flatten steps))))
          (succeeded? (not (any (lambda (s)
@@ -235,3 +243,4 @@
     
     (make-step-result succeeded? outsss
                       (string-join (map step-result-cmd rs) "\n"))))
+
