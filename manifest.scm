@@ -22,6 +22,7 @@
              (guix git-download)
              (guix download)
              (guix build-system gnu)
+             (gnu packages admin)
              (gnu packages guile)
              (gnu packages curl)
              (gnu packages bash)
@@ -168,6 +169,7 @@ user sessions on the web or authenticating API calls.")
                           guile-curl
                           sqlite
                           emacs
+                          direvent
                           bash-minimal
                           guile-dbd-sqlite3))
 
