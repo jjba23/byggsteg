@@ -169,7 +169,7 @@ user sessions on the web or authenticating API calls.")
                           guile-curl
                           sqlite
                           emacs
-                          direvent
+                          watchexec
                           bash-minimal
                           guile-dbd-sqlite3))
 
