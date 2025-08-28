@@ -162,7 +162,8 @@
                             branch-name
                             clone-url
                             clone-dir))
-         (pull-cmd (format #f "cd ~a && git reset --hard && git pull" clone-dir)))
+         (pull-cmd (format #f "cd ~a && git reset --hard && git pull"
+                           clone-dir)))
     (cond
       (should-clone ($ clone-cmd))
       (else ($ pull-cmd)))))
@@ -178,8 +179,7 @@
                               #:env env)))
                  (if (step-result-succeeded? res)
                      (set! no-errors? #t)
-                     (set! no-errors? #f))
-                 res))) cmds)))
+                     (set! no-errors? #f)) res))) cmds)))
 
 (define* (byggsteg-version-step #:key project branch-name
                                 (daemon-name #f)

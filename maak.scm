@@ -51,6 +51,9 @@
 (define i18n-locales
   '(en_US nl_NL es_ES))
 
+(define hot-reload-file-types
+  '(scm css js))
+
 ;; The Emacs Lisp script to run for publishing the manual. 
 (define emacs-lisp-manual-publish-cmd
   '(progn (find-file "./docs/manual/en.org")
@@ -159,7 +162,14 @@ Remove all files in the byggsteg location, ignoring errors."
 
 (define (hot-reload)
   "Hot-reloading developer's setup."
-  ($ '("direvent direvent.conf")))
+  (manifest-shell (list "watchexec 'maak server'"
+                        "--clear"
+                        (~ "--exts ~a"
+                           (string-join (map symbol->string
+                                             hot-reload-file-types) ","))
+                        "--on-busy-update=restart"
+                        "--shell bash"
+                        "--watch .")))
 
 (define (hr)
   "Alias to hot-reloading."
@@ -188,7 +198,8 @@ Remove all files in the byggsteg location, ignoring errors."
 for higher concurrent writes to SQLite 3."
   (delete-file-recursively byggsteg-db)
   (delete-file-recursively (~ "~a-shm" byggsteg-db))
-  (delete-file-recursively (~ "~a-wal" byggsteg-db)))
+  (delete-file-recursively (~ "~a-wal" byggsteg-db))
+  (manifest-shell (~ "sqlite3 ~a 'PRAGMA journal_mode=WAL;'" byggsteg-db)))
 
 ;; ====== Maak i18n tasks ======
 
@@ -204,7 +215,7 @@ for higher concurrent writes to SQLite 3."
   "Initialize a new translation file for nl_NL."
   (i18n-init* 'nl_NL))
 
-(define (i18n-init-nl)
+(define (i18n-init-es)
   "Initialize a new translation file for es_ES."
   (i18n-init* 'es_ES))
 

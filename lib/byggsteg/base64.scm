@@ -30,5 +30,4 @@
 (define (base64-encode s)
   (syscall (format #f "cat << \\EOFEOF | base64 --wrap=0
 ~a
-EOFEOF"
-                   s)))
+EOFEOF" s)))
