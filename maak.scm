@@ -162,14 +162,15 @@ Remove all files in the byggsteg location, ignoring errors."
 
 (define (hot-reload)
   "Hot-reloading developer's setup."
-  (manifest-shell (list "watchexec 'maak server'"
+  (manifest-shell (list "watchexec"
                         "--clear"
                         (~ "--exts ~a"
                            (string-join (map symbol->string
                                              hot-reload-file-types) ","))
                         "--on-busy-update=restart"
                         "--shell bash"
-                        "--watch .")))
+                        "--watch . --"
+                        "maak server")))
 
 (define (hr)
   "Alias to hot-reloading."

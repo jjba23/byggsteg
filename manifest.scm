@@ -126,7 +126,7 @@ easing the learning curve, and reducing the cognitive load.")
 (define-public guile-bewaking
   (package
     (name "guile-bewaking")
-    (version "0.1.5")
+    (version "0.1.8")
     (source
      (origin
        (method git-fetch)
@@ -135,23 +135,24 @@ easing the learning curve, and reducing the cognitive load.")
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "15yz25b8bfi58lrb1kgfg5sq84pim04rfjqs87qzl655rfifxjq3"))))
+        (base32 "069f9kxf3ra02zrjbrw6rh8bbl7f33ms88rjkr2jzm789a5gl579"))))
     (build-system guile-build-system)
-    (native-inputs (list guile-uuid guile-gcrypt guile-3.0))
-    (propagated-inputs (list openssl xxd))
     (arguments
      (list
       #:source-directory "src"))
+    (native-inputs (list guile-uuid guile-gcrypt guile-3.0))
+    (propagated-inputs (list openssl xxd))
     (home-page "https://codeberg.org/jjba23/bewaking")
     (synopsis "Authentication / Authorization library for Guile Scheme")
     (description
-     "bewaking is a library that helps you with secure tokens.
-It allows you to create and verify lifetime-limited encrypted digital
-credentials that carry information securely.
+     "bewaking provides functionalities to (double) encrypt and
+decrypt data, aided by a custom obfuscation algorithm.
 
-Tokens are protected through multiple layers of cryptography techniques
-and obfuscation tricks, producing secure tokens you can use for example for
-user sessions on the web or authenticating API calls.")
+It also provides a DSL to be used for Authorization and Authentication
+for your Guile Scheme projects with a simple user permission system.
+
+Data is protected through multiple layers of cryptography techniques
+and obfuscation tricks, producing secure files and tokens one can use.")
     (license license:lgpl3+)))
 
 (packages->manifest (list (specification->package "make")
