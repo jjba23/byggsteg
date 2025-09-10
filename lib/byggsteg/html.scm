@@ -55,14 +55,12 @@
                                `(meta (@ (content "12")
                                          (http-equiv "refresh")) ()))
                               (else `()))))
-    `("<!DOCTYPE html>" (html (@ (lang en))
-                              (head (title ,title)
-                                    ,maybe-auto-refresh
-                                    (meta (@ (name viewport)
-                                             (content
-                                              "width=device-width, initial-scale=1.0")))
-                                    (meta (@ (charset UTF-8)))
-                                    (style "
+    `(,doctype-html (html (@ (lang en))
+                          (head (title ,title)
+                                ,maybe-auto-refresh
+                                ,hygguile-recommended-meta
+                                ,hygguile-recommended-resources
+                                (style "
 @view-transition {
   navigation: auto;
 }
@@ -77,10 +75,8 @@
   to   { opacity: 1; }
 }
 ")
-                                    (script ,(assoc-ref asset-library
-                                                        "pub/js/tailwind.js"))
-                                    (script (@ (type speculationrules))
-                                            "
+                                (script (@ (type speculationrules))
+                                        "
 {
   \"prerender\": [
     {
@@ -90,28 +86,21 @@
     }
   ]
 }
-")
-                                    ,(custom-fonts)
-                                    ,(phosphor-icons)
-                                    ,(custom-tailwind-theme)
-                                    ,(toggle-dark-theme-js)
-                                    ,(copy-pre-inner-text-js)
-                                    ,(show-notifications-from-url-js)
-                                    ,(remember-dark-theme-js))
-                              (body (@ (class ,(mk-class '(bg-stone-100
-                                                           dark:bg-stone-800))))
-                                    ,notification-tray
-                                    (div (@ (class ,(mk-class '(flex flex-col
-                                                                h-screen
-                                                                justify-between))))
-                                         (div ,(page-top G_
-                                                         #:is-logged-in
-                                                         is-logged-in)
-                                              (div (@ (class ,(mk-class '(my-4
-                                                                          container
-                                                                          mx-auto))))
-                                                   ,@body))
-                                         ,(page-footer G_)))))))
+"))
+                          (body (@ (class ,(mk-class '(bg-stone-100
+                                                       dark:bg-stone-800))))
+                                ,notification-tray
+                                (div (@ (class ,(mk-class '(flex flex-col
+                                                            h-screen
+                                                            justify-between))))
+                                     (div ,(page-top G_
+                                                     #:is-logged-in
+                                                     is-logged-in)
+                                          (div (@ (class ,(mk-class '(my-4
+                                                                      container
+                                                                      mx-auto))))
+                                               ,@body))
+                                     ,(page-footer G_)))))))
 
 (define* (page-top G_
                    #:key is-logged-in)
