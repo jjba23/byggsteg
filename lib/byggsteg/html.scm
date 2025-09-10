@@ -32,8 +32,7 @@
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads)
-  #:export (asset-library html-template
-                          page-top
+  #:export (html-template page-top
                           project-logo
                           maybe-profile-name
                           locale-choose-form
@@ -41,9 +40,6 @@
                           make-job-link
                           make-profile-link
                           if-job-was-updated-html))
-
-(define asset-library
-  (build-asset-library '("pub/js/tailwind.js")))
 
 (define* (html-template G_
                         #:key title
