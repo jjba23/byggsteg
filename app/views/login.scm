@@ -76,7 +76,7 @@
                                                 #:content (G_ "reset")))))))
     (html-template G_
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                   #:body `((div (@ (class ,(mk-class '(px-4))))
                                  (div (@ (class ,(mk-class '(w-full flex
                                                                     flex-row
                                                                     flex-wrap

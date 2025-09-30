@@ -19,7 +19,7 @@
 (define-module (byggsteg html)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg job pipeline)
-  #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg faces)
   #:use-module (sxml simple)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
@@ -56,21 +56,7 @@
                                 ,maybe-auto-refresh
                                 ,hygguile-recommended-meta
                                 ,hygguile-recommended-resources
-                                (style "
-@view-transition {
-  navigation: auto;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: fade 0.04s ease both;
-}
-
-@keyframes fade {
-  from { opacity: 0.3; }
-  to   { opacity: 1; }
-}
-")
+                                (link (@(rel stylesheet)(href "/css/byggsteg.olive.min.css")) "")
                                 (script (@ (type speculationrules))
                                         "
 {
@@ -84,7 +70,7 @@
 }
 "))
                           (body (@ (class ,(mk-class '(bg-stone-100
-                                                       dark:bg-stone-800))))
+                                                       dark:bg-onyx-900))))
                                 ,notification-tray
                                 (div (@ (class ,(mk-class '(flex flex-col
                                                             h-screen
@@ -109,20 +95,20 @@
                                      items-center
                                      shadow-md
                                      bg-stone-200
-                                     dark:bg-stone-900))))
+                                     dark:bg-onyx-700))))
 
          (div (@ (class ,(mk-class '(px-4 py-1 w-full md:w-min))))
               (a (@ (href "/")
-                    (class ,(mk-class '(flex flex-row gap-2 items-center))))
+                    (class ,(mk-class '(flex flex-row gap-2 items-center no-underline))))
                  ,(sub-h3 (list (icon #:type 'gear-fine
                                       #:icon-css '(text-xl text-stone-700
                                                    dark:text-stone-200
-                                                   hover:text-orange-800
+                                                   hover:text-orange-700
                                                    hover:dark:text-orange-300))
                                 "&nbsp;"
                                 (G_ "Byggsteg"))
                           #:color '(text-stone-700 dark:text-stone-200
-                                                   hover:text-orange-800
+                                                   hover:text-orange-700
                                                    hover:dark:text-orange-300)
                           #:size '(text-xl lg:text-2xl))))
          (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
@@ -217,7 +203,7 @@
                         #:weight '(font-light))))))
 
 (define project-logo
-  `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900 rounded-2xl p-4
+  `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-onyx-700 rounded-2xl p-4
                                             shadow-md))))
         (img (@ (loading lazy)
                 (class ,(mk-class '(w-48 h-auto rounded-2xl)))
@@ -283,12 +269,13 @@
                     #:required #t
                     #:textarea-css '(p-3 rounded-xl
                                          border-stone-200
-                                         dark:border-stone-700
+                                         dark:border-onyx-100
                                          dark:text-stone-300
-                                         dark:bg-stone-700/75
+                                         dark:bg-onyx-700/75
                                          bg-stone-200/75
                                          border-2
                                          min-h-72
+                                         max-w-196
                                          shadow-md
                                          font-mono
                                          min-w-prose))

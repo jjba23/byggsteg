@@ -19,7 +19,7 @@
 (define-module (app views jobs)
   #:use-module (byggsteg preferences)
   #:use-module (kracht prelude)
-  #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg faces)
   #:use-module (byggsteg html)
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)
@@ -37,5 +37,6 @@
     (html-template G_
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
-                   #:body `(,(h2 (G_ "run job")) ,(job-form G_
-                                                   "/jobs/manage/submit" #f)))))
+                   #:body `((div (@(class ,(mk-class '(px-4))))
+                            ,(h2 (G_ "run job")) ,(job-form G_
+                                                   "/jobs/manage/submit" #f))))))

@@ -188,3 +188,7 @@ deploy:
 	mkdir -pv $(DEPLOY_WWW)/manuals/byggsteg
 	rm -rfv $(DEPLOY_WWW)/manuals/byggsteg/index.html
 	mv -v docs/manual/en.html $(DEPLOY_WWW)/manuals/byggsteg/index.html
+
+olive-css:
+	curl --output "./pub/css/byggsteg.olive.min.css" \
+		"https://codeberg.org/jjba23/olive-css/raw/branch/trunk/resources/css/byggsteg.olive.min.css"

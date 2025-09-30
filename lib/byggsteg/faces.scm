@@ -16,7 +16,7 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-(define-module (byggsteg tailwind)
+(define-module (byggsteg faces)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 time)

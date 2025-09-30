@@ -18,7 +18,7 @@
 
 (define-module (app views index)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg faces)
   #:use-module (byggsteg html)
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)

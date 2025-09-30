@@ -18,7 +18,7 @@
 
 (define-module (app views profiles)
   #:use-module (byggsteg preferences)
-  #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg faces)
   #:use-module (byggsteg html)
   #:use-module (kracht prelude)
   #:use-module (ice-9 i18n)
@@ -36,72 +36,76 @@
   (let* ((profile-name (html-unescape (assoc-ref p "human_id")))
          (profile-data (html-unescape (assoc-ref p "profile_data")))
          (G_ (:i18n rc))
-         (body `((div (@ (class ,(mk-class '(flex flex-row
-                                                  flex-wrap
-                                                  align-center
-                                                  items-center
-                                                  gap-6
-                                                  px-3))))
-                      ,(h2 (G_ "profile details"))
-                      ,(h3 profile-name))
-                 
-                 (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-4
-                                                  my-4))))
-                      (form (@ (method POST)
-                               (action "/jobs/manage/submit")
-                               (enctype application/x-www-form-urlencoded)
-                               (charset utf-8))
+         (submit-profile-form `((form (@ (method POST)
+                                         (enctype
+                                          application/x-www-form-urlencoded)
+                                         (action "/profiles/manage/submit"))
+                                      ,(input #:label (G_ "profile name")
+                                              #:name 'profile-name
+                                              #:value profile-name
+                                              #:required #t)
+                                      ,(textarea #:label (G_ "profile code")
+                                                 #:name 'job-code
+                                                 #:value profile-data
+                                                 #:textarea-css '(p-3
+                                                                  rounded-xl
+                                                                  font-mono
+                                                                  text-sm
+                                                                  md:text-md
+                                                                  border-stone-200
+                                                                  dark:border-onyx-100
+                                                                  dark:text-stone-300
+                                                                  bg-stone-200/75
+                                                                  dark:bg-onyx-700/75
+                                                                  border-2
+                                                                  min-h-72
+                                                                  max-w-196
+                                                                  shadow-md
+                                                                  w-full)
+                                                 #:required #t)
 
-                            (textarea (@ (id job-code)
-                                         (name job-code)
-                                         (required "")
-                                         (hidden ""))
-                                      ,profile-data)
+                                      (div ,(submit-button (G_ "save"))))))
+         (body `((div (@ (class ,(mk-class '(px-4))))
+                     (div (@ (class ,(mk-class '(flex flex-row flex-wrap
+                                                      align-center
+                                                      items-center gap-6))))
+                          ,(h2 (G_ "profile details"))
+                          ,(h3 profile-name))
 
-                            ,(icon-button #:type 'submit
-                                          #:icon 'circuitry
-                                          #:content (G_ "start new job")))
+                     (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-4
+                                                      my-4))))
+                          (form (@ (method POST)
+                                   (action "/jobs/manage/submit")
+                                   (enctype application/x-www-form-urlencoded)
+                                   (charset utf-8))
 
-                      (form (@ (method POST)
-                               (enctype application/x-www-form-urlencoded)
-                               (action "/profiles/manage/delete"))
-                            (input (@ (id profile-id)
-                                      (name profile-id)
-                                      (required "")
-                                      (hidden "")
-                                      (value ,(assoc-ref p "id"))
-                                      (class ,(mk-class '(rounded-xl border
-                                                          font-sans p-2)))))
-                            (button (@ (type submit)
-                                       (class ,danger-button-face))
-                                    ,(G_ "delete"))))
+                                (textarea (@ (id job-code)
+                                             (name job-code)
+                                             (required "")
+                                             (hidden ""))
+                                          ,profile-data)
 
-                 (form (@ (method POST)
-                          (enctype application/x-www-form-urlencoded)
-                          (action "/profiles/manage/submit"))
-                       ,(input #:label (G_ "profile name")
-                               #:name 'profile-name
-                               #:value profile-name
-                               #:required #t)
-                       ,(textarea #:label (G_ "profile code")
-                                  #:name 'job-code
-                                  #:value profile-data
-                                  #:textarea-css '(p-3 rounded-xl
-                                                       font-mono
-                                                       text-sm
-                                                       md:text-md
-                                                       border-stone-200
-                                                       dark:border-stone-700
-                                                       dark:text-stone-300
-                                                       bg-stone-200/75
-                                                       dark:bg-stone-700/75
-                                                       border-2
-                                                       min-h-72
-                                                       shadow-md
-                                                       w-full)
-                                  #:required #t)
+                                ,(icon-button #:type 'submit
+                                              #:icon 'circuitry
+                                              #:content (G_ "start new job")))
 
-                       (div ,(submit-button (G_ "save")))))))
+                          (form (@ (method POST)
+                                   (enctype application/x-www-form-urlencoded)
+                                   (action "/profiles/manage/delete"))
+                                (input (@ (id profile-id)
+                                          (name profile-id)
+                                          (required "")
+                                          (hidden "")
+                                          (value ,(assoc-ref p "id"))
+                                          (class ,(mk-class '(rounded-xl
+                                                              border font-sans
+                                                              p-2)))))
+                                (button (@ (type submit)
+                                           (class ,danger-button-face))
+                                        ,(G_ "delete"))))
+                     ,submit-profile-form
+
+                     ))))
     (html-template G_
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
@@ -113,9 +117,9 @@
     (html-template G_
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
-                   #:body `(,(h2 (G_ "new profile")) ,(job-form G_
-                                                       "/profiles/manage/submit"
-                                                       #t)))))
+                   #:body `((div (@ (class ,(mk-class '(px-3))))
+                                 ,(h2 (G_ "new profile"))
+                                 ,(job-form G_ "/profiles/manage/submit" #t))))))
 
 (define* (profile-list-page rc profiles
                             #:key is-logged-in)

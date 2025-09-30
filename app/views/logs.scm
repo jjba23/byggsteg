@@ -19,7 +19,7 @@
 (define-module (app views logs)
   #:use-module (byggsteg preferences)
   #:use-module (kracht prelude)
-  #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg faces)
   #:use-module (kracht prelude)
   #:use-module (web uri)
   #:use-module (artanis artanis)

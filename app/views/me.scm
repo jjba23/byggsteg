@@ -81,7 +81,7 @@
     (html-template G_
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                   #:body `((div (@ (class ,(mk-class '(px-4))))
                                  (div (@ (class ,(mk-class '(flex flex-col
                                                                   gap-6))))
                                       ,user-details
@@ -166,7 +166,7 @@
   (html-template G_
                  #:title "byggsteg"
                  #:is-logged-in #t
-                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                 #:body `((div (@ (class ,(mk-class '(px-4))))
                                ,(h2 (G_ "User management"))
                                (div (@ (class ,(mk-class '(my-6))))
                                     (a (@ (href "/users/new"))
@@ -232,7 +232,7 @@
   (html-template G_
                  #:title "byggsteg"
                  #:is-logged-in #t
-                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                 #:body `((div (@ (class ,(mk-class '(px-4))))
                                (div ,(h2 (G_ "New User")))
                                (div (@ (class ,(mk-class '(flex flex-col
                                                            gap-4
@@ -304,7 +304,7 @@
   (html-template G_
                  #:title "byggsteg"
                  #:is-logged-in #t
-                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                 #:body `((div (@ (class ,(mk-class '(px-4))))
                                (div ,(h2 (G_ "Edit User")))
                                (div (@ (class ,(mk-class '(flex flex-col
                                                            gap-4
