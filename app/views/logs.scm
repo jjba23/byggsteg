@@ -45,9 +45,9 @@
          (in-progress (assoc-ref job "job_in_progress"))
          (failure (assoc-ref job "job_failed"))
          (G_ (:i18n rc))
-         (dl-class (mk-class '(py-3)))
+         (dl-class (mk-class '(py-3 gap-2)))
          (dt-class (mk-class '(font-sans text-xs text-stone-800
-                                         dark:text-stone-400 font-bold pt-2)))
+                                         dark:text-stone-400 font-bold pt-2 )))
          (dd-class (mk-class '(pl-3 font-sans text-sm text-stone-800
                                     dark:text-stone-400 font-medium)))
          (job-status (cond
@@ -121,8 +121,9 @@
 
                      (details (@ (class ,(mk-class '(my-4))))
                               (summary (@ (class ,(mk-class '(cursor-pointer
-                                                              text-stone-400
-                                                              hover:text-stone-200
+                                                              text-onyx-700
+                                                              dark:text-stone-300
+                                                              hover:text-orange-300
                                                               block))))
                                        (div (@ (class ,(mk-class '(flex
                                                                    flex-row
@@ -192,8 +193,8 @@
                                                   align-center
                                                   whitespace-break-spaces))))
                            ,(h1 (G_ "logs"))
-                           (div (@ (class ,(mk-class '(rounded-xl bg-stone-200
-                                                       dark:bg-stone-900
+                           (div (@ (class ,(mk-class '(rounded-xl bg-stone-300
+                                                       dark:bg-onyx-700
                                                        flex
                                                        flex-col
                                                        gap-4

@@ -32,72 +32,75 @@
   #:export (welcome-page))
 
 (define (job-type-expl G_)
-  `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-200 dark:bg-stone-900
-                                           shadow-md rounded-xl))))
-        ,(h4 (G_ "job types"))
-        (dl (@ (class ,(mk-class '(p-4))))
-            (dt (@ (class ,dt-face))
-                ,(code "make-test") " | "
-                ,(code "maak-test"))
-            (dd (@ (class ,dd-face))
-                ,(G_ "Run test suite with make or maak"))
-            (dt (@ (class ,dt-face))
-                ,(code "pull-and-restart"))
-            (dd (@ (class ,dd-face))
-                ,(G_ "Git pull and restart wanted GNU Shepherd service"))
-            (dt (@ (class ,dt-face))
-                ,(code "pull-and-deploy") " | "
-                ,(code "maak-deploy"))
-            (dd (@ (class ,dd-face))
-                ,(G_ "Run a deploy with make or maak"))
-            (dt (@ (class ,dt-face))
-                ,(code "make-build") " | "
-                ,(code "maak-build"))
-            (dd (@ (class ,dd-face))
-                ,(G_
-                  "Run a build with make or maak (make-build is the fallback task)"))
-            (dt (@ (class ,dt-face))
-                ,(code "byggsteg-version"))
-            (dd (@ (class ,dd-face))
-                ,(G_ "Byggsteg pull and restart GNU Shepherd daemon itself"))
-            (dt (@ (class ,dt-face))
-                ,(code "trivial"))
-            (dd (@ (class ,dd-face))
-                ,(G_
-                  "Allow passing arbitrary list of commands (via trivial-cmds field)")))))
+  (let* ((dl-classes '(flex flex-col gap-1 py-2))
+         (dd-classes '(py-3 px-2 text-onyx-300 dark:text-stone-300)))
+    `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-300 dark:bg-onyx-700
+                                             shadow-md rounded-xl))))
+          ,(h4 (G_ "job types"))
+          ,(dl (list (dt (list (code "maak-test") " | "
+                               (code "make-test")))
+                     (dd (G_ "Run test suite with Maak or Make")
+                         #:dd-classes dd-classes
+                         #:size '(text-md))
+                     (dt (code "pull-and-restart"))
+                     (dd (G_
+                          "Git pull and restart wanted GNU Shepherd service")
+                         #:dd-classes dd-classes
+                         #:size '(text-md))
+                     (dt (list (code "maak-deploy") " | "
+                               (code "pull-and-deploy")))
+                     (dd (G_ "Run a deploy with Maak or Make")
+                         #:dd-classes dd-classes
+                         #:size '(text-md))
+                     (dt (list (code "maak-build") " | "
+                               (code "make-build")))
+                     (dd (G_
+                          "Run a build with Maak or Make (make-build is the fallback task)")
+                         #:dd-classes dd-classes
+                         #:size '(text-md))
+                     (dt (code "byggsteg-version"))
+                     (dd (G_
+                          "Byggsteg pull and restart GNU Shepherd daemon itself")
+                         #:dd-classes dd-classes
+                         #:size '(text-md))
+                     (dt (code "trivial"))
+                     (dd (G_
+                          "Allow passing arbitrary list of commands (via trivial-cmds field)")
+                         #:dd-classes dd-classes
+                         #:size '(text-md)))
+               #:dl-classes dl-classes)
+          )))
 
 (define* (welcome-page rc
                        #:key is-logged-in selected-locale)
   (let* ((G_ (:i18n rc))
-         (welcome-html `((div ,(h2 (G_ "welcome to byggsteg")))
-                         ,(locale-choose-form G_
-                                              #:selected-locale (if
-                                                                 selected-locale
-                                                                 (string->symbol
-                                                                  selected-locale)
-                                                                 'en_US))
-                         (div (@ (class ,(mk-class '(my-6 p-6
-                                                          flex
-                                                          flex-row
-                                                          flex-wrap
-                                                          justify-center
-                                                          gap-6))))
+         (welcome-html `((div (@ (class ,(mk-class '(px-3))))
 
-                              (div (@ (class ,(mk-class '(flex flex-col gap-4
+                              ,(locale-choose-form G_
+                                                   #:selected-locale (if
+                                                                      selected-locale
+                                                                      (string->symbol
+                                                                       selected-locale)
+                                                                      'en_US))
+                              (div (@ (class ,(mk-class '(my-6 p-6
+                                                               flex
+                                                               flex-row
+                                                               flex-wrap
+                                                               justify-center
+                                                               gap-6))))
+                                   (div ,(job-type-expl G_))
+                                   (div (@ (class ,(mk-class '(flex flex-col
+                                                               gap-4
                                                                items-center))))
-                                   (div (@ (class ,(mk-class '(max-w-prose
-                                                               shadow-md
-                                                               bg-stone-200
-                                                               dark:bg-stone-900
-                                                               rounded-xl p-4))))
-                                        (span (@ (class ,(mk-class '(text-stone-800
-                                                                     dark:text-stone-300
-                                                                     text-lg))))
-                                              ,(G_ (string-append
-                                                    "byggsteg aims to be the hackable continuous integration and delivery system, "
-                                                    "allowing engineers to deliver software quicker and with less friction"))))
-                                   ,project-logo)
-                              (div ,(job-type-expl G_))))))
+                                        (div (@ (class ,(mk-class '(max-w-128
+                                                                    shadow-md
+                                                                    bg-stone-300
+                                                                    dark:bg-onyx-700
+                                                                    rounded-xl
+                                                                    p-4))))
+                                             ,(em (G_
+                                                   "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction")))
+                                        ,project-logo))))))
     (html-template G_
                    #:title (format #f "byggsteg - ~a"
                                    (G_ "welcome to byggsteg"))

@@ -56,7 +56,9 @@
                                 ,maybe-auto-refresh
                                 ,hygguile-recommended-meta
                                 ,hygguile-recommended-resources
-                                (link (@(rel stylesheet)(href "/css/byggsteg.olive.min.css")) "")
+                                (link (@ (rel stylesheet)
+                                         (href "/css/byggsteg.olive.min.css"))
+                                      "")
                                 (script (@ (type speculationrules))
                                         "
 {
@@ -99,18 +101,19 @@
 
          (div (@ (class ,(mk-class '(px-4 py-1 w-full md:w-min))))
               (a (@ (href "/")
-                    (class ,(mk-class '(flex flex-row gap-2 items-center no-underline))))
-                 ,(sub-h3 (list (icon #:type 'gear-fine
-                                      #:icon-css '(text-xl text-stone-700
-                                                   dark:text-stone-200
-                                                   hover:text-orange-700
-                                                   hover:dark:text-orange-300))
-                                "&nbsp;"
-                                (G_ "Byggsteg"))
-                          #:color '(text-stone-700 dark:text-stone-200
-                                                   hover:text-orange-700
-                                                   hover:dark:text-orange-300)
-                          #:size '(text-xl lg:text-2xl))))
+                    (class ,(mk-class '(flex flex-row gap-2 items-center
+                                             no-underline))))
+                 ,(h3 (list (icon #:type 'gear-fine
+                                  #:icon-css '(text-xl text-onyx-700
+                                               dark:text-stone-100
+                                               hover:text-orange-700
+                                               hover:dark:text-orange-300))
+                            "&nbsp;"
+                            (G_ "Byggsteg"))
+                      #:color '(text-onyx-700 dark:text-stone-300
+                                              hover:text-orange-700
+                                              hover:dark:text-orange-300)
+                      #:size '(text-lg lg:text-xl))))
          (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                           gap-3))))
               ,(if (not is-logged-in)
@@ -124,12 +127,7 @@
                                                        gap-2)))
                            (href "/login"))
                         ,(icon-button #:icon 'sign-in
-                                      #:content (G_ "login")
-                                      #:size '(text-xs md:text-sm)
-                                      #:extra-classes '(py-1 md:py-2 px-2
-                                                             md:px-3
-                                                             max-w-prose
-                                                             cursor-pointer))))
+                                      #:content (G_ "login"))))
                    `((a (@ (class ,(mk-class '(text-sm lowercase
                                                        text-white
                                                        dark:text-black
@@ -140,37 +138,18 @@
                                                        gap-2)))
                            (href "/me"))
                         ,(icon-button #:icon 'user-circle
-                                      #:content (G_ "me")
-                                      #:size '(text-xs md:text-sm)
-                                      #:extra-classes '(py-1 md:py-2 px-2
-                                                             md:px-3
-                                                             max-w-prose
-                                                             cursor-pointer)))))
+                                      #:content (G_ "me")))))
               (a (@ (href "/logs"))
                  ,(icon-button #:icon 'scroll
-                               #:content (G_ "logs")
-                               #:size '(text-xs md:text-sm)
-                               #:extra-classes '(py-1 md:py-2 px-2 md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer)))
+                               #:content (G_ "logs")))
               (a (@ (href "/jobs/request"))
                  ,(icon-button #:icon 'circuitry
-                               #:content (G_ "run job")
-                               #:size '(text-xs md:text-sm)
-                               #:extra-classes '(py-1 md:py-2 px-2 md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer)))
+                               #:content (G_ "run job")))
               (a (@ (href "/profiles"))
                  ,(icon-button #:icon 'folder
-                               #:content (G_ "profiles")
-                               #:size '(text-xs md:text-sm)
-                               #:extra-classes '(py-1 md:py-2 px-2 md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer)))
-              ,(ui-mode-button #:size '(text-xs md:text-sm)
-                               #:extra-classes '(py-1 md:py-2 px-2 md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer))))))
+                               #:content (G_ "profiles")))
+              ,(ui-mode-button #:icon-css '(text-onyx-300 dark:text-stone-300
+                                                          text-lg))))))
 
 (define (page-footer G_)
   (footer `((div (@ (class ,(mk-class '(py-2))))
@@ -203,7 +182,7 @@
                         #:weight '(font-light))))))
 
 (define project-logo
-  `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-onyx-700 rounded-2xl p-4
+  `(div (@ (class ,(mk-class '(bg-stone-300 dark:bg-onyx-700 rounded-2xl p-4
                                             shadow-md))))
         (img (@ (loading lazy)
                 (class ,(mk-class '(w-48 h-auto rounded-2xl)))
@@ -238,10 +217,12 @@
                                                 #:content "Español"
                                                 #:selected-value
                                                 selected-locale)))
-               (button (@ (type submit)
-                          (class ,(mk-class '(text-white bg-orange-600
-                                                         rounded-xl p-1))))
-                       "&nbsp;✓&nbsp;")))))
+               ,(icon-button #:icon 'check
+                             #:content ""
+                             #:extra-classes '(px-2 max-w-prose
+                                                    cursor-pointer)
+                             #:icon-css '(text-onyx-300 dark:text-stone-100 text-lg)
+                             #:type 'submit)))))
 
 (define (job-form G_ route is-profile)
   `(form (@ (method POST)
@@ -307,10 +288,10 @@
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
                                                align-center break-words))))
                    (span ,(icon #:type 'scroll
-                                #:icon-css '(text-xl text-stone-800
-                                                     dark:text-stone-200)))
+                                #:icon-css '(text-xl text-stone-700
+                                                     dark:text-stone-300 no-underline)))
                    ,(h4 log-filename
-                        #:color '(text-stone-700 hover:text-orange-600
+                        #:color '(text-stone-700 hover:text-orange-500
                                                  dark:text-stone-300
                                                  hover:dark:text-orange-300))))
            (div (@ (class "ml-6"))
