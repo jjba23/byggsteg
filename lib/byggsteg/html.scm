@@ -96,10 +96,11 @@
                                      sm:px-5
                                      items-center
                                      shadow-md
+                                     w-screen
                                      bg-stone-300/50
                                      dark:bg-onyx-700))))
 
-         (div (@ (class ,(mk-class '(px-4 py-1 w-full md:w-min))))
+         (div (@ (class ,(mk-class '(px-4 py-1 w-screen md:w-48))))
               (a (@ (href "/")
                     (class ,(mk-class '(flex flex-row gap-2 items-center
                                              no-underline))))
