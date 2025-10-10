@@ -318,11 +318,13 @@
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center))))
-                   (span ,(icon #:type 'code))
+                   (span ,(icon #:type 'code
+                                #:icon-css '(text-xl text-onyx-300
+                                                     dark:text-stone-300)))
                    ,(h4 (html-unescape (assoc-ref profile "human_id"))
-                        #:color '(text-stone-700 hover:text-orange-600
-                                                 dark:text-stone-300
-                                                 hover:dark:text-orange-300))))))))
+                        #:color '(text-onyx-300 dark:text-stone-300
+                                                hover:text-orange-300
+                                                hover:dark:text-orange-300))))))))
 
 (define-syntax-rule (if-job-was-updated-html job html)
   "Render HTML conditionally for jobs that contain updated_at field"
