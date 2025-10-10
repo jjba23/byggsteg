@@ -68,38 +68,49 @@
                           "Allow passing arbitrary list of commands (via trivial-cmds field)")
                          #:dd-classes dd-classes
                          #:size '(text-md)))
-               #:dl-classes dl-classes)
-          )))
+               #:dl-classes dl-classes))))
 
 (define* (welcome-page rc
                        #:key is-logged-in selected-locale)
   (let* ((G_ (:i18n rc))
          (welcome-html `((div (@ (class ,(mk-class '(px-3))))
 
-                              ,(locale-choose-form G_
-                                                   #:selected-locale (if
-                                                                      selected-locale
-                                                                      (string->symbol
-                                                                       selected-locale)
-                                                                      'en_US))
-                              (div (@ (class ,(mk-class '(my-6 p-6
+                              (div (@ (class ,(mk-class '(flex flex-row
+                                                               gap-4
+                                                               flex-wrap
+                                                               justify-center
+                                                               align-center
+                                                               items-center))))
+                                   ,(locale-choose-form G_
+                                                        #:selected-locale (if
+                                                                           selected-locale
+                                                                           (string->symbol
+                                                                            selected-locale)
+                                                                           'en_US))
+                                   (div (@ (class ,(mk-class '(max-w-128
+                                                               shadow-md
+                                                               bg-stone-300
+                                                               dark:bg-onyx-700
+                                                               rounded-xl p-4))))
+                                        ,(em (G_
+                                              "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction"))))
+
+                              (div (@ (class ,(mk-class '(my-6 py-6
+
                                                                flex
                                                                flex-row
                                                                flex-wrap
                                                                justify-center
+                                                               align-center
+                                                               items-center
                                                                gap-6))))
+
                                    (div ,(job-type-expl G_))
+
                                    (div (@ (class ,(mk-class '(flex flex-col
                                                                gap-4
                                                                items-center))))
-                                        (div (@ (class ,(mk-class '(max-w-128
-                                                                    shadow-md
-                                                                    bg-stone-300
-                                                                    dark:bg-onyx-700
-                                                                    rounded-xl
-                                                                    p-4))))
-                                             ,(em (G_
-                                                   "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction")))
+
                                         ,project-logo))))))
     (html-template G_
                    #:title (format #f "byggsteg - ~a"

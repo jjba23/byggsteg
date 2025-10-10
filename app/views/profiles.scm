@@ -55,57 +55,62 @@
                                                                   border-stone-200
                                                                   dark:border-onyx-100
                                                                   dark:text-stone-300
-                                                                  bg-stone-200/75
-                                                                  dark:bg-onyx-700/75
+                                                                  bg-stone-300/50
+                                                                  dark:bg-onyx-700
                                                                   border-2
                                                                   min-h-72
-                                                                  max-w-196
+                                                                  max-w-prose
                                                                   shadow-md
                                                                   w-full)
                                                  #:required #t)
 
                                       (div ,(submit-button (G_ "save"))))))
          (body `((div (@ (class ,(mk-class '(px-4))))
-                     (div (@ (class ,(mk-class '(flex flex-row flex-wrap
-                                                      align-center
-                                                      items-center gap-6))))
-                          ,(h2 (G_ "profile details"))
-                          ,(h3 profile-name))
+                      (div (@ (class ,(mk-class '(flex flex-row flex-wrap
+                                                       align-center
+                                                       items-center gap-6))))
+                           ,(h2 (G_ "profile details"))
+                           ,(h3 profile-name))
 
-                     (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-4
-                                                      my-4))))
-                          (form (@ (method POST)
-                                   (action "/jobs/manage/submit")
-                                   (enctype application/x-www-form-urlencoded)
-                                   (charset utf-8))
+                      (div (@ (class ,(mk-class '(flex flex-row flex-wrap
+                                                       gap-4 my-4))))
+                           (form (@ (method POST)
+                                    (action "/jobs/manage/submit")
+                                    (enctype application/x-www-form-urlencoded)
+                                    (charset utf-8))
 
-                                (textarea (@ (id job-code)
-                                             (name job-code)
-                                             (required "")
-                                             (hidden ""))
-                                          ,profile-data)
+                                 (textarea (@ (id job-code)
+                                              (name job-code)
+                                              (required "")
+                                              (hidden ""))
+                                           ,profile-data)
 
-                                ,(icon-button #:type 'submit
-                                              #:icon 'circuitry
-                                              #:content (G_ "start new job")))
+                                 ,(icon-button #:type 'submit
+                                               #:icon 'circuitry
+                                               #:content (G_ "start new job")))
 
-                          (form (@ (method POST)
-                                   (enctype application/x-www-form-urlencoded)
-                                   (action "/profiles/manage/delete"))
-                                (input (@ (id profile-id)
-                                          (name profile-id)
-                                          (required "")
-                                          (hidden "")
-                                          (value ,(assoc-ref p "id"))
-                                          (class ,(mk-class '(rounded-xl
-                                                              border font-sans
-                                                              p-2)))))
-                                (button (@ (type submit)
-                                           (class ,danger-button-face))
-                                        ,(G_ "delete"))))
-                     ,submit-profile-form
+                           (form (@ (method POST)
+                                    (enctype application/x-www-form-urlencoded)
+                                    (action "/profiles/manage/delete"))
+                                 (input (@ (id profile-id)
+                                           (name profile-id)
+                                           (required "")
+                                           (hidden "")
+                                           (value ,(assoc-ref p "id"))
+                                           (class ,(mk-class '(rounded-xl
+                                                               border
+                                                               font-sans p-2)))))
+                                 ,(icon-button #:icon 'trash
+                                               #:content (G_ "delete")
+                                               #:type 'submit
+                                               #:color '(text-stone-300)
+                                               #:icon-css '(text-md
+                                                            text-stone-300)
+                                               #:background '(bg-redwood-700)
+                                               #:hover-background '(hover:bg-redwood-900))))
+                      ,submit-profile-form
 
-                     ))))
+                      ))))
     (html-template G_
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
@@ -137,8 +142,8 @@
                                                         whitespace-break-spaces))))
                                  ,(h1 (G_ "profiles"))
                                  (div (@ (class ,(mk-class '(w-full rounded-xl
-                                                             bg-stone-200
-                                                             dark:bg-stone-900
+                                                             bg-stone-300
+                                                             dark:bg-onyx-700
                                                              flex
                                                              flex-col
                                                              gap-4

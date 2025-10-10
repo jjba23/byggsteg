@@ -37,11 +37,6 @@
                     '(bg-orange-400 hover:bg-orange-500 active:bg-orange-500
                                     text-stone-900 shadow-md))))
 
-(define-public danger-button-face
-  (mk-class (append base-button
-                    '(bg-red-700 hover:bg-red-800 active:bg-red-800
-                                 text-stone-300 shadow-md))))
-
 ;;
 ;; Forms
 ;;

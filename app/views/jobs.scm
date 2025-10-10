@@ -37,6 +37,6 @@
     (html-template G_
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@(class ,(mk-class '(px-4))))
-                            ,(h2 (G_ "run job")) ,(job-form G_
-                                                   "/jobs/manage/submit" #f))))))
+                   #:body `((div (@ (class ,(mk-class '(px-4))))
+                                 ,(h2 (G_ "run job"))
+                                 ,(job-form G_ "/jobs/manage/submit" #f))))))

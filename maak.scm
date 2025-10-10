@@ -236,4 +236,3 @@ for higher concurrent writes to SQLite 3."
   ($ '("curl --output \"./pub/css/byggsteg.olive.min.css\""
        "\"https://codeberg.org/jjba23/olive-css/raw/branch/trunk/resources/css/byggsteg.olive.min.css\"")))
 
-
