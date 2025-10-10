@@ -6154,6 +6154,51 @@ ol, ul {list-style:none;}
 .dark\:bg-buff-500 {background:oklch(0.7871 0.0895 49.68 / 1);}
 .dark\:bg-buff-700 {background:oklch(0.7371 0.0895 49.68 / 1);}
 .dark\:bg-buff-900 {background:oklch(0.6871 0.0895 49.68 / 1);}
+.dark\:bg-terra-100\/1 {background:oklch(0.7528 0.1464 39.15 / 0.01);}
+.dark\:bg-terra-300\/1 {background:oklch(0.7028 0.1464 39.15 / 0.01);}
+.dark\:bg-terra-500\/1 {background:oklch(0.6528 0.1464 39.15 / 0.01);}
+.dark\:bg-terra-700\/1 {background:oklch(0.6028 0.1464 39.15 / 0.01);}
+.dark\:bg-terra-900\/1 {background:oklch(0.5528 0.1464 39.15 / 0.01);}
+.dark\:bg-terra-100\/5 {background:oklch(0.7528 0.1464 39.15 / 0.05);}
+.dark\:bg-terra-300\/5 {background:oklch(0.7028 0.1464 39.15 / 0.05);}
+.dark\:bg-terra-500\/5 {background:oklch(0.6528 0.1464 39.15 / 0.05);}
+.dark\:bg-terra-700\/5 {background:oklch(0.6028 0.1464 39.15 / 0.05);}
+.dark\:bg-terra-900\/5 {background:oklch(0.5528 0.1464 39.15 / 0.05);}
+.dark\:bg-terra-100\/10 {background:oklch(0.7528 0.1464 39.15 / 0.1);}
+.dark\:bg-terra-300\/10 {background:oklch(0.7028 0.1464 39.15 / 0.1);}
+.dark\:bg-terra-500\/10 {background:oklch(0.6528 0.1464 39.15 / 0.1);}
+.dark\:bg-terra-700\/10 {background:oklch(0.6028 0.1464 39.15 / 0.1);}
+.dark\:bg-terra-900\/10 {background:oklch(0.5528 0.1464 39.15 / 0.1);}
+.dark\:bg-terra-100\/25 {background:oklch(0.7528 0.1464 39.15 / 0.2);}
+.dark\:bg-terra-300\/25 {background:oklch(0.7028 0.1464 39.15 / 0.2);}
+.dark\:bg-terra-500\/25 {background:oklch(0.6528 0.1464 39.15 / 0.2);}
+.dark\:bg-terra-700\/25 {background:oklch(0.6028 0.1464 39.15 / 0.2);}
+.dark\:bg-terra-900\/25 {background:oklch(0.5528 0.1464 39.15 / 0.2);}
+.dark\:bg-terra-100\/50 {background:oklch(0.7528 0.1464 39.15 / 0.5);}
+.dark\:bg-terra-300\/50 {background:oklch(0.7028 0.1464 39.15 / 0.5);}
+.dark\:bg-terra-500\/50 {background:oklch(0.6528 0.1464 39.15 / 0.5);}
+.dark\:bg-terra-700\/50 {background:oklch(0.6028 0.1464 39.15 / 0.5);}
+.dark\:bg-terra-900\/50 {background:oklch(0.5528 0.1464 39.15 / 0.5);}
+.dark\:bg-terra-100\/75 {background:oklch(0.7528 0.1464 39.15 / 0.7);}
+.dark\:bg-terra-300\/75 {background:oklch(0.7028 0.1464 39.15 / 0.7);}
+.dark\:bg-terra-500\/75 {background:oklch(0.6528 0.1464 39.15 / 0.7);}
+.dark\:bg-terra-700\/75 {background:oklch(0.6028 0.1464 39.15 / 0.7);}
+.dark\:bg-terra-900\/75 {background:oklch(0.5528 0.1464 39.15 / 0.7);}
+.dark\:bg-terra-100\/90 {background:oklch(0.7528 0.1464 39.15 / 0.9);}
+.dark\:bg-terra-300\/90 {background:oklch(0.7028 0.1464 39.15 / 0.9);}
+.dark\:bg-terra-500\/90 {background:oklch(0.6528 0.1464 39.15 / 0.9);}
+.dark\:bg-terra-700\/90 {background:oklch(0.6028 0.1464 39.15 / 0.9);}
+.dark\:bg-terra-900\/90 {background:oklch(0.5528 0.1464 39.15 / 0.9);}
+.dark\:bg-terra-100\/95 {background:oklch(0.7528 0.1464 39.15 / 0.95);}
+.dark\:bg-terra-300\/95 {background:oklch(0.7028 0.1464 39.15 / 0.95);}
+.dark\:bg-terra-500\/95 {background:oklch(0.6528 0.1464 39.15 / 0.95);}
+.dark\:bg-terra-700\/95 {background:oklch(0.6028 0.1464 39.15 / 0.95);}
+.dark\:bg-terra-900\/95 {background:oklch(0.5528 0.1464 39.15 / 0.95);}
+.dark\:bg-terra-100 {background:oklch(0.7528 0.1464 39.15 / 1);}
+.dark\:bg-terra-300 {background:oklch(0.7028 0.1464 39.15 / 1);}
+.dark\:bg-terra-500 {background:oklch(0.6528 0.1464 39.15 / 1);}
+.dark\:bg-terra-700 {background:oklch(0.6028 0.1464 39.15 / 1);}
+.dark\:bg-terra-900 {background:oklch(0.5528 0.1464 39.15 / 1);}
 .dark\:bg-cadet-gray-100\/1 {background:oklch(0.754 0.0185 225.33 / 0.01);}
 .dark\:bg-cadet-gray-300\/1 {background:oklch(0.704 0.0185 225.33 / 0.01);}
 .dark\:bg-cadet-gray-500\/1 {background:oklch(0.654 0.0185 225.33 / 0.01);}
@@ -8449,6 +8494,51 @@ ol, ul {list-style:none;}
 .dark\:text-buff-500 {color:oklch(0.7871 0.0895 49.68 / 1);}
 .dark\:text-buff-700 {color:oklch(0.7371 0.0895 49.68 / 1);}
 .dark\:text-buff-900 {color:oklch(0.6871 0.0895 49.68 / 1);}
+.dark\:text-terra-100\/1 {color:oklch(0.7528 0.1464 39.15 / 0.01);}
+.dark\:text-terra-300\/1 {color:oklch(0.7028 0.1464 39.15 / 0.01);}
+.dark\:text-terra-500\/1 {color:oklch(0.6528 0.1464 39.15 / 0.01);}
+.dark\:text-terra-700\/1 {color:oklch(0.6028 0.1464 39.15 / 0.01);}
+.dark\:text-terra-900\/1 {color:oklch(0.5528 0.1464 39.15 / 0.01);}
+.dark\:text-terra-100\/5 {color:oklch(0.7528 0.1464 39.15 / 0.05);}
+.dark\:text-terra-300\/5 {color:oklch(0.7028 0.1464 39.15 / 0.05);}
+.dark\:text-terra-500\/5 {color:oklch(0.6528 0.1464 39.15 / 0.05);}
+.dark\:text-terra-700\/5 {color:oklch(0.6028 0.1464 39.15 / 0.05);}
+.dark\:text-terra-900\/5 {color:oklch(0.5528 0.1464 39.15 / 0.05);}
+.dark\:text-terra-100\/10 {color:oklch(0.7528 0.1464 39.15 / 0.1);}
+.dark\:text-terra-300\/10 {color:oklch(0.7028 0.1464 39.15 / 0.1);}
+.dark\:text-terra-500\/10 {color:oklch(0.6528 0.1464 39.15 / 0.1);}
+.dark\:text-terra-700\/10 {color:oklch(0.6028 0.1464 39.15 / 0.1);}
+.dark\:text-terra-900\/10 {color:oklch(0.5528 0.1464 39.15 / 0.1);}
+.dark\:text-terra-100\/25 {color:oklch(0.7528 0.1464 39.15 / 0.2);}
+.dark\:text-terra-300\/25 {color:oklch(0.7028 0.1464 39.15 / 0.2);}
+.dark\:text-terra-500\/25 {color:oklch(0.6528 0.1464 39.15 / 0.2);}
+.dark\:text-terra-700\/25 {color:oklch(0.6028 0.1464 39.15 / 0.2);}
+.dark\:text-terra-900\/25 {color:oklch(0.5528 0.1464 39.15 / 0.2);}
+.dark\:text-terra-100\/50 {color:oklch(0.7528 0.1464 39.15 / 0.5);}
+.dark\:text-terra-300\/50 {color:oklch(0.7028 0.1464 39.15 / 0.5);}
+.dark\:text-terra-500\/50 {color:oklch(0.6528 0.1464 39.15 / 0.5);}
+.dark\:text-terra-700\/50 {color:oklch(0.6028 0.1464 39.15 / 0.5);}
+.dark\:text-terra-900\/50 {color:oklch(0.5528 0.1464 39.15 / 0.5);}
+.dark\:text-terra-100\/75 {color:oklch(0.7528 0.1464 39.15 / 0.7);}
+.dark\:text-terra-300\/75 {color:oklch(0.7028 0.1464 39.15 / 0.7);}
+.dark\:text-terra-500\/75 {color:oklch(0.6528 0.1464 39.15 / 0.7);}
+.dark\:text-terra-700\/75 {color:oklch(0.6028 0.1464 39.15 / 0.7);}
+.dark\:text-terra-900\/75 {color:oklch(0.5528 0.1464 39.15 / 0.7);}
+.dark\:text-terra-100\/90 {color:oklch(0.7528 0.1464 39.15 / 0.9);}
+.dark\:text-terra-300\/90 {color:oklch(0.7028 0.1464 39.15 / 0.9);}
+.dark\:text-terra-500\/90 {color:oklch(0.6528 0.1464 39.15 / 0.9);}
+.dark\:text-terra-700\/90 {color:oklch(0.6028 0.1464 39.15 / 0.9);}
+.dark\:text-terra-900\/90 {color:oklch(0.5528 0.1464 39.15 / 0.9);}
+.dark\:text-terra-100\/95 {color:oklch(0.7528 0.1464 39.15 / 0.95);}
+.dark\:text-terra-300\/95 {color:oklch(0.7028 0.1464 39.15 / 0.95);}
+.dark\:text-terra-500\/95 {color:oklch(0.6528 0.1464 39.15 / 0.95);}
+.dark\:text-terra-700\/95 {color:oklch(0.6028 0.1464 39.15 / 0.95);}
+.dark\:text-terra-900\/95 {color:oklch(0.5528 0.1464 39.15 / 0.95);}
+.dark\:text-terra-100 {color:oklch(0.7528 0.1464 39.15 / 1);}
+.dark\:text-terra-300 {color:oklch(0.7028 0.1464 39.15 / 1);}
+.dark\:text-terra-500 {color:oklch(0.6528 0.1464 39.15 / 1);}
+.dark\:text-terra-700 {color:oklch(0.6028 0.1464 39.15 / 1);}
+.dark\:text-terra-900 {color:oklch(0.5528 0.1464 39.15 / 1);}
 .dark\:text-cadet-gray-100\/1 {color:oklch(0.754 0.0185 225.33 / 0.01);}
 .dark\:text-cadet-gray-300\/1 {color:oklch(0.704 0.0185 225.33 / 0.01);}
 .dark\:text-cadet-gray-500\/1 {color:oklch(0.654 0.0185 225.33 / 0.01);}
@@ -10744,6 +10834,51 @@ ol, ul {list-style:none;}
 .dark\:border-buff-500 {border-color:oklch(0.7871 0.0895 49.68 / 1);}
 .dark\:border-buff-700 {border-color:oklch(0.7371 0.0895 49.68 / 1);}
 .dark\:border-buff-900 {border-color:oklch(0.6871 0.0895 49.68 / 1);}
+.dark\:border-terra-100\/1 {border-color:oklch(0.7528 0.1464 39.15 / 0.01);}
+.dark\:border-terra-300\/1 {border-color:oklch(0.7028 0.1464 39.15 / 0.01);}
+.dark\:border-terra-500\/1 {border-color:oklch(0.6528 0.1464 39.15 / 0.01);}
+.dark\:border-terra-700\/1 {border-color:oklch(0.6028 0.1464 39.15 / 0.01);}
+.dark\:border-terra-900\/1 {border-color:oklch(0.5528 0.1464 39.15 / 0.01);}
+.dark\:border-terra-100\/5 {border-color:oklch(0.7528 0.1464 39.15 / 0.05);}
+.dark\:border-terra-300\/5 {border-color:oklch(0.7028 0.1464 39.15 / 0.05);}
+.dark\:border-terra-500\/5 {border-color:oklch(0.6528 0.1464 39.15 / 0.05);}
+.dark\:border-terra-700\/5 {border-color:oklch(0.6028 0.1464 39.15 / 0.05);}
+.dark\:border-terra-900\/5 {border-color:oklch(0.5528 0.1464 39.15 / 0.05);}
+.dark\:border-terra-100\/10 {border-color:oklch(0.7528 0.1464 39.15 / 0.1);}
+.dark\:border-terra-300\/10 {border-color:oklch(0.7028 0.1464 39.15 / 0.1);}
+.dark\:border-terra-500\/10 {border-color:oklch(0.6528 0.1464 39.15 / 0.1);}
+.dark\:border-terra-700\/10 {border-color:oklch(0.6028 0.1464 39.15 / 0.1);}
+.dark\:border-terra-900\/10 {border-color:oklch(0.5528 0.1464 39.15 / 0.1);}
+.dark\:border-terra-100\/25 {border-color:oklch(0.7528 0.1464 39.15 / 0.2);}
+.dark\:border-terra-300\/25 {border-color:oklch(0.7028 0.1464 39.15 / 0.2);}
+.dark\:border-terra-500\/25 {border-color:oklch(0.6528 0.1464 39.15 / 0.2);}
+.dark\:border-terra-700\/25 {border-color:oklch(0.6028 0.1464 39.15 / 0.2);}
+.dark\:border-terra-900\/25 {border-color:oklch(0.5528 0.1464 39.15 / 0.2);}
+.dark\:border-terra-100\/50 {border-color:oklch(0.7528 0.1464 39.15 / 0.5);}
+.dark\:border-terra-300\/50 {border-color:oklch(0.7028 0.1464 39.15 / 0.5);}
+.dark\:border-terra-500\/50 {border-color:oklch(0.6528 0.1464 39.15 / 0.5);}
+.dark\:border-terra-700\/50 {border-color:oklch(0.6028 0.1464 39.15 / 0.5);}
+.dark\:border-terra-900\/50 {border-color:oklch(0.5528 0.1464 39.15 / 0.5);}
+.dark\:border-terra-100\/75 {border-color:oklch(0.7528 0.1464 39.15 / 0.7);}
+.dark\:border-terra-300\/75 {border-color:oklch(0.7028 0.1464 39.15 / 0.7);}
+.dark\:border-terra-500\/75 {border-color:oklch(0.6528 0.1464 39.15 / 0.7);}
+.dark\:border-terra-700\/75 {border-color:oklch(0.6028 0.1464 39.15 / 0.7);}
+.dark\:border-terra-900\/75 {border-color:oklch(0.5528 0.1464 39.15 / 0.7);}
+.dark\:border-terra-100\/90 {border-color:oklch(0.7528 0.1464 39.15 / 0.9);}
+.dark\:border-terra-300\/90 {border-color:oklch(0.7028 0.1464 39.15 / 0.9);}
+.dark\:border-terra-500\/90 {border-color:oklch(0.6528 0.1464 39.15 / 0.9);}
+.dark\:border-terra-700\/90 {border-color:oklch(0.6028 0.1464 39.15 / 0.9);}
+.dark\:border-terra-900\/90 {border-color:oklch(0.5528 0.1464 39.15 / 0.9);}
+.dark\:border-terra-100\/95 {border-color:oklch(0.7528 0.1464 39.15 / 0.95);}
+.dark\:border-terra-300\/95 {border-color:oklch(0.7028 0.1464 39.15 / 0.95);}
+.dark\:border-terra-500\/95 {border-color:oklch(0.6528 0.1464 39.15 / 0.95);}
+.dark\:border-terra-700\/95 {border-color:oklch(0.6028 0.1464 39.15 / 0.95);}
+.dark\:border-terra-900\/95 {border-color:oklch(0.5528 0.1464 39.15 / 0.95);}
+.dark\:border-terra-100 {border-color:oklch(0.7528 0.1464 39.15 / 1);}
+.dark\:border-terra-300 {border-color:oklch(0.7028 0.1464 39.15 / 1);}
+.dark\:border-terra-500 {border-color:oklch(0.6528 0.1464 39.15 / 1);}
+.dark\:border-terra-700 {border-color:oklch(0.6028 0.1464 39.15 / 1);}
+.dark\:border-terra-900 {border-color:oklch(0.5528 0.1464 39.15 / 1);}
 .dark\:border-cadet-gray-100\/1 {border-color:oklch(0.754 0.0185 225.33 / 0.01);}
 .dark\:border-cadet-gray-300\/1 {border-color:oklch(0.704 0.0185 225.33 / 0.01);}
 .dark\:border-cadet-gray-500\/1 {border-color:oklch(0.654 0.0185 225.33 / 0.01);}
@@ -13039,6 +13174,51 @@ ol, ul {list-style:none;}
 .dark\:decoration-buff-500 {text-decoration-color:oklch(0.7871 0.0895 49.68 / 1);}
 .dark\:decoration-buff-700 {text-decoration-color:oklch(0.7371 0.0895 49.68 / 1);}
 .dark\:decoration-buff-900 {text-decoration-color:oklch(0.6871 0.0895 49.68 / 1);}
+.dark\:decoration-terra-100\/1 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.01);}
+.dark\:decoration-terra-300\/1 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.01);}
+.dark\:decoration-terra-500\/1 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.01);}
+.dark\:decoration-terra-700\/1 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.01);}
+.dark\:decoration-terra-900\/1 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.01);}
+.dark\:decoration-terra-100\/5 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.05);}
+.dark\:decoration-terra-300\/5 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.05);}
+.dark\:decoration-terra-500\/5 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.05);}
+.dark\:decoration-terra-700\/5 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.05);}
+.dark\:decoration-terra-900\/5 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.05);}
+.dark\:decoration-terra-100\/10 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.1);}
+.dark\:decoration-terra-300\/10 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.1);}
+.dark\:decoration-terra-500\/10 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.1);}
+.dark\:decoration-terra-700\/10 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.1);}
+.dark\:decoration-terra-900\/10 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.1);}
+.dark\:decoration-terra-100\/25 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.2);}
+.dark\:decoration-terra-300\/25 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.2);}
+.dark\:decoration-terra-500\/25 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.2);}
+.dark\:decoration-terra-700\/25 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.2);}
+.dark\:decoration-terra-900\/25 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.2);}
+.dark\:decoration-terra-100\/50 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.5);}
+.dark\:decoration-terra-300\/50 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.5);}
+.dark\:decoration-terra-500\/50 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.5);}
+.dark\:decoration-terra-700\/50 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.5);}
+.dark\:decoration-terra-900\/50 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.5);}
+.dark\:decoration-terra-100\/75 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.7);}
+.dark\:decoration-terra-300\/75 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.7);}
+.dark\:decoration-terra-500\/75 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.7);}
+.dark\:decoration-terra-700\/75 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.7);}
+.dark\:decoration-terra-900\/75 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.7);}
+.dark\:decoration-terra-100\/90 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.9);}
+.dark\:decoration-terra-300\/90 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.9);}
+.dark\:decoration-terra-500\/90 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.9);}
+.dark\:decoration-terra-700\/90 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.9);}
+.dark\:decoration-terra-900\/90 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.9);}
+.dark\:decoration-terra-100\/95 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.95);}
+.dark\:decoration-terra-300\/95 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.95);}
+.dark\:decoration-terra-500\/95 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.95);}
+.dark\:decoration-terra-700\/95 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.95);}
+.dark\:decoration-terra-900\/95 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.95);}
+.dark\:decoration-terra-100 {text-decoration-color:oklch(0.7528 0.1464 39.15 / 1);}
+.dark\:decoration-terra-300 {text-decoration-color:oklch(0.7028 0.1464 39.15 / 1);}
+.dark\:decoration-terra-500 {text-decoration-color:oklch(0.6528 0.1464 39.15 / 1);}
+.dark\:decoration-terra-700 {text-decoration-color:oklch(0.6028 0.1464 39.15 / 1);}
+.dark\:decoration-terra-900 {text-decoration-color:oklch(0.5528 0.1464 39.15 / 1);}
 .dark\:decoration-cadet-gray-100\/1 {text-decoration-color:oklch(0.754 0.0185 225.33 / 0.01);}
 .dark\:decoration-cadet-gray-300\/1 {text-decoration-color:oklch(0.704 0.0185 225.33 / 0.01);}
 .dark\:decoration-cadet-gray-500\/1 {text-decoration-color:oklch(0.654 0.0185 225.33 / 0.01);}
@@ -15706,6 +15886,51 @@ ol, ul {list-style:none;}
 .hover\:dark\:bg-buff-500 {&:hover {background:oklch(0.7871 0.0895 49.68 / 1);}}
 .hover\:dark\:bg-buff-700 {&:hover {background:oklch(0.7371 0.0895 49.68 / 1);}}
 .hover\:dark\:bg-buff-900 {&:hover {background:oklch(0.6871 0.0895 49.68 / 1);}}
+.hover\:dark\:bg-terra-100\/1 {&:hover {background:oklch(0.7528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:bg-terra-300\/1 {&:hover {background:oklch(0.7028 0.1464 39.15 / 0.01);}}
+.hover\:dark\:bg-terra-500\/1 {&:hover {background:oklch(0.6528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:bg-terra-700\/1 {&:hover {background:oklch(0.6028 0.1464 39.15 / 0.01);}}
+.hover\:dark\:bg-terra-900\/1 {&:hover {background:oklch(0.5528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:bg-terra-100\/5 {&:hover {background:oklch(0.7528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:bg-terra-300\/5 {&:hover {background:oklch(0.7028 0.1464 39.15 / 0.05);}}
+.hover\:dark\:bg-terra-500\/5 {&:hover {background:oklch(0.6528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:bg-terra-700\/5 {&:hover {background:oklch(0.6028 0.1464 39.15 / 0.05);}}
+.hover\:dark\:bg-terra-900\/5 {&:hover {background:oklch(0.5528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:bg-terra-100\/10 {&:hover {background:oklch(0.7528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:bg-terra-300\/10 {&:hover {background:oklch(0.7028 0.1464 39.15 / 0.1);}}
+.hover\:dark\:bg-terra-500\/10 {&:hover {background:oklch(0.6528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:bg-terra-700\/10 {&:hover {background:oklch(0.6028 0.1464 39.15 / 0.1);}}
+.hover\:dark\:bg-terra-900\/10 {&:hover {background:oklch(0.5528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:bg-terra-100\/25 {&:hover {background:oklch(0.7528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:bg-terra-300\/25 {&:hover {background:oklch(0.7028 0.1464 39.15 / 0.2);}}
+.hover\:dark\:bg-terra-500\/25 {&:hover {background:oklch(0.6528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:bg-terra-700\/25 {&:hover {background:oklch(0.6028 0.1464 39.15 / 0.2);}}
+.hover\:dark\:bg-terra-900\/25 {&:hover {background:oklch(0.5528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:bg-terra-100\/50 {&:hover {background:oklch(0.7528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:bg-terra-300\/50 {&:hover {background:oklch(0.7028 0.1464 39.15 / 0.5);}}
+.hover\:dark\:bg-terra-500\/50 {&:hover {background:oklch(0.6528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:bg-terra-700\/50 {&:hover {background:oklch(0.6028 0.1464 39.15 / 0.5);}}
+.hover\:dark\:bg-terra-900\/50 {&:hover {background:oklch(0.5528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:bg-terra-100\/75 {&:hover {background:oklch(0.7528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:bg-terra-300\/75 {&:hover {background:oklch(0.7028 0.1464 39.15 / 0.7);}}
+.hover\:dark\:bg-terra-500\/75 {&:hover {background:oklch(0.6528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:bg-terra-700\/75 {&:hover {background:oklch(0.6028 0.1464 39.15 / 0.7);}}
+.hover\:dark\:bg-terra-900\/75 {&:hover {background:oklch(0.5528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:bg-terra-100\/90 {&:hover {background:oklch(0.7528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:bg-terra-300\/90 {&:hover {background:oklch(0.7028 0.1464 39.15 / 0.9);}}
+.hover\:dark\:bg-terra-500\/90 {&:hover {background:oklch(0.6528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:bg-terra-700\/90 {&:hover {background:oklch(0.6028 0.1464 39.15 / 0.9);}}
+.hover\:dark\:bg-terra-900\/90 {&:hover {background:oklch(0.5528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:bg-terra-100\/95 {&:hover {background:oklch(0.7528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:bg-terra-300\/95 {&:hover {background:oklch(0.7028 0.1464 39.15 / 0.95);}}
+.hover\:dark\:bg-terra-500\/95 {&:hover {background:oklch(0.6528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:bg-terra-700\/95 {&:hover {background:oklch(0.6028 0.1464 39.15 / 0.95);}}
+.hover\:dark\:bg-terra-900\/95 {&:hover {background:oklch(0.5528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:bg-terra-100 {&:hover {background:oklch(0.7528 0.1464 39.15 / 1);}}
+.hover\:dark\:bg-terra-300 {&:hover {background:oklch(0.7028 0.1464 39.15 / 1);}}
+.hover\:dark\:bg-terra-500 {&:hover {background:oklch(0.6528 0.1464 39.15 / 1);}}
+.hover\:dark\:bg-terra-700 {&:hover {background:oklch(0.6028 0.1464 39.15 / 1);}}
+.hover\:dark\:bg-terra-900 {&:hover {background:oklch(0.5528 0.1464 39.15 / 1);}}
 .hover\:dark\:bg-cadet-gray-100\/1 {&:hover {background:oklch(0.754 0.0185 225.33 / 0.01);}}
 .hover\:dark\:bg-cadet-gray-300\/1 {&:hover {background:oklch(0.704 0.0185 225.33 / 0.01);}}
 .hover\:dark\:bg-cadet-gray-500\/1 {&:hover {background:oklch(0.654 0.0185 225.33 / 0.01);}}
@@ -18001,6 +18226,51 @@ ol, ul {list-style:none;}
 .hover\:dark\:text-buff-500 {&:hover {color:oklch(0.7871 0.0895 49.68 / 1);}}
 .hover\:dark\:text-buff-700 {&:hover {color:oklch(0.7371 0.0895 49.68 / 1);}}
 .hover\:dark\:text-buff-900 {&:hover {color:oklch(0.6871 0.0895 49.68 / 1);}}
+.hover\:dark\:text-terra-100\/1 {&:hover {color:oklch(0.7528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:text-terra-300\/1 {&:hover {color:oklch(0.7028 0.1464 39.15 / 0.01);}}
+.hover\:dark\:text-terra-500\/1 {&:hover {color:oklch(0.6528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:text-terra-700\/1 {&:hover {color:oklch(0.6028 0.1464 39.15 / 0.01);}}
+.hover\:dark\:text-terra-900\/1 {&:hover {color:oklch(0.5528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:text-terra-100\/5 {&:hover {color:oklch(0.7528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:text-terra-300\/5 {&:hover {color:oklch(0.7028 0.1464 39.15 / 0.05);}}
+.hover\:dark\:text-terra-500\/5 {&:hover {color:oklch(0.6528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:text-terra-700\/5 {&:hover {color:oklch(0.6028 0.1464 39.15 / 0.05);}}
+.hover\:dark\:text-terra-900\/5 {&:hover {color:oklch(0.5528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:text-terra-100\/10 {&:hover {color:oklch(0.7528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:text-terra-300\/10 {&:hover {color:oklch(0.7028 0.1464 39.15 / 0.1);}}
+.hover\:dark\:text-terra-500\/10 {&:hover {color:oklch(0.6528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:text-terra-700\/10 {&:hover {color:oklch(0.6028 0.1464 39.15 / 0.1);}}
+.hover\:dark\:text-terra-900\/10 {&:hover {color:oklch(0.5528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:text-terra-100\/25 {&:hover {color:oklch(0.7528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:text-terra-300\/25 {&:hover {color:oklch(0.7028 0.1464 39.15 / 0.2);}}
+.hover\:dark\:text-terra-500\/25 {&:hover {color:oklch(0.6528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:text-terra-700\/25 {&:hover {color:oklch(0.6028 0.1464 39.15 / 0.2);}}
+.hover\:dark\:text-terra-900\/25 {&:hover {color:oklch(0.5528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:text-terra-100\/50 {&:hover {color:oklch(0.7528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:text-terra-300\/50 {&:hover {color:oklch(0.7028 0.1464 39.15 / 0.5);}}
+.hover\:dark\:text-terra-500\/50 {&:hover {color:oklch(0.6528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:text-terra-700\/50 {&:hover {color:oklch(0.6028 0.1464 39.15 / 0.5);}}
+.hover\:dark\:text-terra-900\/50 {&:hover {color:oklch(0.5528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:text-terra-100\/75 {&:hover {color:oklch(0.7528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:text-terra-300\/75 {&:hover {color:oklch(0.7028 0.1464 39.15 / 0.7);}}
+.hover\:dark\:text-terra-500\/75 {&:hover {color:oklch(0.6528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:text-terra-700\/75 {&:hover {color:oklch(0.6028 0.1464 39.15 / 0.7);}}
+.hover\:dark\:text-terra-900\/75 {&:hover {color:oklch(0.5528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:text-terra-100\/90 {&:hover {color:oklch(0.7528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:text-terra-300\/90 {&:hover {color:oklch(0.7028 0.1464 39.15 / 0.9);}}
+.hover\:dark\:text-terra-500\/90 {&:hover {color:oklch(0.6528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:text-terra-700\/90 {&:hover {color:oklch(0.6028 0.1464 39.15 / 0.9);}}
+.hover\:dark\:text-terra-900\/90 {&:hover {color:oklch(0.5528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:text-terra-100\/95 {&:hover {color:oklch(0.7528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:text-terra-300\/95 {&:hover {color:oklch(0.7028 0.1464 39.15 / 0.95);}}
+.hover\:dark\:text-terra-500\/95 {&:hover {color:oklch(0.6528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:text-terra-700\/95 {&:hover {color:oklch(0.6028 0.1464 39.15 / 0.95);}}
+.hover\:dark\:text-terra-900\/95 {&:hover {color:oklch(0.5528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:text-terra-100 {&:hover {color:oklch(0.7528 0.1464 39.15 / 1);}}
+.hover\:dark\:text-terra-300 {&:hover {color:oklch(0.7028 0.1464 39.15 / 1);}}
+.hover\:dark\:text-terra-500 {&:hover {color:oklch(0.6528 0.1464 39.15 / 1);}}
+.hover\:dark\:text-terra-700 {&:hover {color:oklch(0.6028 0.1464 39.15 / 1);}}
+.hover\:dark\:text-terra-900 {&:hover {color:oklch(0.5528 0.1464 39.15 / 1);}}
 .hover\:dark\:text-cadet-gray-100\/1 {&:hover {color:oklch(0.754 0.0185 225.33 / 0.01);}}
 .hover\:dark\:text-cadet-gray-300\/1 {&:hover {color:oklch(0.704 0.0185 225.33 / 0.01);}}
 .hover\:dark\:text-cadet-gray-500\/1 {&:hover {color:oklch(0.654 0.0185 225.33 / 0.01);}}
@@ -20296,6 +20566,51 @@ ol, ul {list-style:none;}
 .hover\:dark\:border-buff-500 {&:hover {border-color:oklch(0.7871 0.0895 49.68 / 1);}}
 .hover\:dark\:border-buff-700 {&:hover {border-color:oklch(0.7371 0.0895 49.68 / 1);}}
 .hover\:dark\:border-buff-900 {&:hover {border-color:oklch(0.6871 0.0895 49.68 / 1);}}
+.hover\:dark\:border-terra-100\/1 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:border-terra-300\/1 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 0.01);}}
+.hover\:dark\:border-terra-500\/1 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:border-terra-700\/1 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 0.01);}}
+.hover\:dark\:border-terra-900\/1 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:border-terra-100\/5 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:border-terra-300\/5 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 0.05);}}
+.hover\:dark\:border-terra-500\/5 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:border-terra-700\/5 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 0.05);}}
+.hover\:dark\:border-terra-900\/5 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:border-terra-100\/10 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:border-terra-300\/10 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 0.1);}}
+.hover\:dark\:border-terra-500\/10 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:border-terra-700\/10 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 0.1);}}
+.hover\:dark\:border-terra-900\/10 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:border-terra-100\/25 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:border-terra-300\/25 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 0.2);}}
+.hover\:dark\:border-terra-500\/25 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:border-terra-700\/25 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 0.2);}}
+.hover\:dark\:border-terra-900\/25 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:border-terra-100\/50 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:border-terra-300\/50 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 0.5);}}
+.hover\:dark\:border-terra-500\/50 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:border-terra-700\/50 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 0.5);}}
+.hover\:dark\:border-terra-900\/50 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:border-terra-100\/75 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:border-terra-300\/75 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 0.7);}}
+.hover\:dark\:border-terra-500\/75 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:border-terra-700\/75 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 0.7);}}
+.hover\:dark\:border-terra-900\/75 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:border-terra-100\/90 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:border-terra-300\/90 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 0.9);}}
+.hover\:dark\:border-terra-500\/90 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:border-terra-700\/90 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 0.9);}}
+.hover\:dark\:border-terra-900\/90 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:border-terra-100\/95 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:border-terra-300\/95 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 0.95);}}
+.hover\:dark\:border-terra-500\/95 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:border-terra-700\/95 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 0.95);}}
+.hover\:dark\:border-terra-900\/95 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:border-terra-100 {&:hover {border-color:oklch(0.7528 0.1464 39.15 / 1);}}
+.hover\:dark\:border-terra-300 {&:hover {border-color:oklch(0.7028 0.1464 39.15 / 1);}}
+.hover\:dark\:border-terra-500 {&:hover {border-color:oklch(0.6528 0.1464 39.15 / 1);}}
+.hover\:dark\:border-terra-700 {&:hover {border-color:oklch(0.6028 0.1464 39.15 / 1);}}
+.hover\:dark\:border-terra-900 {&:hover {border-color:oklch(0.5528 0.1464 39.15 / 1);}}
 .hover\:dark\:border-cadet-gray-100\/1 {&:hover {border-color:oklch(0.754 0.0185 225.33 / 0.01);}}
 .hover\:dark\:border-cadet-gray-300\/1 {&:hover {border-color:oklch(0.704 0.0185 225.33 / 0.01);}}
 .hover\:dark\:border-cadet-gray-500\/1 {&:hover {border-color:oklch(0.654 0.0185 225.33 / 0.01);}}
@@ -22591,6 +22906,51 @@ ol, ul {list-style:none;}
 .hover\:dark\:decoration-buff-500 {&:hover {text-decoration-color:oklch(0.7871 0.0895 49.68 / 1);}}
 .hover\:dark\:decoration-buff-700 {&:hover {text-decoration-color:oklch(0.7371 0.0895 49.68 / 1);}}
 .hover\:dark\:decoration-buff-900 {&:hover {text-decoration-color:oklch(0.6871 0.0895 49.68 / 1);}}
+.hover\:dark\:decoration-terra-100\/1 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:decoration-terra-300\/1 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.01);}}
+.hover\:dark\:decoration-terra-500\/1 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:decoration-terra-700\/1 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.01);}}
+.hover\:dark\:decoration-terra-900\/1 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.01);}}
+.hover\:dark\:decoration-terra-100\/5 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:decoration-terra-300\/5 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.05);}}
+.hover\:dark\:decoration-terra-500\/5 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:decoration-terra-700\/5 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.05);}}
+.hover\:dark\:decoration-terra-900\/5 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.05);}}
+.hover\:dark\:decoration-terra-100\/10 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:decoration-terra-300\/10 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.1);}}
+.hover\:dark\:decoration-terra-500\/10 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:decoration-terra-700\/10 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.1);}}
+.hover\:dark\:decoration-terra-900\/10 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.1);}}
+.hover\:dark\:decoration-terra-100\/25 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:decoration-terra-300\/25 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.2);}}
+.hover\:dark\:decoration-terra-500\/25 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:decoration-terra-700\/25 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.2);}}
+.hover\:dark\:decoration-terra-900\/25 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.2);}}
+.hover\:dark\:decoration-terra-100\/50 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:decoration-terra-300\/50 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.5);}}
+.hover\:dark\:decoration-terra-500\/50 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:decoration-terra-700\/50 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.5);}}
+.hover\:dark\:decoration-terra-900\/50 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.5);}}
+.hover\:dark\:decoration-terra-100\/75 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:decoration-terra-300\/75 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.7);}}
+.hover\:dark\:decoration-terra-500\/75 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:decoration-terra-700\/75 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.7);}}
+.hover\:dark\:decoration-terra-900\/75 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.7);}}
+.hover\:dark\:decoration-terra-100\/90 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:decoration-terra-300\/90 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.9);}}
+.hover\:dark\:decoration-terra-500\/90 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:decoration-terra-700\/90 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.9);}}
+.hover\:dark\:decoration-terra-900\/90 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.9);}}
+.hover\:dark\:decoration-terra-100\/95 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:decoration-terra-300\/95 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 0.95);}}
+.hover\:dark\:decoration-terra-500\/95 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:decoration-terra-700\/95 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 0.95);}}
+.hover\:dark\:decoration-terra-900\/95 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 0.95);}}
+.hover\:dark\:decoration-terra-100 {&:hover {text-decoration-color:oklch(0.7528 0.1464 39.15 / 1);}}
+.hover\:dark\:decoration-terra-300 {&:hover {text-decoration-color:oklch(0.7028 0.1464 39.15 / 1);}}
+.hover\:dark\:decoration-terra-500 {&:hover {text-decoration-color:oklch(0.6528 0.1464 39.15 / 1);}}
+.hover\:dark\:decoration-terra-700 {&:hover {text-decoration-color:oklch(0.6028 0.1464 39.15 / 1);}}
+.hover\:dark\:decoration-terra-900 {&:hover {text-decoration-color:oklch(0.5528 0.1464 39.15 / 1);}}
 .hover\:dark\:decoration-cadet-gray-100\/1 {&:hover {text-decoration-color:oklch(0.754 0.0185 225.33 / 0.01);}}
 .hover\:dark\:decoration-cadet-gray-300\/1 {&:hover {text-decoration-color:oklch(0.704 0.0185 225.33 / 0.01);}}
 .hover\:dark\:decoration-cadet-gray-500\/1 {&:hover {text-decoration-color:oklch(0.654 0.0185 225.33 / 0.01);}}
