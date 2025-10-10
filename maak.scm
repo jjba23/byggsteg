@@ -232,3 +232,7 @@ for higher concurrent writes to SQLite 3."
   "Update the i18n template based on strings extracted from source code."
   (i18n-extract* #:update? #t))
 
+(define (olive-css)
+  ($ '("curl --output \"./pub/css/byggsteg.olive.min.css\""
+       "\"https://codeberg.org/jjba23/olive-css/raw/branch/trunk/resources/css/byggsteg.olive.min.css\"")))
+

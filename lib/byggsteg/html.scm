@@ -19,7 +19,7 @@
 (define-module (byggsteg html)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg job pipeline)
-  #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg faces)
   #:use-module (sxml simple)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
@@ -54,23 +54,11 @@
     `(,doctype-html (html (@ (lang en))
                           (head (title ,title)
                                 ,maybe-auto-refresh
-                                ,hygguile-recommended-meta
-                                ,hygguile-recommended-resources
-                                (style "
-@view-transition {
-  navigation: auto;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: fade 0.04s ease both;
-}
-
-@keyframes fade {
-  from { opacity: 0.3; }
-  to   { opacity: 1; }
-}
-")
+                                ,(hygguile-recommended-meta)
+                                ,(hygguile-recommended-resources)
+                                (link (@ (rel stylesheet)
+                                         (href "/css/byggsteg.olive.min.css"))
+                                      "")
                                 (script (@ (type speculationrules))
                                         "
 {
@@ -84,7 +72,7 @@
 }
 "))
                           (body (@ (class ,(mk-class '(bg-stone-100
-                                                       dark:bg-stone-800))))
+                                                       dark:bg-onyx-900))))
                                 ,notification-tray
                                 (div (@ (class ,(mk-class '(flex flex-col
                                                             h-screen
@@ -108,23 +96,24 @@
                                      sm:px-5
                                      items-center
                                      shadow-md
-                                     bg-stone-200
-                                     dark:bg-stone-900))))
+                                     bg-stone-300/50
+                                     dark:bg-onyx-700))))
 
          (div (@ (class ,(mk-class '(px-4 py-1 w-full md:w-min))))
               (a (@ (href "/")
-                    (class ,(mk-class '(flex flex-row gap-2 items-center))))
-                 ,(sub-h3 (list (icon #:type 'gear-fine
-                                      #:icon-css '(text-xl text-stone-700
-                                                   dark:text-stone-200
-                                                   hover:text-orange-800
-                                                   hover:dark:text-orange-300))
-                                "&nbsp;"
-                                (G_ "Byggsteg"))
-                          #:color '(text-stone-700 dark:text-stone-200
-                                                   hover:text-orange-800
-                                                   hover:dark:text-orange-300)
-                          #:size '(text-xl lg:text-2xl))))
+                    (class ,(mk-class '(flex flex-row gap-2 items-center
+                                             no-underline))))
+                 ,(h3 (list (icon #:type 'gear-fine
+                                  #:icon-css '(text-xl text-onyx-700
+                                               dark:text-stone-100
+                                               hover:text-orange-700
+                                               hover:dark:text-orange-300))
+                            "&nbsp;"
+                            (G_ "Byggsteg"))
+                      #:color '(text-onyx-700 dark:text-stone-300
+                                              hover:text-orange-700
+                                              hover:dark:text-orange-300)
+                      #:size '(text-lg lg:text-xl))))
          (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                           gap-3))))
               ,(if (not is-logged-in)
@@ -138,12 +127,7 @@
                                                        gap-2)))
                            (href "/login"))
                         ,(icon-button #:icon 'sign-in
-                                      #:content (G_ "login")
-                                      #:size '(text-xs md:text-sm)
-                                      #:extra-classes '(py-1 md:py-2 px-2
-                                                             md:px-3
-                                                             max-w-prose
-                                                             cursor-pointer))))
+                                      #:content (G_ "login"))))
                    `((a (@ (class ,(mk-class '(text-sm lowercase
                                                        text-white
                                                        dark:text-black
@@ -154,44 +138,25 @@
                                                        gap-2)))
                            (href "/me"))
                         ,(icon-button #:icon 'user-circle
-                                      #:content (G_ "me")
-                                      #:size '(text-xs md:text-sm)
-                                      #:extra-classes '(py-1 md:py-2 px-2
-                                                             md:px-3
-                                                             max-w-prose
-                                                             cursor-pointer)))))
+                                      #:content (G_ "me")))))
               (a (@ (href "/logs"))
                  ,(icon-button #:icon 'scroll
-                               #:content (G_ "logs")
-                               #:size '(text-xs md:text-sm)
-                               #:extra-classes '(py-1 md:py-2 px-2 md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer)))
+                               #:content (G_ "logs")))
               (a (@ (href "/jobs/request"))
                  ,(icon-button #:icon 'circuitry
-                               #:content (G_ "run job")
-                               #:size '(text-xs md:text-sm)
-                               #:extra-classes '(py-1 md:py-2 px-2 md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer)))
+                               #:content (G_ "run job")))
               (a (@ (href "/profiles"))
                  ,(icon-button #:icon 'folder
-                               #:content (G_ "profiles")
-                               #:size '(text-xs md:text-sm)
-                               #:extra-classes '(py-1 md:py-2 px-2 md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer)))
-              ,(ui-mode-button #:size '(text-xs md:text-sm)
-                               #:extra-classes '(py-1 md:py-2 px-2 md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer))))))
+                               #:content (G_ "profiles")))
+              ,(ui-mode-button #:icon-css '(text-onyx-300 dark:text-stone-300
+                                                          text-lg))))))
 
 (define (page-footer G_)
   (footer `((div (@ (class ,(mk-class '(py-2))))
                  ,(em (G_ "byggsteg is the hackable Guile CI/CD system")))
             ,(em (G_
                   "byggsteg is free software, available under the GNU AGPL v3 or newer"))
-            (div (@ (class ,(mk-class '(mt-2 flex
+            (div (@ (class ,(mk-class '(mt-1 flex
                                              flex-row
                                              flex-wrap
                                              gap-4
@@ -199,25 +164,31 @@
                                              items-center))))
                  ,(em (G_ "find the source code here"))
                  ,(a "https://codeberg.org/jjba23/byggsteg"
-                     #:size '(text-sm)))
+                     #:size '(text-md)
+                     #:color '(text-jeans-blue-700 dark:text-jeans-blue-100)))
             (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-2
                                              align-center items-center))))
                  ,(em (G_ "find the manual here"))
                  ,(a "https://jointhefreeworld.org/manuals/byggsteg/"
-                     #:size '(text-sm)))
+                     #:size '(text-md)
+                     #:color '(text-jeans-blue-700 dark:text-jeans-blue-100)))
             (div ,(em (G_
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
             (div ,(em (G_ "Copyright © Josep Bigorra & NalaGinrut")))
-            (div (@ (class ,(mk-class '(mt-2 flex flex-row flex-wrap gap-3
-                                             align-center))))
+            (div (@ (class ,(mk-class '(mt-2 flex
+                                             flex-row
+                                             flex-wrap
+                                             gap-3
+                                             align-center
+                                             items-center))))
                  ,(em (G_ "version"))
                  ,(mono (format #f "~a"
                                 (get-short-commit-sha))
-                        #:size '(text-sm)
+                        #:size '(text-md)
                         #:weight '(font-light))))))
 
 (define project-logo
-  `(div (@ (class ,(mk-class '(bg-stone-200 dark:bg-stone-900 rounded-2xl p-4
+  `(div (@ (class ,(mk-class '(bg-stone-300 dark:bg-onyx-700 rounded-2xl p-4
                                             shadow-md))))
         (img (@ (loading lazy)
                 (class ,(mk-class '(w-48 h-auto rounded-2xl)))
@@ -238,7 +209,7 @@
          (form (@ (action "/preferences/locale")
                   (enctype application/x-www-form-urlencoded)
                   (method POST)
-                  (class ,(mk-class '(flex flex-row gap-4 flex-wrap))))
+                  (class ,(mk-class '(flex flex-row gap-4 flex-wrap font-sans))))
                ,(select #:name 'user-lang
                         #:options (list (option #:value 'en_US
                                                 #:content "English (US)"
@@ -252,10 +223,12 @@
                                                 #:content "Español"
                                                 #:selected-value
                                                 selected-locale)))
-               (button (@ (type submit)
-                          (class ,(mk-class '(text-white bg-orange-600
-                                                         rounded-xl p-1))))
-                       "&nbsp;✓&nbsp;")))))
+               ,(icon-button #:icon 'check
+                             #:content ""
+                             #:extra-classes '(px-2 max-w-prose cursor-pointer)
+                             #:icon-css '(text-onyx-300 dark:text-stone-100
+                                                        text-lg)
+                             #:type 'submit)))))
 
 (define (job-form G_ route is-profile)
   `(form (@ (method POST)
@@ -271,24 +244,27 @@
                                         align-center
                                         items-center
                                         gap-4
-                                        py-2))))
-            (span (@ (class ,(mk-class '(text-stone-700 dark:text-stone-300
-                                                        text-sm))))
+                                        py-4))))
+            (span (@ (class ,(mk-class '(text-onyx-300 dark:text-stone-300
+                                                       text-sm))))
                   ,(G_ "learn writing a byggsteg pipeline"))
-            ,(a "https://codeberg.org/jjba23/byggsteg"))
+            ,(a "https://codeberg.org/jjba23/byggsteg"
+                #:size '(text-md)
+                #:color '(text-jeans-blue-700 dark:text-jeans-blue-100)))
 
          ,(textarea #:label (G_ "job code")
                     #:value ""
                     #:name 'job-code
                     #:required #t
                     #:textarea-css '(p-3 rounded-xl
-                                         border-stone-200
-                                         dark:border-stone-700
+                                         border-stone-300
+                                         dark:border-onyx-100
                                          dark:text-stone-300
-                                         dark:bg-stone-700/75
-                                         bg-stone-200/75
+                                         dark:bg-onyx-700/75
+                                         bg-stone-300/50
                                          border-2
                                          min-h-72
+                                         max-w-196
                                          shadow-md
                                          font-mono
                                          min-w-prose))
@@ -304,28 +280,31 @@
          (job-status (cond
                        ((equal? success 1)
                         (sub-h4 (G_ "job succeeded")
-                                #:color '(text-green-800 dark:text-green-400)
-                                #:size '(text-lg)))
+                                #:color '(text-asparagus-900
+                                          dark:text-asparagus-300)
+                                #:size '(text-md)))
                        ((equal? failure 1)
                         (sub-h4 (G_ "job failed")
-                                #:color '(text-red-800 dark:text-red-400)
-                                #:size '(text-lg)))
+                                #:color '(text-redwood-900
+                                          dark:text-redwood-300)
+                                #:size '(text-md)))
                        (else (sub-h4 (G_ "job in progress")
-                                     #:color '(text-blue-800
-                                               dark:text-blue-400)
-                                     #:size '(text-lg))))))
+                                     #:color '(text-jeans-blue-900
+                                               dark:text-jeans-blue-300)
+                                     #:size '(text-md))))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
                                                align-center break-words))))
                    (span ,(icon #:type 'scroll
-                                #:icon-css '(text-xl text-stone-800
-                                                     dark:text-stone-200)))
+                                #:icon-css '(text-xl text-onyx-300
+                                                     dark:text-stone-300
+                                                     no-underline)))
                    ,(h4 log-filename
-                        #:color '(text-stone-700 hover:text-orange-600
-                                                 dark:text-stone-300
-                                                 hover:dark:text-orange-300))))
+                        #:color '(text-onyx-300 hover:text-orange-500
+                                                dark:text-stone-300
+                                                hover:dark:text-orange-300))))
            (div (@ (class "ml-6"))
                 ,(em (strftime "%c"
                                (localtime (assoc-ref (car job) "created_at")))
@@ -339,11 +318,13 @@
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center))))
-                   (span ,(icon #:type 'code))
+                   (span ,(icon #:type 'code
+                                #:icon-css '(text-xl text-onyx-300
+                                                     dark:text-stone-300)))
                    ,(h4 (html-unescape (assoc-ref profile "human_id"))
-                        #:color '(text-stone-700 hover:text-orange-600
-                                                 dark:text-stone-300
-                                                 hover:dark:text-orange-300))))))))
+                        #:color '(text-onyx-300 dark:text-stone-300
+                                                hover:text-orange-300
+                                                hover:dark:text-orange-300))))))))
 
 (define-syntax-rule (if-job-was-updated-html job html)
   "Render HTML conditionally for jobs that contain updated_at field"

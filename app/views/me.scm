@@ -43,7 +43,7 @@
                                                                my-4))))
                                    ,(em (G_ "my unique id:"))
                                    ,(mono (assoc-ref user "id")
-                                          #:size '(text-xs)))
+                                          #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
                                                                gap-2
@@ -52,7 +52,7 @@
                                                                my-4))))
                                    ,(em (G_ "my permissions (in database):"))
                                    ,(pre (assoc-ref user "permissions")
-                                         #:size '(text-xs)))
+                                         #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
                                                                gap-2
@@ -64,7 +64,7 @@
                                    ,(pre (format #f "~s"
                                                  (assoc-ref token
                                                             'owner-permissions))
-                                         #:size '(text-xs)))
+                                         #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(max-w-prose))))
                                    ,(em (G_
                                          "tip: if your session permissions don't match the DB consider logging out and logging in again"))))))
@@ -81,7 +81,7 @@
     (html-template G_
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                   #:body `((div (@ (class ,(mk-class '(px-4))))
                                  (div (@ (class ,(mk-class '(flex flex-col
                                                                   gap-6))))
                                       ,user-details
@@ -121,21 +121,21 @@
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "username"))
               ,(p (assoc-ref u "username")
-                  #:size '(text-sm)))
+                  #:size '(text-md)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "email"))
               ,(p (assoc-ref u "email")
-                  #:size '(text-sm)))
+                  #:size '(text-md)))
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "id"))
               ,(mono (assoc-ref u "id")
-                     #:size '(text-xs)))
+                     #:size '(text-sm)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "permissions"))
               ,(mono (assoc-ref u "permissions")
-                     #:size '(text-xs)))
+                     #:size '(text-sm)))
          (div (@ (class ,(mk-class '(flex flex-row gap-3))))
               (div (@ (class ,(mk-class '(flex flex-row gap-3 flex-wrap))))
                    (form (@ (method POST)
@@ -150,9 +150,9 @@
                                               (G_
                                                "are you sure you want to delete this user?"))
                                   #:type 'submit
-                                  #:background '(bg-red-700)
-                                  #:color '(text-stone-200)
-                                  #:hover-background '(hover:bg-red-900)))
+                                  #:background '(bg-redwood-700)
+                                  #:color '(text-stone-300)
+                                  #:hover-background '(hover:bg-redwood-900)))
                    (a (@ (href ,(format #f "/users/edit/~a"
                                         (assoc-ref u "id"))))
                       ,(icon-button #:icon 'pencil
@@ -166,7 +166,7 @@
   (html-template G_
                  #:title "byggsteg"
                  #:is-logged-in #t
-                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                 #:body `((div (@ (class ,(mk-class '(px-4))))
                                ,(h2 (G_ "User management"))
                                (div (@ (class ,(mk-class '(my-6))))
                                     (a (@ (href "/users/new"))
@@ -178,8 +178,8 @@
                                                            py-8
                                                            px-4
                                                            rounded-xl
-                                                           bg-stone-200
-                                                           dark:bg-stone-900))))
+                                                           bg-stone-300/50
+                                                           dark:bg-onyx-700))))
                                     ,(map (lambda (u)
                                             (render-user G_ u)) users))))))
 
@@ -201,8 +201,8 @@
                                                                  px-4
                                                                  shadow-md
                                                                  max-w-prose
-                                                                 bg-stone-200
-                                                                 dark:bg-stone-900))))
+                                                                 bg-stone-300/50
+                                                                 dark:bg-onyx-700))))
                                           (input (@ (hidden true)
                                                     (name email)
                                                     (value ,email)) "")
@@ -232,7 +232,7 @@
   (html-template G_
                  #:title "byggsteg"
                  #:is-logged-in #t
-                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                 #:body `((div (@ (class ,(mk-class '(px-4))))
                                (div ,(h2 (G_ "New User")))
                                (div (@ (class ,(mk-class '(flex flex-col
                                                            gap-4
@@ -240,8 +240,8 @@
                                                            py-8
                                                            px-4
                                                            rounded-xl
-                                                           bg-stone-200
-                                                           dark:bg-stone-900))))
+                                                           bg-stone-300/50
+                                                           dark:bg-onyx-700))))
                                     (form (@ (method POST)
                                              (action "/users/new"))
                                           (div ,(input #:label (G_ "username")
@@ -276,14 +276,14 @@
                                         (checked #f)
                                         (input-css '(p-3 max-w-prose
                                                      rounded-xl
-                                                     border-stone-200
+                                                     border-stone-300
                                                      dark:border-stone-700
                                                      dark:text-stone-300
-                                                     bg-stone-200/75
-                                                     dark:bg-stone-700/75
+                                                     bg-stone-300/50
+                                                     dark:bg-onyx-700
                                                      border-2
                                                      shadow-md))
-                                        (label-css '(text-sm font-bold
+                                        (label-css '(text-md font-bold
                                                      text-stone-600
                                                      dark:text-stone-300))
                                         (input-flex-css '(my-2 flex flex-row
@@ -304,7 +304,7 @@
   (html-template G_
                  #:title "byggsteg"
                  #:is-logged-in #t
-                 #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                 #:body `((div (@ (class ,(mk-class '(px-4))))
                                (div ,(h2 (G_ "Edit User")))
                                (div (@ (class ,(mk-class '(flex flex-col
                                                            gap-4
@@ -312,8 +312,8 @@
                                                            py-8
                                                            px-4
                                                            rounded-xl
-                                                           bg-stone-200
-                                                           dark:bg-stone-900))))
+                                                           bg-stone-300/50
+                                                           dark:bg-onyx-700))))
                                     (form (@ (method POST)
                                              (action ,(format #f
                                                        "/users/edit/~a"

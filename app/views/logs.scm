@@ -19,7 +19,7 @@
 (define-module (app views logs)
   #:use-module (byggsteg preferences)
   #:use-module (kracht prelude)
-  #:use-module (byggsteg tailwind)
+  #:use-module (byggsteg faces)
   #:use-module (kracht prelude)
   #:use-module (web uri)
   #:use-module (artanis artanis)
@@ -45,23 +45,25 @@
          (in-progress (assoc-ref job "job_in_progress"))
          (failure (assoc-ref job "job_failed"))
          (G_ (:i18n rc))
-         (dl-class (mk-class '(py-3)))
+         (dl-class (mk-class '(py-3 gap-2)))
          (dt-class (mk-class '(font-sans text-xs text-stone-800
                                          dark:text-stone-400 font-bold pt-2)))
-         (dd-class (mk-class '(pl-3 font-sans text-sm text-stone-800
-                                    dark:text-stone-400 font-medium)))
+         (dd-class (mk-class '(pl-3 font-sans text-sm text-onyx-300
+                                    dark:text-stone-300 font-medium)))
          (job-status (cond
                        ((equal? success 1)
                         (sub-h4 (G_ "job succeeded")
-                                #:color '(text-green-800 dark:text-green-400)
+                                #:color '(text-asparagus-900
+                                          dark:text-asparagus-300)
                                 #:size '(text-xl)))
                        ((equal? failure 1)
                         (sub-h4 (G_ "job failed")
-                                #:color '(text-red-800 dark:text-red-400)
+                                #:color '(text-redwood-900
+                                          dark:text-redwood-300)
                                 #:size '(text-xl)))
                        (else (sub-h4 (G_ "job in progress")
-                                     #:color '(text-blue-800
-                                               dark:text-blue-400)
+                                     #:color '(text-jeans-blue-900
+                                               dark:text-jeans-blue-300)
                                      #:size '(text-xl)))))
          (delete-button `(form (@ (method POST)
                                   (enctype application/x-www-form-urlencoded)
@@ -79,8 +81,11 @@
                                ,(icon-button #:icon 'trash
                                              #:content (G_ "delete")
                                              #:type 'submit
-                                             #:background '(bg-red-700)
-                                             #:hover-background '(hover:bg-red-800))))
+                                             #:color '(text-stone-300)
+                                             #:icon-css '(text-md
+                                                          text-stone-300)
+                                             #:background '(bg-redwood-700)
+                                             #:hover-background '(hover:bg-redwood-900))))
          (log-html `((div (@ (class ,(mk-class '(flex flex-row
                                                       flex-wrap
                                                       align-center
@@ -115,14 +120,15 @@
                                                                              "updated_at"))))))
                             ,(dt (G_ "log uuid"))
                             ,(dd (code log-id
-                                       #:size '(text-sm)))))
+                                       #:size '(text-md)))))
 
                      ,delete-button
 
                      (details (@ (class ,(mk-class '(my-4))))
                               (summary (@ (class ,(mk-class '(cursor-pointer
-                                                              text-stone-400
-                                                              hover:text-stone-200
+                                                              text-onyx-700
+                                                              dark:text-stone-300
+                                                              hover:text-orange-300
                                                               block))))
                                        (div (@ (class ,(mk-class '(flex
                                                                    flex-row
@@ -192,8 +198,8 @@
                                                   align-center
                                                   whitespace-break-spaces))))
                            ,(h1 (G_ "logs"))
-                           (div (@ (class ,(mk-class '(rounded-xl bg-stone-200
-                                                       dark:bg-stone-900
+                           (div (@ (class ,(mk-class '(rounded-xl bg-stone-300
+                                                       dark:bg-onyx-700
                                                        flex
                                                        flex-col
                                                        gap-4

@@ -71,7 +71,7 @@ between binary and hex-and-dash string UUIDs are included.")
 (define-public guile-hygguile
   (package
     (name "guile-hygguile")
-    (version "1.1.7")
+    (version "2.0.18")
     (source
      (origin
        (method git-fetch)
@@ -80,7 +80,7 @@ between binary and hex-and-dash string UUIDs are included.")
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "12aj5czzsnw5zxymy0v5f3sjvh6cg57kximr9kr8qgvqn3p3frmj"))))
+        (base32 "13ihq942iwcvihbypvlcb27xwz1v63gm9p29m2nvpk7ly17dgjs1"))))
     (build-system guile-build-system)
     (native-inputs (list guile-3.0))
     (arguments

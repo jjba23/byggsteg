@@ -16,7 +16,7 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-(define-module (byggsteg tailwind)
+(define-module (byggsteg faces)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 time)
@@ -36,11 +36,6 @@
   (mk-class (append base-button
                     '(bg-orange-400 hover:bg-orange-500 active:bg-orange-500
                                     text-stone-900 shadow-md))))
-
-(define-public danger-button-face
-  (mk-class (append base-button
-                    '(bg-red-700 hover:bg-red-800 active:bg-red-800
-                                 text-stone-300 shadow-md))))
 
 ;;
 ;; Forms
@@ -71,14 +66,14 @@
   (mk-class '(text-stone-300 text-sm font-bold py-2 md:px-2)))
 
 (define-public hr-face
-  (mk-class '(mx-8 my-5 border-t-2 border-t-stone-600)))
+  (mk-class '(mx-8 my-5 border-t-2 border-t-stone-500)))
 
 ;;
 ;; Headers
 ;;
 
 (define-public brand-title-face
-  (mk-class '(text-2xl text-orange-400 hover:border-b-orange-400
+  (mk-class '(text-2xl text-orange-500 hover:border-b-orange-500
                        hover:text-orange-500 font-bold font-sans)))
 
 ;;
@@ -87,6 +82,7 @@
 (define-public dash-link-face
   (mk-class '(text-stone-700 hover:text-orange-600
                              dark:text-stone-300
+                             no-underline
                              hover:dark:text-orange-300
                              font-bold
                              cursor-pointer
@@ -100,12 +96,4 @@
 ;;
 ;; Pre
 ;;
-
-;;
-;; DL DD DT
-;;
-(define-public dt-face
-  (mk-class '(dark:text-stone-300 text-stone-700 text-sm py-4)))
-(define-public dd-face
-  (mk-class '(dark:text-stone-300 text-stone-700 text-sm mb-2 sm:ml-4)))
 

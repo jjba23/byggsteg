@@ -31,17 +31,17 @@
                      #:key is-logged-in)
   (let* ((login-form `(form (@ (action "/login")
                                (class ,(mk-class '(w-full rounded-xl
-                                                   bg-stone-200/50
-                                                   dark:bg-stone-700/50
-                                                   p-4
-                                                   flex
-                                                   flex-row
-                                                   flex-wrap
-                                                   items-center
-                                                   align-center
-                                                   gap-4
-                                                   shadow-md)))
-                               (method "POST"))
+                                                          bg-stone-300/50
+                                                          dark:bg-onyx-700
+                                                          p-4
+                                                          flex
+                                                          flex-row
+                                                          flex-wrap
+                                                          items-center
+                                                          align-center
+                                                          gap-4
+                                                          shadow-md)))
+                               (method POST))
                             ,(input #:label (G_ "email")
                                     #:name "email"
                                     #:type 'email
@@ -55,16 +55,16 @@
                             (div ,(submit-button (G_ "login")))))
          (reset-form `((form (@ (action "/password/reset")
                                 (class ,(mk-class '(w-full rounded-xl
-                                                    bg-stone-200/50
-                                                    dark:bg-stone-700/50
-                                                    p-4
-                                                    flex
-                                                    flex-row
-                                                    flex-wrap
-                                                    items-center
-                                                    align-center
-                                                    gap-4
-                                                    shadow-md)))
+                                                           bg-stone-300/50
+                                                           dark:bg-onyx-700
+                                                           p-4
+                                                           flex
+                                                           flex-row
+                                                           flex-wrap
+                                                           items-center
+                                                           align-center
+                                                           gap-4
+                                                           shadow-md)))
                                 (method POST))
                              ,(input #:label (G_ "account to reset (email)")
                                      #:name "email"
@@ -76,19 +76,19 @@
                                                 #:content (G_ "reset")))))))
     (html-template G_
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(container mx-auto))))
+                   #:body `((div (@ (class ,(mk-class '(px-4))))
                                  (div (@ (class ,(mk-class '(w-full flex
                                                                     flex-row
                                                                     flex-wrap
-                                                                    gap-10))))
+                                                                    gap-8))))
                                       (div (@ (class ,(mk-class '(flex
                                                                   flex-col
-                                                                  gap-8))))
+                                                                  gap-4))))
                                            ,(h2 (G_ "login to byggsteg"))
                                            (div ,login-form))
                                       (div (@ (class ,(mk-class '(flex
                                                                   flex-col
-                                                                  gap-8))))
+                                                                  gap-4))))
                                            ,(h2 (G_ "reset password"))
                                            (div ,reset-form))))))))
 
