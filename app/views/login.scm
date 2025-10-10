@@ -31,8 +31,8 @@
                      #:key is-logged-in)
   (let* ((login-form `(form (@ (action "/login")
                                (class ,(mk-class '(w-full rounded-xl
-                                                   bg-stone-200/50
-                                                   dark:bg-stone-700/50
+                                                   bg-stone-200
+                                                   dark:bg-onyx-700
                                                    p-4
                                                    flex
                                                    flex-row
@@ -41,7 +41,7 @@
                                                    align-center
                                                    gap-4
                                                    shadow-md)))
-                               (method "POST"))
+                               (method POST))
                             ,(input #:label (G_ "email")
                                     #:name "email"
                                     #:type 'email

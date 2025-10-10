@@ -54,8 +54,8 @@
     `(,doctype-html (html (@ (lang en))
                           (head (title ,title)
                                 ,maybe-auto-refresh
-                                ,hygguile-recommended-meta
-                                ,hygguile-recommended-resources
+                                ,(hygguile-recommended-meta)
+                                ,(hygguile-recommended-resources)
                                 (link (@ (rel stylesheet)
                                          (href "/css/byggsteg.olive.min.css"))
                                       "")
@@ -203,7 +203,7 @@
          (form (@ (action "/preferences/locale")
                   (enctype application/x-www-form-urlencoded)
                   (method POST)
-                  (class ,(mk-class '(flex flex-row gap-4 flex-wrap))))
+                  (class ,(mk-class '(flex flex-row gap-4 flex-wrap font-sans))))
                ,(select #:name 'user-lang
                         #:options (list (option #:value 'en_US
                                                 #:content "English (US)"

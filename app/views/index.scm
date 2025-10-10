@@ -33,7 +33,7 @@
 
 (define (job-type-expl G_)
   (let* ((dl-classes '(flex flex-col gap-1 py-2))
-         (dd-classes '(py-3 px-2 text-onyx-300 dark:text-stone-300)))
+         (dd-classes '(py-3 px-2 text-onyx-300 dark:text-stone-300 font-sans)))
     `(div (@ (class ,(mk-class '(max-w-prose p-4 bg-stone-300 dark:bg-onyx-700
                                              shadow-md rounded-xl))))
           ,(h4 (G_ "job types"))
