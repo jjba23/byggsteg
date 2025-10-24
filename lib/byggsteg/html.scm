@@ -96,16 +96,16 @@
                                      sm:px-5
                                      items-center
                                      shadow-md
-                                     w-screen
                                      bg-stone-300/50
                                      dark:bg-onyx-700))))
 
-         (div (@ (class ,(mk-class '(px-4 py-1 w-screen md:w-48))))
+         (div (@ (class ,(mk-class '(px-4 py-1 w-full md:w-48))))
               (a (@ (href "/")
                     (class ,(mk-class '(flex flex-row gap-2 items-center
-                                             no-underline))))
+                                             align-center no-underline))))
                  ,(h3 (list (icon #:type 'gear-fine
-                                  #:icon-css '(text-xl text-onyx-700
+                                  #:icon-css '(text-lg md:text-xl
+                                               text-onyx-700
                                                dark:text-stone-100
                                                hover:text-orange-700
                                                hover:dark:text-orange-300))
@@ -118,38 +118,86 @@
          (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                           gap-3))))
               ,(if (not is-logged-in)
-                   `((a (@ (class ,(mk-class '(text-sm lowercase
-                                                       text-white
-                                                       dark:text-black
-                                                       font-sans
-                                                       font-medium
-                                                       px-2
-                                                       flex-items-center
-                                                       gap-2)))
+                   `((a (@ (class ,(mk-class '(lowercase
+
+                                                         text-white
+                                                         dark:text-black
+                                                         font-sans
+                                                         font-medium
+                                                         px-2
+                                                         flex-items-center
+                                                         gap-2)))
                            (href "/login"))
                         ,(icon-button #:icon 'sign-in
+                                      #:size '(text-md)
+                                      #:extra-classes '(py-1 md:py-2
+                                                        px-2
+                                                        md:px-3
+                                                        max-w-prose
+                                                        cursor-pointer
+                                                        text-onyx-700
+                                                        dark:text-stone-300)
                                       #:content (G_ "login"))))
-                   `((a (@ (class ,(mk-class '(text-sm lowercase
-                                                       text-white
-                                                       dark:text-black
-                                                       font-sans
-                                                       font-medium
-                                                       px-2
-                                                       flex-items-center
-                                                       gap-2)))
+                   `((a (@ (class ,(mk-class '(lowercase text-white
+                                                         dark:text-black
+                                                         font-sans
+                                                         font-medium
+                                                         px-2
+                                                         flex-items-center
+                                                         gap-2)))
                            (href "/me"))
                         ,(icon-button #:icon 'user-circle
+                                      #:size '(text-md)
+                                      #:extra-classes '(py-1 md:py-2
+                                                        px-2
+                                                        md:px-3
+                                                        max-w-prose
+                                                        cursor-pointer
+                                                        text-onyx-700
+                                                        dark:text-stone-300)
                                       #:content (G_ "me")))))
               (a (@ (href "/logs"))
                  ,(icon-button #:icon 'scroll
+                               #:size '(text-md)
+                               #:extra-classes '(py-1 md:py-2
+                                                      px-2
+                                                      md:px-3
+                                                      max-w-prose
+                                                      cursor-pointer
+                                                      text-onyx-700
+                                                      dark:text-stone-300)
                                #:content (G_ "logs")))
               (a (@ (href "/jobs/request"))
                  ,(icon-button #:icon 'circuitry
+                               #:size '(text-md)
+                               #:extra-classes '(py-1 md:py-2
+                                                      px-2
+                                                      md:px-3
+                                                      max-w-prose
+                                                      cursor-pointer
+                                                      text-onyx-700
+                                                      dark:text-stone-300)
                                #:content (G_ "run job")))
               (a (@ (href "/profiles"))
                  ,(icon-button #:icon 'folder
+                               #:size '(text-md)
+                               #:extra-classes '(py-1 md:py-2
+                                                      px-2
+                                                      md:px-3
+                                                      max-w-prose
+                                                      cursor-pointer
+                                                      text-onyx-700
+                                                      dark:text-stone-300)
                                #:content (G_ "profiles")))
-              ,(ui-mode-button #:icon-css '(text-onyx-300 dark:text-stone-300
+              ,(ui-mode-button #:size '(text-md)
+                               #:extra-classes '(py-1 md:py-2
+                                                      px-2
+                                                      md:px-3
+                                                      max-w-prose
+                                                      cursor-pointer
+                                                      text-onyx-700
+                                                      dark:text-stone-300)
+                               #:icon-css '(text-onyx-300 dark:text-stone-300
                                                           text-lg))))))
 
 (define (page-footer G_)
