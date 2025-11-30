@@ -135,8 +135,8 @@ Remove all files in the byggsteg location, ignoring errors."
 
 (define (repl)
   "Development REPL."
-  (manifest-shell '("guile -L ./lib -L ."
-                    "-c '((@ (ares server) run-nrepl-server))'")))
+  (time-machine-manifest-shell '("guile -L ./lib -L ."
+                                 "-c '((@ (ares server) run-nrepl-server))'")))
 
 (define (default)
   "Default task to be run, list available tasks."
@@ -144,9 +144,9 @@ Remove all files in the byggsteg location, ignoring errors."
 
 (define (build-manual)
   "Render the project's manual."
-  (manifest-shell (list (~ "emacs -Q --batch --eval '~s'"
-                           emacs-lisp-manual-publish-cmd))
-                  #:verbose? #t))
+  (time-machine-manifest-shell (list (~ "emacs -Q --batch --eval '~s'"
+                                        emacs-lisp-manual-publish-cmd))
+                               #:verbose? #t))
 
 (define (deploy)
   "Deploy the project's documentation."
@@ -162,15 +162,16 @@ Remove all files in the byggsteg location, ignoring errors."
 
 (define (hot-reload)
   "Hot-reloading developer's setup."
-  (manifest-shell (list "watchexec"
-                        "--clear"
-                        (~ "--exts ~a"
-                           (string-join (map symbol->string
-                                             hot-reload-file-types) ","))
-                        "--on-busy-update=restart"
-                        "--shell bash"
-                        "--watch . --"
-                        "maak server")))
+  (time-machine-manifest-shell (list "watchexec"
+                                     "--clear"
+                                     (~ "--exts ~a"
+                                        (string-join (map symbol->string
+                                                      hot-reload-file-types)
+                                                     ","))
+                                     "--on-busy-update=restart"
+                                     "--shell bash"
+                                     "--watch . --"
+                                     "maak server")))
 
 (define (hr)
   "Alias to hot-reloading."
@@ -187,12 +188,12 @@ Remove all files in the byggsteg location, ignoring errors."
 (define (server)
   "Target to start the byggsteg server with the default configuration."
   (kill-server)
-  (manifest-shell '("art work")))
+  (time-machine-manifest-shell '("art work")))
 
 (define (production-server)
   "Target to start the byggsteg server with the production configuration."
   (kill-server)
-  (manifest-shell '("art work -c conf/production.conf")))
+  (time-machine-manifest-shell '("art work -c conf/production.conf")))
 
 (define (init-db)
   "Initialize a new database and enable WAL mode
@@ -200,7 +201,8 @@ for higher concurrent writes to SQLite 3."
   (delete-file-recursively byggsteg-db)
   (delete-file-recursively (~ "~a-shm" byggsteg-db))
   (delete-file-recursively (~ "~a-wal" byggsteg-db))
-  (manifest-shell (~ "sqlite3 ~a 'PRAGMA journal_mode=WAL;'" byggsteg-db)))
+  (time-machine-manifest-shell (~ "sqlite3 ~a 'PRAGMA journal_mode=WAL;'"
+                                  byggsteg-db)))
 
 ;; ====== Maak i18n tasks ======
 
