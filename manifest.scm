@@ -169,7 +169,7 @@ and obfuscation tricks, producing secure files and tokens one can use.")
                           watchexec
                           guile-curl
                           sqlite
-                          emacs
+                          emacs-no-x
                           watchexec
                           bash-minimal
                           guile-dbd-sqlite3))
