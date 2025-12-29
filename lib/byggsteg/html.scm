@@ -72,7 +72,8 @@
 }
 "))
                           (body (@ (class ,(mk-class '(bg-stone-100
-                                                       dark:bg-onyx-900))))
+                                                       dark:bg-onyx-900
+                                                       font-sans))))
                                 ,notification-tray
                                 (div (@ (class ,(mk-class '(flex flex-col
                                                             h-screen
