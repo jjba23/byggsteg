@@ -141,7 +141,7 @@
          (r (curl-easy-perform handle #t))
          (rr (catch #t
                     (lambda ()
-                      (bytevector->string r "utf-8"))
+                      (utf8->string r))
                     (lambda (key . args)
                       r))))
     (display rr)))
