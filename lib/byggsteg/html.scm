@@ -225,17 +225,24 @@
             (div ,(em (G_
                        "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
             (div ,(em (G_ "Copyright © Josep Bigorra & NalaGinrut")))
-            (div (@ (class ,(mk-class '(mt-2 flex
-                                             flex-row
-                                             flex-wrap
-                                             gap-3
-                                             align-center
-                                             items-center))))
-                 ,(em (G_ "version"))
-                 ,(mono (format #f "~a"
-                                (get-short-commit-sha))
-                        #:size '(text-md)
-                        #:weight '(font-light))))))
+            (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-8
+                                             align-center items-center))))
+                 (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-2
+                                                  align-center items-center))))
+                      (a (@ (href "javascript:void(0)")
+                            (class ,(mk-class '(no-underline text-onyx-500
+                                                dark:text-stone-300
+                                                cursor-pointer font-light)))
+                            (onclick
+                             "window.scrollTo({ top: 0, behavior: 'smooth' })"))
+                         "⬆️ back to the top"))
+                 (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-2
+                                                  align-center items-center))))
+                      ,(em "version:")
+                      ,(mono (format #f "~a"
+                                     (get-short-commit-sha))
+                             #:size '(text-md)
+                             #:weight '(font-light)))))))
 
 (define project-logo
   `(div (@ (class ,(mk-class '(bg-stone-300 dark:bg-onyx-700 rounded-2xl p-4
