@@ -191,7 +191,7 @@ msgstr ""
 
 #: lib/byggsteg/html.scm:107 lib/byggsteg/html.scm:112
 #: lib/byggsteg/html.scm:115
-msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS"
+msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS"
 msgstr ""
 
 #: lib/byggsteg/html.scm:110 lib/byggsteg/html.scm:115

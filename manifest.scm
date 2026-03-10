@@ -91,7 +91,7 @@ between binary and hex-and-dash string UUIDs are included.")
     (description
      "Hygguile is a library that allows you to create cozy web user-interfaces
 using Guile Scheme, by defining an expressive domain-specific language (DSL),
-and by leveraging the power of S-expressions, SXML and TailwindCSS.
+and by leveraging the power of S-expressions, SXML and OliveCSS.
 
 The project aims to provide reusable, professional-looking and accessible
 web components, whose names resemble the HTML counterparts, thus

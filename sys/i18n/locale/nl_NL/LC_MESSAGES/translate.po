@@ -198,8 +198,8 @@ msgstr "hier vind je de bron-code"
 
 #: lib/byggsteg/html.scm:107 lib/byggsteg/html.scm:112
 #: lib/byggsteg/html.scm:115
-msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS"
-msgstr "gedreven door Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS"
+msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS"
+msgstr "gedreven door Guile Scheme, GNU Artanis, GNU Guix, OliveCSS"
 
 #: lib/byggsteg/html.scm:110 lib/byggsteg/html.scm:115
 #: lib/byggsteg/html.scm:118

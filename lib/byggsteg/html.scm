@@ -223,7 +223,7 @@
                      #:size '(text-md)
                      #:color '(text-jeans-blue-700 dark:text-jeans-blue-100)))
             (div ,(em (G_
-                       "powered by Guile Scheme, GNU Artanis, GNU Guix, TailwindCSS")))
+                       "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS")))
             (div ,(em (G_ "Copyright © Josep Bigorra & NalaGinrut")))
             (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-8
                                              align-center items-center))))
