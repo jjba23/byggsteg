@@ -45,16 +45,13 @@
                                 #:encryption-key encryption-key
                                 #:signing-key signing-key))
               (user-repo (make-sqlite-user-repository rc))
-              (user ($user 'get
-                           #:ret 'top
-                           #:condition (where #:id (assoc-ref t
-                                                              'owner-id)))))
+              (user (get-user-by-id user-repo (assq-ref t 'owner-id))))
          
          (catch #t
                 (lambda ()
                   (response-emit (:mime rc
                                         (me-page (:i18n rc)
-                                                 #:user (car user)
+                                                 #:user user
                                                  #:token t
                                                  #:is-logged-in (:cookies-value
                                                                  rc
@@ -78,13 +75,13 @@
                                            "x-bewaking-byggsteg")
                                   #:encryption-key encryption-key
                                   #:signing-key signing-key))
+                (user-repo (make-sqlite-user-repository rc))                
                 (user ($user 'get
                              #:ret 'top
                              #:condition (where #:id (assoc-ref t
                                                                 'owner-id))))
-                (users ($user 'get
-                              #:ret 'all
-                              #:order-by '(username asc))))
+                (user (get-user-by-id user-repo (assq-ref t 'owner-id)))
+                (users (get-users user-repo)))
            (response-emit (:mime rc
                                  (users-page (:i18n rc)
                                              #:users users)))))

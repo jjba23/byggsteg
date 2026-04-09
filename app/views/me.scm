@@ -33,8 +33,8 @@
   
   (let* ((user-details `((div (@ (class ,(mk-class '(py-8 px-4 max-w-prose))))
                               ,(h3 (format #f "~a &lt;~a&gt;"
-                                           (assoc-ref user "username")
-                                           (assoc-ref user "email")))
+                                           (assq-ref user 'username)
+                                           (assq-ref user 'email)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
                                                                gap-2
@@ -42,7 +42,7 @@
                                                                justify-start
                                                                my-4))))
                                    ,(em (G_ "my unique id:"))
-                                   ,(mono (assoc-ref user "id")
+                                   ,(mono (assq-ref user 'id)
                                           #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
@@ -51,7 +51,7 @@
                                                                justify-start
                                                                my-4))))
                                    ,(em (G_ "my permissions (in database):"))
-                                   ,(pre (assoc-ref user "permissions")
+                                   ,(pre (assq-ref user 'permissions)
                                          #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
@@ -62,20 +62,20 @@
                                    ,(em (G_
                                          "current session permissions (in token):"))
                                    ,(pre (format #f "~s"
-                                                 (assoc-ref token
+                                                 (assq-ref token
                                                             'owner-permissions))
                                          #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(max-w-prose))))
                                    ,(em (G_
                                          "tip: if your session permissions don't match the DB consider logging out and logging in again"))))))
          (has-modify-permissions (member 'byggsteg:modify-permissions
-                                         (assoc-ref token
+                                         (assq-ref token
                                                     'owner-permissions)))
          (session-duration `((div (@ (class ,(mk-class '(py-8 px-4))))
                                   ,(em (format #f "~a: ~a"
                                                (G_ "logged in until")
                                                (strftime "%c"
-                                                         (localtime (assoc-ref
+                                                         (localtime (assq-ref
                                                                      token
                                                                      'token-expires-at)))))))))
     (html-template G_
@@ -120,33 +120,33 @@
   `((div (@ (class ,(mk-class '(flex flex-col gap-4))))
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "username"))
-              ,(p (assoc-ref u "username")
+              ,(p (assq-ref u 'username)
                   #:size '(text-md)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "email"))
-              ,(p (assoc-ref u "email")
+              ,(p (assq-ref u 'email)
                   #:size '(text-md)))
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "id"))
-              ,(mono (assoc-ref u "id")
+              ,(mono (assq-ref u 'id)
                      #:size '(text-sm)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "permissions"))
-              ,(mono (assoc-ref u "permissions")
+              ,(mono (assq-ref u 'permissions)
                      #:size '(text-sm)))
          (div (@ (class ,(mk-class '(flex flex-row gap-3))))
               (div (@ (class ,(mk-class '(flex flex-row gap-3 flex-wrap))))
                    (form (@ (method POST)
                             (action "/users/delete"))
                          (input (@ (name id)
-                                   (value ,(assoc-ref u "id"))
+                                   (value ,(assq-ref u 'id))
                                    (hidden "")))
                          ,(button (G_ "delete")
                                   #:on-click (format #f
                                               "return confirm('~a: ~a')"
-                                              (assoc-ref u "email")
+                                              (assq-ref u "email")
                                               (G_
                                                "are you sure you want to delete this user?"))
                                   #:type 'submit
@@ -154,7 +154,7 @@
                                   #:color '(text-stone-300)
                                   #:hover-background '(hover:bg-redwood-900)))
                    (a (@ (href ,(format #f "/users/edit/~a"
-                                        (assoc-ref u "id"))))
+                                        (assq-ref u 'id))))
                       ,(icon-button #:icon 'pencil
                                     #:content (G_ "edit")))))
 
@@ -317,18 +317,18 @@
                                     (form (@ (method POST)
                                              (action ,(format #f
                                                        "/users/edit/~a"
-                                                       (assoc-ref u "id"))))
+                                                       (assq-ref u 'id))))
                                           (input (@ (hidden "")
-                                                    (value ,(assoc-ref u "id"))))
+                                                    (value ,(assq-ref u 'id))))
                                           (div ,(input #:label (G_ "username")
-                                                       #:value (assoc-ref u
-                                                                "username")
+                                                       #:value (assq-ref u
+                                                                'username)
                                                        #:name 'username
                                                        #:required #t))
                                           (div ,(input #:label (G_ "email")
                                                        #:name 'email
-                                                       #:value (assoc-ref u
-                                                                "email")
+                                                       #:value (assq-ref u
+                                                                'email)
                                                        #:type 'email
                                                        #:required #t))
                                           (div (@ (class ,(mk-class '(my-6))))
@@ -349,9 +349,9 @@
 
                                                                               
                                                                               (eval-string
-                                                                               (assoc-ref
+                                                                               (assq-ref
                                                                                 u
-                                                                                "permissions")))))))
+                                                                                'permissions)))))))
                                                           '(byggsteg:job-create
                                                             byggsteg:job-delete
                                                             byggsteg:profile-create
