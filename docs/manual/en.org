@@ -89,13 +89,19 @@ byggsteg is a community driven effort and as such, can use your help in translat
 
 ------
   
-* Byggsteg Project
+* About this Project and Contributing
 
-Contributing to free software is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
+Contributing to free software (as in freedom) is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
 
-We welcome everyone to feel invited to the byggsteg Project, and encourage active contribution in all forms, to improve it and/or suggest improvements, brainstorm with me, make it more modular/flexible, etc, feel free to contact me <jjbigorra@gmail.com> to chat, discuss or report feedback.
+Feel free to open an issue on this [[https://codeberg.org/jjba23/byggsteg][repository's homepage]] or in LucidPlan
 
-Find here the Backlog and Kanban boards for byggsteg: https://lucidplan.jointhefreeworld.org/tickets/byggsteg
+We welcome everyone to feel invited to the LucidPlan Project.
+
+We encourage active contribution in all forms, to improve it and/or suggest improvements, report issues, brainstorm with me, make it more modular/flexible, etc,
+
+Feel free to open issue on tracker, on Git / Codeberg repository, or mail me <jjbigorra@gmail.com> to chat, discuss or report feedback.
+
+See here the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][Backlog and Kanban]]  for this project.
 
 ------
 
@@ -105,11 +111,13 @@ Jobs are simple Lisp (Guile Scheme) code. Profiles are just saved jobs.
 
 byggsteg allows you to send code over the wire (HTTP) and save it too, in a thunk form, for example :
 #+begin_src  scheme
-  (lambda()
-    `((project . "kracht")
-      (branch-name . "trunk")
-      (task . "maak-test")
-      (clone-url . "https://codeberg.org/jjba23/kracht")))
+(lambda()
+  `((project . "kracht")
+    (branch-name . "trunk")
+    (task . "maak-test")
+    ;; task can also be a list
+    ;; e.g. (task . ("maak-test" "maak-build")    
+    (clone-url . "https://codeberg.org/jjba23/kracht")))
 #+end_src
 
 Sending things in thunk form allows one to execute any code arbitrarily, inside the lambda expression. Be responsible and wary of who you give access to your byggsteg instance.
@@ -134,7 +142,7 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 When defining a pipeline alist, the task field can be either a single step, or multiple.
 You should either pass a string or a list of strings of job names.
 
-~make-test~ | ~maak-test~- Run test suite with make or maak.
+~make-test~ | ~maak-test~- Run test suite with ~make~ or ~maak~.
 
 ~pull-and-restart~ - Git pull and restart wanted shepherd service.
 
@@ -142,7 +150,7 @@ You should either pass a string or a list of strings of job names.
 
 ~byggsteg-version~ - Byggsteg pull and restart shepherd daemon itself.
 
-~make-build~ |  ~maak-build~ - Run a build with make or maak (make-build is the fallback task).
+~make-build~ |  ~maak-build~ - Run a build with ~make~ or ~maak~ (~make-build~ is the fallback task).
 
 ~trivial~ - Allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.
 
@@ -168,27 +176,24 @@ You should either pass a string or a list of strings of job names.
 
 * Authentication, Authorization, User management
 
-Bewaking is a nice library to help you secure your web applications with Guile Scheme: https://codeberg.org/jjba23/bewaking
+[[https://codeberg.org/jjba23/bewaking][bewaking]] 🔗 is a nice library to help you secure your web applications with Guile Scheme.
 
-With bewaking we use secure tokens encrypted and stored in secure cookies (for browsers) and headers (for REST API)
+With bewaking we use secure tokens encrypted and stored in secure cookies (for browsers) and headers (for REST API) as well  as authentication and authorization, with ACLs (access control list) and fine-grained permissions.
 
 If you want to be a super user in byggsteg your token will need to have the ~byggsteg:modify-permissions~ permission, effectively meaning you can give yourself and others all wanted permissions and do everything.
 
-See more of the permissions here:
-
-- byggsteg:job-create
-- byggsteg:job-delete
-- byggsteg:profile-create
-- byggsteg:profile-delete
-- byggsteg:user-create
-- byggsteg:user-delete
-- byggsteg:modify-permissions
+Byggsteg's permission model ACL:
+- ~byggsteg:job-create~
+- ~byggsteg:job-delete~
+- ~byggsteg:profile-create~
+- ~byggsteg:profile-delete~
+- ~byggsteg:user-create~
+- ~byggsteg:user-delete~
+- ~byggsteg:modify-permissions~
 
 Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles. For web browsers you can simply use the login page, for scripts and headless usage, use the ~/api/v1/login~ endpoint and take the ~x-bewaking-byggsteg~ response header.
 
-Upon starting a blank new byggsteg deployment you will have no users in the database. Check in ~db/migration~ and edit the password field and salt, or add more users. An important note is that currently the passwords should NOT contain any special characters (letters and numbers are OK).
-
-Then do a ~guix shell -m manifest.scm -- art migrate up user~ to add your users.
+Upon starting a blank new byggsteg deployment you will have no users in the database. Check in ~resources/migrations/~ and edit the password field and salt, or add more users.
 
 If running locally, it's recommended to use ~localhost~ instead of ~127.0.0.1~ as this will work better with the authentication/authorization and other cookies.
 

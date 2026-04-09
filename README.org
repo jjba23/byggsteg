@@ -92,14 +92,19 @@ In summary, we foster an inclusive, respectful, and cooperative environment for 
 
 ---------
 
-* Byggsteg Project
+* About this Project and Contributing
 
-Contributing to free software is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
+Contributing to free software (as in freedom) is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
 
-We welcome everyone to feel invited to the byggsteg Project, and encourage active contribution in all forms, to improve it and/or suggest improvements, brainstorm with me, make it more modular/flexible, etc, feel free to contact me <jjbigorra@gmail.com> to chat, discuss or report feedback.
+Feel free to open an issue on this [[https://codeberg.org/jjba23/byggsteg][repository's homepage]] or in LucidPlan
 
-Find here the Backlog and Kanban boards for byggsteg: https://lucidplan.jointhefreeworld.org/tickets/byggsteg
+We welcome everyone to feel invited to the LucidPlan Project.
 
+We encourage active contribution in all forms, to improve it and/or suggest improvements, report issues, brainstorm with me, make it more modular/flexible, etc,
+
+Feel free to open issue on tracker, on Git / Codeberg repository, or mail me <jjbigorra@gmail.com> to chat, discuss or report feedback.
+
+See here the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][Backlog and Kanban]]  for this project.
 
 -------
 
