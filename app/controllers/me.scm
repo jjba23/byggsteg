@@ -22,6 +22,8 @@
         (ice-9 string-fun)
         (app models user)
         (byggsteg env)
+        (byggsteg sqlite user)
+        (byggsteg domain user)
         (byggsteg auth)
         (app views me)
         (curl)
@@ -42,6 +44,7 @@
                                                         "x-bewaking-byggsteg")
                                 #:encryption-key encryption-key
                                 #:signing-key signing-key))
+              (user-repo (make-sqlite-user-repository rc))
               (user ($user 'get
                            #:ret 'top
                            #:condition (where #:id (assoc-ref t

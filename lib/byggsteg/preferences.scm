@@ -19,10 +19,8 @@
 (define-module (byggsteg preferences)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
-  #:use-module (ice-9 string-fun))
+  #:use-module (ice-9 string-fun)
+  #:export (job-clone-location))
 
-(define-public job-clone-location
-  "/etc/byggsteg/job-clone/")
-
-(define-public job-time-format
-  "%H:%M:%S__%d-%m-%Y")
+(define job-clone-location
+  (make-parameter "/etc/byggsteg/job-clone/"))

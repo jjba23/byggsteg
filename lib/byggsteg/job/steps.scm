@@ -92,7 +92,7 @@
 (define* (pull-and-restart-step #:key project branch-name
                                 (env #f)
                                 (daemon-name #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name))
          (daemon-to-restart (if (not daemon-name) project daemon-name)))
     (do-in-clone-dir clone-dir
                      (list (format #f
@@ -102,58 +102,58 @@
 
 (define* (pull-and-deploy-step #:key project branch-name
                                (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("sudo make deploy")
                      #:env env)))
 
 (define* (maak-deploy-step #:key project branch-name
                            (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("sudo maak deploy")
                      #:env env)))
 
 (define* (make-build-step #:key project branch-name
                           (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("make build")
                      #:env env)))
 
 (define* (maak-build-step #:key project branch-name
                           (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("maak build")
                      #:env env)))
 
 (define* (make-test-step #:key project branch-name
                          (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("make test")
                      #:env env)))
 
 (define* (maak-test-step #:key project branch-name
                          (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("maak test")
                      #:env env)))
 
 (define* (git-details-step #:key project branch-name)
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("git log --name-status HEAD^..HEAD"))))
 
 (define* (sys-details-step #:key project branch-name)
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name)))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name)))
     (do-in-clone-dir clone-dir
                      '("uname -a"))))
 
 (define* (clone-repo-step #:key project branch-name clone-url)
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name))
          (should-clone (not (file-exists? clone-dir)))
          (clone-cmd (format #f
                             (string-append "mkdir -p ~a"
@@ -170,7 +170,7 @@
 
 (define* (trivial-step #:key project branch-name cmds
                        (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name))
          (no-errors? #t))
     (map (lambda (c)
            (if (not no-errors?)
@@ -184,7 +184,7 @@
 (define* (byggsteg-version-step #:key project branch-name
                                 (daemon-name #f)
                                 (env #f))
-  (let* ((clone-dir (string-append job-clone-location project "/" branch-name))
+  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name))
          (daemon-to-restart (if (not daemon-name) project daemon-name))
          (cmd (format #f "cd ~a && sudo herd restart ~a || true" clone-dir
                       daemon-to-restart)))

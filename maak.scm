@@ -183,7 +183,8 @@ Remove all files in the byggsteg location, ignoring errors."
 
 (define (kill-server)
   "Kill any running HTTP server in the same port."
-  ($ (list (~ "fuser -k ~a/tcp || true" http-port))))
+  ($ (list (~ "fuser -k ~a/tcp || true" http-port)))
+  ($ '("sleep 1")))
 
 (define (server)
   "Target to start the byggsteg server with the default configuration."
@@ -238,3 +239,14 @@ for higher concurrent writes to SQLite 3."
   ($ '("curl --output \"./pub/css/byggsteg.olive.min.css\""
        "\"https://codeberg.org/jjba23/olive-css/raw/branch/trunk/resources/css/byggsteg.olive.min.css\"")))
 
+(define (import-production-database)
+  "Import production env's database to local workspace via SSH/SCP"
+  ($ '("scp wolk-jjba:/etc/byggsteg/job-clone/byggsteg/trunk/byggsteg.db* .")))
+
+(define (import-production-env)
+  "Import production env's database to local workspace via SSH/SCP"
+  ($ '("scp wolk-jjba:/etc/byggsteg/job-clone/byggsteg/trunk/env.scm .")))
+
+(define (local-login)
+  ($ '("http --form POST" "http://localhost:50002/api/v1/login"
+       "email=jjbigorra@gmail.com" "password=7pCGWVkVCQWfJmQJJVXs")))
