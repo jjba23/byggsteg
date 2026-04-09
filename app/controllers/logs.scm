@@ -22,7 +22,9 @@
         (byggsteg auth)
         (app views logs)
         (app models job)
-        (app models log))
+        (app models log)
+        (byggsteg domain log)
+        (byggsteg sqlite log))
 
 (get "/logs"
      #:mime 'xml
@@ -36,18 +38,8 @@
                              ((not (nil? (get-from-qstr rc "limit")))
                               (string->number (get-from-qstr rc "limit")))
                              (else 24)))
-              (logs (DB-get-all-rows (DB-query (DB-open rc)
-                                               (->sql select
-                                                      *
-                                                      from
-                                                      'log
-                                                      (format #f
-                                                       " ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                                                       query-limit
-                                                       query-offset)
-
-                                                      ))))
-
+              (log-repo (make-sqlite-log-repository rc))
+              (logs (get-logs log-repo #:limit query-limit #:offset query-offset))
               (job-ids (map (lambda (l)
                               (assoc-ref l "job_id")) logs))
               (jobs (cond
