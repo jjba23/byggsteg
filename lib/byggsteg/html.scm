@@ -328,10 +328,10 @@
          (div ,(submit-button (G_ "submit")))))
 
 (define (make-job-link G_ job log)
-  (let* ((log-filename (html-unescape (assoc-ref log "human_id")))
+  (let* ((log-filename (html-unescape (assq-ref log 'human-id)))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
-                            (assoc-ref log "id")))
+                            (assq-ref log 'id)))
          (success (assoc-ref (car job) "job_success"))
          (failure (assoc-ref (car job) "job_failed"))
          (job-status (cond

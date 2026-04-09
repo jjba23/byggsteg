@@ -36,10 +36,10 @@
 
 (define* (log-page rc
                    #:key job log is-logged-in)
-  (let* ((log-id (assoc-ref log "id"))
+  (let* ((log-id (assq-ref log 'id))
          (job-id (assoc-ref job "id"))
-         (log-filename (html-unescape (assoc-ref log "human_id")))
-         (log-data (assoc-ref log "log_data"))
+         (log-filename (html-unescape (assq-ref log 'human-id)))
+         (log-data (assq-ref log 'log-data))
          (detail-data (html-unescape (assoc-ref job "job_data")))
          (success (assoc-ref job "job_success"))
          (in-progress (assoc-ref job "job_in_progress"))
@@ -172,7 +172,7 @@
          (jobs-html (map (lambda (l)
                            (make-job-link G_
                                           (car (assoc-ref jobs-of-logs
-                                                          (assoc-ref l "id")))
+                                                          (assq-ref l 'id)))
                                           l)) logs))
          (page-buttons `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                           gap-3 my-4))))

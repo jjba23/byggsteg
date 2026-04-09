@@ -41,20 +41,20 @@
               (log-repo (make-sqlite-log-repository rc))
               (logs (get-logs log-repo #:limit query-limit #:offset query-offset))
               (job-ids (map (lambda (l)
-                              (assoc-ref l "job_id")) logs))
+                              (assq-ref l 'job-id)) logs))
               (jobs (cond
                       ((not (nil? job-ids))
                        ($job 'get
                              #:ret 'all
                              #:condition (where #:id job-ids)))
-                      (else '())))
+                      (else '())))              
               (job-map (map (lambda (j)
                               (list (assoc-ref j "id") j)) jobs))
-
+              
               (jobs-of-logs (map (lambda (l)
-                                   (list (assoc-ref l "id")
+                                   (list (assq-ref l 'id)
                                          (assoc-ref job-map
-                                                    (assoc-ref l "job_id"))))
+                                                    (assq-ref l 'job-id))))
                                  logs)))
          
          (response-emit (:mime rc
@@ -70,15 +70,14 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let* ((l ($log 'get
-                       #:ret 'top
-                       #:condition (where #:id (params rc "id"))))
+       (let* ((log-repo (make-sqlite-log-repository rc))
+              (l (get-log-by-id log-repo (params rc "id")))
               (j ($job 'get
                        #:ret 'top
-                       #:condition (where #:id (assoc-ref (car l) "job_id")))))
+                       #:condition (where #:id (assoc-ref l 'job-id)))))
          (response-emit (:mime rc
                                (log-page rc
                                          #:is-logged-in (:cookies-value rc
                                                          "x-bewaking-byggsteg")
                                          #:job (car j)
-                                         #:log (car l)))))))
+                                         #:log l))))))

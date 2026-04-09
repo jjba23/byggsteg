@@ -47,11 +47,11 @@
       (if (nil? rows) #f
           (car rows))))
 
-  (define* (get-logs #:key (limit 50) (offset 0))
-    (let* ((query (format #f "SELECT ~a FROM log
+  (define* (get-logs #:key limit offset)
+    (let* ((query (format #f
+                   "SELECT ~a FROM log
                    ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                          (symbols->sql-columns-list columns)
-                          limit offset))
+                   (symbols->sql-columns-list columns) limit offset))
            (_ (log-info "get-logs query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
                       (DB-get-all-rows (DB-query (DB-open rc) query))))

@@ -28,8 +28,8 @@
 ;; -- Record definition ---
 
 (define-record-type <log-repository>
-  (make-log-repository id-to-logname-proc log-by-id-proc logs-proc
-                       insert-log-proc delete-log-by-id-proc)
+  (make-log-repository log-by-id-proc logs-proc insert-log-proc
+                       delete-log-by-id-proc)
   log-repository?
   (log-by-id-proc repo-get-log-by-id)
   (logs-proc repo-get-logs)
@@ -53,9 +53,13 @@
   ((repo-get-log-by-id repo)
    id))
 
-(define (get-logs repo)
+(define* (get-logs repo
+                   #:key (limit 50)
+                   (offset 0))
   "Retrieves a list of all active logs from the given REPO."
-  ((repo-get-logs repo)))
+  ((repo-get-logs repo)
+   #:limit limit
+   #:offset offset))
 
 (define (insert-log repo attrs)
   "Inserts a log with ATTRS in the given REPO."
