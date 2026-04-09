@@ -45,7 +45,9 @@
                                 #:encryption-key encryption-key
                                 #:signing-key signing-key))
               (user-repo (make-sqlite-user-repository rc))
-              (user (get-user-by-id user-repo (assq-ref t 'owner-id))))
+              (user (get-user-by-id user-repo
+                                    (assq-ref t
+                                              'owner-id))))
          
          (catch #t
                 (lambda ()
@@ -75,12 +77,10 @@
                                            "x-bewaking-byggsteg")
                                   #:encryption-key encryption-key
                                   #:signing-key signing-key))
-                (user-repo (make-sqlite-user-repository rc))                
-                (user ($user 'get
-                             #:ret 'top
-                             #:condition (where #:id (assoc-ref t
-                                                                'owner-id))))
-                (user (get-user-by-id user-repo (assq-ref t 'owner-id)))
+                (user-repo (make-sqlite-user-repository rc))
+                (user (get-user-by-id user-repo
+                                      (assq-ref t
+                                                'owner-id)))
                 (users (get-users user-repo)))
            (response-emit (:mime rc
                                  (users-page (:i18n rc)
@@ -160,14 +160,12 @@
                          (alist-from-url-encoded-body (rc-body rc))))
                (email (if (not body) #f
                           (assoc-ref body "email")))
+               (user-repo (make-sqlite-user-repository rc))
                (u (if (not email)
-                      ($user 'get
-                             #:ret 'top
-                             #:condition (where #:id (assoc-ref existing-token
-                                                      'owner-id)))
-                      ($user 'get
-                             #:ret 'top
-                             #:condition (where #:email email)))))
+                      (get-user-by-id user-repo
+                                      (assoc-ref existing-token
+                                                 'owner-id))
+                      (get-user-by-email user-repo email))))
           
           (request-password-reset u)
           (redirect-to rc
@@ -235,10 +233,14 @@
                               #:user_id (assoc-ref (car u) "id")
                               #:reset_token reset-token
                               #:created_at (current-time)))
+         (first-recipient `((name unquote
+                                  (assoc-ref u "username"))
+                            (address unquote
+                                     (assoc-ref u "email"))))
          (mail-payload `((task-type . send-email) (template . password-reset)
                          (template-vars (system-name . Byggsteg)
                                         (user unquote
-                                              (assoc-ref (car u) "email"))
+                                              (assoc-ref u "email"))
                                         (reset-link unquote
                                                     (format #f
                                                      "~a/password/reset/token/~a"
@@ -247,7 +249,8 @@
                          (sender-name . "No Reply - Byggsteg")
                          (sender-address . "noreply@byggsteg.jointhefreeworld.org")
                          (subject . "Byggsteg - Password Reset")
-                         (recipients . #(((name unquote (assoc-ref (car u) "username")) (address unquote (assoc-ref (car u) "email"))))))))
+                         (recipients unquote
+                                     (list->vector (list first-recipient))))))
     (send-to-pingwing #:body mail-payload)))
 
 (get "/users/new"
@@ -260,13 +263,11 @@
                                            "x-bewaking-byggsteg")
                                   #:encryption-key encryption-key
                                   #:signing-key signing-key))
-                (user ($user 'get
-                             #:ret 'top
-                             #:condition (where #:id (assoc-ref t
-                                                                'owner-id))))
-                (users ($user 'get
-                              #:ret 'all
-                              #:order-by '(username asc))))
+                (user-repo (make-sqlite-user-repository rc))
+                (user (get-user-by-id user-repo
+                                      (assoc-ref t
+                                                 'owner-id)))
+                (users (get-users user-repo)))
            (response-emit (:mime rc
                                  (new-user-page (:i18n rc))))))
 
@@ -282,9 +283,9 @@
      #:cookies '(names x-bewaking-byggsteg)
      (lambda (rc)
        (define (go-to-edit-user)
-         (let* ((user (car ($user 'get
-                                  #:ret 'top
-                                  #:condition (where #:id (params rc "id"))))))
+         (let* ((user-repo (make-sqlite-user-repository rc))
+                (user (get-user-by-id user-repo
+                                      (params rc "id"))))
            (response-emit (:mime rc
                                  (edit-user-page (:i18n rc) user)))))
 
