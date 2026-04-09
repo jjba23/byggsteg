@@ -36,14 +36,21 @@
 
 (define* (log-page rc
                    #:key job log is-logged-in)
-  (let* ((log-id (assq-ref log 'id))
+  (let* ((log-id (assq-ref log
+                           'id))
          (job-id (assoc-ref job "id"))
-         (log-filename (html-unescape (assq-ref log 'human-id)))
-         (log-data (assq-ref log 'log-data))
-         (detail-data (html-unescape (assoc-ref job "job_data")))
-         (success (assoc-ref job "job_success"))
-         (in-progress (assoc-ref job "job_in_progress"))
-         (failure (assoc-ref job "job_failed"))
+         (log-filename (html-unescape (assq-ref log
+                                                'human-id)))
+         (log-data (assq-ref log
+                             'log-data))
+         (detail-data (html-unescape (assq-ref job
+                                               'job-data)))
+         (success (assq-ref job
+                            'job-success))
+         (in-progress (assq-ref job
+                                'job-in-progress))
+         (failure (assq-ref job
+                            'job-failed))
          (G_ (:i18n rc))
          (dl-class (mk-class '(py-3 gap-2)))
          (dt-class (mk-class '(font-sans text-xs text-stone-800
@@ -101,23 +108,23 @@
                                                                  "time taken"))
                                                             (dd (format #f
                                                                  "~a seconds"
-                                                                 (- (assoc-ref
+                                                                 (- (assq-ref
                                                                      job
-                                                                     "updated_at")
-                                                                    (assoc-ref
+                                                                     'updated-at)
+                                                                    (assq-ref
                                                                      job
-                                                                     "created_at")))))) ,
+                                                                     'created-at)))))) ,
                             (dt (G_ "started at"))
                             ,(dd (strftime "%c"
-                                           (localtime (assoc-ref job
-                                                                 "created_at"))))
+                                           (localtime (assq-ref job
+                                                                'created-at))))
                             ,(if-job-was-updated-html job
                                                       (list (dt (G_
                                                                  "updated at"))
                                                             (dd (strftime "%c"
-                                                                 (localtime (assoc-ref
+                                                                 (localtime (assq-ref
                                                                              job
-                                                                             "updated_at"))))))
+                                                                             'updated-at))))))
                             ,(dt (G_ "log uuid"))
                             ,(dd (code log-id
                                        #:size '(text-md)))))
@@ -172,8 +179,8 @@
          (jobs-html (map (lambda (l)
                            (make-job-link G_
                                           (car (assoc-ref jobs-of-logs
-                                                          (assq-ref l 'id)))
-                                          l)) logs))
+                                                     (assq-ref l
+                                                               'id))) l)) logs))
          (page-buttons `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                           gap-3 my-4))))
                               ,(if (> offset 0)

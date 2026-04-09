@@ -332,8 +332,8 @@
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
                             (assq-ref log 'id)))
-         (success (assoc-ref (car job) "job_success"))
-         (failure (assoc-ref (car job) "job_failed"))
+         (success (assoc-ref job 'job-success))
+         (failure (assoc-ref job 'job-failed))
          (job-status (cond
                        ((equal? success 1)
                         (sub-h4 (G_ "job succeeded")
@@ -364,7 +364,7 @@
                                                 hover:dark:text-orange-300))))
            (div (@ (class "ml-6"))
                 ,(em (strftime "%c"
-                               (localtime (assoc-ref (car job) "created_at")))
+                               (localtime (assoc-ref job 'created-at)))
                      #:size '(text-sm))
                 ,job-status)))))
 
@@ -386,7 +386,7 @@
 (define-syntax-rule (if-job-was-updated-html job html)
   "Render HTML conditionally for jobs that contain updated_at field"
   (cond
-    ((equal? (assoc-ref job "updated_at") #f)
+    ((equal? (assoc-ref job 'updated-at) #f)
      '())
     (else html)))
 

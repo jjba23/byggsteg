@@ -27,6 +27,10 @@
         (kracht prelude)
         (byggsteg job pipeline)
         (ice-9 string-fun)
+        (lucidplan domain job)
+        (lucidplan domain log)
+        (lucidplan sqlite job)
+        (lucidplan sqlite log)
         (app models job)
         (app models log)
         (app views jobs))
@@ -56,6 +60,7 @@
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
                  (G_ (:i18n rc))
+                 (log-repo (make-sqlite-log-repository rc))
                  (logs-link (format #f
                              "~a/logs/~a?notify-title=~a&notify-body=~a"
 
@@ -76,12 +81,16 @@
                   #:job_failed 0
                   #:created_at (current-time))
 
-            ($log 'set
-                  #:id new-log-uuid
-                  #:human_id (html-escape project)
-                  #:job_id new-job-uuid
-                  #:log_data ""
-                  #:created_at (current-time))
+            (insert-log log-repo
+                        `((id unquote new-log-uuid)
+                          (human-id unquote
+                                    (html-escape (format #f "~a-~a" project
+                                                         (string-take
+                                                          new-log-uuid 13))))
+                          (job-id unquote new-job-uuid)
+                          (log-data . "")
+                          (created-at unquote
+                                      (current-time))))
 
             (redirect-to rc
                          (string->uri logs-link)
@@ -98,15 +107,12 @@
         (define (do-delete)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  (job-id (assoc-ref body "job-id"))
-                 (log-id (assoc-ref body "log-id")))
-            
+                 (log-id (assoc-ref body "log-id"))
+                 (log-repo (make-sqlite-log-repository rc)))
             ($job 'mod
                   'row-delete
                   (where #:id job-id))
-            ($log 'mod
-                  'row-delete
-                  (where #:id log-id))
-
+            (delete-log-by-id log-repo log-id)
             (redirect-to rc
                          (string->uri (format #f "~a/logs"
                                               (current-myhost)))

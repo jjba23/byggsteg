@@ -21,8 +21,8 @@
 (import (byggsteg html)
         (byggsteg auth)
         (app views logs)
-        (app models job)
-        (app models log)
+        (byggsteg domain job)
+        (byggsteg sqlite job)        
         (byggsteg domain log)
         (byggsteg sqlite log))
 
@@ -42,19 +42,17 @@
               (logs (get-logs log-repo #:limit query-limit #:offset query-offset))
               (job-ids (map (lambda (l)
                               (assq-ref l 'job-id)) logs))
+              (job-repo (make-sqlite-job-repository rc))
               (jobs (cond
                       ((not (nil? job-ids))
-                       ($job 'get
-                             #:ret 'all
-                             #:condition (where #:id job-ids)))
-                      (else '())))              
+                       (get-jobs-by-ids job-repo job-ids))
+                      (else '())))
               (job-map (map (lambda (j)
-                              (list (assoc-ref j "id") j)) jobs))
-              
+                              (list (assq-ref j 'id) j)) jobs))
               (jobs-of-logs (map (lambda (l)
                                    (list (assq-ref l 'id)
-                                         (assoc-ref job-map
-                                                    (assq-ref l 'job-id))))
+                                         (car (assoc-ref job-map
+                                                    (assq-ref l 'job-id)))))
                                  logs)))
          
          (response-emit (:mime rc
@@ -71,13 +69,12 @@
      #:i18n '(cookie "lang")
      (lambda (rc)
        (let* ((log-repo (make-sqlite-log-repository rc))
+              (job-repo (make-sqlite-job-repository rc))
               (l (get-log-by-id log-repo (params rc "id")))
-              (j ($job 'get
-                       #:ret 'top
-                       #:condition (where #:id (assoc-ref l 'job-id)))))
+              (j (get-job-by-id job-repo (assoc-ref l 'job-id))))
          (response-emit (:mime rc
                                (log-page rc
                                          #:is-logged-in (:cookies-value rc
                                                          "x-bewaking-byggsteg")
-                                         #:job (car j)
+                                         #:job j
                                          #:log l))))))
