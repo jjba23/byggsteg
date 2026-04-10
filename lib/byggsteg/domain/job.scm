@@ -17,65 +17,33 @@
 
 (define-module (byggsteg domain job)
   #:declarative? #t
-  #:use-module (byggsteg domain repo)  
+  #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
-  #:export (<job-repository> job-repository?
-                             mk-job-repository
-                             get-job-by-id
-                             get-jobs
-                             insert-job
-                             delete-job-by-id
-                             get-jobs-by-ids))
+  #:export (get-job-by-id get-jobs insert-job delete-job-by-id get-jobs-by-ids))
 
 ;; -- Record definition ---
 
-(define-record-type <job-repository>
-  (make-job-repository job-by-id-proc jobs-proc insert-job-proc
-                       delete-job-by-id-proc get-jobs-by-ids-proc)
-  job-repository?
-  (job-by-id-proc repo-get-job-by-id)
-  (jobs-proc repo-get-jobs)
-  (insert-job-proc repo-insert-job)
-  (delete-job-by-id-proc repo-delete-job-by-id)
-  (get-jobs-by-ids-proc repo-get-jobs-by-ids))
-
-;; --- Constructor (keyword arguments for ergonomics) ---
-(define* (mk-job-repository #:key get-job-by-id-proc
-                            get-jobs-by-ids-proc
-                            get-jobs-proc
-                            insert-job-proc
-                            delete-job-by-id-proc
-                            update-job-by-id-proc)
-  "Creates a new job repository instance with the provided backend procedures."
-  (make-job-repository get-job-by-id-proc get-jobs-proc insert-job-proc
-                       delete-job-by-id-proc get-jobs-by-ids-proc))
+(define-record-with-kw (<job-repository> %make-job-repository job-repository?)
+                       mk-job-repository
+                       (get-job-by-id-proc repo-get-job-by-id)
+                       (get-jobs-proc repo-get-jobs)
+                       (get-jobs-by-ids-proc repo-get-jobs-by-ids)
+                       (insert-job-proc repo-insert-job)
+                       (delete-job-by-id-proc repo-delete-job-by-id))
 
 ;; --- eDSL: Embedded Domain Specific Language ---
 
-(define (get-job-by-id repo id)
-  "Retrieves a job by their ID from the given REPO."
-  ((repo-get-job-by-id repo)
-   id))
+(define-repo-method get-job-by-id repo-get-job-by-id
+                    "Retrieves a job by their ID from the given REPO.")
 
-(define (get-jobs-by-ids repo ids)
-  "Retrieves jobs by their IDS from the given REPO."
-  ((repo-get-jobs-by-ids repo)
-   ids))
+(define-repo-method get-jobs-by-ids repo-get-jobs-by-ids
+                    "Retrieves jobs by their IDS from the given REPO.")
 
-(define* (get-jobs repo
-                   #:key (limit 50)
-                   (offset 0))
-  "Retrieves a list of all active jobs from the given REPO."
-  ((repo-get-jobs repo)
-   #:limit limit
-   #:offset offset))
+(define-repo-method get-jobs repo-get-jobs
+                    "Retrieves a list of active jobs from the given REPO.")
 
-(define (insert-job repo attrs)
-  "Inserts a job with ATTRS in the given REPO."
-  ((repo-insert-job repo)
-   attrs))
+(define-repo-method insert-job repo-insert-job
+                    "Inserts a job with ATTRS in the given REPO.")
 
-(define (delete-job-by-id repo id)
-  "Deletes a job identified by ID in the given REPO."
-  ((repo-delete-job-by-id repo)
-   id))
+(define-repo-method delete-job-by-id repo-delete-job-by-id
+                    "Deletes a job identified by ID in the given REPO.")

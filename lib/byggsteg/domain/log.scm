@@ -19,33 +19,17 @@
   #:declarative? #t
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
-  #:export (<log-repository> log-repository?
-                             mk-log-repository
-                             get-log-by-id
-                             get-logs
-                             insert-log
-                             delete-log-by-id))
+  #:export (get-log-by-id get-logs
+                            insert-log delete-log-by-id))
 
 ;; -- Record definition ---
 
-(define-record-type <log-repository>
-  (make-log-repository log-by-id-proc logs-proc insert-log-proc
-                       delete-log-by-id-proc)
-  log-repository?
-  (log-by-id-proc repo-get-log-by-id)
-  (logs-proc repo-get-logs)
-  (insert-log-proc repo-insert-log)
-  (delete-log-by-id-proc repo-delete-log-by-id))
-
-;; --- Constructor (keyword arguments for ergonomics) ---
-(define* (mk-log-repository #:key get-log-by-id-proc
-                            get-logs-proc
-                            insert-log-proc
-                            delete-log-by-id-proc
-                            update-log-by-id-proc)
-  "Creates a new log repository instance with the provided backend procedures."
-  (make-log-repository get-log-by-id-proc get-logs-proc insert-log-proc
-                       delete-log-by-id-proc))
+(define-record-with-kw (<log-repository> %make-log-repository log-repository?)
+                       mk-log-repository
+                       (get-log-by-id-proc repo-get-log-by-id)
+                       (get-logs-proc repo-get-logs)
+                       (insert-log-proc repo-insert-log)
+                       (delete-log-by-id-proc repo-delete-log-by-id))
 
 ;; --- eDSL: Embedded Domain Specific Language ---
 
