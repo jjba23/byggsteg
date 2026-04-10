@@ -93,15 +93,17 @@
                                                           text-stone-300)
                                              #:background '(bg-redwood-700)
                                              #:hover-background '(hover:bg-redwood-900))))
-         (log-html `((div (@ (class ,(mk-class '(flex flex-row
+         (log-html `(
+
+                     (div (@ (class ,(mk-class '(flex flex-row
                                                       flex-wrap
                                                       align-center
                                                       items-center
                                                       gap-6
                                                       py-3))))
-                          ,(h1 (G_ "viewing logs"))
+                     ,(h4 log-filename)     
                           ,job-status)
-                     ,(h2 log-filename)
+                     
 
                      ,(dl `(,(if-job-was-updated-html job
                                                       (list (dt (G_

@@ -87,119 +87,147 @@
                                                ,@body))
                                      ,(page-footer G_)))))))
 
+(define (logs-button G_)
+  `((a (@ (href "/logs"))
+       ,(icon-button #:icon 'scroll
+                     #:size '(text-md)
+                     #:extra-classes '(py-1 md:py-2
+                                            px-2
+                                            md:px-3
+                                            max-w-prose
+                                            cursor-pointer
+                                            text-onyx-700
+                                            dark:text-stone-300)
+                     #:content (G_ "logs")))))
+
+(define (run-job-button G_)
+  `((a (@ (href "/jobs/request"))
+       ,(icon-button #:icon 'circuitry
+                     #:size '(text-md)
+                     #:extra-classes '(py-1 md:py-2
+                                            px-2
+                                            md:px-3
+                                            max-w-prose
+                                            cursor-pointer
+                                            text-onyx-700
+                                            dark:text-stone-300)
+                     #:content (G_ "run job")))))
+
+(define (login-button G_)
+  `((a (@ (class ,(mk-class '(lowercase
+
+                                        text-white
+                                        dark:text-black
+                                        font-sans
+                                        font-medium
+                                        py-1
+                                        md:py-2
+                                        px-2
+                                        md:px-3
+                                        flex-items-center
+                                        gap-2)))
+          (href "/login"))
+       ,(icon-button #:icon 'sign-in
+                     #:size '(text-md)
+                     #:extra-classes '(py-1 md:py-2
+                                            px-2
+                                            md:px-3
+                                            max-w-prose
+                                            cursor-pointer
+                                            text-onyx-700
+                                            dark:text-stone-300)
+                     #:content (G_ "login")))))
+
+(define (me-button G_)
+  `((a (@ (class ,(mk-class '(lowercase text-white
+                                        dark:text-black
+                                        font-sans
+                                        font-medium
+                                        py-1
+                                        md:py-2
+                                        px-2
+                                        md:px-3
+                                        flex-items-center
+                                        gap-2)))
+          (href "/me"))
+       ,(icon-button #:icon 'user-circle
+                     #:size '(text-md)
+                     #:extra-classes '(py-1 md:py-2
+                                            px-2
+                                            md:px-3
+                                            max-w-prose
+                                            cursor-pointer
+                                            text-onyx-700
+                                            dark:text-stone-300)
+                     #:content (G_ "me")))))
+
+(define (profiles-button G_)
+  `((a (@ (href "/profiles"))
+       ,(icon-button #:icon 'folder
+                     #:size '(text-md)
+                     #:extra-classes '(py-1 md:py-2
+                                            px-2
+                                            md:px-3
+                                            max-w-prose
+                                            cursor-pointer
+                                            text-onyx-700
+                                            dark:text-stone-300)
+                     #:content (G_ "profiles")))))
 (define* (page-top G_
                    #:key is-logged-in)
-  `((div (@ (class ,(mk-class '(flex flex-row
-                                     flex-wrap
-                                     gap-6
-                                     py-3
-                                     px-2
-                                     sm:px-5
-                                     items-center
-                                     shadow-md
-                                     bg-stone-300/50
-                                     dark:bg-onyx-700))))
+  (let* ((action-buttons `(,(run-job-button G_) ,(ui-mode-button #:size '(text-md)
+                                                                 #:extra-classes '
+                                                                 (py-1 md:py-2
+                                                                  px-2
+                                                                  md:px-3
+                                                                  max-w-prose
+                                                                  cursor-pointer
+                                                                  text-onyx-700
+                                                                  dark:text-stone-300)
+                                                                 #:icon-css '(text-onyx-300
+                                                                              dark:text-stone-300
+                                                                              text-lg))))
+         (link-buttons `((div ,(if (not is-logged-in)
+                                   (login-button G_)
+                                   (me-button G_)))
+                         (div ,(logs-button G_))
+                         (div ,(profiles-button G_))))
 
-         (div (@ (class ,(mk-class '(px-4 py-1 w-full md:w-48))))
-              (a (@ (href "/")
-                    (class ,(mk-class '(flex flex-row gap-2 items-center
-                                             align-center no-underline))))
-                 ,(h3 (list (icon #:type 'gear-fine
-                                  #:icon-css '(text-lg md:text-xl
-                                               text-onyx-700
-                                               dark:text-stone-100
-                                               hover:text-orange-700
-                                               hover:dark:text-orange-300))
-                            "&nbsp;"
-                            (G_ "Byggsteg"))
-                      #:color '(text-onyx-700 dark:text-stone-300
-                                              hover:text-orange-700
-                                              hover:dark:text-orange-300)
-                      #:size '(text-lg lg:text-xl))))
-         (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
-                                          gap-3))))
-              ,(if (not is-logged-in)
-                   `((a (@ (class ,(mk-class '(lowercase
+         )
+    `((div (@ (class ,(mk-class '(py-3 py-1
+                                       md:py-2
+                                       px-2
+                                       md:px-3
+                                       sm:px-5
+                                       shadow-md
+                                       bg-stone-300/50
+                                       dark:bg-onyx-700))))
 
-                                                         text-white
-                                                         dark:text-black
-                                                         font-sans
-                                                         font-medium
-                                                         px-2
-                                                         flex-items-center
-                                                         gap-2)))
-                           (href "/login"))
-                        ,(icon-button #:icon 'sign-in
-                                      #:size '(text-md)
-                                      #:extra-classes '(py-1 md:py-2
-                                                        px-2
-                                                        md:px-3
-                                                        max-w-prose
-                                                        cursor-pointer
-                                                        text-onyx-700
-                                                        dark:text-stone-300)
-                                      #:content (G_ "login"))))
-                   `((a (@ (class ,(mk-class '(lowercase text-white
-                                                         dark:text-black
-                                                         font-sans
-                                                         font-medium
-                                                         px-2
-                                                         flex-items-center
-                                                         gap-2)))
-                           (href "/me"))
-                        ,(icon-button #:icon 'user-circle
-                                      #:size '(text-md)
-                                      #:extra-classes '(py-1 md:py-2
-                                                        px-2
-                                                        md:px-3
-                                                        max-w-prose
-                                                        cursor-pointer
-                                                        text-onyx-700
-                                                        dark:text-stone-300)
-                                      #:content (G_ "me")))))
-              (a (@ (href "/logs"))
-                 ,(icon-button #:icon 'scroll
-                               #:size '(text-md)
-                               #:extra-classes '(py-1 md:py-2
-                                                      px-2
-                                                      md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer
-                                                      text-onyx-700
-                                                      dark:text-stone-300)
-                               #:content (G_ "logs")))
-              (a (@ (href "/jobs/request"))
-                 ,(icon-button #:icon 'circuitry
-                               #:size '(text-md)
-                               #:extra-classes '(py-1 md:py-2
-                                                      px-2
-                                                      md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer
-                                                      text-onyx-700
-                                                      dark:text-stone-300)
-                               #:content (G_ "run job")))
-              (a (@ (href "/profiles"))
-                 ,(icon-button #:icon 'folder
-                               #:size '(text-md)
-                               #:extra-classes '(py-1 md:py-2
-                                                      px-2
-                                                      md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer
-                                                      text-onyx-700
-                                                      dark:text-stone-300)
-                               #:content (G_ "profiles")))
-              ,(ui-mode-button #:size '(text-md)
-                               #:extra-classes '(py-1 md:py-2
-                                                      px-2
-                                                      md:px-3
-                                                      max-w-prose
-                                                      cursor-pointer
-                                                      text-onyx-700
-                                                      dark:text-stone-300)
-                               #:icon-css '(text-onyx-300 dark:text-stone-300
-                                                          text-lg))))))
+           (div (@ (class ,(mk-class '(px-3 pb-3 pt-1 w-full))))
+                (a (@ (href "/")
+                      (class ,(mk-class '(flex flex-row gap-2 no-underline))))
+                   ,(h3 (list (icon #:type 'gear-fine
+                                    #:icon-css '(text-lg md:text-xl
+                                                 text-onyx-700
+                                                 dark:text-stone-100
+                                                 hover:text-orange-700
+                                                 hover:dark:text-orange-300))
+                              "&nbsp;"
+                              (G_ "Byggsteg"))
+                        #:color '(text-onyx-700 dark:text-stone-300
+                                                hover:text-orange-700
+                                                hover:dark:text-orange-300)
+                        #:size '(text-lg lg:text-xl))))
+           (div (@ (class ,(mk-class '(flex flex-row
+                                            flex-wrap
+                                            justify-between
+                                            items-center
+                                            align-center
+                                            gap-3))))
+                (div (@ (class ,(mk-class '(flex flex-row justify-start gap-2))))
+                     ,link-buttons)
+                (div (@ (class ,(mk-class '(flex flex-row justify-start gap-2))))
+                     ,action-buttons))))))
 
 (define (page-footer G_)
   (footer `((div (@ (class ,(mk-class '(py-2))))
@@ -328,12 +356,16 @@
          (div ,(submit-button (G_ "submit")))))
 
 (define (make-job-link G_ job log)
-  (let* ((log-filename (html-unescape (assq-ref log 'title)))
+  (let* ((log-filename (html-unescape (assq-ref log
+                                                'title)))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
-                            (assq-ref log 'id)))
-         (success (assoc-ref job 'job-success))
-         (failure (assoc-ref job 'job-failed))
+                            (assq-ref log
+                                      'id)))
+         (success (assoc-ref job
+                             'job-success))
+         (failure (assoc-ref job
+                             'job-failed))
          (job-status (cond
                        ((equal? success 1)
                         (sub-h4 (G_ "job succeeded")
@@ -359,12 +391,14 @@
                                                      dark:text-stone-300
                                                      no-underline)))
                    ,(h4 log-filename
+                        #:size '(text-lg)
                         #:color '(text-onyx-300 hover:text-orange-500
                                                 dark:text-stone-300
                                                 hover:dark:text-orange-300))))
            (div (@ (class "ml-6"))
                 ,(em (strftime "%c"
-                               (localtime (assoc-ref job 'created-at)))
+                               (localtime (assoc-ref job
+                                                     'created-at)))
                      #:size '(text-sm))
                 ,job-status)))))
 
@@ -386,7 +420,8 @@
 (define-syntax-rule (if-job-was-updated-html job html)
   "Render HTML conditionally for jobs that contain updated_at field"
   (cond
-    ((equal? (assoc-ref job 'updated-at) #f)
+    ((equal? (assoc-ref job
+                        'updated-at) #f)
      '())
     (else html)))
 
