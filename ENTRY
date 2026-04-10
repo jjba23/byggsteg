@@ -80,7 +80,7 @@
                                     (use-modules (byggsteg job
                                                            pipeline))
                                     (while #t
-                                      (run-fallible-pipeline))))))
+                                      (run-infallible-pipeline))))))
     (set! worker-thread t)))
 
 ;; Add hook on before running the Artanis application to start the queue worker
