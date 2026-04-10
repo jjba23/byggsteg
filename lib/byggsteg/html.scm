@@ -328,7 +328,7 @@
          (div ,(submit-button (G_ "submit")))))
 
 (define (make-job-link G_ job log)
-  (let* ((log-filename (html-unescape (assq-ref log 'human-id)))
+  (let* ((log-filename (html-unescape (assq-ref log 'title)))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
                             (assq-ref log 'id)))
@@ -378,7 +378,7 @@
                    (span ,(icon #:type 'code
                                 #:icon-css '(text-xl text-onyx-300
                                                      dark:text-stone-300)))
-                   ,(h4 (html-unescape (assoc-ref profile "human_id"))
+                   ,(h4 (html-unescape (assoc-ref profile "title"))
                         #:color '(text-onyx-300 dark:text-stone-300
                                                 hover:text-orange-300
                                                 hover:dark:text-orange-300))))))))

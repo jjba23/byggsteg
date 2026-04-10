@@ -73,7 +73,7 @@
                                                  (G_
                                                   "A new job has been started at byggsteg with id")
                                                  new-log-uuid))))
-                 (human-id (html-escape (format #f "~a-~a"
+                 (title (html-escape (format #f "~a-~a"
                                                 (if (not trivial-cmds)
                                                     (html-escape project)
                                                     (html-escape "trivial"))
@@ -81,7 +81,7 @@
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id human-id
+                  #:title title
                   #:job_data (html-escape job-code)
                   #:job_success 0
                   #:job_in_progress 1
@@ -90,7 +90,7 @@
 
             (insert-log log-repo
                         `((id unquote new-log-uuid)
-                          (human-id unquote human-id)
+                          (title unquote title)
                           (job-id unquote new-job-uuid)
                           (log-data . "")
                           (created-at unquote

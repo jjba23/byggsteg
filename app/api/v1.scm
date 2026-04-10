@@ -50,7 +50,7 @@
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (html-escape log-filename)
+                  #:title (html-escape log-filename)
                   #:job_data (html-escape job-code)
                   #:job_success 0
                   #:job_in_progress 1
@@ -59,14 +59,14 @@
 
             ($log 'set
                   #:id new-log-uuid
-                  #:human_id (html-escape log-filename)
+                  #:title (html-escape log-filename)
                   #:job_id new-job-uuid
                   #:log_data ""
                   #:created_at (current-time))
 
             (:mime rc
                    `((log-id unquote new-log-uuid)
-                     (human-id unquote
+                     (title unquote
                                (html-escape log-filename))))))
 
         (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
@@ -93,8 +93,8 @@
                                (assoc-ref (car j) "job_in_progress"))
                   (log-id unquote
                           (assoc-ref (car l) "id"))
-                  (human-id unquote
-                            (assoc-ref (car l) "human_id"))
+                  (title unquote
+                            (assoc-ref (car l) "title"))
                   (log-data unquote
                             (base64-encode (html-unescape (assoc-ref (car l)
                                                            "log_data"))))

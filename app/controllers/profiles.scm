@@ -38,7 +38,7 @@
        (response-emit (:mime rc
                              (profile-list-page rc
                                                 ($profile 'get
-                                                          #:order-by '(human_id
+                                                          #:order-by '(title
                                                                        asc))
                                                 #:is-logged-in (:cookies-value
                                                                 rc
@@ -77,7 +77,7 @@
                  (new-uuid (generate-string-uuid))
                  (found-profile ($profile 'get
                                           #:ret 'top
-                                          #:condition (where #:human_id (html-escape
+                                          #:condition (where #:title (html-escape
                                                                          profile-name)))))
             
             (cond
@@ -87,7 +87,7 @@
                                 'profile set
                                 `((profile_data ,(html-escape profile-data))
                                   (updated_at ,(current-time)))
-                                (where #:human_id (html-escape profile-name))))
+                                (where #:title (html-escape profile-name))))
                (redirect-to rc
                             (string->uri (format #f "~a/profiles/~a"
                                                  (current-myhost)
@@ -95,7 +95,7 @@
                             #:status 302))
               (else ($profile 'set
                               #:id new-uuid
-                              #:human_id (html-escape profile-name)
+                              #:title (html-escape profile-name)
                               #:profile_data (html-escape profile-data)
                               #:created_at (current-time))
                     (redirect-to rc

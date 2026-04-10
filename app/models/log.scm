@@ -22,7 +22,7 @@
                       (:deps job)
                       (id char-field
                           (#:primary-key #:maxlen 36))
-                      (human_id char-field
+                      (title char-field
                                 (#:not-null #:maxlen 1024))
                       (job_id char-field
                               (#:not-null #:maxlen 36))

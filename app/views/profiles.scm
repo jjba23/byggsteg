@@ -33,7 +33,7 @@
 
 (define* (profile-page rc p
                        #:key is-logged-in)
-  (let* ((profile-name (html-unescape (assoc-ref p "human_id")))
+  (let* ((profile-name (html-unescape (assoc-ref p "title")))
          (profile-data (html-unescape (assoc-ref p "profile_data")))
          (G_ (:i18n rc))
          (submit-profile-form `((form (@ (method POST)

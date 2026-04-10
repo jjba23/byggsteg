@@ -28,13 +28,13 @@
 ;; --- SQLite implementation ---
 (define (make-sqlite-log-repository rc)
   (define columns
-    '(id human-id job-id log-data created-at updated-at))
+    '(id title job-id log-data created-at updated-at))
 
   (define insert-columns
-    '(id human-id job-id log-data created-at))
+    '(id title job-id log-data created-at))
 
   (define update-columns
-    '(id human-id job-id log-data created-at updated-at))
+    '(id title job-id log-data created-at updated-at))
 
   (define (get-log-by-id id)
     (let* ((query (format #f "SELECT ~a FROM log WHERE id = ~a LIMIT 1"

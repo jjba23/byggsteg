@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS "job" (
 	"id"	varchar(36) NOT NULL,
-	"human_id"	TEXT NOT NULL,
+	"title"	TEXT,
 	"job_data"	TEXT NOT NULL,
 	"job_success"	tinyint NOT NULL,
 	"job_in_progress"	tinyint NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS "job" (
 
 CREATE TABLE IF NOT EXISTS "log" (
 	"id"	varchar(36) NOT NULL,
-	"human_id"	TEXT NOT NULL,
+	"title"	TEXT,
 	"job_id"	varchar(36) NOT NULL,
 	"log_data"	TEXT NOT NULL,
 	"created_at"	date NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS "password_reset" (
 
 CREATE TABLE IF NOT EXISTS "profile" (
 	"id"	varchar(36) NOT NULL,
-	"human_id"	TEXT NOT NULL UNIQUE,
+	"title"	TEXT,
 	"profile_data"	TEXT NOT NULL,
 	"created_at"	date NOT NULL,
 	"updated_at"	date,
@@ -42,6 +42,6 @@ CREATE TABLE IF NOT EXISTS "user" (
 	"email"	TEXT NOT NULL UNIQUE,
 	"password"	TEXT NOT NULL,
 	"salt"	varchar(36) NOT NULL,
-	"permissions"	varchar(2048),
+	"permissions"	TEXT,
 	PRIMARY KEY("id")
 );

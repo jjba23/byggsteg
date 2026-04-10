@@ -40,7 +40,7 @@
                            'id))
          (job-id (assoc-ref job "id"))
          (log-filename (html-unescape (assq-ref log
-                                                'human-id)))
+                                                'title)))
          (log-data (assq-ref log
                              'log-data))
          (detail-data (html-unescape (assq-ref job

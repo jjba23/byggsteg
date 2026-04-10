@@ -232,7 +232,7 @@ curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
 
 #  {
 #    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
-#    "human-id": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
+#    "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
 #  }
 #+end_src
 
@@ -246,7 +246,7 @@ You can query for the job status via the UI or also via the REST API. You could 
   #   "failure": 0,
   #   "in-progress": 0,
   #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",  
-  #   "human-id": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
+  #   "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
   #   "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
   # }
 #+end_src

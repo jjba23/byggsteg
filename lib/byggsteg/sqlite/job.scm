@@ -28,7 +28,7 @@
 ;; --- SQLite implementation ---
 (define (make-sqlite-job-repository rc)
   (define columns
-    '(id human-id
+    '(id title
          job-data
          job-success
          job-in-progress
@@ -37,7 +37,7 @@
          updated-at))
 
   (define insert-columns
-    '(id human-id
+    '(id title
          job-data
          job-success
          job-in-progress
@@ -45,7 +45,7 @@
          created-at))
 
   (define update-columns
-    '(id human-id
+    '(id title
          job-data
          job-success
          job-in-progress

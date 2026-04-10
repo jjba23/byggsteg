@@ -22,7 +22,7 @@
                       (:deps)
                       (id char-field
                           (#:primary-key #:maxlen 36))
-                      (human_id char-field
+                      (title char-field
                                 (#:not-null #:unique #:maxlen 1024))
                       (profile_data char-field
                                     (#:not-null #:maxlen 8192))
