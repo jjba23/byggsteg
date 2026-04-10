@@ -31,7 +31,7 @@
   #:use-module (app models log)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
-  #:export (do-pip run-pipeline-task job-pipeline run-infallible-pipeline))
+  #:export (do-pip run-pipeline-task job-pipeline run-fallible-pipeline run-infallible-pipeline))
 
 (define* (do-pip)
   (let* ((sleep-seconds 3)
@@ -58,7 +58,7 @@
                                 (else (get-logs-by-job-ids log-repo
                                        job-ids-in-progress))))
          (job-log-map (map (lambda (l)
-                             `(,(assoc-ref l
+                             `(,(assq-ref l
                                            'job-id) unquote l))
                            logs-of-in-progress)))
     
@@ -139,17 +139,17 @@
          (kv-thunk (eval-string (html-unescape (assq-ref job
                                                          'job-data))))
          (kv (kv-thunk))
-         (project (assoc-ref kv
+         (project (assq-ref kv
                              'project))
-         (branch-name (assoc-ref kv
+         (branch-name (assq-ref kv
                                  'branch-name))
-         (clone-url (assoc-ref kv
+         (clone-url (assq-ref kv
                                'clone-url))
-         (daemon-name (assoc-ref kv
+         (daemon-name (assq-ref kv
                                  'daemon-name))
-         (task-or-tasks (assoc-ref kv
+         (task-or-tasks (assq-ref kv
                                    'task))
-         (env (assoc-ref kv
+         (env (assq-ref kv
                          'env))
          (tasks (cond
                   ((list? task-or-tasks)
@@ -187,9 +187,7 @@
                                                        #:env env
                                                        #:trivial-cmds
                                                        trivial-cmds)) tasks))))
-         (steps (append sys-steps clone-steps git-details-steps pipe-steps
-
-                        ))
+         (steps (append sys-steps clone-steps git-details-steps pipe-steps))
          (result (run-steps steps
                             #:outs (list (format #f "\n~a...\n"
                                                  (gettext "starting new job"))))))
@@ -201,7 +199,7 @@
                      'log set
                      `((log_data ,(html-escape (step-result-stdout result)))
                        (updated_at ,(current-time)))
-                     (where #:id (assoc-ref log "id"))))
+                     (where #:id (assq-ref log 'id))))
 
     (DB-query (get-conn-from-pool!)
               (->sql update
@@ -230,3 +228,10 @@
   " key
                             args))
            (sleep 1))))
+
+(define (run-fallible-pipeline)
+  ;; define dummy route so that fake request-context can be used
+  (post "/dummy-pipeline-context"
+        (lambda (rc)
+          "dummy"))
+  (do-pip))

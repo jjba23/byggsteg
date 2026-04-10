@@ -172,6 +172,25 @@ You should either pass a string or a list of strings of job names.
 
 ~trivial-cmds~ is a list of strings which represent commands to be run.
 
+** Example jobs
+
+An example showing a herd daemon restart after the git pull:
+#+begin_src scheme
+(lambda() 
+  `((project . "lucidplan")
+    (branch-name . "trunk")
+    (task . ("pull-and-restart" "maak-deploy"))
+    (daemon-name . "lucidplan-daemon")
+    (clone-url . "https://codeberg.org/jjba23/lucidplan")))
+#+end_src
+
+An example showing the "trivial" approach where you are free to run what shell commands you please.
+#+begin_src scheme
+(lambda() 
+  `((task . "trivial")
+    (trivial-cmds . ("echo 'HELLO WORLD'"))))
+#+end_src
+
 ------------------
 
 * Authentication, Authorization, User management
