@@ -1,6 +1,7 @@
 ;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
-;; Copyright (C) Josep Bigorra <jjbigorra@gmail.com>
+;; Copyright © Josep Bigorra known as "jjba23" <jjbigorra@gmail.com>
+;; Copyright © Mu Lei known as "NalaGinrut" <NalaGinrut@gmail.com>
 
 ;; byggsteg is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU Affero General Public License as published by
@@ -19,83 +20,46 @@
   #:declarative? #t
   #:use-module (srfi srfi-9)
   #:use-module (byggsteg domain repo)
-  #:export (<user-repository> user-repository?
-                              mk-user-repository
-                              get-id-to-username
-                              get-user-by-id
-                              get-users
-                              get-user-by-email
-                              insert-user
-                              delete-user-by-id
-                              update-user-by-id))
+  #:export (get-id-to-username get-user-by-id
+                               get-users
+                               get-user-by-email
+                               insert-user
+                               delete-user-by-id
+                               update-user-by-id))
 
 ;; -- Record definition ---
 
-(define-record-type <user-repository>
-  (make-user-repository id-to-username-proc
-                        user-by-email-proc
-                        user-by-id-proc
-                        users-proc
-                        insert-user-proc
-                        delete-user-by-id-proc
-                        update-user-by-id-proc)
-  user-repository?
-  (id-to-username-proc repo-get-id-to-username)
-  (user-by-email-proc repo-get-user-by-email)
-  (user-by-id-proc repo-get-user-by-id)
-  (users-proc repo-get-users)
-  (insert-user-proc repo-insert-user)
-  (delete-user-by-id-proc repo-delete-user-by-id)
-  (update-user-by-id-proc repo-update-user-by-id))
-
-;; --- Constructor (keyword arguments for ergonomics) ---
-(define* (mk-user-repository #:key get-id-to-username-proc
-                             get-user-by-email-proc
-                             get-user-by-id-proc
-                             get-users-proc
-                             insert-user-proc
-                             delete-user-by-id-proc
-                             update-user-by-id-proc)
-  "Creates a new user repository instance with the provided backend procedures."
-  (make-user-repository get-id-to-username-proc
-                        get-user-by-email-proc
-                        get-user-by-id-proc
-                        get-users-proc
-                        insert-user-proc
-                        delete-user-by-id-proc
-                        update-user-by-id-proc))
+(define-record-with-kw (<user-repository> %make-user-repository
+                                          user-repository?)
+                       mk-user-repository
+                       (get-id-to-username-proc repo-get-id-to-username)
+                       (get-user-by-email-proc repo-get-user-by-email)
+                       (get-user-by-id-proc repo-get-user-by-id)
+                       (get-users-proc repo-get-users)
+                       (insert-user-proc repo-insert-user)
+                       (delete-user-by-id-proc repo-delete-user-by-id)
+                       (update-user-by-id-proc repo-update-user-by-id))
 
 ;; --- eDSL: Embedded Domain Specific Language ---
 
-(define (get-id-to-username repo)
-  "Retrieves a mapping of user IDs to usernames from the given REPO."
-  ((repo-get-id-to-username repo)))
+(define-repo-method get-id-to-username repo-get-id-to-username
+ "Retrieves a mapping of user IDs to usernames from the given REPO.")
 
-(define (get-user-by-email repo email)
-  "Retrieves a user by their EMAIL string from the given REPO."
-  ((repo-get-user-by-email repo)
-   email))
+(define-repo-method get-user-by-email repo-get-user-by-email
+ "Retrieves a user by their EMAIL string from the given REPO.")
 
-(define (get-user-by-id repo id)
-  "Retrieves a user by their ID from the given REPO."
-  ((repo-get-user-by-id repo)
-   id))
+(define-repo-method get-user-by-id repo-get-user-by-id
+                    "Retrieves a user by their ID from the given REPO.")
 
-(define (get-users repo)
-  "Retrieves a list of all active users from the given REPO."
-  ((repo-get-users repo)))
+(define-repo-method get-users repo-get-users
+ "Retrieves a list of all active users from the given REPO.")
 
-(define (insert-user repo attrs)
-  "Inserts a user with ATTRS in the given REPO."
-  ((repo-insert-user repo)
-   attrs))
+(define-repo-method insert-user repo-insert-user
+                    "Inserts a user with ATTRS in the given REPO.")
 
-(define (update-user-by-id repo id attrs)
-  "Updates a user identified by ID with ATTRS in the given REPO."
-  ((repo-update-user-by-id repo)
-   id attrs))
+(define-repo-method update-user-by-id repo-update-user-by-id
+ "Updates a user identified by ID with ATTRS in the given REPO.")
 
-(define (delete-user-by-id repo id)
-  "Deletes a user identified by ID in the given REPO."
-  ((repo-delete-user-by-id repo)
-   id))
+(define-repo-method delete-user-by-id repo-delete-user-by-id
+                    "Deletes a user identified by ID in the given REPO.")
+
