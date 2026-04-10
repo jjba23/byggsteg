@@ -170,8 +170,7 @@
 
 (define* (trivial-step #:key project branch-name cmds
                        (env #f))
-  (let* ((clone-dir (string-append (job-clone-location) project "/" branch-name))
-         (no-errors? #t))
+  (let* ((no-errors? #t))
     (map (lambda (c)
            (if (not no-errors?)
                (make-step-result #f "" "")

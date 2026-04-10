@@ -60,6 +60,17 @@
                         (length rows))))
       rows))
 
+  (define (get-logs-by-job-ids ids)
+    (let* ((query (format #f "SELECT ~a FROM log WHERE job_id IN (~a)"
+                          (symbols->sql-columns-list columns)
+                          (string-join (map value->sql-literal ids) ", ")))
+           (_ (log-info "get-logs-by-job-ids query:\n\t~a\n" query))
+           (rows (map sql-row->scheme-alist
+                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+           (_ (log-info "get-logs-by-job-ids rows: ~a\n"
+                        (length rows))))
+      rows))
+
   (define (delete-log-by-id id)
     (let* ((query (format #f "DELETE FROM log WHERE id = ~a"
                           (value->sql-literal id)))
@@ -78,5 +89,6 @@
 
   (mk-log-repository #:get-log-by-id-proc get-log-by-id
                      #:get-logs-proc get-logs
+                     #:get-logs-by-job-ids-proc get-logs-by-job-ids
                      #:insert-log-proc insert-log
                      #:delete-log-by-id-proc delete-log-by-id))

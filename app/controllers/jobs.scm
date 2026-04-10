@@ -55,8 +55,10 @@
                  (job-code (assoc-ref body "job-code"))
                  (user-provided-thunk (eval-string job-code))
                  (kvv (user-provided-thunk))
-                 (project (assoc-ref kvv
-                                     'project))
+                 (project (assq-ref kvv
+                                    'project))
+                 (trivial-cmds (assq-ref kvv
+                                         'trivial-cmds))
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
                  (G_ (:i18n rc))
@@ -70,11 +72,16 @@
                              (uri-encode (format #f "~a: ~a"
                                                  (G_
                                                   "A new job has been started at byggsteg with id")
-                                                 new-log-uuid)))))
+                                                 new-log-uuid))))
+                 (human-id (html-escape (format #f "~a-~a"
+                                                (if (not trivial-cmds)
+                                                    (html-escape project)
+                                                    (html-escape "trivial"))
+                                                (string-take new-log-uuid 13)))))
             
             ($job 'set
                   #:id new-job-uuid
-                  #:human_id (html-escape project)
+                  #:human_id human-id
                   #:job_data (html-escape job-code)
                   #:job_success 0
                   #:job_in_progress 1
@@ -83,10 +90,7 @@
 
             (insert-log log-repo
                         `((id unquote new-log-uuid)
-                          (human-id unquote
-                                    (html-escape (format #f "~a-~a" project
-                                                         (string-take
-                                                          new-log-uuid 13))))
+                          (human-id unquote human-id)
                           (job-id unquote new-job-uuid)
                           (log-data . "")
                           (created-at unquote

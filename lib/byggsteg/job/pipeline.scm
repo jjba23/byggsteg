@@ -21,8 +21,6 @@
   #:use-module (byggsteg job steps)
   #:use-module (kracht prelude)
   #:use-module (artanis artanis)
-  #:use-module (app models log)
-  #:use-module (app models job)
   #:use-module (byggsteg domain job)
   #:use-module (byggsteg domain log)
   #:use-module (byggsteg sqlite job)
@@ -48,23 +46,20 @@
          ;; fake request context will be used to get DB connection
          (rc (new-route-context mock-request mock-body))
          (job-repo (make-sqlite-job-repository rc))
+         (log-repo (make-sqlite-log-repository rc))
          (jobs-in-progress (get-jobs-in-progress job-repo
                                                  #:limit 6))
+         (job-ids-in-progress (map (lambda (j)
+                                     (assq-ref j
+                                               'id)) jobs-in-progress))
          (logs-of-in-progress (cond
                                 ((nil? jobs-in-progress)
                                  '())
-                                (else ($log 'get
-                                            #:ret 'all
-                                            #:condition (where #:job_id (map (lambda 
-                                                                                     (j)
-                                                                               
-                                                                               
-                                                                               (assq-ref
-                                                                                j
-                                                                                'id))
-                                                                         jobs-in-progress))))))
+                                (else (get-logs-by-job-ids log-repo
+                                       job-ids-in-progress))))
          (job-log-map (map (lambda (l)
-                             `(,(assoc-ref l "job_id") unquote l))
+                             `(,(assoc-ref l
+                                           'job-id) unquote l))
                            logs-of-in-progress)))
     
     (for-each (lambda (j)
@@ -139,8 +134,10 @@
                            #:env env))))
 
 (define* (job-pipeline #:key job log)
-  (let* ((old-log-data (html-unescape (assoc-ref log "log_data")))
-         (kv-thunk (eval-string (html-unescape (assq-ref job 'job-data))))
+  (let* ((old-log-data (html-unescape (assoc-ref log
+                                                 'log-data)))
+         (kv-thunk (eval-string (html-unescape (assq-ref job
+                                                         'job-data))))
          (kv (kv-thunk))
          (project (assoc-ref kv
                              'project))
@@ -160,58 +157,67 @@
                   ((string? task-or-tasks)
                    (list task-or-tasks))
                   (else task-or-tasks)))
-         (trivial-cmds (assoc-ref kv
-                                  'trivial-cmds)))
-    
-    (let* ((steps (list (lambda ()
-                          (clone-repo-step #:project project
-                                           #:branch-name branch-name
-                                           #:clone-url clone-url))
-                        (lambda ()
-                          (sys-details-step #:project project
-                                            #:branch-name branch-name))
-                        (lambda ()
-                          (git-details-step #:project project
-                                            #:branch-name branch-name))
-                        (lambda ()
-                          (map (lambda (task)
-                                 (run-pipeline-task #:project project
-                                                    #:branch-name branch-name
-                                                    #:task task
-                                                    #:daemon-name daemon-name
-                                                    #:env env
-                                                    #:trivial-cmds
-                                                    trivial-cmds)) tasks))
+         (trivial-cmds (assq-ref kv
+                                  'trivial-cmds))
+         (sys-steps (if (nil? trivial-cmds)
+                        (list (lambda ()
+                                (sys-details-step #:project project
+                                                  #:branch-name branch-name)))
+                        '()))
+         (clone-steps (if (nil? trivial-cmds)
+                          (list (lambda ()
+                                  (clone-repo-step #:project project
+                                                   #:branch-name branch-name
+                                                   #:clone-url clone-url)))
+                          '()))
+         (git-details-steps (if (nil? trivial-cmds)
+                                (list (lambda ()
+                                        (git-details-step #:project project
+                                                          #:branch-name
+                                                          branch-name)))
+                                '()))
+         (pipe-steps (list (lambda ()
+                             (map (lambda (task)
+                                    (run-pipeline-task #:project project
+                                                       #:branch-name
+                                                       branch-name
+                                                       #:task task
+                                                       #:daemon-name
+                                                       daemon-name
+                                                       #:env env
+                                                       #:trivial-cmds
+                                                       trivial-cmds)) tasks))))
+         (steps (append sys-steps clone-steps git-details-steps pipe-steps
 
                         ))
-           (result (run-steps steps
-                              #:outs (list (format #f "\n~a...\n"
-                                                   (gettext "starting new job"))))))
-      
-      (display (format #f "\nsucceeded?: ~a\n"
-                       (step-result-succeeded? result)))
+         (result (run-steps steps
+                            #:outs (list (format #f "\n~a...\n"
+                                                 (gettext "starting new job"))))))
+    (display (format #f "\nsucceeded?: ~a\n"
+                     (step-result-succeeded? result)))
 
-      (DB-query (get-conn-from-pool!)
-                (->sql update
-                       'log set
-                       `((log_data ,(html-escape (step-result-stdout result)))
-                         (updated_at ,(current-time)))
-                       (where #:id (assoc-ref log "id"))))
+    (DB-query (get-conn-from-pool!)
+              (->sql update
+                     'log set
+                     `((log_data ,(html-escape (step-result-stdout result)))
+                       (updated_at ,(current-time)))
+                     (where #:id (assoc-ref log "id"))))
 
-      (DB-query (get-conn-from-pool!)
-                (->sql update
-                       'job set
-                       `((job_success ,(if (step-result-succeeded? result) 1 0))
-                         (job_in_progress 0)
-                         (job_failed ,(if (step-result-succeeded? result) 0 1))
-                         (updated_at ,(current-time)))
-                       (where #:id (assq-ref job 'id))))
-
-      )))
+    (DB-query (get-conn-from-pool!)
+              (->sql update
+                     'job set
+                     `((job_success ,(if (step-result-succeeded? result) 1 0))
+                       (job_in_progress 0)
+                       (job_failed ,(if (step-result-succeeded? result) 0 1))
+                       (updated_at ,(current-time)))
+                     (where #:id (assq-ref job
+                                           'id))))))
 
 (define (run-infallible-pipeline)
   ;; define dummy route so that fake request-context can be used
-  (post "/dummy-pipeline-context" (lambda (rc) "dummy"))
+  (post "/dummy-pipeline-context"
+        (lambda (rc)
+          "dummy"))
   (catch #t
          (lambda ()
            (do-pip))
@@ -224,5 +230,3 @@
   " key
                             args))
            (sleep 1))))
-
-;; (define (run-infallible-pipeline) (do-pip))
