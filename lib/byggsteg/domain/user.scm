@@ -18,6 +18,7 @@
 (define-module (byggsteg domain user)
   #:declarative? #t
   #:use-module (srfi srfi-9)
+  #:use-module (byggsteg domain repo)
   #:export (<user-repository> user-repository?
                               mk-user-repository
                               get-id-to-username

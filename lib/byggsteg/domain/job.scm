@@ -17,6 +17,7 @@
 
 (define-module (byggsteg domain job)
   #:declarative? #t
+  #:use-module (byggsteg domain repo)  
   #:use-module (srfi srfi-9)
   #:export (<job-repository> job-repository?
                              mk-job-repository

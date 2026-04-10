@@ -17,6 +17,7 @@
 
 (define-module (byggsteg domain log)
   #:declarative? #t
+  #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
   #:export (<log-repository> log-repository?
                              mk-log-repository
@@ -48,25 +49,15 @@
 
 ;; --- eDSL: Embedded Domain Specific Language ---
 
-(define (get-log-by-id repo id)
-  "Retrieves a log by their ID from the given REPO."
-  ((repo-get-log-by-id repo)
-   id))
+(define-repo-method get-log-by-id repo-get-log-by-id
+                    "Retrieves a log by their ID from the given REPO.")
 
-(define* (get-logs repo
-                   #:key (limit 50)
-                   (offset 0))
-  "Retrieves a list of all active logs from the given REPO."
-  ((repo-get-logs repo)
-   #:limit limit
-   #:offset offset))
+(define-repo-method get-logs repo-get-logs
+ "Retrieves a list of all active logs from the given REPO.")
 
-(define (insert-log repo attrs)
-  "Inserts a log with ATTRS in the given REPO."
-  ((repo-insert-log repo)
-   attrs))
+(define-repo-method insert-log repo-insert-log
+                    "Inserts a log with ATTRS in the given REPO.")
 
-(define (delete-log-by-id repo id)
-  "Deletes a log identified by ID in the given REPO."
-  ((repo-delete-log-by-id repo)
-   id))
+(define-repo-method delete-log-by-id repo-delete-log-by-id
+                    "Deletes a log identified by ID in the given REPO.")
+
