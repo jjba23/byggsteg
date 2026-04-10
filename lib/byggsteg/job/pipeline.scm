@@ -23,7 +23,13 @@
   #:use-module (artanis artanis)
   #:use-module (app models log)
   #:use-module (app models job)
-  #:use-module (app models job)
+  #:use-module (byggsteg domain job)
+  #:use-module (byggsteg domain log)
+  #:use-module (byggsteg sqlite job)
+  #:use-module (byggsteg sqlite log)
+  #:use-module (web request)
+  #:use-module (web uri)
+  #:use-module (rnrs io ports)
   #:use-module (app models log)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
@@ -31,10 +37,19 @@
 
 (define* (do-pip)
   (let* ((sleep-seconds 3)
-         (jobs-in-progress ($job 'get
-                                 #:ret 'all
-                                 #:condition (where #:job_in_progress 1)
-                                 #:order-by '(created_at asc)))
+         ;; use dummy route so as to hook into Artanis request context
+         (mock-port (open-bytevector-input-port #vu8()))
+         (mock-request (build-request (string->uri
+                                       "http://localhost:50002/dummy-pipeline-context")
+                                      #:method 'POST
+                                      #:headers '()
+                                      #:port mock-port))
+         (mock-body (read-request-body mock-request))
+         ;; fake request context will be used to get DB connection
+         (rc (new-route-context mock-request mock-body))
+         (job-repo (make-sqlite-job-repository rc))
+         (jobs-in-progress (get-jobs-in-progress job-repo
+                                                 #:limit 6))
          (logs-of-in-progress (cond
                                 ((nil? jobs-in-progress)
                                  '())
@@ -44,9 +59,9 @@
                                                                                      (j)
                                                                                
                                                                                
-                                                                               (assoc-ref
+                                                                               (assq-ref
                                                                                 j
-                                                                                "id"))
+                                                                                'id))
                                                                          jobs-in-progress))))))
          (job-log-map (map (lambda (l)
                              `(,(assoc-ref l "job_id") unquote l))
@@ -55,7 +70,8 @@
     (for-each (lambda (j)
                 (job-pipeline #:job j
                               #:log (assoc-ref job-log-map
-                                               (assoc-ref j "id"))))
+                                               (assq-ref j
+                                                         'id))))
               jobs-in-progress)
     (sleep sleep-seconds)))
 
@@ -124,7 +140,7 @@
 
 (define* (job-pipeline #:key job log)
   (let* ((old-log-data (html-unescape (assoc-ref log "log_data")))
-         (kv-thunk (eval-string (html-unescape (assoc-ref job "job_data"))))
+         (kv-thunk (eval-string (html-unescape (assq-ref job 'job-data))))
          (kv (kv-thunk))
          (project (assoc-ref kv
                              'project))
@@ -189,11 +205,13 @@
                          (job_in_progress 0)
                          (job_failed ,(if (step-result-succeeded? result) 0 1))
                          (updated_at ,(current-time)))
-                       (where #:id (assoc-ref job "id"))))
+                       (where #:id (assq-ref job 'id))))
 
       )))
 
 (define (run-infallible-pipeline)
+  ;; define dummy route so that fake request-context can be used
+  (post "/dummy-pipeline-context" (lambda (rc) "dummy"))
   (catch #t
          (lambda ()
            (do-pip))

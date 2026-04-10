@@ -53,6 +53,18 @@
          created-at
          updated-at))
 
+  (define* (get-jobs #:key limit offset)
+    (let* ((query (format #f
+                   "SELECT ~a FROM job
+                   ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
+                   (symbols->sql-columns-list columns) limit offset))
+           (_ (log-info "get-jobs query:\n\t~a\n" query))
+           (rows (map sql-row->scheme-alist
+                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+           (_ (log-info "get-jobs rows: ~a\n"
+                        (length rows))))
+      rows))
+
   (define (get-job-by-id id)
     (let* ((query (format #f "SELECT ~a FROM job WHERE id = ~a LIMIT 1"
                           (symbols->sql-columns-list columns)
@@ -76,15 +88,15 @@
                         (length rows))))
       rows))
 
-  (define* (get-jobs #:key limit offset)
+    (define* (get-jobs-in-progress #:key limit)
     (let* ((query (format #f
-                   "SELECT ~a FROM job
-                   ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                   (symbols->sql-columns-list columns) limit offset))
-           (_ (log-info "get-jobs query:\n\t~a\n" query))
+                   "SELECT ~a FROM job WHERE job_in_progress = 1
+                   ORDER BY created_at ASC LIMIT ~a"
+                   (symbols->sql-columns-list columns) limit))
+           (_ (log-info "get-jobs-in-progress query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
                       (DB-get-all-rows (DB-query (DB-open rc) query))))
-           (_ (log-info "get-jobs rows: ~a\n"
+           (_ (log-info "get-jobs-in-progress rows: ~a\n"
                         (length rows))))
       rows))
 
@@ -104,8 +116,9 @@
            (_ (log-info "insert-job query:\n\t~a\n" query)))
       (DB-query (DB-open rc) query)))
 
-  (mk-job-repository #:get-job-by-id-proc get-job-by-id
+  (mk-job-repository #:get-jobs-proc get-jobs
+                     #:get-job-by-id-proc get-job-by-id
                      #:get-jobs-by-ids-proc get-jobs-by-ids
-                     #:get-jobs-proc get-jobs
+                     #:get-jobs-in-progress-proc get-jobs-in-progress
                      #:insert-job-proc insert-job
                      #:delete-job-by-id-proc delete-job-by-id))
