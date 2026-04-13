@@ -28,13 +28,13 @@
 ;; --- SQLite implementation ---
 (define (make-sqlite-profile-repository rc)
   (define columns
-    '(id title job-id profile-data created-at updated-at))
+    '(id title profile-data created-at updated-at))
 
   (define insert-columns
-    '(id title job-id profile-data created-at))
+    '(id title profile-data created-at))
 
   (define update-columns
-    '(id title job-id profile-data created-at updated-at))
+    '(id title profile-data created-at updated-at))
 
   (define (get-profile-by-id id)
     (let* ((query (format #f "SELECT ~a FROM profile WHERE id = ~a LIMIT 1"
@@ -44,6 +44,18 @@
            (rows (map sql-row->scheme-alist
                       (DB-get-all-rows (DB-query (DB-open rc) query))))
            (_ (profile-info "get-profile-by-id rows: ~a\n"
+                        (length rows))))
+      (if (nil? rows) #f
+          (car rows))))
+
+  (define (get-profile-by-title title)
+    (let* ((query (format #f "SELECT ~a FROM profile WHERE title = ~a LIMIT 1"
+                          (symbols->sql-columns-list columns)
+                          (value->sql-literal title)))
+           (_ (profile-info "get-profile-by-title query:\n\t~a\n" query))
+           (rows (map sql-row->scheme-alist
+                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+           (_ (profile-info "get-profile-by-title rows: ~a\n"
                         (length rows))))
       (if (nil? rows) #f
           (car rows))))
@@ -77,6 +89,7 @@
       (DB-query (DB-open rc) query)))
 
   (mk-profile-repository #:get-profile-by-id-proc get-profile-by-id
+                         #:get-profile-by-title-proc get-profile-by-title
                      #:get-profiles-proc get-profiles
                      #:insert-profile-proc insert-profile
                      #:delete-profile-by-id-proc delete-profile-by-id))

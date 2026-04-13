@@ -20,7 +20,8 @@
   #:declarative? #t
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
-  #:export (get-profile-by-id get-profiles
+  #:export (get-profile-by-id get-profile-by-title
+                              get-profiles
                           insert-profile
                           delete-profile-by-id))
 
@@ -29,6 +30,7 @@
 (define-record-with-kw (<profile-repository> %make-profile-repository profile-repository?)
                        mk-profile-repository
                        (get-profile-by-id-proc repo-get-profile-by-id)
+                       (get-profile-by-title-proc repo-get-profile-by-title)
                        (get-profiles-proc repo-get-profiles)
                        (insert-profile-proc repo-insert-profile)
                        (delete-profile-by-id-proc repo-delete-profile-by-id))
@@ -37,6 +39,9 @@
 
 (define-repo-method get-profile-by-id repo-get-profile-by-id
                     "Retrieves a profile by their ID from the given REPO.")
+
+(define-repo-method get-profile-by-title repo-get-profile-by-title
+                    "Retrieves a profile by their TITLE from the given REPO.")
 
 (define-repo-method get-profiles repo-get-profiles
  "Retrieves a list of all active profiles from the given REPO.")

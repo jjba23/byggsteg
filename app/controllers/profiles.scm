@@ -26,7 +26,8 @@
         (byggsteg preferences)
         (kracht prelude)
         (app views profiles)
-        (app models profile)
+        (byggsteg domain profile)
+        (byggsteg sqlite profile)
         (artanis i18n)
         (artanis i18n locale)
         (ice-9 string-fun))
@@ -35,25 +36,23 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (response-emit (:mime rc
-                             (profile-list-page rc
-                                                ($profile 'get
-                                                          #:order-by '(title
-                                                                       asc))
-                                                #:is-logged-in (:cookies-value
-                                                                rc
-                                                                "x-bewaking-byggsteg"))))))
+       (let* ((profile-repo (make-sqlite-profile-repository rc))
+              (profiles (get-profiles profile-repo)))
+         (response-emit (:mime rc
+                               (profile-list-page rc profiles
+                                                  #:is-logged-in (:cookies-value
+                                                                  rc
+                                                                  "x-bewaking-byggsteg")))))))
 
 (get "/profiles/:id"
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let ((p ($profile 'get
-                          #:ret 'top
-                          #:condition (where #:id (params rc "id")))))
+       (let ((profile-repo (make-sqlite-profile-repository rc))
+             (p (get-profile-by-id profile-repo
+                                   (params rc "id"))))
          (response-emit (:mime rc
-                               (profile-page rc
-                                             (car p)
+                               (profile-page rc p
                                              #:is-logged-in (:cookies-value rc
                                                              "x-bewaking-byggsteg")))))))
 
@@ -75,10 +74,9 @@
                  (profile-data (assoc-ref body "job-code"))
                  (profile-name (assoc-ref body "profile-name"))
                  (new-uuid (generate-string-uuid))
-                 (found-profile ($profile 'get
-                                          #:ret 'top
-                                          #:condition (where #:title (html-escape
-                                                                         profile-name)))))
+                 (profile-repo (make-sqlite-profile-repository rc))
+                 (found-profile (get-profile-by-title (html-escape
+                                                       profile-name))))
             
             (cond
               ((not (nil? found-profile))
@@ -93,11 +91,14 @@
                                                  (current-myhost)
                                                  (assoc-ref found-profile "id")))
                             #:status 302))
-              (else ($profile 'set
-                              #:id new-uuid
-                              #:title (html-escape profile-name)
-                              #:profile_data (html-escape profile-data)
-                              #:created_at (current-time))
+              (else (insert-profile profile-repo
+                                    `((id unquote new-uuid)
+                                      (title unquote
+                                             (html-escape profile-name))
+                                      (profile-data unquote
+                                                    (html-escape profile-data))
+                                      (created-at unquote
+                                                  (current-time))))
                     (redirect-to rc
                                  (string->uri (format #f "~a/profiles/~a"
                                                       (current-myhost)
@@ -114,11 +115,9 @@
       (lambda (rc)
         (define (do-delete)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
-                 (profile-id (assoc-ref body "profile-id")))
-            
-            ($profile 'mod
-                      'row-delete
-                      (where #:id profile-id))
+                 (profile-id (assoc-ref body "profile-id"))
+                 (profile-repo (make-sqlite-profile-repository rc)))
+            (delete-profile-by-id profile-repo profile-id)
 
             (redirect-to rc
                          (string->uri (format #f "~a/profiles"
