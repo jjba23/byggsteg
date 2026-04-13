@@ -190,7 +190,7 @@
                (allowance (* 24 7 3600)) ;reset token is valid for a week
                (_ (when (> now
                            (+ allowance
-                              (assoc-ref tt "created_at")))
+                              (assq-ref tt 'created-at)))
                     (error "reset token is found but not valid anymore!")))
                (_ (when (not (equal? new-password confirm-password))
                     (error "password confirmation did not match!")))
