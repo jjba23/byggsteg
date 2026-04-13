@@ -33,7 +33,7 @@
         (byggsteg domain job)
         (byggsteg sqlite user)
         (byggsteg sqlite log)
-        (byggsteg sqlite job)                        
+        (byggsteg sqlite job)
         (artanis security nss))
 
 (post "/api/v1/jobs/manage/submit"
@@ -47,6 +47,8 @@
                  (kvv (user-provided-thunk))
                  (project (assq-ref kvv
                                     'project))
+                 (trivial-cmds (assq-ref kvv
+                                         'trivial-cmds))
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
                  (log-filename project)
@@ -79,8 +81,7 @@
 
             (:mime rc
                    `((log-id unquote new-log-uuid)
-                     (title unquote
-                            (html-escape log-filename))))))
+                     (title unquote title)))))
 
         (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
                                #:needed-permissions '(byggsteg:job-create)

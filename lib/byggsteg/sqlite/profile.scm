@@ -40,10 +40,10 @@
     (let* ((query (format #f "SELECT ~a FROM profile WHERE id = ~a LIMIT 1"
                           (symbols->sql-columns-list columns)
                           (value->sql-literal id)))
-           (_ (profile-info "get-profile-by-id query:\n\t~a\n" query))
+           (_ (log-info "get-profile-by-id query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
                       (DB-get-all-rows (DB-query (DB-open rc) query))))
-           (_ (profile-info "get-profile-by-id rows: ~a\n"
+           (_ (log-info "get-profile-by-id rows: ~a\n"
                         (length rows))))
       (if (nil? rows) #f
           (car rows))))
@@ -52,30 +52,30 @@
     (let* ((query (format #f "SELECT ~a FROM profile WHERE title = ~a LIMIT 1"
                           (symbols->sql-columns-list columns)
                           (value->sql-literal title)))
-           (_ (profile-info "get-profile-by-title query:\n\t~a\n" query))
+           (_ (log-info "get-profile-by-title query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
                       (DB-get-all-rows (DB-query (DB-open rc) query))))
-           (_ (profile-info "get-profile-by-title rows: ~a\n"
+           (_ (log-info "get-profile-by-title rows: ~a\n"
                         (length rows))))
       (if (nil? rows) #f
           (car rows))))
 
-  (define* (get-profiles #:key limit offset)
+  (define* (get-profiles)
     (let* ((query (format #f
                    "SELECT ~a FROM profile
-                   ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                   (symbols->sql-columns-list columns) limit offset))
-           (_ (profile-info "get-profiles query:\n\t~a\n" query))
+                   ORDER BY created_at DESC"
+                   (symbols->sql-columns-list columns)))
+           (_ (log-info "get-profiles query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
                       (DB-get-all-rows (DB-query (DB-open rc) query))))
-           (_ (profile-info "get-profiles rows: ~a\n"
+           (_ (log-info "get-profiles rows: ~a\n"
                         (length rows))))
       rows))
 
   (define (delete-profile-by-id id)
     (let* ((query (format #f "DELETE FROM profile WHERE id = ~a"
                           (value->sql-literal id)))
-           (_ (profile-info "delete-profile-by-id query:\n\t~a\n" query)))
+           (_ (log-info "delete-profile-by-id query:\n\t~a\n" query)))
       (DB-query (DB-open rc) query)))
 
   (define (insert-profile attrs)
@@ -85,7 +85,7 @@
            (query (format #f "INSERT INTO profile (~a) VALUES (~a)"
                           (symbols->sql-columns-list insert-columns)
                           (string-join vals ", ")))
-           (_ (profile-info "insert-profile query:\n\t~a\n" query)))
+           (_ (log-info "insert-profile query:\n\t~a\n" query)))
       (DB-query (DB-open rc) query)))
 
   (mk-profile-repository #:get-profile-by-id-proc get-profile-by-id

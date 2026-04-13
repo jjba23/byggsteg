@@ -48,7 +48,7 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let ((profile-repo (make-sqlite-profile-repository rc))
+       (let* ((profile-repo (make-sqlite-profile-repository rc))
              (p (get-profile-by-id profile-repo
                                    (params rc "id"))))
          (response-emit (:mime rc
