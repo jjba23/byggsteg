@@ -205,7 +205,7 @@
                                                'id)
                                      `((salt unquote new-salt)
                                        (password unquote h))))
-               (_ (delete-password-reset-by-user-id (assq-ref u
+               (_ (delete-password-reset-by-user-id password-reset-repo (assq-ref u
                                                               'id))))
           (:cookies-set! rc
                          'x-bewaking-byggsteg "x-bewaking-byggsteg" "")
