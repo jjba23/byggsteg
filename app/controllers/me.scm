@@ -162,13 +162,14 @@
                (email (if (not body) #f
                           (assoc-ref body "email")))
                (user-repo (make-sqlite-user-repository rc))
+               (password-reset-repo (make-sqlite-password-reset-repository rc))
                (u (if (not email)
                       (get-user-by-id user-repo
                                       (assoc-ref existing-token
                                                  'owner-id))
                       (get-user-by-email user-repo email))))
           
-          (request-password-reset u)
+          (request-password-reset password-reset-repo u)
           (redirect-to rc
                        (string->uri (format #f "~a/?sent-password-reset=true"
                                             (current-myhost)))
@@ -355,6 +356,7 @@
         (define (do-delete-user)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  (id (assoc-ref body "id"))
+                 (user-repo (make-sqlite-user-repository rc))
                  (_ (delete-user-by-id user-repo
                                        (assoc-ref body "id"))))
             (redirect-to rc
