@@ -249,4 +249,4 @@ for higher concurrent writes to SQLite 3."
 
 (define (local-login)
   ($ '("http --form POST" "http://localhost:50002/api/v1/login"
-       "email=jjbigorra@gmail.com" "password=7pCGWVkVCQWfJmQJJVXs")))
+       "email=jjbigorra@gmail.com" "password=***")))

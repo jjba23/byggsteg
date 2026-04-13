@@ -28,6 +28,12 @@
         (byggsteg base64)
         (byggsteg env)
         (bewaking bewaking)
+        (byggsteg domain user)
+        (byggsteg domain log)
+        (byggsteg domain job)
+        (byggsteg sqlite user)
+        (byggsteg sqlite log)
+        (byggsteg sqlite job)                        
         (artanis security nss))
 
 (post "/api/v1/jobs/manage/submit"
