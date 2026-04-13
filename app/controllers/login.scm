@@ -24,7 +24,8 @@
         (web uri)
         (byggsteg auth)
         (ice-9 string-fun)
-        (app models user)
+        (byggsteg domain user)
+        (byggsteg sqlite user)
         (bewaking bewaking)
         (artanis security nss)
         (app views login))
@@ -46,28 +47,25 @@
                (body (alist-from-url-encoded-body (rc-body rc)))
                (email (assoc-ref body "email"))
                (password (assoc-ref body "password"))
-               (u ($user 'get
-                         #:ret 'top
-                         #:condition (where #:email email)))
+               (user-repo (make-sqlite-user-repository rc))
+               (u (get-user-by-email user-repo email))
                (get-owner-details (lambda ()
                                     `((id unquote
-                                          (assoc-ref (car u) "id"))
+                                          (assq-ref u 'id))
                                       (email unquote
-                                             (assoc-ref (car u) "email"))
+                                             (assq-ref u 'email))
                                       (name unquote
-                                            (assoc-ref (car u) "username"))
+                                            (assq-ref u 'username))
                                       (permissions unquote
-                                                   (eval-string (assoc-ref (car
-                                                                            u)
-                                                                 "permissions"))))))
+                                                   (eval-string (assq-ref u 'permissions))))))
                (t (generate-token #:encryption-key encryption-key
                                   #:signing-key signing-key
                                   #:get-owner-details get-owner-details)))
           
           (cond
             ((equal? (string->sha-256 (string-append password
-                                                     (assoc-ref (car u) "salt")))
-                     (assoc-ref (car u) "password"))
+                                                     (assq-ref u 'salt)))
+                     (assoc-ref u 'password))
              (begin
                (:cookies-set! rc
                               'x-bewaking-byggsteg "x-bewaking-byggsteg" t)

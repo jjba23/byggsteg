@@ -31,8 +31,6 @@
         (byggsteg domain log)
         (byggsteg sqlite job)
         (byggsteg sqlite log)
-        (app models job)
-        (app models log)
         (app views jobs))
 
 (get "/jobs/request"
@@ -62,6 +60,7 @@
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
                  (G_ (:i18n rc))
+                 (job-repo (make-sqlite-job-repository rc))
                  (log-repo (make-sqlite-log-repository rc))
                  (logs-link (format #f
                              "~a/logs/~a?notify-title=~a&notify-body=~a"
@@ -74,19 +73,21 @@
                                                   "A new job has been started at byggsteg with id")
                                                  new-log-uuid))))
                  (title (html-escape (format #f "~a-~a"
-                                                (if (not trivial-cmds)
-                                                    (html-escape project)
-                                                    (html-escape "trivial"))
-                                                (string-take new-log-uuid 13)))))
+                                             (if (not trivial-cmds)
+                                                 (html-escape project)
+                                                 (html-escape "trivial"))
+                                             (string-take new-log-uuid 13)))))
             
-            ($job 'set
-                  #:id new-job-uuid
-                  #:title title
-                  #:job_data (html-escape job-code)
-                  #:job_success 0
-                  #:job_in_progress 1
-                  #:job_failed 0
-                  #:created_at (current-time))
+            (insert-job job-repo
+                        `((id unquote new-job-uuid)
+                          (title unquote title)
+                          (job-data unquote
+                                    (html-escape job-code))
+                          (job-success . 0)
+                          (job-in-progress . 1)
+                          (job-failed . 0)
+                          (created-at unquote
+                                      (current-time))))
 
             (insert-log log-repo
                         `((id unquote new-log-uuid)
@@ -112,10 +113,9 @@
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  (job-id (assoc-ref body "job-id"))
                  (log-id (assoc-ref body "log-id"))
-                 (log-repo (make-sqlite-log-repository rc)))
-            ($job 'mod
-                  'row-delete
-                  (where #:id job-id))
+                 (log-repo (make-sqlite-log-repository rc))
+                 (job-repo (make-sqlite-job-repository rc)))
+            (delete-job-by-id job-repo job-id)
             (delete-log-by-id log-repo log-id)
             (redirect-to rc
                          (string->uri (format #f "~a/logs"
