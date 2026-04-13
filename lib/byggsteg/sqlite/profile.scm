@@ -61,10 +61,9 @@
           (car rows))))
 
   (define* (get-profiles)
-    (let* ((query (format #f
-                   "SELECT ~a FROM profile
+    (let* ((query (format #f "SELECT ~a FROM profile
                    ORDER BY created_at DESC"
-                   (symbols->sql-columns-list columns)))
+                          (symbols->sql-columns-list columns)))
            (_ (log-info "get-profiles query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
                       (DB-get-all-rows (DB-query (DB-open rc) query))))
@@ -90,6 +89,6 @@
 
   (mk-profile-repository #:get-profile-by-id-proc get-profile-by-id
                          #:get-profile-by-title-proc get-profile-by-title
-                     #:get-profiles-proc get-profiles
-                     #:insert-profile-proc insert-profile
-                     #:delete-profile-by-id-proc delete-profile-by-id))
+                         #:get-profiles-proc get-profiles
+                         #:insert-profile-proc insert-profile
+                         #:delete-profile-by-id-proc delete-profile-by-id))

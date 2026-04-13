@@ -404,7 +404,8 @@
 
 (define (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"
-                                (assq-ref profile 'id))))
+                                (assq-ref profile
+                                          'id))))
     `((div (@ (class ,(mk-class '(flex flex-col gap-2))))
            (a (@ (class ,dash-link-face)
                  (href ,profiles-link))
@@ -412,7 +413,8 @@
                    (span ,(icon #:type 'code
                                 #:icon-css '(text-xl text-onyx-300
                                                      dark:text-stone-300)))
-                   ,(h4 (html-unescape (assq-ref profile 'title))
+                   ,(h4 (html-unescape (assq-ref profile
+                                                 'title))
                         #:color '(text-onyx-300 dark:text-stone-300
                                                 hover:text-orange-300
                                                 hover:dark:text-orange-300))))))))

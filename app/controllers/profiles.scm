@@ -49,8 +49,8 @@
      #:i18n '(cookie "lang")
      (lambda (rc)
        (let* ((profile-repo (make-sqlite-profile-repository rc))
-             (p (get-profile-by-id profile-repo
-                                   (params rc "id"))))
+              (p (get-profile-by-id profile-repo
+                                    (params rc "id"))))
          (response-emit (:mime rc
                                (profile-page rc p
                                              #:is-logged-in (:cookies-value rc
@@ -75,7 +75,8 @@
                  (profile-name (assoc-ref body "profile-name"))
                  (new-uuid (generate-string-uuid))
                  (profile-repo (make-sqlite-profile-repository rc))
-                 (found-profile (get-profile-by-title profile-repo (html-escape
+                 (found-profile (get-profile-by-title profile-repo
+                                                      (html-escape
                                                        profile-name))))
             
             (cond

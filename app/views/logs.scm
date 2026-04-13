@@ -94,16 +94,14 @@
                                              #:background '(bg-redwood-700)
                                              #:hover-background '(hover:bg-redwood-900))))
          (log-html `(
-
-                     (div (@ (class ,(mk-class '(flex flex-row
-                                                      flex-wrap
-                                                      align-center
-                                                      items-center
-                                                      gap-6
-                                                      py-3))))
-                     ,(h4 log-filename)     
-                          ,job-status)
-                     
+                      (div (@ (class ,(mk-class '(flex flex-row
+                                                       flex-wrap
+                                                       align-center
+                                                       items-center
+                                                       gap-6
+                                                       py-3))))
+                           ,(h4 log-filename)
+                           ,job-status)
 
                      ,(dl `(,(if-job-was-updated-html job
                                                       (list (dt (G_
@@ -181,8 +179,9 @@
          (jobs-html (map (lambda (l)
                            (make-job-link G_
                                           (car (assoc-ref jobs-of-logs
-                                                     (assq-ref l
-                                                               'id))) l)) logs))
+                                                          (assq-ref l
+                                                                    'id))) l))
+                         logs))
          (page-buttons `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                           gap-3 my-4))))
                               ,(if (> offset 0)

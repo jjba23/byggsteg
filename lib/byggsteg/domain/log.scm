@@ -20,9 +20,7 @@
   #:declarative? #t
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
-  #:export (get-log-by-id get-logs
-                          get-logs-by-job-ids
-                          insert-log
+  #:export (get-log-by-id get-logs get-logs-by-job-ids insert-log
                           delete-log-by-id))
 
 ;; -- Record definition ---

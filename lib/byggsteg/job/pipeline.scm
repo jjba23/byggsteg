@@ -30,7 +30,8 @@
   #:use-module (rnrs io ports)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
-  #:export (do-pip run-pipeline-task job-pipeline run-fallible-pipeline run-infallible-pipeline))
+  #:export (do-pip run-pipeline-task job-pipeline run-fallible-pipeline
+                   run-infallible-pipeline))
 
 (define* (do-pip)
   (let* ((sleep-seconds 3)
@@ -58,7 +59,7 @@
                                        job-ids-in-progress))))
          (job-log-map (map (lambda (l)
                              `(,(assq-ref l
-                                           'job-id) unquote l))
+                                          'job-id) unquote l))
                            logs-of-in-progress)))
     
     (for-each (lambda (j)
@@ -139,17 +140,17 @@
                                                          'job-data))))
          (kv (kv-thunk))
          (project (assq-ref kv
-                             'project))
+                            'project))
          (branch-name (assq-ref kv
-                                 'branch-name))
+                                'branch-name))
          (clone-url (assq-ref kv
-                               'clone-url))
+                              'clone-url))
          (daemon-name (assq-ref kv
-                                 'daemon-name))
+                                'daemon-name))
          (task-or-tasks (assq-ref kv
-                                   'task))
+                                  'task))
          (env (assq-ref kv
-                         'env))
+                        'env))
          (tasks (cond
                   ((list? task-or-tasks)
                    task-or-tasks)
@@ -157,7 +158,7 @@
                    (list task-or-tasks))
                   (else task-or-tasks)))
          (trivial-cmds (assq-ref kv
-                                  'trivial-cmds))
+                                 'trivial-cmds))
          (sys-steps (if (nil? trivial-cmds)
                         (list (lambda ()
                                 (sys-details-step #:project project
@@ -198,7 +199,8 @@
                      'log set
                      `((log_data ,(html-escape (step-result-stdout result)))
                        (updated_at ,(current-time)))
-                     (where #:id (assq-ref log 'id))))
+                     (where #:id (assq-ref log
+                                           'id))))
 
     (DB-query (get-conn-from-pool!)
               (->sql update

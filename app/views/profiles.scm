@@ -33,8 +33,10 @@
 
 (define* (profile-page rc p
                        #:key is-logged-in)
-  (let* ((profile-name (html-unescape (assq-ref p 'title)))
-         (profile-data (html-unescape (assq-ref p 'profile-data)))
+  (let* ((profile-name (html-unescape (assq-ref p
+                                                'title)))
+         (profile-data (html-unescape (assq-ref p
+                                                'profile-data)))
          (G_ (:i18n rc))
          (submit-profile-form `((form (@ (method POST)
                                          (enctype
@@ -96,7 +98,8 @@
                                            (name profile-id)
                                            (required "")
                                            (hidden "")
-                                           (value ,(assq-ref p 'id))
+                                           (value ,(assq-ref p
+                                                             'id))
                                            (class ,(mk-class '(rounded-xl
                                                                border
                                                                font-sans p-2)))))

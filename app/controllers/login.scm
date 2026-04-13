@@ -51,21 +51,27 @@
                (u (get-user-by-email user-repo email))
                (get-owner-details (lambda ()
                                     `((id unquote
-                                          (assq-ref u 'id))
+                                          (assq-ref u
+                                                    'id))
                                       (email unquote
-                                             (assq-ref u 'email))
+                                             (assq-ref u
+                                                       'email))
                                       (name unquote
-                                            (assq-ref u 'username))
+                                            (assq-ref u
+                                                      'username))
                                       (permissions unquote
-                                                   (eval-string (assq-ref u 'permissions))))))
+                                                   (eval-string (assq-ref u
+                                                                          'permissions))))))
                (t (generate-token #:encryption-key encryption-key
                                   #:signing-key signing-key
                                   #:get-owner-details get-owner-details)))
           
           (cond
             ((equal? (string->sha-256 (string-append password
-                                                     (assq-ref u 'salt)))
-                     (assoc-ref u 'password))
+                                                     (assq-ref u
+                                                               'salt)))
+                     (assoc-ref u
+                                'password))
              (begin
                (:cookies-set! rc
                               'x-bewaking-byggsteg "x-bewaking-byggsteg" t)

@@ -88,7 +88,7 @@
                         (length rows))))
       rows))
 
-    (define* (get-jobs-in-progress #:key limit)
+  (define* (get-jobs-in-progress #:key limit)
     (let* ((query (format #f
                    "SELECT ~a FROM job WHERE job_in_progress = 1
                    ORDER BY created_at ASC LIMIT ~a"
