@@ -27,11 +27,8 @@
         (byggsteg job pipeline)
         (byggsteg base64)
         (byggsteg env)
-        (app models job)
-        (app models user)
         (bewaking bewaking)
-        (artanis security nss)
-        (app models log))
+        (artanis security nss))
 
 (post "/api/v1/jobs/manage/submit"
       #:mime 'json
@@ -42,32 +39,42 @@
                  (job-code (assoc-ref body "job-code"))
                  (user-provided-thunk (eval-string job-code))
                  (kvv (user-provided-thunk))
-                 (project (assoc-ref kvv
-                                     'project))
+                 (project (assq-ref kvv
+                                    'project))
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
-                 (log-filename project))
+                 (log-filename project)
+                 (job-repo (make-sqlite-job-repository rc))
+                 (log-repo (make-sqlite-log-repository rc))
+                 (title (html-escape (format #f "~a-~a"
+                                             (if (not trivial-cmds)
+                                                 (html-escape project)
+                                                 (html-escape "trivial"))
+                                             (string-take new-log-uuid 13)))))
             
-            ($job 'set
-                  #:id new-job-uuid
-                  #:title (html-escape log-filename)
-                  #:job_data (html-escape job-code)
-                  #:job_success 0
-                  #:job_in_progress 1
-                  #:job_failed 0
-                  #:created_at (current-time))
+            (insert-job job-repo
+                        `((id unquote new-job-uuid)
+                          (title unquote title)
+                          (job-data unquote
+                                    (html-escape job-code))
+                          (job-success . 0)
+                          (job-in-progress . 1)
+                          (job-failed . 0)
+                          (created-at unquote
+                                      (current-time))))
 
-            ($log 'set
-                  #:id new-log-uuid
-                  #:title (html-escape log-filename)
-                  #:job_id new-job-uuid
-                  #:log_data ""
-                  #:created_at (current-time))
+            (insert-log log-repo
+                        `((id unquote new-log-uuid)
+                          (title unquote title)
+                          (job-id unquote new-job-uuid)
+                          (log-data . "")
+                          (created-at unquote
+                                      (current-time))))
 
             (:mime rc
                    `((log-id unquote new-log-uuid)
                      (title unquote
-                               (html-escape log-filename))))))
+                            (html-escape log-filename))))))
 
         (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
                                #:needed-permissions '(byggsteg:job-create)
@@ -78,29 +85,35 @@
 (get "/api/v1/logs/:id"
      #:mime 'json
      (lambda (rc)
-       (let* ((l ($log 'get
-                       #:ret 'top
-                       #:condition (where #:id (params rc "id"))))
-              (j ($job 'get
-                       #:ret 'top
-                       #:condition (where #:id (assoc-ref (car l) "job_id")))))
+       (let* ((log-repo (make-sqlite-log-repository rc))
+              (job-repo (make-sqlite-job-repository rc))
+              (l (get-log-by-id log-repo
+                                (params rc "id")))
+              (j (get-job-by-id job-repo
+                                (assq-ref l
+                                          'job-id))))
          (:mime rc
                 `((success unquote
-                           (assoc-ref (car j) "job_success"))
+                           (assq-ref j
+                                     'job-success))
                   (failure unquote
-                           (assoc-ref (car j) "job_failed"))
+                           (assq-ref j
+                                     'job-failed))
                   (in-progress unquote
-                               (assoc-ref (car j) "job_in_progress"))
+                               (assq-ref j
+                                         'job-in-progress))
                   (log-id unquote
-                          (assoc-ref (car l) "id"))
+                          (assq-ref l
+                                    'id))
                   (title unquote
-                            (assoc-ref (car l) "title"))
+                         (assq-ref l
+                                   'title))
                   (log-data unquote
-                            (base64-encode (html-unescape (assoc-ref (car l)
-                                                           "log_data"))))
+                            (base64-encode (html-unescape (assq-ref l
+                                                                    'log-data))))
                   (job-data unquote
-                            (base64-encode (html-unescape (assoc-ref (car j)
-                                                           "job_data")))))))))
+                            (base64-encode (html-unescape (assq-ref j
+                                                                    'job-data)))))))))
 
 (post "/api/v1/login"
       #:mime 'json
@@ -108,28 +121,31 @@
         (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                (email (assoc-ref body "email"))
                (password (assoc-ref body "password"))
-               (u ($user 'get
-                         #:ret 'top
-                         #:condition (where #:email email)))
+               (user-repo (make-sqlite-user-repository rc))
+               (u (get-user-by-email user-repo email))
                (get-owner-details (lambda ()
                                     `((id unquote
-                                          (assoc-ref (car u) "id"))
+                                          (assq-ref u
+                                                    'id))
                                       (email unquote
-                                             (assoc-ref (car u) "email"))
+                                             (assq-ref u
+                                                       'email))
                                       (name unquote
-                                            (assoc-ref (car u) "username"))
+                                            (assq-ref u
+                                                      'username))
                                       (permissions unquote
-                                                   (eval-string (assoc-ref (car
-                                                                            u)
-                                                                 "permissions"))))))
+                                                   (eval-string (assq-ref u
+                                                                          'permissions))))))
                (t (generate-token #:encryption-key encryption-key
                                   #:signing-key signing-key
                                   #:get-owner-details get-owner-details)))
           
           (cond
             ((equal? (string->sha-256 (string-append password
-                                                     (assoc-ref (car u) "salt")))
-                     (assoc-ref (car u) "password"))
+                                                     (assq-ref u
+                                                               'salt)))
+                     (assq-ref u
+                               'password))
              (response-emit ""
                             #:status 204
                             #:headers `((x-bewaking-byggsteg unquote t))))

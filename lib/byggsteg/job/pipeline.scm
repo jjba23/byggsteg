@@ -28,7 +28,6 @@
   #:use-module (web request)
   #:use-module (web uri)
   #:use-module (rnrs io ports)
-  #:use-module (app models log)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
   #:export (do-pip run-pipeline-task job-pipeline run-fallible-pipeline run-infallible-pipeline))

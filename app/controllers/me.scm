@@ -1,6 +1,7 @@
-;;; byggsteg - free and open project management for everyone
+;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
 ;; Copyright © Josep Bigorra <jjbigorra@gmail.com>
+;; Copyright © Mu Lei known as "NalaGinrut" <NalaGinrut@gmail.com>
 
 ;; byggsteg is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +21,6 @@
 (import (byggsteg html)
         (web uri)
         (ice-9 string-fun)
-        (app models user)
         (byggsteg env)
         (byggsteg sqlite user)
         (byggsteg domain user)
@@ -32,7 +32,8 @@
         (rnrs bytevectors)
         (json)
         (artanis security nss)
-        (app models password_reset)
+        (byggsteg sqlite password-reset)
+        (byggsteg domain password-reset)
         (bewaking bewaking))
 
 (get "/me"
@@ -96,22 +97,22 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let* ((tt (car ($password_reset 'get
-                                        #:ret 'top
-                                        #:condition (where #:reset_token (params
-                                                                          rc
-                                                                          "token")))))
+       (let* ((password-reset-repo (make-sqlite-password-reset-repository rc))
+              (tt (get-password-reset-by-token password-reset-repo
+                                               (params rc "token")))
               (now (current-time))
               (allowance (* 24 7 3600)) ;reset token is valid for a week
               (_ (when (> now
                           (+ allowance
-                             (assoc-ref tt "created_at")))
+                             (assq-ref tt
+                                       'created-at)))
                    (error "reset token is found but not valid anymore")))
-              (user-id (assoc-ref tt "user_id"))
-              (email (assoc-ref (car ($user 'get
-                                            #:ret 'top
-                                            #:condition (where #:id user-id)))
-                                "email")))
+              (user-id (assq-ref tt
+                                 'user-id))
+              (user-repo (make-sqlite-user-repository rc))
+              (u (get-user-by-id user-repo user-repo user-id))
+              (email (assq-ref u
+                               'email)))
          (response-emit (:mime rc
                                (reset-password-page (:i18n rc)
                                                     #:token (params rc "token")
@@ -181,10 +182,8 @@
                (reset-token (assoc-ref body "reset-token"))
                (new-password (assoc-ref body "new-password"))
                (confirm-password (assoc-ref body "confirm-password"))
-               (tt (car ($password_reset 'get
-                                         #:ret 'top
-                                         #:condition (where #:reset_token
-                                                            reset-token))))
+               (tt (get-password-reset-by-token password-reset-repo
+                                                reset-token))
                (now (current-time))
                (allowance (* 24 7 3600)) ;reset token is valid for a week
                (_ (when (> now
@@ -193,20 +192,19 @@
                     (error "reset token is found but not valid anymore!")))
                (_ (when (not (equal? new-password confirm-password))
                     (error "password confirmation did not match!")))
-               (user-id (assoc-ref tt "user_id"))
-               (u ($user 'get
-                         #:ret 'top
-                         #:condition (where #:id user-id)))
+               (user-id (assq-ref tt
+                                  'user-id))
+               (user-repo (make-sqlite-user-repository rc))
+               (u (get-user-by-id user-repo user-id))
                (new-salt (generate-string-uuid))
                (h (string->sha-256 (string-append new-password new-salt)))
-               (_ (DB-query (DB-open rc)
-                            (format #f
-                             "UPDATE user SET salt = '~a', password = '~a' WHERE id = '~a'"
-                             new-salt h
-                             (assoc-ref (car u) "id"))))
-               (_ ($password_reset 'mod
-                                   'row-delete
-                                   (where #:user_id (assoc-ref (car u) "id")))))
+               (_ (update-user-by-id user-repo
+                                     (assq-ref u
+                                               'id)
+                                     `((salt unquote new-salt)
+                                       (password unquote h))))
+               (_ (delete-password-reset-by-user-id (assq-ref u
+                                                              'id))))
           (:cookies-set! rc
                          'x-bewaking-byggsteg "x-bewaking-byggsteg" "")
           (:cookies-setattr! rc
@@ -221,26 +219,27 @@
                                      (current-myhost)))
                        #:status 302))))
 
-(define (request-password-reset u)
-  (let* ((_ ($password_reset 'mod
-                             'row-delete
-                             (where #:user_id (assoc-ref (car u) "id"))))
+(define (request-password-reset password-reset-repo u)
+  (let* ((_ (delete-password-reset-by-user-id password-reset-repo
+                                              (assq-ref u
+                                                        'id)))
          (reset-token (base16-encode (format #f "~a-~a-~a"
                                              (generate-string-uuid)
                                              (generate-string-uuid)
                                              (generate-string-uuid))))
-         (pr ($password_reset 'set
-                              #:user_id (assoc-ref (car u) "id")
-                              #:reset_token reset-token
-                              #:created_at (current-time)))
-         (first-recipient `((name unquote
-                                  (assoc-ref u "username"))
-                            (address unquote
-                                     (assoc-ref u "email"))))
+         (_ (insert-password-reset password-reset-repo
+                                   `((user-id unquote
+                                              (assq-ref u
+                                                        'id))
+                                     (reset-token unquote reset-token)
+                                     (created-at unquote
+                                                 (current-time)))))
+         (pr (get-password-reset-by-token password-reset-repo reset-token))
          (mail-payload `((task-type . send-email) (template . password-reset)
                          (template-vars (system-name . Byggsteg)
                                         (user unquote
-                                              (assoc-ref u "email"))
+                                              (assq-ref u
+                                                        'email))
                                         (reset-link unquote
                                                     (format #f
                                                      "~a/password/reset/token/~a"
@@ -249,8 +248,7 @@
                          (sender-name . "No Reply - Byggsteg")
                          (sender-address . "noreply@byggsteg.jointhefreeworld.org")
                          (subject . "Byggsteg - Password Reset")
-                         (recipients unquote
-                                     (list->vector (list first-recipient))))))
+                         (recipients . #(((name unquote (assq-ref u (quote username))) (address unquote (assq-ref u (quote email)))))))))
     (send-to-pingwing #:body mail-payload)))
 
 (get "/users/new"
@@ -325,18 +323,21 @@
                                              byggsteg:user-delete
                                              byggsteg:modify-permissions))))
                  (new-id (generate-string-uuid))
-                 (_ ($user 'set
-                           #:id new-id
-                           #:username username
-                           #:email email
-                           #:password ""
-                           #:salt ""
-                           #:permissions (format #f "`~s" permissions)))
-                 (u ($user 'get
-                           #:ret 'top
-                           #:condition (where #:id new-id))))
-            (write u)
-            (request-password-reset u)
+                 (user-repo (make-sqlite-user-repository rc))
+                 (password-reset-repo (make-sqlite-password-reset-repository
+                                       rc))
+                 (_ (insert-user user-repo
+                                 `((id unquote new-id)
+                                   (username unquote username)
+                                   (email unquote email)
+                                   (password . "")
+                                   (salt . "")
+                                   (permissions unquote
+                                                (format #f "`~s" permissions)))))
+
+                 (u (get-user-by-id user-repo new-id)))
+            
+            (request-password-reset password-reset-repo u)
             (redirect-to rc
                          (string->uri (format #f
                                               "~a/users/manage/?created=true"
@@ -354,9 +355,8 @@
         (define (do-delete-user)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  (id (assoc-ref body "id"))
-                 (_ ($user 'mod
-                           'row-delete
-                           (where #:id id))))
+                 (_ (delete-user-by-id user-repo
+                                       (assoc-ref body "id"))))
             (redirect-to rc
                          (string->uri (format #f
                                               "~a/users/manage/?deleted=true"
@@ -386,14 +386,14 @@
                                              byggsteg:user-create
                                              byggsteg:user-delete
                                              byggsteg:modify-permissions))))
-                 (_ (DB-query (DB-open rc)
-                              (->sql update
-                                     'user set
-                                     `((username ,username)
-                                       (email ,email)
-                                       (permissions ,(format #f "`~s"
-                                                             permissions)))
-                                     (where #:id (params rc "id"))))))
+                 (user-repo (make-sqlite-user-repository rc))
+                 (_ (update-user-by-id user-repo
+                                       (params rc "id")
+                                       `((username unquote username)
+                                         (email unquote email)
+                                         (permissions unquote
+                                                      (format #f "`~s"
+                                                              permissions))))))
             (redirect-to rc
                          (string->uri (format #f
                                               "~a/users/manage/?edited=true"
