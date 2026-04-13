@@ -183,6 +183,7 @@
                (reset-token (assoc-ref body "reset-token"))
                (new-password (assoc-ref body "new-password"))
                (confirm-password (assoc-ref body "confirm-password"))
+               (password-reset-repo (make-sqlite-password-reset-repository rc))               
                (tt (get-password-reset-by-token password-reset-repo
                                                 reset-token))
                (now (current-time))
