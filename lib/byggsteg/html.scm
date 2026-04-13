@@ -187,13 +187,11 @@
                                                                  #:icon-css '(text-onyx-300
                                                                               dark:text-stone-300
                                                                               text-lg))))
-         (link-buttons `((div ,(if (not is-logged-in)
+         (link-buttons `((div ,(logs-button G_))
+                         (div ,(profiles-button G_))
+                         (div ,(if (not is-logged-in)
                                    (login-button G_)
-                                   (me-button G_)))
-                         (div ,(logs-button G_))
-                         (div ,(profiles-button G_))))
-
-         )
+                                   (me-button G_))))))
     `((div (@ (class ,(mk-class '(py-3 py-1
                                        md:py-2
                                        px-2
