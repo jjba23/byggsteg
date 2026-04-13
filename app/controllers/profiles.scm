@@ -75,7 +75,7 @@
                  (profile-name (assoc-ref body "profile-name"))
                  (new-uuid (generate-string-uuid))
                  (profile-repo (make-sqlite-profile-repository rc))
-                 (found-profile (get-profile-by-title (html-escape
+                 (found-profile (get-profile-by-title profile-repo (html-escape
                                                        profile-name))))
             
             (cond
