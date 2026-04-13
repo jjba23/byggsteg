@@ -110,7 +110,7 @@
               (user-id (assq-ref tt
                                  'user-id))
               (user-repo (make-sqlite-user-repository rc))
-              (u (get-user-by-id user-repo user-repo user-id))
+              (u (get-user-by-id user-repo user-id))
               (email (assq-ref u
                                'email)))
          (response-emit (:mime rc
