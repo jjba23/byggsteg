@@ -199,10 +199,6 @@
          (daemon-to-restart (if (not daemon-name) project daemon-name))
          (cmd (format #f "cd ~a && sudo herd restart ~a || true" clone-dir
                       daemon-to-restart)))
-    ;; (call-with-new-thread (lambda ()
-    ;;                         (sleep 3)
-    ;;                         ($ cmd
-    ;;                            #:env env)))
     (make-step-result #t "" cmd)))
 
 (define (flatten lst)
