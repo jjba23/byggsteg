@@ -79,7 +79,8 @@
     (make-step-result (equal? 0 exit-code) out cmd)))
 
 (define-syntax-rule (display-cmd cmd)
-  (format #f "\n→ running command: ~a\n" (html-unescape cmd)))
+  (format #f "\n→ running command: ~a\n"
+          (html-unescape cmd)))
 
 (define* (do-in-clone-dir clone-dir cmds
                           #:key (env #f))
@@ -198,10 +199,10 @@
          (daemon-to-restart (if (not daemon-name) project daemon-name))
          (cmd (format #f "cd ~a && sudo herd restart ~a || true" clone-dir
                       daemon-to-restart)))
-    (call-with-new-thread (lambda ()
-                            (sleep 3)
-                            ($ cmd
-                               #:env env)))
+    ;; (call-with-new-thread (lambda ()
+    ;;                         (sleep 3)
+    ;;                         ($ cmd
+    ;;                            #:env env)))
     (make-step-result #t "" cmd)))
 
 (define (flatten lst)
