@@ -44,8 +44,6 @@
                              ttf))
 (add-to-load-path (string-append (current-toplevel) "/lib"))
 
-
-
 ;; Put whatever you want to be called before server running here
 
 ;; Specify the directory where the MO file is located
@@ -57,11 +55,11 @@
 (setlocale LC_MESSAGES "en_US.UTF-8")
 
 (catch #t
-  (lambda()
-    (display "\nloading env.scm\n")
-    (load "env.scm"))
-  (lambda(key . args)
-    (display (format #f "error loading env.scm: ~a: ~a" key args))))
+       (lambda ()
+         (display "\nloading env.scm\n")
+         (load "env.scm"))
+       (lambda (key . args)
+         (display (format #f "error loading env.scm: ~a: ~a" key args))))
 
 ;; Store the thread object belonging to the byggsteg queue worker
 (define worker-thread
@@ -72,15 +70,17 @@
 (define (start-worker)
   (let* ((t (call-with-new-thread (lambda ()
                                     (sleep 3) ;delay worker start
-                                    (display (format #f
-                                                     "\n~a...\n"
+                                    (display (format #f "\n~a...\n"
                                                      (gettext
                                                       "initializing byggsteg queue worker")))
 
-                                    (use-modules (byggsteg job
-                                                           pipeline))
+                                    (use-modules (byggsteg job pipeline))
+                                    ;; define dummy route so that fake request-context can be used
+                                    (post "/dummy-pipeline-context"
+                                          (lambda (rc)
+                                            "dummy"))
                                     (while #t
-                                      (run-infallible-pipeline))))))
+                                           (run-infallible-pipeline))))))
     (set! worker-thread t)))
 
 ;; Add hook on before running the Artanis application to start the queue worker

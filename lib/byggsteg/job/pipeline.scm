@@ -213,10 +213,6 @@
                                            'id))))))
 
 (define (run-infallible-pipeline)
-  ;; define dummy route so that fake request-context can be used
-  (post "/dummy-pipeline-context"
-        (lambda (rc)
-          "dummy"))
   (catch #t
          (lambda ()
            (do-pip))
@@ -231,8 +227,4 @@
            (sleep 1))))
 
 (define (run-fallible-pipeline)
-  ;; define dummy route so that fake request-context can be used
-  (post "/dummy-pipeline-context"
-        (lambda (rc)
-          "dummy"))
   (do-pip))
