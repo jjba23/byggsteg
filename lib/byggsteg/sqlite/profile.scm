@@ -87,8 +87,16 @@
            (_ (log-info "insert-profile query:\n\t~a\n" query)))
       (DB-query (DB-open rc) query)))
 
+  (define (update-profile-by-title title attrs)
+    (let* ((query (format #f "UPDATE profile SET ~a WHERE title = ~a"
+                          (string-join (map pair->sql-assignment attrs) ", ")
+                          (value->sql-literal title)))
+           (_ (log-info "update-log-by-title query:\n\t~a\n" query)))
+      (DB-query (DB-open rc) query)))
+
   (mk-profile-repository #:get-profile-by-id-proc get-profile-by-id
                          #:get-profile-by-title-proc get-profile-by-title
                          #:get-profiles-proc get-profiles
                          #:insert-profile-proc insert-profile
+                         #:update-profile-by-title-proc update-profile-by-title
                          #:delete-profile-by-id-proc delete-profile-by-id))

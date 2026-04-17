@@ -117,9 +117,9 @@
       (DB-query (DB-open rc) query)))
 
   (define (update-job-by-id id attrs)
-    (let* ((query (format #f "UPDATE jobs SET ~a WHERE id = ~a"
+    (let* ((query (format #f "UPDATE job SET ~a WHERE id = ~a"
                           (string-join (map pair->sql-assignment attrs) ", ")
-                          (value->sql-literal human-id)))
+                          (value->sql-literal id)))
            (_ (log-info "update-job-by-id query:\n\t~a\n" query)))
       (DB-query (DB-open rc) query)))
 
@@ -128,4 +128,5 @@
                      #:get-jobs-by-ids-proc get-jobs-by-ids
                      #:get-jobs-in-progress-proc get-jobs-in-progress
                      #:insert-job-proc insert-job
+                     #:update-job-by-id-proc update-job-by-id
                      #:delete-job-by-id-proc delete-job-by-id))

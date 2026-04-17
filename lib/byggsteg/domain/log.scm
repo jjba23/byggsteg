@@ -21,7 +21,8 @@
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
   #:export (get-log-by-id get-logs get-logs-by-job-ids insert-log
-                          delete-log-by-id))
+                          delete-log-by-id
+                          update-log-by-id))
 
 ;; -- Record definition ---
 
@@ -31,6 +32,7 @@
                        (get-logs-proc repo-get-logs)
                        (get-logs-by-job-ids-proc repo-get-logs-by-job-ids)
                        (insert-log-proc repo-insert-log)
+                       (update-log-by-id-proc repo-update-proc-by-id)
                        (delete-log-by-id-proc repo-delete-log-by-id))
 
 ;; --- eDSL: Embedded Domain Specific Language ---
@@ -46,6 +48,9 @@
 
 (define-repo-method insert-log repo-insert-log
                     "Inserts a log with ATTRS in the given REPO.")
+
+(define-repo-method update-log-by-id repo-update-log-by-id
+                    "Updates log of ID with ATTRS in the given REPO.")
 
 (define-repo-method delete-log-by-id repo-delete-log-by-id
                     "Deletes a log identified by ID in the given REPO.")

@@ -21,7 +21,8 @@
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
   #:export (get-jobs get-job-by-id get-jobs-by-ids get-jobs-in-progress
-                     insert-job delete-job-by-id))
+                     insert-job delete-job-by-id
+                     update-job-by-id))
 
 ;; -- Record definition ---
 
@@ -32,6 +33,7 @@
                        (get-jobs-by-ids-proc repo-get-jobs-by-ids)
                        (get-jobs-in-progress-proc repo-get-jobs-in-progress)
                        (insert-job-proc repo-insert-job)
+                       (update-job-by-id-proc repo-update-job-by-id)
                        (delete-job-by-id-proc repo-delete-job-by-id))
 
 ;; --- eDSL: Embedded Domain Specific Language ---
@@ -50,6 +52,9 @@
 
 (define-repo-method insert-job repo-insert-job
                     "Inserts a job with ATTRS in the given REPO.")
+
+(define-repo-method update-job-by-id repo-update-job-by-id
+                    "Updates job of ID with ATTRS in the given REPO.")
 
 (define-repo-method delete-job-by-id repo-delete-job-by-id
                     "Deletes a job identified by ID in the given REPO.")

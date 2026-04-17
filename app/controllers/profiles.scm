@@ -81,12 +81,11 @@
             
             (cond
               ((not (nil? found-profile))
-               (DB-query (DB-open rc)
-                         (->sql update
-                                'profile set
-                                `((profile_data ,(html-escape profile-data))
-                                  (updated_at ,(current-time)))
-                                (where #:title (html-escape profile-name))))
+               (update-profile-by-title profile-repo
+                                        (html-escape profile-name)
+                                        `((profile_data ,(html-escape
+                                                          profile-data))
+                                          (updated_at ,(current-time))))
                (redirect-to rc
                             (string->uri (format #f "~a/profiles/~a"
                                                  (current-myhost)

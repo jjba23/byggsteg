@@ -87,8 +87,16 @@
            (_ (log-info "insert-log query:\n\t~a\n" query)))
       (DB-query (DB-open rc) query)))
 
+  (define (update-log-by-id id attrs)
+    (let* ((query (format #f "UPDATE log SET ~a WHERE id = ~a"
+                          (string-join (map pair->sql-assignment attrs) ", ")
+                          (value->sql-literal id)))
+           (_ (log-info "update-log-by-id query:\n\t~a\n" query)))
+      (DB-query (DB-open rc) query)))
+
   (mk-log-repository #:get-log-by-id-proc get-log-by-id
                      #:get-logs-proc get-logs
                      #:get-logs-by-job-ids-proc get-logs-by-job-ids
                      #:insert-log-proc insert-log
+                     #:update-log-by-id-proc update-log-by-id
                      #:delete-log-by-id-proc delete-log-by-id))
