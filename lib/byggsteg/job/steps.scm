@@ -79,7 +79,7 @@
     (make-step-result (equal? 0 exit-code) out cmd)))
 
 (define-syntax-rule (display-cmd cmd)
-  (format #f "\n→ running command: ~a\n" cmd))
+  (format #f "\n→ running command: ~a\n" (html-unescape cmd)))
 
 (define* (do-in-clone-dir clone-dir cmds
                           #:key (env #f))

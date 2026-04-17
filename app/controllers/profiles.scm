@@ -83,9 +83,9 @@
               ((not (nil? found-profile))
                (update-profile-by-title profile-repo
                                         (html-escape profile-name)
-                                        `((profile_data ,(html-escape
+                                        `((profile_data unquote (html-escape
                                                           profile-data))
-                                          (updated_at ,(current-time))))
+                                          (updated_at unquote (current-time))))
                (redirect-to rc
                             (string->uri (format #f "~a/profiles/~a"
                                                  (current-myhost)

@@ -32,7 +32,7 @@
                        (get-logs-proc repo-get-logs)
                        (get-logs-by-job-ids-proc repo-get-logs-by-job-ids)
                        (insert-log-proc repo-insert-log)
-                       (update-log-by-id-proc repo-update-proc-by-id)
+                       (update-log-by-id-proc repo-update-log-by-id)
                        (delete-log-by-id-proc repo-delete-log-by-id))
 
 ;; --- eDSL: Embedded Domain Specific Language ---

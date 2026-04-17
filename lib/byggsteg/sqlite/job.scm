@@ -95,10 +95,10 @@
                    (symbols->sql-columns-list columns) limit))
            (_ (log-info "get-jobs-in-progress query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
-           (_ (log-info "get-jobs-in-progress rows: ~a\n"
-                        (length rows))))
-      rows))
+                      (DB-get-all-rows (DB-query (DB-open rc) query)))))
+      (when (not (nil? rows))
+        (log-info "get-jobs-in-progress rows: ~a\n"
+                  (length rows))) rows))
 
   (define (delete-job-by-id id)
     (let* ((query (format #f "DELETE FROM job WHERE id = ~a"
