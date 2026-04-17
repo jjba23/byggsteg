@@ -116,6 +116,13 @@
            (_ (log-info "insert-job query:\n\t~a\n" query)))
       (DB-query (DB-open rc) query)))
 
+  (define (update-job-by-id id attrs)
+    (let* ((query (format #f "UPDATE jobs SET ~a WHERE id = ~a"
+                          (string-join (map pair->sql-assignment attrs) ", ")
+                          (value->sql-literal human-id)))
+           (_ (log-info "update-job-by-id query:\n\t~a\n" query)))
+      (DB-query (DB-open rc) query)))
+
   (mk-job-repository #:get-jobs-proc get-jobs
                      #:get-job-by-id-proc get-job-by-id
                      #:get-jobs-by-ids-proc get-jobs-by-ids

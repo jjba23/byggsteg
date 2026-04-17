@@ -63,7 +63,8 @@
                            logs-of-in-progress)))
     
     (for-each (lambda (j)
-                (job-pipeline #:job j
+                (job-pipeline rc
+                              #:job j
                               #:log (assoc-ref job-log-map
                                                (assq-ref j
                                                          'id))))
@@ -133,8 +134,11 @@
                            #:branch-name branch-name
                            #:env env))))
 
-(define* (job-pipeline #:key job log)
-  (let* ((old-log-data (html-unescape (assoc-ref log
+(define* (job-pipeline rc
+                       #:key job log)
+  (let* ((job-repo (make-sqlite-job-repository rc))
+         (log-repo (make-sqlite-log-repository rc))
+         (old-log-data (html-unescape (assoc-ref log
                                                  'log-data)))
          (kv-thunk (eval-string (html-unescape (assq-ref job
                                                          'job-data))))
@@ -193,24 +197,24 @@
                                                  (gettext "starting new job"))))))
     (display (format #f "\nsucceeded?: ~a\n"
                      (step-result-succeeded? result)))
+    (update-log-by-id log-repo
+                      (assq-ref log
+                                'id)
+                      `((log_data unquote
+                                  (html-escape (step-result-stdout result)))
+                        (updated_at unquote
+                                    (current-time))))
 
-    (DB-query (get-conn-from-pool!)
-              (->sql update
-                     'log set
-                     `((log_data ,(html-escape (step-result-stdout result)))
-                       (updated_at ,(current-time)))
-                     (where #:id (assq-ref log
-                                           'id))))
-
-    (DB-query (get-conn-from-pool!)
-              (->sql update
-                     'job set
-                     `((job_success ,(if (step-result-succeeded? result) 1 0))
-                       (job_in_progress 0)
-                       (job_failed ,(if (step-result-succeeded? result) 0 1))
-                       (updated_at ,(current-time)))
-                     (where #:id (assq-ref job
-                                           'id))))))
+    (update-job-by-id job-repo
+                      (assq-ref job
+                                'id)
+                      `((job-success unquote
+                                     (if (step-result-succeeded? result) 1 0))
+                        (job-in-progress . 0)
+                        (job-failed unquote
+                                    (if (step-result-succeeded? result) 0 1))
+                        (updated-at unquote
+                                    (current-time))))))
 
 (define (run-infallible-pipeline)
   (catch #t

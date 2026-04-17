@@ -75,13 +75,14 @@
                                                       "initializing byggsteg queue worker")))
 
                                     (use-modules (byggsteg job pipeline))
-                                    ;; define dummy route so that fake request-context can be used
-                                    (post "/dummy-pipeline-context"
-                                          (lambda (rc)
-                                            "dummy"))
                                     (while #t
                                            (run-infallible-pipeline))))))
     (set! worker-thread t)))
+
+;; define dummy route so that fake request-context can be used
+(post "/dummy-pipeline-context"
+      (lambda (rc)
+        "dummy"))
 
 ;; Add hook on before running the Artanis application to start the queue worker
 (run-before-run! start-worker)
