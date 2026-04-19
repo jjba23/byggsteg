@@ -69,6 +69,9 @@
   (cond
     ;; Byggsteg version update
     ((equal? task "byggsteg-version")
+     ($ (format #f "cd ~a && sudo herd restart ~a || true"
+                (string-append (job-clone-location) project "/" branch-name)
+                "byggsteg-daemon"))
      (byggsteg-version-step #:project project
                             #:branch-name branch-name
                             #:daemon-name daemon-name
@@ -168,15 +171,6 @@
                                 '()))
          (pipe-steps (list (lambda ()
                              (map (lambda (task)
-                                    ;; how to dispatch byggsteg restart?
-                                    ;; (when (equal? task "byggsteg-version")
-                                    ;; ($ (format #f
-                                    ;; "cd ~a && sudo herd restart ~a || true"
-                                    ;; (string-append (job-clone-location)
-                                    ;; project "/"
-                                    ;; branch-name)
-                                    ;; "byggsteg-daemon")))
-                                    
                                     (run-pipeline-task #:project project
                                                        #:branch-name
                                                        branch-name
