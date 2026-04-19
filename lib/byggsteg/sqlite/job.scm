@@ -89,13 +89,15 @@
       rows))
 
   (define* (get-jobs-in-progress #:key limit)
-    (let* ((query (format #f
+    (let* ((conn (DB-open rc))
+           (query (format #f
                    "SELECT ~a FROM job WHERE job_in_progress = 1
                    ORDER BY created_at ASC LIMIT ~a"
                    (symbols->sql-columns-list columns) limit))
            (_ (log-info "get-jobs-in-progress query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query)))))
+                      (DB-get-all-rows (DB-query conn query)))))
+      (DB-close conn)
       (when (not (nil? rows))
         (log-info "get-jobs-in-progress rows: ~a\n"
                   (length rows))) rows))
