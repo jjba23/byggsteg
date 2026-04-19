@@ -53,7 +53,8 @@
          created-at
          updated-at))
 
-  (define conn (DB-open rc))
+  (define conn
+    (DB-open rc))
 
   (define* (get-jobs #:key limit offset)
     (let* ((query (format #f
@@ -91,8 +92,7 @@
       rows))
 
   (define* (get-jobs-in-progress #:key limit)
-    (let* (
-           (query (format #f
+    (let* ((query (format #f
                    "SELECT ~a FROM job WHERE job_in_progress = 1
                    ORDER BY created_at ASC LIMIT ~a"
                    (symbols->sql-columns-list columns) limit))

@@ -21,8 +21,7 @@
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
   #:export (get-profile-by-id get-profile-by-title get-profiles insert-profile
-                              update-profile-by-title
-                              delete-profile-by-id))
+                              update-profile-by-title delete-profile-by-id))
 
 ;; -- Record definition ---
 
@@ -33,7 +32,8 @@
                        (get-profile-by-title-proc repo-get-profile-by-title)
                        (get-profiles-proc repo-get-profiles)
                        (insert-profile-proc repo-insert-profile)
-                       (update-profile-by-title-proc repo-update-profile-by-title)
+                       (update-profile-by-title-proc
+                        repo-update-profile-by-title)
                        (delete-profile-by-id-proc repo-delete-profile-by-id))
 
 ;; --- eDSL: Embedded Domain Specific Language ---

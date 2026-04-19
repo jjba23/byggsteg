@@ -36,7 +36,8 @@
   (define update-columns
     '(id title job-id log-data created-at updated-at))
 
-  (define conn (DB-open rc))
+  (define conn
+    (DB-open rc))
 
   (define (get-log-by-id id)
     (let* ((query (format #f "SELECT ~a FROM log WHERE id = ~a LIMIT 1"

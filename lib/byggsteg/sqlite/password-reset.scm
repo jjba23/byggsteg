@@ -33,7 +33,8 @@
   (define insert-columns
     '(user-id reset-token created-at))
 
-    (define conn (DB-open rc))
+  (define conn
+    (DB-open rc))
 
   (define (get-password-reset-by-token token)
     (let* ((query (format #f

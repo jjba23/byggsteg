@@ -36,7 +36,8 @@
   (define update-columns
     '(id title profile-data created-at updated-at))
 
-    (define conn (DB-open rc))
+  (define conn
+    (DB-open rc))
 
   (define (get-profile-by-id id)
     (let* ((query (format #f "SELECT ~a FROM profile WHERE id = ~a LIMIT 1"
@@ -100,5 +101,6 @@
                          #:get-profile-by-title-proc get-profile-by-title
                          #:get-profiles-proc get-profiles
                          #:insert-profile-proc insert-profile
-                         #:update-profile-by-title-proc update-profile-by-title
+                         #:update-profile-by-title-proc
+                         update-profile-by-title
                          #:delete-profile-by-id-proc delete-profile-by-id))

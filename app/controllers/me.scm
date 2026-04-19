@@ -183,14 +183,15 @@
                (reset-token (assoc-ref body "reset-token"))
                (new-password (assoc-ref body "new-password"))
                (confirm-password (assoc-ref body "confirm-password"))
-               (password-reset-repo (make-sqlite-password-reset-repository rc))               
+               (password-reset-repo (make-sqlite-password-reset-repository rc))
                (tt (get-password-reset-by-token password-reset-repo
                                                 reset-token))
                (now (current-time))
                (allowance (* 24 7 3600)) ;reset token is valid for a week
                (_ (when (> now
                            (+ allowance
-                              (assq-ref tt 'created-at)))
+                              (assq-ref tt
+                                        'created-at)))
                     (error "reset token is found but not valid anymore!")))
                (_ (when (not (equal? new-password confirm-password))
                     (error "password confirmation did not match!")))
@@ -205,7 +206,8 @@
                                                'id)
                                      `((salt unquote new-salt)
                                        (password unquote h))))
-               (_ (delete-password-reset-by-user-id password-reset-repo (assq-ref u
+               (_ (delete-password-reset-by-user-id password-reset-repo
+                                                    (assq-ref u
                                                               'id))))
           (:cookies-set! rc
                          'x-bewaking-byggsteg "x-bewaking-byggsteg" "")

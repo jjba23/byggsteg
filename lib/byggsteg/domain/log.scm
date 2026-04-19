@@ -21,8 +21,7 @@
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
   #:export (get-log-by-id get-logs get-logs-by-job-ids insert-log
-                          delete-log-by-id
-                          update-log-by-id))
+                          delete-log-by-id update-log-by-id))
 
 ;; -- Record definition ---
 
