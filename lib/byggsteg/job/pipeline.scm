@@ -69,9 +69,13 @@
   (cond
     ;; Byggsteg version update
     ((equal? task "byggsteg-version")
-     ($ (format #f "cd ~a && sudo herd restart ~a || true"
-                (string-append (job-clone-location) project "/" branch-name)
-                "byggsteg-daemon"))
+     (call-with-new-thread (lambda ()
+                             (sleep 2)
+                             ($ (format #f
+                                 "cd ~a && sudo herd restart ~a || true"
+                                 (string-append (job-clone-location) project
+                                                "/" branch-name)
+                                 "byggsteg-daemon"))))
      (byggsteg-version-step #:project project
                             #:branch-name branch-name
                             #:daemon-name daemon-name
