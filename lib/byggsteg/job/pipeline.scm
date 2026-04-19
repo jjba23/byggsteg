@@ -30,23 +30,11 @@
   #:use-module (rnrs io ports)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
-  #:export (do-pip run-pipeline-task job-pipeline run-fallible-pipeline
+  #:export (run-pipeline-task job-pipeline run-fallible-pipeline
                    run-infallible-pipeline))
 
-(define* (do-pip)
+(define* (run-fallible-pipeline #:key job-repo log-repo)
   (let* ((sleep-seconds 3)
-         ;; use dummy route so as to hook into Artanis request context
-         (mock-port (open-bytevector-input-port #vu8()))
-         (mock-request (build-request (string->uri
-                                       "http://localhost:50002/dummy-pipeline-context")
-                                      #:method 'POST
-                                      #:headers '()
-                                      #:port mock-port))
-         (mock-body (read-request-body mock-request))
-         ;; fake request context will be used to get DB connection
-         (rc (new-route-context mock-request mock-body))
-         (job-repo (make-sqlite-job-repository rc))
-         (log-repo (make-sqlite-log-repository rc))
          (jobs-in-progress (get-jobs-in-progress job-repo
                                                  #:limit 6))
          (job-ids-in-progress (map (lambda (j)
@@ -64,6 +52,8 @@
     
     (for-each (lambda (j)
                 (job-pipeline rc
+                              #:job-repo job-repo
+                              #:log-repo log-repo
                               #:job j
                               #:log (assoc-ref job-log-map
                                                (assq-ref j
@@ -135,9 +125,8 @@
                            #:env env))))
 
 (define* (job-pipeline rc
-                       #:key job log)
-  (let* ((job-repo (make-sqlite-job-repository rc))
-         (log-repo (make-sqlite-log-repository rc))
+                       #:key job-repo log-repo job log)
+  (let* (
          (old-log-data (html-unescape (assoc-ref log
                                                  'log-data)))
          (kv-thunk (eval-string (html-unescape (assq-ref job
@@ -225,10 +214,10 @@
                         (updated-at unquote
                                     (current-time))))))
 
-(define (run-infallible-pipeline)
+(define* (run-infallible-pipeline #:key job-repo log-repo)
   (catch #t
          (lambda ()
-           (do-pip))
+           (run-fallible-pipeline #:job-repo job-repo #:log-repo log-repo))
          (lambda (key . args)
            (display (format #f "
   ===========
@@ -238,6 +227,3 @@
   " key
                             args))
            (sleep 1))))
-
-(define (run-fallible-pipeline)
-  (do-pip))

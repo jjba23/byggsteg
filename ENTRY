@@ -20,12 +20,21 @@
 
 ;; This is the Artanis ENTRY file, don't remove it!
 
+(add-to-load-path (string-append (current-toplevel) "/lib"))
+
 (use-modules (artanis artanis)
              ;; Put modules you want to be imported here
              ;; only for this file, not controllers/views
              (ice-9 threads)
              (artanis utils)
              (ice-9 i18n)
+             (web request)
+             (web uri)
+             (byggsteg domain job)
+             (byggsteg domain log)
+             (byggsteg sqlite job)
+             (byggsteg sqlite log)
+             (rnrs io ports)
              (artanis irregex))
 ;; Put whatever you want to be called before server initilization here
 
@@ -42,7 +51,6 @@
                              woff
                              woff2
                              ttf))
-(add-to-load-path (string-append (current-toplevel) "/lib"))
 
 ;; Put whatever you want to be called before server running here
 
@@ -68,15 +76,34 @@
 ;; Procedure to start the byggsteg queue worker to process jobs that haven't completed yet
 ;; this is preferrably done in a different thread
 (define (start-worker)
-  (let* ((t (call-with-new-thread (lambda ()
+  (let* ( ;use dummy route so as to hook into Artanis request context
+          (mock-port (open-bytevector-input-port #vu8()))
+         (mock-request (build-request (string->uri
+                                       "http://localhost:50002/dummy-pipeline-context")
+                                      #:method 'POST
+                                      #:headers '()
+                                      #:port mock-port))
+         (mock-body (read-request-body mock-request))
+         ;; fake request context will be used to get DB connection
+         (rc (new-route-context mock-request mock-body))
+         (job-repo (make-sqlite-job-repository rc))
+         (log-repo (make-sqlite-log-repository rc))
+         (t (call-with-new-thread (lambda ()
                                     (sleep 3) ;delay worker start
                                     (display (format #f "\n~a...\n"
                                                      (gettext
                                                       "initializing byggsteg queue worker")))
 
-                                    (use-modules (byggsteg job pipeline))
+                                    (use-modules (byggsteg job pipeline)
+                                                 (byggsteg domain job)
+                                                 (byggsteg domain log)
+                                                 (byggsteg sqlite job)
+                                                 (byggsteg sqlite log))
                                     (while #t
-                                           (run-infallible-pipeline))))))
+                                           (run-infallible-pipeline #:job-repo
+                                                                    job-repo
+                                                                    #:log-repo
+                                                                    log-repo))))))
     (set! worker-thread t)))
 
 ;; define dummy route so that fake request-context can be used
