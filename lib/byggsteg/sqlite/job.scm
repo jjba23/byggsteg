@@ -53,6 +53,8 @@
          created-at
          updated-at))
 
+  (define conn (DB-open rc))
+
   (define* (get-jobs #:key limit offset)
     (let* ((query (format #f
                    "SELECT ~a FROM job
@@ -60,7 +62,7 @@
                    (symbols->sql-columns-list columns) limit offset))
            (_ (log-info "get-jobs query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-jobs rows: ~a\n"
                         (length rows))))
       rows))
@@ -71,7 +73,7 @@
                           (value->sql-literal id)))
            (_ (log-info "get-job-by-id query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-job-by-id rows: ~a\n"
                         (length rows))))
       (if (nil? rows) #f
@@ -83,13 +85,13 @@
                           (string-join (map value->sql-literal ids) ", ")))
            (_ (log-info "get-jobs-by-ids query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-jobs-by-ids rows: ~a\n"
                         (length rows))))
       rows))
 
   (define* (get-jobs-in-progress #:key limit)
-    (let* ((conn (get-conn-from-pool!))
+    (let* (
            (query (format #f
                    "SELECT ~a FROM job WHERE job_in_progress = 1
                    ORDER BY created_at ASC LIMIT ~a"
@@ -97,7 +99,6 @@
            (_ (log-info "get-jobs-in-progress query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
                       (DB-get-all-rows (DB-query conn query)))))
-      (DB-close conn)
       (when (not (nil? rows))
         (log-info "get-jobs-in-progress rows: ~a\n"
                   (length rows))) rows))
@@ -106,7 +107,7 @@
     (let* ((query (format #f "DELETE FROM job WHERE id = ~a"
                           (value->sql-literal id)))
            (_ (log-info "delete-job-by-id query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (define (insert-job attrs)
     (let* ((vals (map (lambda (x)
@@ -116,14 +117,14 @@
                           (symbols->sql-columns-list insert-columns)
                           (string-join vals ", ")))
            (_ (log-info "insert-job query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (define (update-job-by-id id attrs)
     (let* ((query (format #f "UPDATE job SET ~a WHERE id = ~a"
                           (string-join (map pair->sql-assignment attrs) ", ")
                           (value->sql-literal id)))
            (_ (log-info "update-job-by-id query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (mk-job-repository #:get-jobs-proc get-jobs
                      #:get-job-by-id-proc get-job-by-id

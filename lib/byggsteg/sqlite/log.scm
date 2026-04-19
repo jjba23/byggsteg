@@ -36,13 +36,15 @@
   (define update-columns
     '(id title job-id log-data created-at updated-at))
 
+  (define conn (DB-open rc))
+
   (define (get-log-by-id id)
     (let* ((query (format #f "SELECT ~a FROM log WHERE id = ~a LIMIT 1"
                           (symbols->sql-columns-list columns)
                           (value->sql-literal id)))
            (_ (log-info "get-log-by-id query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-log-by-id rows: ~a\n"
                         (length rows))))
       (if (nil? rows) #f
@@ -55,7 +57,7 @@
                    (symbols->sql-columns-list columns) limit offset))
            (_ (log-info "get-logs query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-logs rows: ~a\n"
                         (length rows))))
       rows))
@@ -66,7 +68,7 @@
                           (string-join (map value->sql-literal ids) ", ")))
            (_ (log-info "get-logs-by-job-ids query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-logs-by-job-ids rows: ~a\n"
                         (length rows))))
       rows))
@@ -75,7 +77,7 @@
     (let* ((query (format #f "DELETE FROM log WHERE id = ~a"
                           (value->sql-literal id)))
            (_ (log-info "delete-log-by-id query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (define (insert-log attrs)
     (let* ((vals (map (lambda (x)
@@ -85,14 +87,14 @@
                           (symbols->sql-columns-list insert-columns)
                           (string-join vals ", ")))
            (_ (log-info "insert-log query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (define (update-log-by-id id attrs)
     (let* ((query (format #f "UPDATE log SET ~a WHERE id = ~a"
                           (string-join (map pair->sql-assignment attrs) ", ")
                           (value->sql-literal id)))
            (_ (log-info "update-log-by-id query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (mk-log-repository #:get-log-by-id-proc get-log-by-id
                      #:get-logs-proc get-logs

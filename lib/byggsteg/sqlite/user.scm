@@ -39,7 +39,7 @@
                           (symbols->sql-columns-list columns)))
            (_ (log-info "get-id-to-username query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (mapped-rows (map (lambda (r)
                                (cons (assq-ref r
                                                'id)
@@ -55,7 +55,7 @@
                           (value->sql-literal email)))
            (_ (log-info "get-user-by-email query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-user-by-email rows: ~a\n"
                         (length rows))))
       (if (nil? rows) #f
@@ -67,7 +67,7 @@
                           (value->sql-literal id)))
            (_ (log-info "get-user-by-id query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-user-by-id rows: ~a\n"
                         (length rows))))
       (if (nil? rows) #f
@@ -79,7 +79,7 @@
                           (symbols->sql-columns-list columns)))
            (_ (log-info "get-users query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (_ (log-info "get-users rows: ~a\n"
                         (length rows))))
       rows))
@@ -89,13 +89,13 @@
                           (string-join (map pair->sql-assignment attrs) ", ")
                           (value->sql-literal id)))
            (_ (log-info "update-user-by-id query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (define (delete-user-by-id id)
     (let* ((query (format #f "DELETE FROM user WHERE id = ~a"
                           (value->sql-literal id)))
            (_ (log-info "delete-user-by-id query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (define (insert-user attrs)
     (let* ((vals (map (lambda (x)
@@ -105,7 +105,7 @@
                           (symbols->sql-columns-list insert-columns)
                           (string-join vals ", ")))
            (_ (log-info "insert-user query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (mk-user-repository #:get-id-to-username-proc get-id-to-username
                       #:get-user-by-email-proc get-user-by-email

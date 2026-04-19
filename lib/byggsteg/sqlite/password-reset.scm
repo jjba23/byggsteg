@@ -33,6 +33,8 @@
   (define insert-columns
     '(user-id reset-token created-at))
 
+    (define conn (DB-open rc))
+
   (define (get-password-reset-by-token token)
     (let* ((query (format #f
                    "SELECT ~a FROM password_reset WHERE reset_token = ~a LIMIT 1"
@@ -40,7 +42,7 @@
                    (value->sql-literal token)))
            (_ (log-info "get-password-reset-by-token query:\n\t~a\n" query))
            (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query (DB-open rc) query))))
+                      (DB-get-all-rows (DB-query conn query))))
            (mapped-rows (map (lambda (r)
                                (cons (assq-ref r
                                                'ticket-id)
@@ -58,7 +60,7 @@
            (_ (log-info "delete-password-reset-by-user-id query:
 	~a
 " query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (define (insert-password-reset attrs)
     (let* ((vals (map (lambda (x)
@@ -68,7 +70,7 @@
                           (symbols->sql-columns-list insert-columns)
                           (string-join vals ", ")))
            (_ (log-info "insert-password-reset query:\n\t~a\n" query)))
-      (DB-query (DB-open rc) query)))
+      (DB-query conn query)))
 
   (mk-password-reset-repository #:get-password-reset-by-token-proc
                                 get-password-reset-by-token
