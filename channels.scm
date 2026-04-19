@@ -1,8 +1,8 @@
 (list (channel
         (name 'guix)
-        (url "https://git.guix.gnu.org/guix.git")
+        (url "https://codeberg.org/guix/guix.git")
         (branch "master")
-        (commit "4f3d9137a10d977b0f0ed519a31b90a81f6d92b7")
+        (commit "442fff85d1cb39461fabd7f9e0301716c9f5aa6d")
         (introduction
          (make-channel-introduction "9edb3f66fd807b096b48283debdcddccfea34bad"
           (openpgp-fingerprint
