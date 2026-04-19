@@ -89,7 +89,7 @@
       rows))
 
   (define* (get-jobs-in-progress #:key limit)
-    (let* ((conn (DB-open rc))
+    (let* ((conn (get-conn-from-pool!))
            (query (format #f
                    "SELECT ~a FROM job WHERE job_in_progress = 1
                    ORDER BY created_at ASC LIMIT ~a"
