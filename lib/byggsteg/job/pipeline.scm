@@ -31,7 +31,7 @@
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
   #:export (run-pipeline-task job-pipeline run-fallible-pipeline
-                   run-infallible-pipeline))
+                              run-infallible-pipeline))
 
 (define* (run-fallible-pipeline #:key job-repo log-repo)
   (let* ((sleep-seconds 3)
@@ -51,8 +51,7 @@
                            logs-of-in-progress)))
     
     (for-each (lambda (j)
-                (job-pipeline rc
-                              #:job-repo job-repo
+                (job-pipeline #:job-repo job-repo
                               #:log-repo log-repo
                               #:job j
                               #:log (assoc-ref job-log-map
@@ -124,10 +123,8 @@
                            #:branch-name branch-name
                            #:env env))))
 
-(define* (job-pipeline rc
-                       #:key job-repo log-repo job log)
-  (let* (
-         (old-log-data (html-unescape (assoc-ref log
+(define* (job-pipeline #:key job-repo log-repo job log)
+  (let* ((old-log-data (html-unescape (assoc-ref log
                                                  'log-data)))
          (kv-thunk (eval-string (html-unescape (assq-ref job
                                                          'job-data))))
@@ -173,13 +170,13 @@
                              (map (lambda (task)
                                     ;; how to dispatch byggsteg restart?
                                     ;; (when (equal? task "byggsteg-version")
-                                    ;;   ($ (format #f
-                                    ;;       "cd ~a && sudo herd restart ~a || true"
-                                    ;;       (string-append (job-clone-location)
-                                    ;;                      project "/"
-                                    ;;                      branch-name)
-                                    ;;       "byggsteg-daemon")))
-
+                                    ;; ($ (format #f
+                                    ;; "cd ~a && sudo herd restart ~a || true"
+                                    ;; (string-append (job-clone-location)
+                                    ;; project "/"
+                                    ;; branch-name)
+                                    ;; "byggsteg-daemon")))
+                                    
                                     (run-pipeline-task #:project project
                                                        #:branch-name
                                                        branch-name
@@ -217,7 +214,8 @@
 (define* (run-infallible-pipeline #:key job-repo log-repo)
   (catch #t
          (lambda ()
-           (run-fallible-pipeline #:job-repo job-repo #:log-repo log-repo))
+           (run-fallible-pipeline #:job-repo job-repo
+                                  #:log-repo log-repo))
          (lambda (key . args)
            (display (format #f "
   ===========
