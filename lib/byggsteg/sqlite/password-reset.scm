@@ -30,54 +30,45 @@
   (define columns
     '(user-id reset-token created-at))
 
-  (define insert-columns
-    '(user-id reset-token created-at))
+  (define cols-sql
+    (symbols->sql-columns-list columns))
 
   (define conn
     (DB-open rc))
 
-    (define execute-write
+  (define execute-write
     (db-write conn))
 
   (define execute-read
     (db-read conn))
-  
+
   (define (get-password-reset-by-token token)
     (let* ((query (format #f
                    "SELECT ~a FROM password_reset WHERE reset_token = ~a LIMIT 1"
-                   (symbols->sql-columns-list columns)
+                   cols-sql
                    (value->sql-literal token)))
-           (_ (log-info "get-password-reset-by-token query:\n\t~a\n" query))
-           (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query conn query))))
+           (rows (execute-read "get-password-reset-by-token" query))
            (mapped-rows (map (lambda (r)
                                (cons (assq-ref r
                                                'ticket-id)
                                      (assq-ref r
-                                               'user-id))) rows))
-           (_ (log-info "get-password-reset-by-token mapped-rows: ~a
-"
-                        (length mapped-rows))))
-      (if (nil? rows) #f
-          (car rows))))
+                                               'user-id))) rows)))
+      (if (nil? mapped-rows) #f
+          (car mapped-rows))))
 
   (define (delete-password-reset-by-user-id user-id)
     (let* ((query (format #f "DELETE FROM password_reset WHERE user_id = ~a"
-                          (value->sql-literal user-id)))
-           (_ (log-info "delete-password-reset-by-user-id query:
-	~a
-" query)))
-      (DB-query conn query)))
+                          (value->sql-literal user-id))))
+      (execute-write "delete-password-reset-by-user-id" query)))
 
   (define (insert-password-reset attrs)
     (let* ((vals (map (lambda (x)
                         (value->sql-literal (assq-ref attrs x)))
                       insert-columns))
            (query (format #f "INSERT INTO password_reset (~a) VALUES (~a)"
-                          (symbols->sql-columns-list insert-columns)
-                          (string-join vals ", ")))
-           (_ (log-info "insert-password-reset query:\n\t~a\n" query)))
-      (DB-query conn query)))
+                          insert-cols-sql
+                          (string-join vals ", "))))
+      (execute-write "insert-password-reset" query)))
 
   (mk-password-reset-repository #:get-password-reset-by-token-proc
                                 get-password-reset-by-token

@@ -34,10 +34,10 @@
     (symbols->sql-columns-list columns))
 
   (define insert-columns
-    '(id title job-id log-data created-at))
+    (delq 'updated-at columns))
 
-  (define update-columns
-    '(id title job-id log-data created-at updated-at))
+  (define insert-cols-sql
+    (symbols->sql-columns-list insert-columns))
 
   (define conn
     (DB-open rc))
@@ -79,17 +79,15 @@
                         (value->sql-literal (assq-ref attrs x)))
                       insert-columns))
            (query (format #f "INSERT INTO log (~a) VALUES (~a)"
-                          (symbols->sql-columns-list insert-columns)
-                          (string-join vals ", ")))
-           (_ (log-info "insert-log query:\n\t~a\n" query)))
-      (DB-query conn query)))
+                          insert-cols-sql
+                          (string-join vals ", "))))
+      (execute-write "insert-log" query)))
 
   (define (update-log-by-id id attrs)
     (let* ((query (format #f "UPDATE log SET ~a WHERE id = ~a"
                           (string-join (map pair->sql-assignment attrs) ", ")
-                          (value->sql-literal id)))
-           (_ (log-info "update-log-by-id query:\n\t~a\n" query)))
-      (DB-query conn query)))
+                          (value->sql-literal id))))
+      (execute-write "update-log-by-id" query)))
 
   (mk-log-repository #:get-log-by-id-proc get-log-by-id
                      #:get-logs-proc get-logs

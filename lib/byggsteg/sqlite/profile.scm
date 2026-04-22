@@ -30,16 +30,19 @@
   (define columns
     '(id title profile-data created-at updated-at))
 
-  (define insert-columns
-    '(id title profile-data created-at))
+  (define cols-sql
+    (symbols->sql-columns-list columns))
 
-  (define update-columns
-    '(id title profile-data created-at updated-at))
+  (define insert-columns
+    (delq 'updated-at columns))
+
+  (define insert-cols-sql
+    (symbols->sql-columns-list insert-columns))
 
   (define conn
     (DB-open rc))
 
-    (define execute-write
+  (define execute-write
     (db-write conn))
 
   (define execute-read
@@ -47,61 +50,45 @@
 
   (define (get-profile-by-id id)
     (let* ((query (format #f "SELECT ~a FROM profile WHERE id = ~a LIMIT 1"
-                          (symbols->sql-columns-list columns)
+                          cols-sql
                           (value->sql-literal id)))
-           (_ (log-info "get-profile-by-id query:\n\t~a\n" query))
-           (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query conn query))))
-           (_ (log-info "get-profile-by-id rows: ~a\n"
-                        (length rows))))
+           (rows (execute-read "get-profile-by-id" query)))
       (if (nil? rows) #f
           (car rows))))
 
   (define (get-profile-by-title title)
     (let* ((query (format #f "SELECT ~a FROM profile WHERE title = ~a LIMIT 1"
-                          (symbols->sql-columns-list columns)
+                          cols-sql
                           (value->sql-literal title)))
-           (_ (log-info "get-profile-by-title query:\n\t~a\n" query))
-           (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query conn query))))
-           (_ (log-info "get-profile-by-title rows: ~a\n"
-                        (length rows))))
+           (rows (execute-read "get-profile-by-title" query)))
       (if (nil? rows) #f
           (car rows))))
 
   (define* (get-profiles)
     (let* ((query (format #f "SELECT ~a FROM profile
                    ORDER BY created_at DESC"
-                          (symbols->sql-columns-list columns)))
-           (_ (log-info "get-profiles query:\n\t~a\n" query))
-           (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query conn query))))
-           (_ (log-info "get-profiles rows: ~a\n"
-                        (length rows))))
-      rows))
+                          cols-sql)))
+      (execute-read "get-profiles" query)))
 
   (define (delete-profile-by-id id)
     (let* ((query (format #f "DELETE FROM profile WHERE id = ~a"
-                          (value->sql-literal id)))
-           (_ (log-info "delete-profile-by-id query:\n\t~a\n" query)))
-      (DB-query conn query)))
+                          (value->sql-literal id))))
+      (execute-write "delete-profile-by-id" query)))
 
   (define (insert-profile attrs)
     (let* ((vals (map (lambda (x)
                         (value->sql-literal (assq-ref attrs x)))
                       insert-columns))
            (query (format #f "INSERT INTO profile (~a) VALUES (~a)"
-                          (symbols->sql-columns-list insert-columns)
-                          (string-join vals ", ")))
-           (_ (log-info "insert-profile query:\n\t~a\n" query)))
-      (DB-query conn query)))
+                          insert-cols-sql
+                          (string-join vals ", "))))
+      (execute-write "insert-profile" query)))
 
   (define (update-profile-by-title title attrs)
     (let* ((query (format #f "UPDATE profile SET ~a WHERE title = ~a"
                           (string-join (map pair->sql-assignment attrs) ", ")
-                          (value->sql-literal title)))
-           (_ (log-info "update-log-by-title query:\n\t~a\n" query)))
-      (DB-query conn query)))
+                          (value->sql-literal title))))
+      (execute-write "update-profile-by-title" query)))
 
   (mk-profile-repository #:get-profile-by-id-proc get-profile-by-id
                          #:get-profile-by-title-proc get-profile-by-title
