@@ -69,7 +69,7 @@
   (define (get-jobs-by-ids ids)
     (let* ((query (format #f "SELECT ~a FROM job WHERE id IN(~a)" cols-sql
                           (string-join (map value->sql-literal ids) ", "))))
-      (execute-read "get-jobs-by-ids")))
+      (execute-read "get-jobs-by-ids" query)))
 
   (define* (get-jobs-in-progress #:key limit)
     (let* ((query (format #f
