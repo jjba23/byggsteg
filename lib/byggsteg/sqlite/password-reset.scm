@@ -50,7 +50,7 @@
            (rows (execute-read "get-password-reset-by-token" query))
            (mapped-rows (map (lambda (r)
                                (cons (assq-ref r
-                                               'ticket-id)
+                                               'reset-token)
                                      (assq-ref r
                                                'user-id))) rows)))
       (if (nil? mapped-rows) #f

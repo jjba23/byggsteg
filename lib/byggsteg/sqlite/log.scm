@@ -50,7 +50,7 @@
 
   (define (get-log-by-id id)
     (let* ((query (format #f "SELECT ~a FROM log WHERE id = ~a LIMIT 1"
-                          (symbols->sql-columns-list columns)
+                          cols-sql
                           (value->sql-literal id)))
            (rows (execute-read "get-log-by-id" query)))
       (if (nil? rows) #f
@@ -60,12 +60,12 @@
     (let* ((query (format #f
                    "SELECT ~a FROM log
                    ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                   (symbols->sql-columns-list columns) limit offset)))
+                   cols-sql limit offset)))
       (execute-read "get-logs" query)))
 
   (define (get-logs-by-job-ids ids)
     (let* ((query (format #f "SELECT ~a FROM log WHERE job_id IN (~a)"
-                          (symbols->sql-columns-list columns)
+                          cols-sql
                           (string-join (map value->sql-literal ids) ", "))))
       (execute-read "get-logs-by-job-ids" query)))
 
