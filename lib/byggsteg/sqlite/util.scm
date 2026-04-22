@@ -20,12 +20,16 @@
   #:declarative? #t
   #:use-module (srfi srfi-9)
   #:use-module (ice-9 string-fun)
+  #:use-module (artanis db)
+  #:use-module (kracht prelude)
   #:export (symbols->sql-columns-list sql-row->scheme-alist
                                       symbol->sql-column
                                       sql-column->symbol
                                       alist?
                                       value->sql-literal
-                                      pair->sql-assignment))
+                                      pair->sql-assignment
+                                      db-read
+                                      db-write))
 
 (define (symbol->sql-column x)
   (string-replace-substring (symbol->string x) "-" "_"))
@@ -81,3 +85,16 @@
     ((eq? #f a)
      "0")
     (else (format #f "'~a'" a))))
+
+(define (db-read conn)
+  (lambda (name query)
+    (log-info "~a query:\n\t~a\n" name query)
+    (let ((rows (map sql-row->scheme-alist
+                     (DB-get-all-rows (DB-query conn query)))))
+      (log-info "~a rows: ~a\n" name
+                (length rows)) rows)))
+
+(define (db-write conn)
+  (lambda (name query)
+    (log-info "~a query:\n\t~a\n" name query)
+    (DB-query conn query)))

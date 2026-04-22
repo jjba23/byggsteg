@@ -39,6 +39,12 @@
   (define conn
     (DB-open rc))
 
+    (define execute-write
+    (db-write conn))
+
+  (define execute-read
+    (db-read conn))
+
   (define (get-profile-by-id id)
     (let* ((query (format #f "SELECT ~a FROM profile WHERE id = ~a LIMIT 1"
                           (symbols->sql-columns-list columns)

@@ -30,6 +30,9 @@
   (define columns
     '(id title job-id log-data created-at updated-at))
 
+  (define cols-sql
+    (symbols->sql-columns-list columns))
+
   (define insert-columns
     '(id title job-id log-data created-at))
 
@@ -39,15 +42,17 @@
   (define conn
     (DB-open rc))
 
+  (define execute-write
+    (db-write conn))
+
+  (define execute-read
+    (db-read conn))
+
   (define (get-log-by-id id)
     (let* ((query (format #f "SELECT ~a FROM log WHERE id = ~a LIMIT 1"
                           (symbols->sql-columns-list columns)
                           (value->sql-literal id)))
-           (_ (log-info "get-log-by-id query:\n\t~a\n" query))
-           (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query conn query))))
-           (_ (log-info "get-log-by-id rows: ~a\n"
-                        (length rows))))
+           (rows (execute-read "get-log-by-id" query)))
       (if (nil? rows) #f
           (car rows))))
 
@@ -55,30 +60,19 @@
     (let* ((query (format #f
                    "SELECT ~a FROM log
                    ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                   (symbols->sql-columns-list columns) limit offset))
-           (_ (log-info "get-logs query:\n\t~a\n" query))
-           (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query conn query))))
-           (_ (log-info "get-logs rows: ~a\n"
-                        (length rows))))
-      rows))
+                   (symbols->sql-columns-list columns) limit offset)))
+      (execute-read "get-logs" query)))
 
   (define (get-logs-by-job-ids ids)
     (let* ((query (format #f "SELECT ~a FROM log WHERE job_id IN (~a)"
                           (symbols->sql-columns-list columns)
-                          (string-join (map value->sql-literal ids) ", ")))
-           (_ (log-info "get-logs-by-job-ids query:\n\t~a\n" query))
-           (rows (map sql-row->scheme-alist
-                      (DB-get-all-rows (DB-query conn query))))
-           (_ (log-info "get-logs-by-job-ids rows: ~a\n"
-                        (length rows))))
-      rows))
+                          (string-join (map value->sql-literal ids) ", "))))
+      (execute-read "get-logs-by-job-ids" query)))
 
   (define (delete-log-by-id id)
     (let* ((query (format #f "DELETE FROM log WHERE id = ~a"
-                          (value->sql-literal id)))
-           (_ (log-info "delete-log-by-id query:\n\t~a\n" query)))
-      (DB-query conn query)))
+                          (value->sql-literal id))))
+      (execute-write "delete-log-by-id" query)))
 
   (define (insert-log attrs)
     (let* ((vals (map (lambda (x)
