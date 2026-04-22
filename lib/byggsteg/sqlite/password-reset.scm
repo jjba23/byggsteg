@@ -66,7 +66,7 @@
                         (value->sql-literal (assq-ref attrs x)))
                       insert-columns))
            (query (format #f "INSERT INTO password_reset (~a) VALUES (~a)"
-                          insert-cols-sql
+                          cols-sql
                           (string-join vals ", "))))
       (execute-write "insert-password-reset" query)))
 
