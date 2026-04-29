@@ -305,6 +305,10 @@
                                         (option #:value 'es_ES
                                                 #:content "Español"
                                                 #:selected-value
+                                                selected-locale)
+                                        (option #:value 'ja_JP
+                                                #:content "日本語"
+                                                #:selected-value
                                                 selected-locale)))
                ,(icon-button #:icon 'check
                              #:content ""
@@ -424,4 +428,3 @@
                         'updated-at) #f)
      '())
     (else html)))
-

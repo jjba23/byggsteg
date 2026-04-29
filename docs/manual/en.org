@@ -6,9 +6,9 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://jointhefreeworld.org/static/css/jointhefreeworld.css" />
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" />
 
-[[https://jointhefreeworld.org/ggg/dist/scheme-guile.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-guix.svg]]  
-[[https://jointhefreeworld.org/ggg/dist/gnu-make.svg]] 
-[[https://jointhefreeworld.org/ggg/dist/license-agpl3+.svg]]    [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]] 
+[[https://jointhefreeworld.org/ggg/dist/scheme-guile.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-guix.svg]]
+[[https://jointhefreeworld.org/ggg/dist/gnu-make.svg]]
+[[https://jointhefreeworld.org/ggg/dist/license-agpl3+.svg]]    [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]]
 
 You are reading the manual for Byggsteg.
 
@@ -33,7 +33,7 @@ Byggsteg and Artanis are written using GNU Guile, one of the best implementation
 - *Fully Customizable:* Hack the behavior and content of each UI element with Scheme code.
 - *Cross-platform:* Runs anywhere that Guile Scheme can run, and exposes web endpoints, and is thus accessible from computers, phones, etc.
 - *Free Software*: Contribute to its development or extend it with your own custom features.
-  
+
 [[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
 
 ------------------
@@ -83,12 +83,13 @@ After productive collaboration other kinds of roles can be added and assigned.
 
 byggsteg is a community driven effort and as such, can use your help in translating to several different languages.
 
-- English language (en-US) :: 100% translated
-- Dutch language (nl-NL) :: 100% translated
-- Spanish language (es-ES) :: 100% translated
+- English language (en_US) :: 100% translated
+- Dutch language (nl_NL) :: 100% translated
+- Spanish language (es_ES) :: 100% translated
+- Japanese language (ja_JP) :: 100% translated
 
 ------
-  
+
 * About this Project and Contributing
 
 Contributing to free software (as in freedom) is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
@@ -116,7 +117,7 @@ byggsteg allows you to send code over the wire (HTTP) and save it too, in a thun
     (branch-name . "trunk")
     (task . "maak-test")
     ;; task can also be a list
-    ;; e.g. (task . ("maak-test" "maak-build")    
+    ;; e.g. (task . ("maak-test" "maak-build")
     (clone-url . "https://codeberg.org/jjba23/kracht")))
 #+end_src
 
@@ -136,7 +137,7 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 #+end_src
 
 -----
-  
+
 * Types of jobs
 
 When defining a pipeline alist, the task field can be either a single step, or multiple.
@@ -176,7 +177,7 @@ You should either pass a string or a list of strings of job names.
 
 An example showing a herd daemon restart after the git pull:
 #+begin_src scheme
-(lambda() 
+(lambda()
   `((project . "lucidplan")
     (branch-name . "trunk")
     (task . ("pull-and-restart" "maak-deploy"))
@@ -186,7 +187,7 @@ An example showing a herd daemon restart after the git pull:
 
 An example showing the "trivial" approach where you are free to run what shell commands you please.
 #+begin_src scheme
-(lambda() 
+(lambda()
   `((task . "trivial")
     (trivial-cmds . ("echo 'HELLO WORLD'"))))
 #+end_src
@@ -245,7 +246,7 @@ You can query for the job status via the UI or also via the REST API. You could 
   #   "success": 1,
   #   "failure": 0,
   #   "in-progress": 0,
-  #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",  
+  #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
   #   "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
   #   "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
   # }
@@ -289,7 +290,7 @@ plan:
     request:
       url: https://byggsteg.jointhefreeworld.org/logs/4868ce1e-d029-4fdb-bbbe-d54d1616a631
 
-  
+
 #+end_src
 
 #+begin_example
@@ -454,4 +455,3 @@ History
 
 
 -----
-
