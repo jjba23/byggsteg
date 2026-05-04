@@ -50,12 +50,22 @@
                               ((equal? should-auto-refresh #t)
                                `(meta (@ (content "12")
                                          (http-equiv "refresh")) ()))
-                              (else `()))))
+                              (else `())))
+        (custom-fonts `((link (@ (rel stylesheet)
+                                 (href
+                                  "https://cdnjs.cloudflare.com/ajax/libs/Iosevka/11.1.1/iosevka/iosevka.min.css")))
+                        (link (@ (rel stylesheet)
+                                 (href
+                                  "https://cdnjs.cloudflare.com/ajax/libs/Iosevka/11.1.1/iosevka-slab/iosevka-slab.min.css")))
+                        (link (@ (rel stylesheet)
+                                 (href
+                                  "https://cdnjs.cloudflare.com/ajax/libs/Iosevka/11.1.1/iosevka-aile/iosevka-aile.min.css"))))))
     `(,doctype-html (html (@ (lang en))
                           (head (title ,title)
                                 ,maybe-auto-refresh
                                 ,(hygguile-recommended-meta)
-                                ,(hygguile-recommended-resources)
+                                ,(hygguile-recommended-resources #:fonts
+                                                                 custom-fonts)
                                 (link (@ (rel stylesheet)
                                          (href "/css/byggsteg.olive.min.css"))
                                       "")
