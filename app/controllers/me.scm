@@ -49,7 +49,7 @@
               (user (get-user-by-id user-repo
                                     (assq-ref t
                                               'owner-id))))
-         
+
          (catch #t
                 (lambda ()
                   (response-emit (:mime rc
@@ -119,7 +119,7 @@
                                                     #:email email))))))
 
 (define* (send-to-pingwing #:key body)
-  
+
   (let* ((handle (curl-easy-init))
          (_ (write body))
          (_ (begin
@@ -168,7 +168,7 @@
                                       (assoc-ref existing-token
                                                  'owner-id))
                       (get-user-by-email user-repo email))))
-          
+
           (request-password-reset password-reset-repo u)
           (redirect-to rc
                        (string->uri (format #f "~a/?sent-password-reset=true"
@@ -250,7 +250,7 @@
                                                      (current-myhost)
                                                      reset-token)))
                          (sender-name . "No Reply - Byggsteg")
-                         (sender-address . "noreply@byggsteg.jointhefreeworld.org")
+                         (sender-address . "noreply@mail.jointhefreeworld.org")
                          (subject . "Byggsteg - Password Reset")
                          (recipients . #(((name unquote (assq-ref u (quote username))) (address unquote (assq-ref u (quote email)))))))))
     (send-to-pingwing #:body mail-payload)))
@@ -340,7 +340,7 @@
                                                 (format #f "`~s" permissions)))))
 
                  (u (get-user-by-id user-repo new-id)))
-            
+
             (request-password-reset password-reset-repo u)
             (redirect-to rc
                          (string->uri (format #f
