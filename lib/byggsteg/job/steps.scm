@@ -175,9 +175,9 @@
                             clone-dir))
          (pull-cmd (format #f "cd ~a && git reset --hard && git pull"
                            clone-dir)))
-    (cond
-      (should-clone ($ clone-cmd))
-      (else ($ pull-cmd)))))
+    (if should-clone
+        ($ clone-cmd)
+        ($ pull-cmd))))
 
 (define* (trivial-step #:key project branch-name cmds
                        (env #f))
@@ -257,4 +257,3 @@
     
     (make-step-result succeeded? outsss
                       (string-join (map step-result-cmd rs) "\n"))))
-
