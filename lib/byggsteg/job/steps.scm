@@ -167,7 +167,6 @@
                                    branch-name))
          (git-dir (string-append clone-dir "/.git"))
          (should-clone (not (file-exists? git-dir))))
-    ($ (format #f "echo 'git-dir: ~a should-clone: ~a'" git-dir should-clone))
     (if should-clone
         (let* ((parent-dir (dirname clone-dir))
                (clone-cmd (format #f
@@ -256,6 +255,6 @@
                                  (equal? #f s))
                                (map step-result-succeeded? rs))))
          (outsss (string-join outss "\n")))
-
+    
     (make-step-result succeeded? outsss
                       (string-join (map step-result-cmd rs) "\n"))))

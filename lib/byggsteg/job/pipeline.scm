@@ -156,17 +156,17 @@
                   (else task-or-tasks)))
          (trivial-cmds (assq-ref kv
                                  'trivial-cmds))
-         (sys-steps (if (nil? trivial-cmds)
-                        (list (lambda ()
-                                (sys-details-step #:project project
-                                                  #:branch-name branch-name)))
-                        '()))
          (clone-steps (if (nil? trivial-cmds)
                           (list (lambda ()
                                   (clone-repo-step #:project project
                                                    #:branch-name branch-name
                                                    #:clone-url clone-url)))
                           '()))
+         (sys-steps (if (nil? trivial-cmds)
+                        (list (lambda ()
+                                (sys-details-step #:project project
+                                                  #:branch-name branch-name)))
+                        '()))
          (git-details-steps (if (nil? trivial-cmds)
                                 (list (lambda ()
                                         (git-details-step #:project project
@@ -184,7 +184,7 @@
                                                        #:env env
                                                        #:trivial-cmds
                                                        trivial-cmds)) tasks))))
-         (steps (append sys-steps clone-steps git-details-steps pipe-steps))
+         (steps (append clone-steps sys-steps git-details-steps pipe-steps))
          (result (run-steps steps
                             #:outs (list (format #f "\n~a...\n"
                                                  (gettext "starting new job"))))))
