@@ -167,7 +167,7 @@
                                    branch-name))
          (git-dir (string-append clone-dir "/.git"))
          (should-clone (not (file-exists? git-dir))))
-    
+    (format #t "\ngit-dir: ~a should-clone: ~a" git-dir should-clone)
     (if should-clone
         (let* ((parent-dir (dirname clone-dir))
                (clone-cmd (format #f
