@@ -163,21 +163,23 @@
                      '("uname -a"))))
 
 (define* (clone-repo-step #:key project branch-name clone-url)
-  (let* ((clone-dir (string-append (job-clone-location) project "/"
+  (let* ((clone-dir (string-append (job-clone-location) "/" project "/"
                                    branch-name))
-         (should-clone (not (file-exists? clone-dir)))
-         (clone-cmd (format #f
-                            (string-append "mkdir -p ~a"
-                             " && git clone -b ~a ~a ~a || true")
-                            clone-dir
-                            branch-name
-                            clone-url
-                            clone-dir))
-         (pull-cmd (format #f "cd ~a && git reset --hard && git pull"
-                           clone-dir)))
+         (git-dir (string-append clone-dir "/.git"))
+         (should-clone (not (file-exists? git-dir))))
+    
     (if should-clone
-        ($ clone-cmd)
-        ($ pull-cmd))))
+        (let* ((parent-dir (dirname clone-dir))
+               (clone-cmd (format #f
+                                  "mkdir -p ~s && git clone -b ~s ~s ~s"
+                                  parent-dir
+                                  branch-name
+                                  clone-url
+                                  clone-dir)))
+          ($ clone-cmd))
+        (let ((pull-cmd (format #f "cd ~s && git reset --hard && git pull"
+                                clone-dir)))
+          ($ pull-cmd)))))
 
 (define* (trivial-step #:key project branch-name cmds
                        (env #f))
