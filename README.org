@@ -3,8 +3,8 @@
 #+email: jjbigorra@gmail.com
 #+language: en
 
-[[https://jointhefreeworld.org/ggg/dist/scheme-guile.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-guix.svg]]  
-[[https://jointhefreeworld.org/ggg/dist/license-agpl3+.svg]]    [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/maak.svg]]  [[https://jointhefreeworld.org/ggg/dist/gnu-artanis.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]] 
+[[https://jointhefreeworld.org/ggg/dist/scheme-guile.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-guix.svg]]
+[[https://jointhefreeworld.org/ggg/dist/license-agpl3+.svg]]    [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/maak.svg]]  [[https://jointhefreeworld.org/ggg/dist/gnu-artanis.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]]
 
 
 byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme), leverages SXML, SQLite3, some POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
@@ -80,6 +80,17 @@ The documentation and examples, including this document, which are provided with
 
 https://www.gnu.org/licenses/fdl-1.3.html
 
+----------------------
+
+* AI Policy
+
+This project adheres to the jointhefreeworld AI policy. Find it here:
+
+https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-ai-policy/index.html
+
+In summary, AI should assist human creativity and problem-solving, never replace human reasoning. We strongly favor human-authored code. While tools like Large Language Models (LLMs) and interactive chatbots can be beneficial for reviewing, refactoring small functions, or acting as a sounding board, they should be used with moderation. Contributors must maintain a deep, comprehensive understanding of the task at hand.
+
+
 ---------
 
 * Code of conduct
@@ -107,5 +118,3 @@ Feel free to open issue on tracker, on Git / Codeberg repository, or mail me <jj
 See here the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][Backlog and Kanban]]  for this project.
 
 -------
-
-
