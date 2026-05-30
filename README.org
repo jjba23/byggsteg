@@ -84,12 +84,13 @@ https://www.gnu.org/licenses/fdl-1.3.html
 
 * AI Policy
 
-This project adheres to the jointhefreeworld AI policy. Find it here:
+This project adheres to the [[https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-ai-policy/index.html][jointhefreeworld AI (Artificial Intelligence) policy]].
 
-https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-ai-policy/index.html
+Our core principle is simple: *AI should assist human creativity and problem-solving, never replace human reasoning.*
 
-In summary, AI should assist human creativity and problem-solving, never replace human reasoning. We strongly favor human-authored code. While tools like Large Language Models (LLMs) and interactive chatbots can be beneficial for reviewing, refactoring small functions, or acting as a sounding board, they should be used with moderation. Contributors must maintain a deep, comprehensive understanding of the task at hand.
+While tools like Large Language Models (LLMs) and interactive chatbots can be beneficial for reviewing, refactoring small functions, or acting as a sounding board, they should be used with moderation.
 
+We require a human in the loop for all contributions. The use of autonomous AI agents to automatically generate and submit pull requests to this project is strictly prohibited.
 
 ---------
 
