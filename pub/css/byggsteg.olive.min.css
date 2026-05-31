@@ -33,12 +33,12 @@ ol, ul {list-style:none;}
 /*
   Load Olive CSS Hygge Style Sheets
 */
-.font-sans {font-family:'Iosevka Aile Web', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';}
-.font-mono {font-family:'Iosevka Web', monospace;}
-.font-serif {font-family:'Iosevka Slab Web', ui-serif, serif, 'Times New Roman';}
-.hover\:font-sans {&:hover {font-family:'Iosevka Aile Web', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';}}
-.hover\:font-mono {&:hover {font-family:'Iosevka Web', monospace;}}
-.hover\:font-serif {&:hover {font-family:'Iosevka Slab Web', ui-serif, serif, 'Times New Roman';}}
+.font-sans {font-family:'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';}
+.font-mono {font-family:'Intel One Mono', monospace;}
+.font-serif {font-family:'DejaVu Serif', ui-serif, serif, 'Times New Roman';}
+.hover\:font-sans {&:hover {font-family:'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';}}
+.hover\:font-mono {&:hover {font-family:'Intel One Mono', monospace;}}
+.hover\:font-serif {&:hover {font-family:'DejaVu Serif', ui-serif, serif, 'Times New Roman';}}
 .aspect-square {aspect-ratio:1 / 1;}
 .aspect-auto {aspect-ratio:auto;}
 .aspect-16\/9 {aspect-ratio:16 / 9;}
@@ -5882,9 +5882,9 @@ ol, ul {list-style:none;}
 */
 &:where([data-theme=dark], [data-theme=dark] *)
  {
-.dark\:font-sans {font-family:'Iosevka Aile Web', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';}
-.dark\:font-mono {font-family:'Iosevka Web', monospace;}
-.dark\:font-serif {font-family:'Iosevka Slab Web', ui-serif, serif, 'Times New Roman';}
+.dark\:font-sans {font-family:'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';}
+.dark\:font-mono {font-family:'Intel One Mono', monospace;}
+.dark\:font-serif {font-family:'DejaVu Serif', ui-serif, serif, 'Times New Roman';}
 .dark\:bg-inherit {background:inherit;}
 .dark\:bg-white {background:white;}
 .dark\:bg-black {background:black;}

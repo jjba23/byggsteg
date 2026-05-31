@@ -51,15 +51,14 @@
                                `(meta (@ (content "12")
                                          (http-equiv "refresh")) ()))
                               (else `())))
-        (custom-fonts `((link (@ (rel stylesheet)
-                                 (href
-                                  "https://cdnjs.cloudflare.com/ajax/libs/Iosevka/11.1.1/iosevka/iosevka.min.css")))
+        (custom-fonts `((link (@ (rel preconnect)
+                                 (href "https://fonts.googleapis.com")))
+                        (link (@ (rel preconnect)
+                                 (href "https://fonts.gstatic.com")
+                                 (crossorigin "")))
                         (link (@ (rel stylesheet)
                                  (href
-                                  "https://cdnjs.cloudflare.com/ajax/libs/Iosevka/11.1.1/iosevka-slab/iosevka-slab.min.css")))
-                        (link (@ (rel stylesheet)
-                                 (href
-                                  "https://cdnjs.cloudflare.com/ajax/libs/Iosevka/11.1.1/iosevka-aile/iosevka-aile.min.css"))))))
+                                  "https://fonts.googleapis.com/css2?family=Intel+One+Mono:ital,wght@0,300..700;1,300..700&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"))))))
     `(,doctype-html (html (@ (lang en))
                           (head (title ,title)
                                 ,maybe-auto-refresh
