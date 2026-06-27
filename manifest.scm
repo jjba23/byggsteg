@@ -132,6 +132,7 @@ and obfuscation tricks, producing secure files and tokens one can use.")
     (license license:lgpl3+)))
 
 (packages->manifest (list (specification->package "gettext")
+                          (specification->package "make")
                           guile-3.0-latest
                           guile-scriba
                           guile-ares-rs
