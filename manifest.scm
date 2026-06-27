@@ -131,9 +131,9 @@ Data is protected through multiple layers of cryptography techniques
 and obfuscation tricks, producing secure files and tokens one can use.")
     (license license:lgpl3+)))
 
-(packages->manifest (list (specification->package "make")
-                          (specification->package "gettext")
-                          guile-next
+(packages->manifest (list (specification->package "gettext")
+                          guile-3.0-latest
+                          guile-scriba
                           guile-ares-rs
                           artanis
                           guile-hygguile

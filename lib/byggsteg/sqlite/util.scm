@@ -21,6 +21,8 @@
   #:use-module (srfi srfi-9)
   #:use-module (ice-9 string-fun)
   #:use-module (artanis db)
+  #:use-module (scriba scriba)
+  #:use-module (scriba auto)
   #:use-module (kracht prelude)
   #:export (symbols->sql-columns-list sql-row->scheme-alist
                                       symbol->sql-column
@@ -86,15 +88,18 @@
      "0")
     (else (format #f "'~a'" a))))
 
+(define s
+  (scriba-auto-logger))
+
 (define (db-read conn)
   (lambda (name query)
-    (log-info "~a query:\n\t~a\n" name query)
+    (log-debug s "~a query:\n\t~a\n" name query)
     (let ((rows (map sql-row->scheme-alist
                      (DB-get-all-rows (DB-query conn query)))))
-      (log-info "~a rows: ~a\n" name
-                (length rows)) rows)))
+      (log-debug s "~a rows: ~a\n" name
+                 (length rows)) rows)))
 
 (define (db-write conn)
   (lambda (name query)
-    (log-info "~a query:\n\t~a\n" name query)
+    (log-debug s "~a query:\n\t~a\n" name query)
     (DB-query conn query)))
