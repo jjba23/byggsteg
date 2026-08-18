@@ -120,23 +120,18 @@ See here the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][Backlog 
 
 -------
 
-* On Reproducibility, and Why GNU Guix? 🐂️
+* On Reproducibility: Why GNU Guix?
 
-A build should never fail because "it works on my machine." Software must aim to be transparent, fluid, powerful, and extensible, and for this, reproducibility is essential.
+A build should never fail because "it worked on my machine." Reliable software development requires explicit, bit-for-bit reproducibility and a functional approach to package management and system deployment.
 
-With [[https://guix.gnu.org/][GNU Guix]], you get:
+#+BEGIN_EXPORT html
+<a href="https://guix.gnu.org/">
+  <img src="https://jointhefreeworld.org/ggg/dist/gnu-guix.svg" alt="GNU Guix logo" style="max-width: 250px; width: 100%; height: auto;" />
+</a>
+#+END_EXPORT
 
-- 🧠 *Infinite Expressiveness:* [[https://www.gnu.org/software/guile/][Guile Scheme]] provides total, unconstrained control over packages and build definitions.
-- 🎯 *Bit-Identical Environments:* Every dependency graph is declarative, immutable, and functionally derived.
-- ⏳ *Time Travel:* Recreate the exact system state from months or years ago using ~guix time-machine~.
-- ✨ *No Hidden State:* Build artifacts are pure functions of their inputs—zero implicit system dependencies.
-- 🔍 *Total Inspectability:* Easily inspect, modify, and patch any point in the build graph.
-
-Far from rigid, absolute reproducibility empowers fearless experimentation:
-
-- *Declarative Shells:* Instantly spin up isolated environments:
-  #+BEGIN_SRC sh
-  guix shell -m manifest.scm
-  #+END_SRC
-- 🔄 *Transactional Upgrades & Rollbacks:* Experiment freely. If an update breaks, rollbacks are atomic and instantaneous.
-- *Unified Tooling:* One tool seamlessly handles dev shells, containers, system configs, and package builds.
+- *Declarative Build Graphs:* Packages are pure functions of their inputs with no implicit system state.
+- *Programmable with Guile:* Full system and package configurations written in [[https://www.gnu.org/software/guile/][Guile Scheme]] rather than rigid DSLs or static files.
+- *Time Travel:* Rebuild the exact system state from any point in git history using ~guix time-machine~.
+- *Atomic Operations:* Instantly upgrade or roll back environments without leaving orphaned dependencies or broken states.
+- *Unified Tooling:* One tool manages development shells, isolated containers, package builds, and full system configurations.
