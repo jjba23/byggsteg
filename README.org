@@ -120,6 +120,14 @@ See here the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][Backlog 
 
 -------
 
+** On Lucida fonts
+
+Lucida fonts are proprietary typefaces originally developed by Bigelow & Holmes. They remain a long-time favorite for many people and are very legible in many situations and hardware/software. While they are bundled pre-installed on many operating systems and platforms, they remain proprietary fonts.
+
+You may use these font files under principles of fair use or for local development and non-commercial purposes, provided it is not for profit and used without securing a proper commercial license where required by law. Users and contributors are solely responsible for ensuring their usage complies with applicable software licensing terms and intellectual property rights.
+
+--------
+
 * On Reproducibility: Why GNU Guix?
 
 A build should never fail because "it worked on my machine." Reliable software development requires explicit, bit-for-bit reproducibility and a functional approach to package management and system deployment.
