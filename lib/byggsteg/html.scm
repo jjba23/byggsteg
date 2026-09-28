@@ -50,21 +50,13 @@
                               ((equal? should-auto-refresh #t)
                                `(meta (@ (content "12")
                                          (http-equiv "refresh")) ()))
-                              (else `())))
-        (custom-fonts `((link (@ (rel preconnect)
-                                 (href "https://fonts.googleapis.com")))
-                        (link (@ (rel preconnect)
-                                 (href "https://fonts.gstatic.com")
-                                 (crossorigin "")))
-                        (link (@ (rel stylesheet)
-                                 (href
-                                  "https://fonts.googleapis.com/css2?family=Intel+One+Mono:ital,wght@0,300..700;1,300..700&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"))))))
+                              (else `()))))
     `(,doctype-html (html (@ (lang en))
                           (head (title ,title)
                                 ,maybe-auto-refresh
                                 ,(hygguile-recommended-meta)
                                 ,(hygguile-recommended-resources #:fonts
-                                                                 custom-fonts)
+                                                                 (custom-fonts))
                                 (link (@ (rel stylesheet)
                                          (href "/css/byggsteg.olive.min.css"))
                                       "")
