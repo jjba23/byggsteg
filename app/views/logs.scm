@@ -62,7 +62,7 @@
                         (sub-h4 (G_ "job succeeded")
                                 #:color '(text-asparagus-900
                                           dark:text-asparagus-300)
-                                #:size '(text-xl)))
+                                #:size '(text-base sm:text-lg md:text-xl)))
                        ((equal? failure 1)
                         (sub-h4 (G_ "job failed")
                                 #:color '(text-redwood-900
@@ -95,10 +95,11 @@
                                              #:hover-background '(hover:bg-redwood-900))))
          (log-html `((div (@ (class ,(mk-class '(flex flex-row
                                                       flex-wrap
-                                                      align-center
                                                       items-center
-                                                      gap-6
-                                                      py-3))))
+                                                      gap-2
+                                                      py-2
+                                                      sm:gap-3
+                                                      sm:py-3))))
                           ,(h4 log-filename)
                           ,job-status)
                      
@@ -161,9 +162,15 @@
                    #:is-logged-in is-logged-in
                    #:body `((div (@ (class ,(mk-class '(w-full flex
                                                                flex-col
-                                                               gap-6
-                                                               py-6
-                                                               px-6
+                                                               gap-3
+                                                               py-3
+                                                               px-3
+                                                               sm:gap-4
+                                                               sm:py-4
+                                                               sm:px-4
+                                                               md:gap-6
+                                                               md:py-6
+                                                               md:px-6
                                                                align-center))))
                                  ,log-html))
                    #:should-auto-refresh (equal? 1 in-progress))))
@@ -199,9 +206,15 @@
                                    '()))))
          (logs-html `((div (@ (class ,(mk-class '(w-full flex
                                                   flex-col
-                                                  gap-4
-                                                  py-6
-                                                  px-6
+                                                  gap-3
+                                                  py-3
+                                                  px-3
+                                                  sm:gap-4
+                                                  sm:py-4
+                                                  sm:px-4
+                                                  md:gap-6
+                                                  md:py-6
+                                                  md:px-6
                                                   align-center
                                                   whitespace-break-spaces))))
                            ,(h1 (G_ "logs"))
@@ -220,4 +233,3 @@
                    #:is-logged-in is-logged-in
                    #:body logs-html
                    #:should-auto-refresh #t)))
-
