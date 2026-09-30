@@ -55,8 +55,7 @@
                           (head (title ,title)
                                 ,maybe-auto-refresh
                                 ,(hygguile-recommended-meta)
-                                ,(hygguile-recommended-resources #:fonts
-                                                                 (custom-fonts))
+                                ,(hygguile-recommended-resources #:fonts (custom-fonts))
                                 (link (@ (rel stylesheet)
                                          (href "/css/byggsteg.olive.min.css"))
                                       "")
@@ -176,18 +175,39 @@
                      #:content (G_ "profiles")))))
 (define* (page-top G_
                    #:key is-logged-in)
-  (let* ((action-buttons `(,(run-job-button G_) ,(ui-mode-button #:size '(text-md)
-                                                                 #:extra-classes '
-                                                                 (py-1 md:py-2
-                                                                  px-2
-                                                                  md:px-3
-                                                                  max-w-prose
-                                                                  cursor-pointer
-                                                                  text-onyx-700
-                                                                  dark:text-stone-300)
-                                                                 #:icon-css '(text-onyx-300
-                                                                              dark:text-stone-300
-                                                                              text-lg))))
+  (let* ((action-buttons `(,(run-job-button G_)
+
+                           ;; Theme switch
+                           ,(ui-mode-button #:icon ""
+                                            #:size '(text-sm sm:text-md)
+                                            #:icon-css '(text-onyx-300
+                                                         dark:text-stone-300
+                                                         text-sm sm:text-md)
+                                            #:family '(font-sans)
+                                            #:content `((div ,(icon #:type 'sun
+                                                                    #:icon-css '
+                                                                    (text-sm
+                                                                     sm:text-md
+                                                                     lg:text-lg
+                                                                     text-onyx-300
+                                                                     dark:text-stone-300))
+                                                             ,(icon #:type 'moon
+                                                                    #:icon-css '
+                                                                    (text-sm
+                                                                     sm:text-md
+                                                                     lg:text-lg
+                                                                     text-onyx-300
+                                                                     dark:text-stone-300))))
+                                            #:color '(text-onyx-900
+                                                      dark:text-stone-100)
+                                            #:weight '(font-light)
+                                            #:extra-classes '(shrink-0 py-1
+                                                              px-2
+                                                              sm:py-1
+                                                              sm:px-2
+                                                              md:py-2
+                                                              md:px-3
+                                                              cursor-pointer))))
          (link-buttons `((div ,(logs-button G_))
                          (div ,(profiles-button G_))
                          (div ,(if (not is-logged-in)
@@ -230,28 +250,33 @@
 
 (define (page-footer G_)
   (footer `((div (@ (class ,(mk-class '(py-2))))
-                 ,(em (G_ "byggsteg is the hackable Guile CI/CD system")))
+                 ,(em (G_ "the hackable and extensible CI/CD system")))
             ,(em (G_
-                  "byggsteg is free software, available under the GNU AGPL v3 or newer"))
+                  "byggsteg is free software, available under the GNU AGPL v3 or newer")
+                 #:size '(text-sm))
             (div (@ (class ,(mk-class '(mt-1 flex
                                              flex-row
                                              flex-wrap
-                                             gap-4
+                                             gap-2
                                              align-center
                                              items-center))))
-                 ,(em (G_ "find the source code here"))
-                 ,(a "https://codeberg.org/jjba23/byggsteg"
+                 ,(em (G_ "find here the:"))
+                 ,(a "source code"
+                     #:href "https://codeberg.org/jjba23/byggsteg"
                      #:size '(text-md)
                      #:color '(text-jeans-blue-700 dark:text-jeans-blue-100)))
             (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-2
                                              align-center items-center))))
-                 ,(em (G_ "find the manual here"))
-                 ,(a "https://jointhefreeworld.org/manuals/byggsteg/"
+                 ,(em (G_ "find here the:"))
+                 ,(a "manual"
+                     #:href "https://jointhefreeworld.org/manuals/byggsteg/"
                      #:size '(text-md)
                      #:color '(text-jeans-blue-700 dark:text-jeans-blue-100)))
             (div ,(em (G_
-                       "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS")))
-            (div ,(em (G_ "Copyright © Josep Bigorra & NalaGinrut")))
+                       "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS")
+                      #:size '(text-sm)))
+            (div ,(em (G_ "Copyright © Josep Bigorra & NalaGinrut")
+                      #:size '(text-sm)))
             (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-8
                                              align-center items-center))))
                  (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-2
