@@ -97,8 +97,12 @@
                                                        rounded-none
                                                        font-mono))))
                                 ,notification-tray
+                                ;; `min-h-screen' rather than `h-screen': the
+                                ;; footer still sits at the bottom of a short
+                                ;; page, and a tall one is free to scroll past
+                                ;; the sticky bar of glass above it.
                                 (div (@ (class ,(mk-class '(flex flex-col
-                                                            h-screen
+                                                            min-h-screen
                                                             justify-between))))
                                      (div ,(page-top G_
                                                      #:is-logged-in
@@ -236,19 +240,13 @@
                          (div ,(if (not is-logged-in)
                                    (login-button G_)
                                    (me-button G_))))))
-    `((div (@ (class ,(mk-class '(py-3 py-1
-                                          md:py-2
-                                          px-2
-                                          md:px-3
-                                          sm:px-5
-                                          shadow-md
-                                          bg-stone-100
-                                          dark:bg-onyx-900
-                                          border-b-2
-                                          border-asparagus-700
-                                          dark:border-asparagus-900))))
-
-           (div (@ (class ,(mk-class '(px-3 pb-3 pt-1 w-full))))
+    ;; The bar is a pane of terminal glass rather than an opaque strip: it stays
+    ;; under the reader's eye while the page scrolls, and whatever passes behind
+    ;; it arrives tinted and blurred.  It takes no washes -- the wordmark and the
+    ;; buttons are all there is to see through it -- and no rounding, so it reads
+    ;; as a full-width shelf of the same console as the frames below.
+    (terminal-glass-panel
+     `((div (@ (class ,(mk-class '(px-3 pb-3 pt-1 w-full))))
                 ;; The wordmark is a shell prompt with a live block cursor.
                 (a (@ (href "/")
                       (class ,(mk-class '(flex flex-row items-center gap-2
@@ -267,7 +265,14 @@
                 (div (@ (class ,(mk-class '(flex flex-row justify-start gap-2))))
                      ,link-buttons)
                 (div (@ (class ,(mk-class '(flex flex-row justify-start gap-2))))
-                     ,action-buttons))))))
+                     ,action-buttons)))
+     #:tag 'header
+     #:position '(sticky top-0 z-10)
+     #:padding '(py-1 px-2 md:px-3 sm:px-5)
+     #:classes '(w-full)
+     #:rounding '()
+     #:border '(border-b-2 border-asparagus-700 dark:border-asparagus-900)
+     #:washes '())))
 
 (define (page-footer G_)
   ;; The footer is hygguile's own component, so the terminal surface is a

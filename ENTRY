@@ -25,6 +25,7 @@
 (use-modules (artanis artanis)
              ;; Put modules you want to be imported here
              ;; only for this file, not controllers/views
+             (byggsteg errors)
              (ice-9 threads)
              (artanis utils)
              (ice-9 i18n)
@@ -66,6 +67,12 @@
          (load "env.scm"))
        (lambda (key . args)
          (display (format #f "error loading env.scm: ~a: ~a" key args))))
+
+;; The pages for the statuses Artanis answers itself -- a 404 raised in the
+;; router, a 400 it could not parse, a 500 out of a controller -- are given to
+;; it here, before the server starts serving.  Without them a status page has an
+;; empty body, so one request in four of these cannot even say what happened.
+(register-error-pages!)
 
 ;; Store the thread object belonging to the byggsteg queue worker
 (define worker-thread

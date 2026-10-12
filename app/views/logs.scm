@@ -127,7 +127,11 @@
 
                      ,delete-button
 
-                     (details (@ (class ,(mk-class '(my-4))))
+                     ;; Open by default: the expression a job will run is the
+                     ;; first thing a reader wants when a job misbehaves, and a
+                     ;; collapsed disclosure hides it behind a click.
+                     (details (@ (class ,(mk-class '(my-4)))
+                                 (open ""))
                               (summary (@ (class ,(mk-class '(cursor-pointer
                                                               text-asparagus-900 dark:text-asparagus-300
 

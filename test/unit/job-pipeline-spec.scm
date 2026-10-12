@@ -33,6 +33,8 @@
   #:use-module (veritas veritas)
   #:use-module (byggsteg job pipeline)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg domain job)
+  #:use-module (byggsteg domain log)
   #:use-module (byggsteg sqlite job)
   #:use-module (byggsteg sqlite log)
   #:use-module (byggsteg sqlite util)
@@ -92,7 +94,7 @@
           "(lambda () `((project . \"job-pipeline-spec\")
                          (branch-name . \"trunk\")
                          (task . \"trivial\")
-                         (trivial-cmds . (~s))))"
+                         (trivial-cmds . ~s)))"
           (list trivial-command)))
 
 (define (log-id job-id)
@@ -101,18 +103,20 @@
 
 (define* (enqueue! job-id job-data
                    #:key (with-log? #f)
+                   (in-progress? #t)
                    (created-at "2026-01-01 00:00:00"))
   "Queue a job the way a request does: in progress, and with a log row when asked.
 
 CREATED-AT is written down rather than taken from the clock, because the sweep
 claims the oldest job first and two jobs queued in the same second would
-otherwise have no defined order."
+otherwise have no defined order.  A job with IN-PROGRESS? #f is a row the sweep
+never claims, which the contract test needs."
   (insert-job job-repo
               `((id unquote job-id)
                 (title unquote (string-append "spec " job-id))
                 (job-data unquote (html-escape job-data))
                 (job-success . 0)
-                (job-in-progress . 1)
+                (job-in-progress unquote (if in-progress? 1 0))
                 (job-failed . 0)
                 (created-at unquote created-at)))
   (if with-log?
@@ -127,11 +131,11 @@ otherwise have no defined order."
 ;; A job that is not in progress: the sweep never claims it, so only the contract
 ;; test touches this one.
 (define refused-job "spec-not-a-thunk")
-(enqueue! refused-job "42" #:created-at "2026-01-01 00:00:00")
+(enqueue! refused-job "42" #:in-progress? #f #:created-at "2026-01-01 00:00:00")
 
-;; The sweep's jobs, queued oldest first.  The two it cannot run are ahead of the
-;; job that must still finish, so a sweep that gave up at the first broken row
-;; would leave that last job in progress and be caught by it.
+;; The sweep's jobs, queued oldest first.  The three it cannot run are ahead of
+;; the jobs that must still finish, so a sweep that gave up at the first broken
+;; row would leave those last jobs in progress and be caught by them.
 (define unparseable-job "spec-unparseable")
 (enqueue! unparseable-job "(this is (not scheme" #:created-at "2026-01-02 00:00:00")
 
@@ -166,8 +170,8 @@ otherwise have no defined order."
   ;; `job_success' 1, `job_in_progress' 0, `job_failed' 0.
   '("1" "0" "0"))
 
+;; What every job the sweep is given must look like once the sweep is over.
 (define expected-outcomes
-  "What every job the sweep is given must look like once the sweep is over."
   (list (cons unparseable-job failed-flags)
         (cons empty-data-job failed-flags)
         (cons not-a-thunk-job failed-flags)
@@ -188,6 +192,16 @@ otherwise have no defined order."
                     complaints
                     (cons (list 'job job-id 'should-be should-be 'is is)
                           complaints)))))))
+
+(define (refused-job-complaints)
+  "The ways the job the pipeline refuses to run was touched anyway.
+
+It is not in progress, so nothing but the pipeline itself could have written to
+it, and a refusal that marked the job done would be a job never run."
+  (let ((is (outcome-flags refused-job)))
+    (if (equal? is '("0" "0" "0"))
+        '()
+        (list (list 'job refused-job 'should-be '("0" "0" "0") 'is is)))))
 
 (define (log-complaints)
   "The ways the logs after a sweep can be wrong, as readings to print.
@@ -268,7 +282,9 @@ the module it lives in."
                                                                    refused-job)
                                               #:log #f))
                               #:on 'misc-error
-                              #:name "job data that is not a procedure raises"))
+                              #:name "job data that is not a procedure raises")
+               (assert-empty #:name "a refused job is left for the sweep to fail"
+                             #:got (deferred 'refused-job-complaints)))
          (test "the sweep fails what it cannot run, and runs a job with no log"
                #:shuffle? #f
                (assert-empty #:name "every job ended as it should, and the logs are right"

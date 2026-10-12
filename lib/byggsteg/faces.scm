@@ -90,6 +90,130 @@
 (export terminal-frame-class)
 
 ;;
+;; Frosted terminal glass
+;;
+
+;; The panel again, as a pane of glass: hygguile's frosted surface wearing the
+;; terminal's own dress -- the phosphor hairline, square corners, the mono face
+;; -- so a window of glass still reads as another window of the same console.
+;;
+;; The tint is hygguile's own default, and deliberately so: this project loads
+;; the prebuilt Olive sheet, which carries the two translucencies the component
+;; tints with (`bg-stone-100/75' and `dark:bg-onyx-900/75') rather than every
+;; colour at every alpha.  The washes below are picked from the alphas that
+;; sheet really has, since a wash is a class name like any other.
+(define-public terminal-glass-tint
+  '(bg-stone-100/75 dark:bg-onyx-900/75))
+
+(define-public terminal-glass-border
+  '(border-2 border-asparagus-700 dark:border-asparagus-900))
+
+(define-public terminal-glass-rounding
+  '(rounded-none))
+
+(define-public terminal-glass-shadow
+  '(shadow-md))
+
+;; The discs are written here as markup rather than handed to the panel as
+;; `glass-wash' descriptors, and the reason is how a wash is serialized: a
+;; descriptor becomes an element with no children, which this page's serializer
+;; closes as `<div .../>'.  An HTML parser reads that slash as nothing and takes
+;; the tag for an opening one, so every disc swallows whatever follows it and
+;; the pane's content ends up nested inside a blurred, absolutely positioned
+;; disc -- drawn a blur away from where it belongs.  A disc with a child of its
+;; own is closed by the serializer, and the panel still clips it to the pane's
+;; corners and keeps the content in a layer above it.
+(define* (terminal-glass-disc #:key
+                              (colour '(bg-asparagus-700/50))
+                              (size '(w-72 h-72))
+                              (place '(left-0 top-0))
+                              (delay "-4s")
+                              (pace "34s"))
+  "One drifting disc of phosphor, a wash the parser can keep.
+
+COLOUR, SIZE and PLACE are the disc's own, DELAY starts it that far into its
+cycle -- which is how several discs are kept out of phase -- and PACE is how
+long one drift takes.  The mechanics around them (the absolute positioning, the
+heavy blur, the rounding, the fact that a disc never takes a pointer event) are
+hygguile's, restated from `glass-wash-classes' because the framework writes the
+descriptor form this page's serializer cannot close."
+  (list 'div
+        (list '@
+              (list 'aria-hidden "true")
+              (list 'style
+                    (format #f "animation-delay: ~a; --hg-blob-duration: ~a"
+                            delay pace))
+              (list 'class
+                    (mk-class (append '(absolute hg-blob blur-3xl opacity-75
+                                                 pointer-events-none
+                                                 select-none rounded-512)
+                                      colour size place))))
+        ""))
+
+;; Two phosphor discs thrown across a pane and kept out of phase: the panel
+;; clips them to its own square corners and blurs them, which is what gives the
+;; glass something to hold.  A bar wants none of them (see `page-top').
+(define-public terminal-glass-washes
+  (list (terminal-glass-disc)
+        (terminal-glass-disc #:colour '(bg-olive-500/50)
+                             #:size '(w-96 h-96)
+                             #:place '(right-0 bottom-0)
+                             #:delay "-13s"
+                             #:pace "46s")))
+
+(define* (terminal-glass-panel content
+                               #:key
+                               (tag 'div)
+                               (padding '(p-4))
+                               (position '(relative))
+                               (washes terminal-glass-washes)
+                               (frost 3)
+                               (tint terminal-glass-tint)
+                               (rounding terminal-glass-rounding)
+                               (border terminal-glass-border)
+                               (shadow terminal-glass-shadow)
+                               (classes '())
+                               (content-classes '())
+                               (attributes '()))
+  "A pane of byggsteg glass: hygguile's frosted surface in the terminal's dress.
+
+CONTENT is what the pane holds, PADDING its padding and CLASSES any layout or
+width classes of its own; its tint, rounding, border and shadow are the
+terminal's, and a colour utility in CLASSES replaces the default it names.
+
+WASHES say what colours the glass is made of and FROST how strong the frost is,
+and the discs drift slowly in the pane -- the stylesheet stops them for a reader
+who asks for less motion.  TINT, ROUNDING, BORDER and SHADOW are the terminal's
+own unless a pane says otherwise -- a bar asks for `#:rounding '()' and a
+hairline along its bottom edge.  A pane with washes holds its contents in a
+layer of its own, so CONTENT-CLASSES is where such a pane lays them out
+(`(flex flex-col gap-2)'); a pane without washes, a bar, keeps its contents
+directly.
+
+TAG lets a bar be a `header' and POSITION where it is placed -- `(sticky top-0
+z-10)' is what keeps a bar of glass under the reader's eye."
+  (glass-panel content
+               #:tag tag
+               #:attributes attributes
+               #:padding padding
+               #:position position
+               #:washes '()
+               ;; the discs ride in a positioned box of their own, which is
+               ;; what a pane that hands hygguile its washes gets for free
+               #:accent (and (pair? washes)
+                             (append (list 'div
+                                           '(@ (class "absolute inset-0")))
+                                     washes))
+               #:frost frost
+               #:classes classes
+               #:content-classes content-classes
+               #:tint tint
+               #:border border
+               #:rounding rounding
+               #:shadow shadow))
+(export terminal-glass-panel)
+
+;;
 ;; Buttons
 ;;
 (define base-button

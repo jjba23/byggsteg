@@ -43,26 +43,26 @@
                   "[ok] maak deploy\n"
                   "$ ")))
 
-;; The job-code DSL as a reader would write it, pretty-printed by hygguile's
-;; `pretty-code' (new in Hygguile 2.5).  Job data is sent as a thunk whose value
-;; is that alist, so the sample is one too; showing the bare alist would teach a
-;; job that the worker refuses.
+;; The job-code DSL as a reader would write it.  Job data is sent as a thunk
+;; whose value is that alist, so the sample is one too; showing the bare alist
+;; would teach a job that the worker refuses.  It is written out rather than
+;; handed to hygguile's `pretty-code', which hangs a thunk's body deeply under
+;; the head and spells `quasiquote' in full.
 (define (pipeline-sample)
   (terminal-pre
-   (pretty-code
-    '(lambda ()
-       `((project . "wikimusic")
-         (branch-name . "trunk")
-         (daemon-name . "wikimusic-daemon")
-         (clone-url . "https://codeberg.org/jjba23/wikimusic.git")
-         (task . ("maak-test" "maak-deploy")))))))
+   (string-append "(lambda ()\n"
+                  "  `((project . \"wikimusic\")\n"
+                  "    (branch-name . \"trunk\")\n"
+                  "    (daemon-name . \"wikimusic-daemon\")\n"
+                  "    (clone-url . \"https://codeberg.org/jjba23/wikimusic.git\")\n"
+                  "    (task . (\"maak-test\" \"maak-deploy\"))))")))
 
 (define (job-type-expl G_)
   (let* ((dl-classes '(flex flex-col gap-1 py-2))
          (dd-classes '(py-3 px-2 text-asparagus-900 dark:text-asparagus-300 font-mono)))
-    `(div (@ (class ,(terminal-frame-class #:extra '(max-w-prose p-4))))
-          ,(terminal-heading (G_ "job types"))
-          ,(dl (list (dt (list (terminal-code "maak-test") " | "
+    (terminal-glass-panel
+     (list (terminal-heading (G_ "job types"))
+           (dl (list (dt (list (terminal-code "maak-test") " | "
                                (terminal-code "make-test")))
                      (dd (G_ "Run test suite with Maak or Make")
                          #:dd-classes dd-classes
@@ -93,7 +93,9 @@
                           "Allow passing arbitrary list of commands (via trivial-cmds field)")
                          #:dd-classes dd-classes
                          #:size '(text-md)))
-               #:dl-classes dl-classes))))
+               #:dl-classes dl-classes))
+     #:classes '(max-w-prose)
+     #:content-classes '(flex flex-col gap-2))))
 
 (define* (welcome-page rc
                        #:key is-logged-in selected-locale)
@@ -138,10 +140,10 @@
 
                                    (div ,(job-type-expl G_))
 
-                                   (div (@ (class ,(terminal-frame-class
-                                                    #:extra '(flex flex-col gap-2 p-4))))
-                                        ,(terminal-heading (G_ "a pipeline"))
-                                        ,(pipeline-sample))
+                                   (div ,(terminal-glass-panel
+                                          (list (terminal-heading (G_ "a pipeline"))
+                                                (pipeline-sample))
+                                          #:content-classes '(flex flex-col gap-2)))
 
                                    (div (@ (class ,(mk-class '(flex flex-col
                                                                gap-4
