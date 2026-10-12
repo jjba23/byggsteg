@@ -82,10 +82,8 @@
 
   (define (insert-user attrs)
     (let* ((vals (map (lambda (x)
-                        (value->sql-literal (assq-ref attrs x)))
-                      columns))
-           (query (format #f "INSERT INTO user (~a) VALUES (~a)"
-                          cols-sql
+                        (value->sql-literal (assq-ref attrs x))) columns))
+           (query (format #f "INSERT INTO user (~a) VALUES (~a)" cols-sql
                           (string-join vals ", "))))
       (execute-write "insert-user" query)))
 

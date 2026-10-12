@@ -49,7 +49,7 @@
               (user (get-user-by-id user-repo
                                     (assq-ref t
                                               'owner-id))))
-
+         
          (catch #t
                 (lambda ()
                   (response-emit (:mime rc
@@ -119,7 +119,7 @@
                                                     #:email email))))))
 
 (define* (send-to-pingwing #:key body)
-
+  
   (let* ((handle (curl-easy-init))
          (_ (write body))
          (_ (begin
@@ -168,7 +168,7 @@
                                       (assoc-ref existing-token
                                                  'owner-id))
                       (get-user-by-email user-repo email))))
-
+          
           (request-password-reset password-reset-repo u)
           (redirect-to rc
                        (string->uri (format #f "~a/?sent-password-reset=true"
@@ -340,7 +340,7 @@
                                                 (format #f "`~s" permissions)))))
 
                  (u (get-user-by-id user-repo new-id)))
-
+            
             (request-password-reset password-reset-repo u)
             (redirect-to rc
                          (string->uri (format #f

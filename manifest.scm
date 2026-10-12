@@ -47,7 +47,7 @@
 (define-public guile-hygguile
   (package
     (name "guile-hygguile")
-    (version "2.2.2")
+    (version "2.5.0")
     (source
      (origin
        (method git-fetch)
@@ -56,9 +56,9 @@
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1b6m1nli9xlcnivqk5cwai96v7pygk65wh004hpblddwby8aw00s"))))
+        (base32 "1vdqzxs2n97iqk53p0an3fzxrghh12q14v3ahm84yf7pcyyyny2d"))))
     (build-system guile-build-system)
-    (native-inputs (list guile-3.0))
+    (native-inputs (list guile-uuid guile-3.0))
     (arguments
      (list
       #:source-directory "src"))
@@ -77,7 +77,7 @@ easing the learning curve, and reducing the cognitive load.")
 (define-public guile-kracht
   (package
     (name "guile-kracht")
-    (version "0.1.10")
+    (version "0.3.0")
     (source
      (origin
        (method git-fetch)
@@ -86,7 +86,7 @@ easing the learning curve, and reducing the cognitive load.")
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1npicqxlahm03a6ass8f5jkjb9przn76maff5g69ag1cli8l56sw"))))
+        (base32 "0ayazqxg5rcvfpabfican1a2mzix63nklj06ksdb34zlbbiqzcjr"))))
     (build-system guile-build-system)
     (native-inputs (list guile-3.0))
     (arguments
@@ -128,6 +128,7 @@ Tokens are protected through multiple layers of cryptography techniques
 and obfuscation tricks, producing secure tokens you can use for example for
 user sessions on the web or authenticating API calls.")
     (license license:lgpl3+)))
+
 
 (packages->manifest (list (specification->package "gettext")
                           (specification->package "make")

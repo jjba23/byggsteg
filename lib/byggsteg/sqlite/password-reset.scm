@@ -63,8 +63,7 @@
 
   (define (insert-password-reset attrs)
     (let* ((vals (map (lambda (x)
-                        (value->sql-literal (assq-ref attrs x)))
-                      columns))
+                        (value->sql-literal (assq-ref attrs x))) columns))
            (query (format #f "INSERT INTO password_reset (~a) VALUES (~a)"
                           cols-sql
                           (string-join vals ", "))))
