@@ -45,10 +45,11 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
                                      needed-permissions
                                      #:present (assoc-ref t
                                                           'owner-permissions)))
-            (has-expired (is-token-expired? #:token t)))
+            ;; `token-valid?' (bewaking 0.4.0) checks the payload shape and
+            ;; the `token-expires-at' stamp in one go.
+            (valid (token-valid? #:token t)))
        (cond
-         ((and has-needed-permissions
-               (not has-expired))
+         ((and has-needed-permissions valid)
           (happy-flow))
          (else (unhappy-flow rc)))))
     (else (unhappy-flow rc))))
@@ -70,10 +71,11 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
                                      needed-permissions
                                      #:present (assoc-ref t
                                                           'owner-permissions)))
-            (has-expired (is-token-expired? #:token t)))
+            ;; `token-valid?' (bewaking 0.4.0) checks the payload shape and
+            ;; the `token-expires-at' stamp in one go.
+            (valid (token-valid? #:token t)))
        (cond
-         ((and has-needed-permissions
-               (not has-expired))
+         ((and has-needed-permissions valid)
           (happy-flow))
          (else (unhappy-flow rc)))))
     (else (unhappy-flow rc))))

@@ -53,24 +53,21 @@
                             'job-failed))
          (G_ (:i18n rc))
          (dl-class (mk-class '(py-3 gap-2)))
-         (dt-class (mk-class '(font-sans text-xs text-stone-800
-                                         dark:text-stone-400 font-bold pt-2)))
-         (dd-class (mk-class '(pl-3 font-sans text-sm text-onyx-300
-                                    dark:text-stone-300 font-medium)))
+         (dt-class (mk-class '(font-mono text-xs uppercase tracking-widest
+                                         text-asparagus-300 font-bold pt-2)))
+         (dd-class (mk-class '(pl-3 font-mono text-sm text-olive-100
+ font-medium)))
          (job-status (cond
                        ((equal? success 1)
                         (sub-h4 (G_ "job succeeded")
-                                #:color '(text-asparagus-900
-                                          dark:text-asparagus-300)
+                                #:color '(text-asparagus-100)
                                 #:size '(text-base sm:text-lg md:text-xl)))
                        ((equal? failure 1)
                         (sub-h4 (G_ "job failed")
-                                #:color '(text-redwood-900
-                                          dark:text-redwood-300)
+                                #:color '(text-redwood-300)
                                 #:size '(text-xl)))
                        (else (sub-h4 (G_ "job in progress")
-                                     #:color '(text-jeans-blue-900
-                                               dark:text-jeans-blue-300)
+                                     #:color '(text-olive-300)
                                      #:size '(text-xl)))))
          (delete-button `(form (@ (method POST)
                                   (enctype application/x-www-form-urlencoded)
@@ -85,14 +82,14 @@
                                          (required true)
                                          (hidden true)
                                          (value ,job-id)))
-                               ,(icon-button #:icon 'trash
+                               ,(terminal-icon-button #:icon 'trash
                                              #:content (G_ "delete")
                                              #:type 'submit
                                              #:color '(text-stone-300)
                                              #:icon-css '(text-md
                                                           text-stone-300)
                                              #:background '(bg-redwood-700)
-                                             #:hover-background '(hover:bg-redwood-900))))
+                                             #:hover-background '(hover:bg-olive-900))))
          (log-html `((div (@ (class ,(mk-class '(flex flex-row
                                                       flex-wrap
                                                       items-center
@@ -100,7 +97,7 @@
                                                       py-2
                                                       sm:gap-3
                                                       sm:py-3))))
-                          ,(h4 log-filename)
+                          ,(terminal-heading log-filename)
                           ,job-status)
                      
                      ,(dl `(,(if-job-was-updated-html job
@@ -126,36 +123,31 @@
                                                                              job
                                                                              'updated-at))))))
                             ,(dt (G_ "log uuid"))
-                            ,(dd (code log-id
-                                       #:size '(text-md)))))
+                            ,(dd (terminal-code log-id #:size '(text-md)))))
 
                      ,delete-button
 
                      (details (@ (class ,(mk-class '(my-4))))
                               (summary (@ (class ,(mk-class '(cursor-pointer
-                                                              text-onyx-700
-                                                              dark:text-stone-300
-                                                              hover:text-orange-300
+                                                              text-asparagus-300
+
+                                                              hover:text-olive-100
                                                               block))))
                                        (div (@ (class ,(mk-class '(flex
                                                                    flex-row
                                                                    gap-2
                                                                    items-center))))
                                             (span ,(icon #:type 'code
-                                                         #:icon-css '(text-stone-800
-                                                                      dark:text-stone-200
-                                                                      hover:text-orange-700
-                                                                      dark:hover:text-orange-400)))
-                                            (span (@ (class ,(mk-class '(text-stone-800
-                                                                         dark:text-stone-200
-                                                                         hover:text-orange-700
-                                                                         dark:hover:text-orange-400))))
+                                                         #:icon-css '(text-stone-200
+                                                                      hover:text-olive-100)))
+                                            (span (@ (class ,(mk-class '(text-stone-200
+                                                                         hover:text-olive-100))))
                                                   ,(G_
                                                     "inspect the job's lambda expression"))))
-                              ,(pre detail-data
-                                    #:size '(text-sm md:text-md)))
-                     ,(pre log-data
-                           #:size '(text-sm md:text-md)))))
+                              ,(terminal-pre detail-data
+                                             #:size '(text-sm md:text-md)))
+                     ,(terminal-pre log-data
+                                    #:size '(text-sm md:text-md)))))
     
     (html-template G_
                    #:title "byggsteg"
@@ -194,14 +186,14 @@
                                    `((a (@ (href ,(format #f
                                                    "/logs?offset=~a&limit=~a"
                                                    (- offset limit) limit)))
-                                        ,(icon-button #:icon 'arrow-left
+                                        ,(terminal-icon-button #:icon 'arrow-left
                                                       #:content (G_ "previous"))))
                                    '())
                               ,(if (= (length logs) limit)
                                    `((a (@ (href ,(format #f
                                                    "/logs?offset=~a&limit=~a"
                                                    (+ offset limit) limit)))
-                                        ,(icon-button #:icon 'arrow-right
+                                        ,(terminal-icon-button #:icon 'arrow-right
                                                       #:content (G_ "next"))))
                                    '()))))
          (logs-html `((div (@ (class ,(mk-class '(w-full flex
@@ -217,15 +209,12 @@
                                                   md:px-6
                                                   align-center
                                                   whitespace-break-spaces))))
-                           ,(h1 (G_ "logs"))
-                           (div (@ (class ,(mk-class '(rounded-xl bg-stone-300
-                                                       dark:bg-onyx-700
-                                                       flex
-                                                       flex-col
-                                                       gap-4
-                                                       py-8
-                                                       shadow-lg
-                                                       px-6))))
+                           ,(terminal-heading (G_ "logs")
+                                              #:tag 'h1
+                                              #:size '(text-2xl))
+                           (div (@ (class ,(terminal-frame-class
+                                            #:extra '(flex flex-col gap-4
+                                                       py-8 px-6))))
                                 ,jobs-html)
                            ,page-buttons))))
     (html-template G_

@@ -38,5 +38,6 @@
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
                    #:body `((div (@ (class ,(mk-class '(px-4))))
-                                 ,(h2 (G_ "run job"))
+                                 ,(terminal-heading (G_ "run job")
+                                                    #:tag 'h2)
                                  ,(job-form G_ "/jobs/manage/submit" #f))))))

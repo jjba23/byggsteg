@@ -16,6 +16,7 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (app views login)
+  #:use-module (byggsteg faces)
   #:use-module (byggsteg html)
   #:use-module (artanis artanis)
   #:use-module (artanis i18n)
@@ -30,48 +31,34 @@
 (define* (login-page G_
                      #:key is-logged-in)
   (let* ((login-form `(form (@ (action "/login")
-                               (class ,(mk-class '(w-full rounded-xl
-                                                          bg-stone-300/50
-                                                          dark:bg-onyx-700
-                                                          p-4
-                                                          flex
-                                                          flex-row
-                                                          flex-wrap
-                                                          items-center
-                                                          align-center
-                                                          gap-4
-                                                          shadow-md)))
+                               (class ,(terminal-frame-class
+                                         #:extra '(w-full p-4 flex flex-row
+                                                   flex-wrap items-center
+                                                   align-center gap-4)))
                                (method POST))
-                            ,(input #:label (G_ "email")
+                            ,(terminal-input #:label (G_ "email")
                                     #:name "email"
                                     #:type 'email
                                     #:value ""
                                     #:required #t)
-                            ,(input #:label (G_ "password")
+                            ,(terminal-input #:label (G_ "password")
                                     #:name "password"
                                     #:type 'password
                                     #:value ""
                                     #:required #t)
-                            (div ,(submit-button (G_ "login")))))
+                            (div ,(terminal-submit-button (G_ "login")))))
          (reset-form `((form (@ (action "/password/reset")
-                                (class ,(mk-class '(w-full rounded-xl
-                                                           bg-stone-300/50
-                                                           dark:bg-onyx-700
-                                                           p-4
-                                                           flex
-                                                           flex-row
-                                                           flex-wrap
-                                                           items-center
-                                                           align-center
-                                                           gap-4
-                                                           shadow-md)))
+                                (class ,(terminal-frame-class
+                                         #:extra '(w-full p-4 flex flex-row
+                                                   flex-wrap items-center
+                                                   align-center gap-4)))
                                 (method POST))
-                             ,(input #:label (G_ "account to reset (email)")
+                             ,(terminal-input #:label (G_ "account to reset (email)")
                                      #:name "email"
                                      #:type 'email
                                      #:value ""
                                      #:required #t)
-                             (div ,(icon-button #:icon 'password
+                             (div ,(terminal-icon-button #:icon 'password
                                                 #:type 'submit
                                                 #:content (G_ "reset")))))))
     (html-template G_
@@ -84,11 +71,13 @@
                                       (div (@ (class ,(mk-class '(flex
                                                                   flex-col
                                                                   gap-4))))
-                                           ,(h2 (G_ "login to byggsteg"))
+                                           ,(terminal-heading (G_ "login to byggsteg")
+                                                              #:tag 'h2)
                                            (div ,login-form))
                                       (div (@ (class ,(mk-class '(flex
                                                                   flex-col
                                                                   gap-4))))
-                                           ,(h2 (G_ "reset password"))
+                                           ,(terminal-heading (G_ "reset password")
+                                                              #:tag 'h2)
                                            (div ,reset-form))))))))
 

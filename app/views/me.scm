@@ -16,6 +16,7 @@
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (app views me)
+  #:use-module (byggsteg faces)
   #:use-module (byggsteg html)
   #:use-module (artanis artanis)
   #:use-module (artanis i18n)
@@ -32,11 +33,13 @@
                   #:key is-logged-in token user)
   
   (let* ((user-details `((div (@ (class ,(mk-class '(py-8 px-4 max-w-prose))))
-                              ,(h3 (format #f "~a &lt;~a&gt;"
-                                           (assq-ref user
-                                                     'username)
-                                           (assq-ref user
-                                                     'email)))
+                              ,(terminal-heading (format #f "~a &lt;~a&gt;"
+                                                          (assq-ref user
+                                                                    'username)
+                                                          (assq-ref user
+                                                                    'email))
+                                                  #:tag 'h3
+                                                  #:size '(text-xl))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
                                                                gap-2
@@ -54,9 +57,9 @@
                                                                justify-start
                                                                my-4))))
                                    ,(em (G_ "my permissions (in database):"))
-                                   ,(pre (assq-ref user
-                                                   'permissions)
-                                         #:size '(text-sm)))
+                                   ,(terminal-pre (assq-ref user
+                                                            'permissions)
+                                                  #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
                                                                gap-2
@@ -65,10 +68,10 @@
                                                                my-4))))
                                    ,(em (G_
                                          "current session permissions (in token):"))
-                                   ,(pre (format #f "~s"
-                                                 (assq-ref token
-                                                           'owner-permissions))
-                                         #:size '(text-sm)))
+                                   ,(terminal-pre (format #f "~s"
+                                                          (assq-ref token
+                                                                    'owner-permissions))
+                                                  #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(max-w-prose))))
                                    ,(em (G_
                                          "tip: if your session permissions don't match the DB consider logging out and logging in again"))))))
@@ -96,23 +99,23 @@
                                                                   gap-6))))
                                       ,(if has-modify-permissions
                                            `((a (@ (href "/users/manage"))
-                                                ,(icon-button #:icon 'user-switch
+                                                ,(terminal-icon-button #:icon 'user-switch
                                                               #:content (G_
                                                                          "go to user management"))))
                                            '())
                                       (a (@ (href "/logout"))
-                                         ,(icon-button #:icon 'sign-out
+                                         ,(terminal-icon-button #:icon 'sign-out
                                                        #:content (G_ "logout")))
 
                                       (form (@ (action "/password/reset")
                                                (method POST))
-                                            ,(icon-button #:icon 'password
+                                            ,(terminal-icon-button #:icon 'password
                                                           #:type 'submit
                                                           #:content (G_
                                                                      "reset password")))
 
                                       (a (@ (href "/login"))
-                                         ,(icon-button #:icon 'sign-in
+                                         ,(terminal-icon-button #:icon 'sign-in
                                                        #:content (G_ "login")))
 
                                       ))))))
@@ -152,7 +155,7 @@
                                    (value ,(assq-ref u
                                                      'id))
                                    (hidden "")))
-                         ,(button (G_ "delete")
+                         ,(terminal-button (G_ "delete")
                                   #:on-click (format #f
                                               "return confirm('~a: ~a')"
                                               (assq-ref u "email")
@@ -161,11 +164,11 @@
                                   #:type 'submit
                                   #:background '(bg-redwood-700)
                                   #:color '(text-stone-300)
-                                  #:hover-background '(hover:bg-redwood-900)))
+                                  #:hover-background '(hover:bg-olive-900)))
                    (a (@ (href ,(format #f "/users/edit/~a"
                                         (assq-ref u
                                                   'id))))
-                      ,(icon-button #:icon 'pencil
+                      ,(terminal-icon-button #:icon 'pencil
                                     #:content (G_ "edit")))))
 
          )
@@ -177,19 +180,15 @@
                  #:title "byggsteg"
                  #:is-logged-in #t
                  #:body `((div (@ (class ,(mk-class '(px-4))))
-                               ,(h2 (G_ "User management"))
+                               ,(terminal-heading (G_ "User management")
+                                                  #:tag 'h2)
                                (div (@ (class ,(mk-class '(my-6))))
                                     (a (@ (href "/users/new"))
-                                       ,(icon-button #:icon 'user-plus
+                                       ,(terminal-icon-button #:icon 'user-plus
                                                      #:content (G_ "new user"))))
-                               (div (@ (class ,(mk-class '(flex flex-col
-                                                           gap-4
-                                                           my-8
-                                                           py-8
-                                                           px-4
-                                                           rounded-xl
-                                                           bg-stone-300/50
-                                                           dark:bg-onyx-700))))
+                               (div (@ (class ,(terminal-frame-class
+                                                #:extra '(flex flex-col gap-4
+                                                           my-8 py-8 px-4))))
                                     ,(map (lambda (u)
                                             (render-user G_ u)) users))))))
 
@@ -198,39 +197,35 @@
   (html-template G_
                  #:is-logged-in #f
                  #:body `((div (@ (class ,(mk-class '(py-6 px-4))))
-                               ,(h2 (G_ "Reset your password"))
+                               ,(terminal-heading (G_ "Reset your password")
+                                                  #:tag 'h2)
                                ,(sub-h3 (format #f "~a: ~a"
                                                 (G_
                                                  "perform a password reset for")
                                                 email))
                                (form (@ (method POST)
                                         (action "/password/do-reset"))
-                                     (div (@ (class ,(mk-class '(rounded-xl
-                                                                 my-6
-                                                                 py-6
-                                                                 px-4
-                                                                 shadow-md
-                                                                 max-w-prose
-                                                                 bg-stone-300/50
-                                                                 dark:bg-onyx-700))))
+                                     (div (@ (class ,(terminal-frame-class
+                                                      #:extra '(my-6 py-6 px-4
+                                                                 max-w-prose))))
                                           (input (@ (hidden true)
                                                     (name email)
                                                     (value ,email)) "")
                                           (input (@ (hidden true)
                                                     (name reset-token)
                                                     (value ,token)) "")
-                                          ,(input #:label (G_ "new password")
+                                          ,(terminal-input #:label (G_ "new password")
                                                   #:name "new-password"
                                                   #:value ""
                                                   #:type 'password
                                                   #:required #t)
-                                          ,(input #:label (G_
+                                          ,(terminal-input #:label (G_
                                                            "confirm password")
                                                   #:name "confirm-password"
                                                   #:value ""
                                                   #:type 'password
                                                   #:required #t)
-                                          (div ,(submit-button (G_ "reset")))))))))
+                                          (div ,(terminal-submit-button (G_ "reset")))))))))
 
 (define (make-permission-checkbox p)
   `((div ,(input #:type 'checkbox
@@ -243,21 +238,17 @@
                  #:title "byggsteg"
                  #:is-logged-in #t
                  #:body `((div (@ (class ,(mk-class '(px-4))))
-                               (div ,(h2 (G_ "New User")))
-                               (div (@ (class ,(mk-class '(flex flex-col
-                                                           gap-4
-                                                           my-8
-                                                           py-8
-                                                           px-4
-                                                           rounded-xl
-                                                           bg-stone-300/50
-                                                           dark:bg-onyx-700))))
+                               (div ,(terminal-heading (G_ "New User")
+                                                       #:tag 'h2))
+                               (div (@ (class ,(terminal-frame-class
+                                                #:extra '(flex flex-col gap-4
+                                                           my-8 py-8 px-4))))
                                     (form (@ (method POST)
                                              (action "/users/new"))
-                                          (div ,(input #:label (G_ "username")
+                                          (div ,(terminal-input #:label (G_ "username")
                                                        #:name 'username
                                                        #:required #t))
-                                          (div ,(input #:label (G_ "email")
+                                          (div ,(terminal-input #:label (G_ "email")
                                                        #:name 'email
                                                        #:type 'email
                                                        #:required #t))
@@ -276,7 +267,7 @@
                                                         byggsteg:user-create
                                                         byggsteg:user-delete
                                                         byggsteg:modify-permissions)))
-                                               (div ,(submit-button (G_
+                                               (div ,(terminal-submit-button (G_
                                                                      "create"))))))))))
 
 (define* (make-edit-permission-checkbox p
@@ -285,17 +276,16 @@
                                         (type 'checkbox)
                                         (checked #f)
                                         (input-css '(p-3 max-w-prose
-                                                     rounded-xl
-                                                     border-stone-300
-                                                     dark:border-stone-700
-                                                     dark:text-stone-300
-                                                     bg-stone-300/50
-                                                     dark:bg-onyx-700
+                                                     rounded-none
+                                                     border-asparagus-900
+                                                     text-stone-300
+                                                     bg-onyx-700
                                                      border-2
+                                                     font-mono
                                                      shadow-md))
                                         (label-css '(text-md font-bold
-                                                     text-stone-600
-                                                     dark:text-stone-300))
+
+                                                     text-stone-300))
                                         (input-flex-css '(my-2 flex flex-row
                                                                gap-1)))
   
@@ -315,15 +305,11 @@
                  #:title "byggsteg"
                  #:is-logged-in #t
                  #:body `((div (@ (class ,(mk-class '(px-4))))
-                               (div ,(h2 (G_ "Edit User")))
-                               (div (@ (class ,(mk-class '(flex flex-col
-                                                           gap-4
-                                                           my-8
-                                                           py-8
-                                                           px-4
-                                                           rounded-xl
-                                                           bg-stone-300/50
-                                                           dark:bg-onyx-700))))
+                               (div ,(terminal-heading (G_ "Edit User")
+                                                       #:tag 'h2))
+                               (div (@ (class ,(terminal-frame-class
+                                                #:extra '(flex flex-col gap-4
+                                                           my-8 py-8 px-4))))
                                     (form (@ (method POST)
                                              (action ,(format #f
                                                        "/users/edit/~a"
@@ -332,12 +318,12 @@
                                           (input (@ (hidden "")
                                                     (value ,(assq-ref u
                                                                       'id))))
-                                          (div ,(input #:label (G_ "username")
+                                          (div ,(terminal-input #:label (G_ "username")
                                                        #:value (assq-ref u
                                                                          'username)
                                                        #:name 'username
                                                        #:required #t))
-                                          (div ,(input #:label (G_ "email")
+                                          (div ,(terminal-input #:label (G_ "email")
                                                        #:name 'email
                                                        #:value (assq-ref u
                                                                          'email)
@@ -371,4 +357,4 @@
                                                             byggsteg:user-create
                                                             byggsteg:user-delete
                                                             byggsteg:modify-permissions)))
-                                               (div ,(submit-button (G_ "edit"))))))))))
+                                               (div ,(terminal-submit-button (G_ "edit"))))))))))

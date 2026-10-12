@@ -162,6 +162,35 @@ and compile-time macros.")
     (license license:lgpl3+)))
 
 
+(define-public guile-veritas
+  (package
+    (name "guile-veritas")
+    (version "0.7.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://codeberg.org/jjba23/veritas.git")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "11n9gyqb7nc0zw4z0fadmw4bd6k673314wpdd66mllwxs2xfcs0q"))))
+    (build-system guile-build-system)
+    (arguments
+     (list
+      #:source-directory "src"))
+    (native-inputs (list guile-3.0))
+    (propagated-inputs (list guile-fibers
+                             guile-json-4)) ;; for versions >= 2.0.0
+    (home-page "https://codeberg.org/jjba23/veritas")
+    (synopsis "Testing framework for Guile")
+    (description
+     "Veritas is a testing framework for Guile with an @acronym{EDSL,
+embedded domain specific language} to define test suites.  Emphasis is placed
+on legible, maintainable tests.  Veritas shuffles tests and runs them
+concurrently by default.")
+    (license license:lgpl3+)))
+
 (packages->manifest (list (specification->package "gettext")
                           (specification->package "make")
                           guile-3.0-latest
@@ -174,6 +203,7 @@ and compile-time macros.")
                           guile-dbi
                           guile-gcrypt
                           guile-bewaking
+                          guile-veritas
                           watchexec
                           guile-curl
                           sqlite

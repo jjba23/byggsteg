@@ -42,7 +42,7 @@
                                          (enctype
                                           application/x-www-form-urlencoded)
                                          (action "/profiles/manage/submit"))
-                                      ,(input #:label (G_ "profile name")
+                                      ,(terminal-input #:label (G_ "profile name")
                                               #:name 'profile-name
                                               #:value profile-name
                                               #:required #t)
@@ -50,15 +50,14 @@
                                                  #:name 'job-code
                                                  #:value profile-data
                                                  #:textarea-css '(p-3
-                                                                  rounded-xl
+                                                                  rounded-none
                                                                   font-mono
                                                                   text-sm
                                                                   md:text-md
-                                                                  border-stone-200
-                                                                  dark:border-onyx-100
-                                                                  dark:text-stone-300
-                                                                  bg-stone-300/50
-                                                                  dark:bg-onyx-700
+                                                                  border-asparagus-900
+                                                                  text-olive-100
+                                                                  caret-asparagus-300
+                                                                  bg-onyx-900
                                                                   border-2
                                                                   min-h-72
                                                                   max-w-prose
@@ -66,13 +65,16 @@
                                                                   w-full)
                                                  #:required #t)
 
-                                      (div ,(submit-button (G_ "save"))))))
+                                      (div ,(terminal-submit-button (G_ "save"))))))
          (body `((div (@ (class ,(mk-class '(px-4))))
                       (div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                        align-center
                                                        items-center gap-6))))
-                           ,(h2 (G_ "profile details"))
-                           ,(h3 profile-name))
+                           ,(terminal-heading (G_ "profile details")
+                                              #:tag 'h2)
+                           ,(terminal-heading profile-name
+                                              #:tag 'h3
+                                              #:size '(text-xl)))
 
                       (div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                        gap-4 my-4))))
@@ -87,7 +89,7 @@
                                               (hidden ""))
                                            ,profile-data)
 
-                                 ,(icon-button #:type 'submit
+                                 ,(terminal-icon-button #:type 'submit
                                                #:icon 'circuitry
                                                #:content (G_ "start new job")))
 
@@ -100,17 +102,17 @@
                                            (hidden "")
                                            (value ,(assq-ref p
                                                              'id))
-                                           (class ,(mk-class '(rounded-xl
-                                                               border
-                                                               font-sans p-2)))))
-                                 ,(icon-button #:icon 'trash
+                                           (class ,(mk-class '(border
+                                                               font-mono p-2
+                                                               rounded-none)))))
+                                 ,(terminal-icon-button #:icon 'trash
                                                #:content (G_ "delete")
                                                #:type 'submit
                                                #:color '(text-stone-300)
                                                #:icon-css '(text-md
                                                             text-stone-300)
                                                #:background '(bg-redwood-700)
-                                               #:hover-background '(hover:bg-redwood-900))))
+                                               #:hover-background '(hover:bg-olive-900))))
                       ,submit-profile-form
 
                       ))))
@@ -126,7 +128,8 @@
                    #:title "byggsteg"
                    #:is-logged-in is-logged-in
                    #:body `((div (@ (class ,(mk-class '(px-3))))
-                                 ,(h2 (G_ "new profile"))
+                                 ,(terminal-heading (G_ "new profile")
+                                                    #:tag 'h2)
                                  ,(job-form G_ "/profiles/manage/submit" #t))))))
 
 (define* (profile-list-page rc profiles
@@ -143,21 +146,16 @@
                                                         px-6
                                                         align-center
                                                         whitespace-break-spaces))))
-                                 ,(h1 (G_ "profiles"))
-                                 (div (@ (class ,(mk-class '(w-full rounded-xl
-                                                             bg-stone-300
-                                                             dark:bg-onyx-700
-                                                             flex
-                                                             flex-col
-                                                             gap-4
-                                                             shadow-lg
-                                                             my-6
-                                                             py-8
-                                                             px-6
+                                 ,(terminal-heading (G_ "profiles")
+                                                    #:tag 'h1
+                                                    #:size '(text-2xl))
+                                 (div (@ (class ,(terminal-frame-class
+                                                  #:extra '(w-full flex flex-col
+                                                             gap-4 my-6 py-8 px-6
                                                              align-center))))
                                       ,profiles-html)
                                  (a (@ (href "/profiles/manage/create"))
-                                    ,(icon-button #:icon 'plus
+                                    ,(terminal-icon-button #:icon 'plus
                                                   #:content (G_ "new profile")
                                                   #:size '(text-xs md:text-sm)
                                                   #:extra-classes '(py-1

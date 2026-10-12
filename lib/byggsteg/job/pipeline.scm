@@ -45,18 +45,36 @@
                                  '())
                                 (else (get-logs-by-job-ids log-repo
                                        job-ids-in-progress))))
+         ;; Map each in-progress job id to its log row, if one exists.
+         ;; A plain `cons' is used rather than a backquoted `unquote', which
+         ;; produced a malformed entry and made the lookup below return #f.
          (job-log-map (map (lambda (l)
-                             `(,(assq-ref l
-                                          'job-id) unquote l))
+                             (cons (assq-ref l
+                                             'job-id) l))
                            logs-of-in-progress)))
     
     (for-each (lambda (j)
-                (job-pipeline #:job-repo job-repo
-                              #:log-repo log-repo
-                              #:job j
-                              #:log (assoc-ref job-log-map
-                                               (assq-ref j
-                                                         'id))))
+                ;; One malformed job must never take down the queue worker, so
+                ;; every job runs in its own guard: when it fails the job is
+                ;; marked as failed and the loop moves on to the next one,
+                ;; instead of retrying the same broken job forever.
+                (catch #t
+                       (lambda ()
+                         (job-pipeline #:job-repo job-repo
+                                       #:log-repo log-repo
+                                       #:job j
+                                       #:log (assoc-ref job-log-map
+                                                        (assq-ref j
+                                                                  'id))))
+                       (lambda (key . args)
+                         (display (format #f "
+  could not run job ~a: ~a ~s
+"
+                                          (assq-ref j
+                                                    'id) key
+                                          args))
+                         (fail-job #:job-repo job-repo
+                                   #:job j))))
               jobs-in-progress)
     (sleep sleep-seconds)))
 
@@ -130,11 +148,32 @@
                            #:branch-name branch-name
                            #:env env))))
 
+;; Mark JOB as finished and failed, so that a job whose pipeline raised an
+;; exception does not stay `in-progress' and get retried by every later sweep.
+(define* (fail-job #:key job-repo job)
+  (update-job-by-id job-repo
+                    (assq-ref job
+                              'id)
+                    `((job-success . 0)
+                      (job-in-progress . 0)
+                      (job-failed . 1)
+                      (updated-at unquote
+                                  (current-time)))))
+
 (define* (job-pipeline #:key job-repo log-repo job log)
-  (let* ((old-log-data (html-unescape (assoc-ref log
-                                                 'log-data)))
-         (kv-thunk (eval-string (html-unescape (assq-ref job
-                                                         'job-data))))
+  (let* (;; A job may have no log row (or a NULL log_data), and an
+         ;; in-progress job without a log must still run rather than crash
+         ;; the worker; both fields therefore fall back to the empty string.
+         (kv-thunk (eval-string (html-unescape (assoc-ref-or-empty-str
+                                                job
+                                                'job-data))))
+         ;; Job data is submitted as a thunk; anything else (an empty or
+         ;; malformed job-data column, say) is a broken job, and saying so
+         ;; beats letting Guile report "Wrong type to apply".
+         (_ (unless (procedure? kv-thunk)
+              (error "byggsteg: job data did not evaluate to a procedure"
+                     (assq-ref job
+                               'id))))
          (kv (kv-thunk))
          (project (assq-ref kv
                             'project))
@@ -190,13 +229,15 @@
                                                  (gettext "starting new job"))))))
     (display (format #f "\nsucceeded?: ~a\n"
                      (step-result-succeeded? result)))
-    (update-log-by-id log-repo
-                      (assq-ref log
-                                'id)
-                      `((log_data unquote
-                                  (html-escape (step-result-stdout result)))
-                        (updated_at unquote
-                                    (current-time))))
+    ;; Only refresh the log when the job actually has one.
+    (if log
+        (update-log-by-id log-repo
+                          (assq-ref log
+                                    'id)
+                          `((log_data unquote
+                                      (html-escape (step-result-stdout result)))
+                            (updated_at unquote
+                                        (current-time)))))
 
     (update-job-by-id job-repo
                       (assq-ref job
