@@ -44,15 +44,18 @@
                   "$ ")))
 
 ;; The job-code DSL as a reader would write it, pretty-printed by hygguile's
-;; `pretty-code' (new in Hygguile 2.5).
+;; `pretty-code' (new in Hygguile 2.5).  Job data is sent as a thunk whose value
+;; is that alist, so the sample is one too; showing the bare alist would teach a
+;; job that the worker refuses.
 (define (pipeline-sample)
   (terminal-pre
    (pretty-code
-    '((project . "wikimusic")
-      (branch-name . "trunk")
-      (daemon-name . "wikimusic-daemon")
-      (clone-url . "https://codeberg.org/jjba23/wikimusic.git")
-      (task . ("maak-test" "maak-deploy"))))))
+    '(lambda ()
+       `((project . "wikimusic")
+         (branch-name . "trunk")
+         (daemon-name . "wikimusic-daemon")
+         (clone-url . "https://codeberg.org/jjba23/wikimusic.git")
+         (task . ("maak-test" "maak-deploy")))))))
 
 (define (job-type-expl G_)
   (let* ((dl-classes '(flex flex-col gap-1 py-2))

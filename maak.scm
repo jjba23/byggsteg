@@ -142,6 +142,15 @@ Remove all files in the byggsteg location, ignoring errors."
   "Default task to be run, list available tasks."
   ($ '("maak --list")))
 
+(define (test)
+  "Run the project's test suite.
+
+The runner scans ./test for suites, so the specs in test/unit are found and run
+on their own; test/veritas/unit is the link that lets the runner load them by
+the module name it derives from that directory."
+  (time-machine-manifest-shell (list "guile -L ./lib -L . -L ./test"
+                                     "-c '(begin (use-modules (veritas runner)) (run-tests))'")))
+
 (define (build-manual)
   "Render the project's manual."
   (time-machine-manifest-shell (list (~ "emacs -Q --batch --eval '~s'"
