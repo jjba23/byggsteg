@@ -54,20 +54,20 @@
          (G_ (:i18n rc))
          (dl-class (mk-class '(py-3 gap-2)))
          (dt-class (mk-class '(font-mono text-xs uppercase tracking-widest
-                                         text-asparagus-300 font-bold pt-2)))
-         (dd-class (mk-class '(pl-3 font-mono text-sm text-olive-100
+                                         text-asparagus-900 dark:text-asparagus-300 font-bold pt-2)))
+         (dd-class (mk-class '(pl-3 font-mono text-sm text-asparagus-900 dark:text-olive-100
  font-medium)))
          (job-status (cond
                        ((equal? success 1)
                         (sub-h4 (G_ "job succeeded")
-                                #:color '(text-asparagus-100)
+                                #:color '(text-asparagus-900 dark:text-asparagus-100)
                                 #:size '(text-base sm:text-lg md:text-xl)))
                        ((equal? failure 1)
                         (sub-h4 (G_ "job failed")
-                                #:color '(text-redwood-300)
+                                #:color '(text-redwood-900 dark:text-redwood-300)
                                 #:size '(text-xl)))
                        (else (sub-h4 (G_ "job in progress")
-                                     #:color '(text-olive-300)
+                                     #:color '(text-asparagus-900 dark:text-olive-300)
                                      #:size '(text-xl)))))
          (delete-button `(form (@ (method POST)
                                   (enctype application/x-www-form-urlencoded)
@@ -129,19 +129,23 @@
 
                      (details (@ (class ,(mk-class '(my-4))))
                               (summary (@ (class ,(mk-class '(cursor-pointer
-                                                              text-asparagus-300
+                                                              text-asparagus-900 dark:text-asparagus-300
 
-                                                              hover:text-olive-100
+                                                              hover:text-onyx-900 dark:hover:text-olive-100
                                                               block))))
                                        (div (@ (class ,(mk-class '(flex
                                                                    flex-row
                                                                    gap-2
                                                                    items-center))))
                                             (span ,(icon #:type 'code
-                                                         #:icon-css '(text-stone-200
-                                                                      hover:text-olive-100)))
-                                            (span (@ (class ,(mk-class '(text-stone-200
-                                                                         hover:text-olive-100))))
+                                                         #:icon-css '(text-asparagus-900
+                                                                      dark:text-asparagus-300
+                                                                      hover:text-onyx-900
+                                                                      dark:hover:text-olive-100)))
+                                            (span (@ (class ,(mk-class '(text-asparagus-900
+                                                                         dark:text-asparagus-300
+                                                                         hover:text-onyx-900
+                                                                         dark:hover:text-olive-100))))
                                                   ,(G_
                                                     "inspect the job's lambda expression"))))
                               ,(terminal-pre detail-data

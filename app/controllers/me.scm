@@ -45,7 +45,7 @@
                                                         "x-bewaking-byggsteg")
                                 #:encryption-key encryption-key
                                 #:signing-key signing-key))
-              (user-repo (make-sqlite-user-repository rc))
+              (user-repo (make-sqlite-user-repository))
               (user (get-user-by-id user-repo
                                     (assq-ref t
                                               'owner-id))))
@@ -78,7 +78,7 @@
                                            "x-bewaking-byggsteg")
                                   #:encryption-key encryption-key
                                   #:signing-key signing-key))
-                (user-repo (make-sqlite-user-repository rc))
+                (user-repo (make-sqlite-user-repository))
                 (user (get-user-by-id user-repo
                                       (assq-ref t
                                                 'owner-id)))
@@ -97,7 +97,7 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let* ((password-reset-repo (make-sqlite-password-reset-repository rc))
+       (let* ((password-reset-repo (make-sqlite-password-reset-repository))
               (tt (get-password-reset-by-token password-reset-repo
                                                (params rc "token")))
               (now (current-time))
@@ -109,7 +109,7 @@
                    (error "reset token is found but not valid anymore")))
               (user-id (assq-ref tt
                                  'user-id))
-              (user-repo (make-sqlite-user-repository rc))
+              (user-repo (make-sqlite-user-repository))
               (u (get-user-by-id user-repo user-id))
               (email (assq-ref u
                                'email)))
@@ -161,8 +161,8 @@
                          (alist-from-url-encoded-body (rc-body rc))))
                (email (if (not body) #f
                           (assoc-ref body "email")))
-               (user-repo (make-sqlite-user-repository rc))
-               (password-reset-repo (make-sqlite-password-reset-repository rc))
+               (user-repo (make-sqlite-user-repository))
+               (password-reset-repo (make-sqlite-password-reset-repository))
                (u (if (not email)
                       (get-user-by-id user-repo
                                       (assoc-ref existing-token
@@ -183,7 +183,7 @@
                (reset-token (assoc-ref body "reset-token"))
                (new-password (assoc-ref body "new-password"))
                (confirm-password (assoc-ref body "confirm-password"))
-               (password-reset-repo (make-sqlite-password-reset-repository rc))
+               (password-reset-repo (make-sqlite-password-reset-repository))
                (tt (get-password-reset-by-token password-reset-repo
                                                 reset-token))
                (now (current-time))
@@ -197,7 +197,7 @@
                     (error "password confirmation did not match!")))
                (user-id (assq-ref tt
                                   'user-id))
-               (user-repo (make-sqlite-user-repository rc))
+               (user-repo (make-sqlite-user-repository))
                (u (get-user-by-id user-repo user-id))
                (new-salt (generate-string-uuid))
                (h (string->sha-256 (string-append new-password new-salt)))
@@ -265,7 +265,7 @@
                                            "x-bewaking-byggsteg")
                                   #:encryption-key encryption-key
                                   #:signing-key signing-key))
-                (user-repo (make-sqlite-user-repository rc))
+                (user-repo (make-sqlite-user-repository))
                 (user (get-user-by-id user-repo
                                       (assoc-ref t
                                                  'owner-id)))
@@ -285,7 +285,7 @@
      #:cookies '(names x-bewaking-byggsteg)
      (lambda (rc)
        (define (go-to-edit-user)
-         (let* ((user-repo (make-sqlite-user-repository rc))
+         (let* ((user-repo (make-sqlite-user-repository))
                 (user (get-user-by-id user-repo
                                       (params rc "id"))))
            (response-emit (:mime rc
@@ -327,9 +327,8 @@
                                              byggsteg:user-delete
                                              byggsteg:modify-permissions))))
                  (new-id (generate-string-uuid))
-                 (user-repo (make-sqlite-user-repository rc))
-                 (password-reset-repo (make-sqlite-password-reset-repository
-                                       rc))
+                 (user-repo (make-sqlite-user-repository))
+                 (password-reset-repo (make-sqlite-password-reset-repository))
                  (_ (insert-user user-repo
                                  `((id unquote new-id)
                                    (username unquote username)
@@ -359,7 +358,7 @@
         (define (do-delete-user)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  (id (assoc-ref body "id"))
-                 (user-repo (make-sqlite-user-repository rc))
+                 (user-repo (make-sqlite-user-repository))
                  (_ (delete-user-by-id user-repo
                                        (assoc-ref body "id"))))
             (redirect-to rc
@@ -391,7 +390,7 @@
                                              byggsteg:user-create
                                              byggsteg:user-delete
                                              byggsteg:modify-permissions))))
-                 (user-repo (make-sqlite-user-repository rc))
+                 (user-repo (make-sqlite-user-repository))
                  (_ (update-user-by-id user-repo
                                        (params rc "id")
                                        `((username unquote username)

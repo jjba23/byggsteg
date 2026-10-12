@@ -52,8 +52,8 @@
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
                  (log-filename project)
-                 (job-repo (make-sqlite-job-repository rc))
-                 (log-repo (make-sqlite-log-repository rc))
+                 (job-repo (make-sqlite-job-repository))
+                 (log-repo (make-sqlite-log-repository))
                  (title (html-escape (format #f "~a-~a"
                                              (if (not trivial-cmds)
                                                  (html-escape project)
@@ -92,8 +92,8 @@
 (get "/api/v1/logs/:id"
      #:mime 'json
      (lambda (rc)
-       (let* ((log-repo (make-sqlite-log-repository rc))
-              (job-repo (make-sqlite-job-repository rc))
+       (let* ((log-repo (make-sqlite-log-repository))
+              (job-repo (make-sqlite-job-repository))
               (l (get-log-by-id log-repo
                                 (params rc "id")))
               (j (get-job-by-id job-repo
@@ -128,7 +128,7 @@
         (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                (email (assoc-ref body "email"))
                (password (assoc-ref body "password"))
-               (user-repo (make-sqlite-user-repository rc))
+               (user-repo (make-sqlite-user-repository))
                (u (get-user-by-email user-repo email))
                (get-owner-details (lambda ()
                                     `((id unquote

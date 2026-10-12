@@ -28,13 +28,11 @@
              (ice-9 threads)
              (artanis utils)
              (ice-9 i18n)
-             (web request)
-             (web uri)
+             (ice-9 format)
              (byggsteg domain job)
              (byggsteg domain log)
              (byggsteg sqlite job)
              (byggsteg sqlite log)
-             (rnrs io ports)
              (artanis irregex))
 ;; Put whatever you want to be called before server initilization here
 
@@ -75,41 +73,31 @@
 
 ;; Procedure to start the byggsteg queue worker to process jobs that haven't completed yet
 ;; this is preferrably done in a different thread
+;;
+;; The worker needs no request context: the repositories take their connection
+;; from `(byggsteg sqlite util)', which owns the process-wide SQLite handle
+;; rather than borrowing Artanis' request connection pool.  That is what the
+;; mock request and its dummy route used to stand in for.
 (define (start-worker)
-  (let* ( ;use dummy route so as to hook into Artanis request context
-          (mock-port (open-bytevector-input-port #vu8()))
-         (mock-request (build-request (string->uri
-                                       "http://localhost:50002/dummy-pipeline-context")
-                                      #:method 'POST
-                                      #:headers '()
-                                      #:port mock-port))
-         (mock-body (read-request-body mock-request))
-         ;; fake request context will be used to get DB connection
-         (rc (new-route-context mock-request mock-body))
-         (job-repo (make-sqlite-job-repository rc))
-         (log-repo (make-sqlite-log-repository rc))
-         (t (call-with-new-thread (lambda ()
-                                    (sleep 3) ;delay worker start
-                                    (display (format #f "\n~a...\n"
-                                                     (gettext
-                                                      "initializing byggsteg queue worker")))
+  (set! worker-thread
+        (call-with-new-thread (lambda ()
+                                (sleep 3) ;delay worker start
+                                (display (format #f "\n~a...\n"
+                                                 (gettext
+                                                  "initializing byggsteg queue worker")))
 
-                                    (use-modules (byggsteg job pipeline)
-                                                 (byggsteg domain job)
-                                                 (byggsteg domain log)
-                                                 (byggsteg sqlite job)
-                                                 (byggsteg sqlite log))
-                                    (while #t
-                                           (run-infallible-pipeline #:job-repo
-                                                                    job-repo
-                                                                    #:log-repo
-                                                                    log-repo))))))
-    (set! worker-thread t)))
-
-;; define dummy route so that fake request-context can be used
-(post "/dummy-pipeline-context"
-      (lambda (rc)
-        "dummy"))
+                                (use-modules (byggsteg job pipeline)
+                                             (byggsteg domain job)
+                                             (byggsteg domain log)
+                                             (byggsteg sqlite job)
+                                             (byggsteg sqlite log))
+                                (let ((job-repo (make-sqlite-job-repository))
+                                      (log-repo (make-sqlite-log-repository)))
+                                  (while #t
+                                         (run-infallible-pipeline #:job-repo
+                                                                  job-repo
+                                                                  #:log-repo
+                                                                  log-repo)))))))
 
 ;; Add hook on before running the Artanis application to start the queue worker
 (run-before-run! start-worker)

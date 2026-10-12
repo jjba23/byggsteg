@@ -60,8 +60,8 @@
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
                  (G_ (:i18n rc))
-                 (job-repo (make-sqlite-job-repository rc))
-                 (log-repo (make-sqlite-log-repository rc))
+                 (job-repo (make-sqlite-job-repository))
+                 (log-repo (make-sqlite-log-repository))
                  (logs-link (format #f
                              "~a/logs/~a?notify-title=~a&notify-body=~a"
 
@@ -113,8 +113,8 @@
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  (job-id (assoc-ref body "job-id"))
                  (log-id (assoc-ref body "log-id"))
-                 (log-repo (make-sqlite-log-repository rc))
-                 (job-repo (make-sqlite-job-repository rc)))
+                 (log-repo (make-sqlite-log-repository))
+                 (job-repo (make-sqlite-job-repository)))
             (delete-job-by-id job-repo job-id)
             (delete-log-by-id log-repo log-id)
             (redirect-to rc

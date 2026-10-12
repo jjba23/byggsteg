@@ -20,74 +20,58 @@
   #:declarative? #t
   #:use-module (srfi srfi-9)
   #:use-module (kracht prelude)
-  #:use-module (artanis db)
+  #:use-module (kracht sql)
   #:use-module (byggsteg sqlite util)
   #:use-module (byggsteg domain log)
   #:export (make-sqlite-log-repository))
 
 ;; --- SQLite implementation ---
-(define (make-sqlite-log-repository rc)
+(define (make-sqlite-log-repository)
   (define columns
     '(id title job-id log-data created-at updated-at))
 
-  (define cols-sql
-    (symbols->sql-columns-list columns))
-
-  (define insert-columns
-    (delq 'updated-at columns))
-
-  (define insert-cols-sql
-    (symbols->sql-columns-list insert-columns))
-
-  (define conn
-    (DB-open rc))
-
   (define execute-write
-    (db-write conn))
+    (db-write (database)))
 
   (define execute-read
-    (db-read conn))
+    (db-read (database)))
 
   (define (get-log-by-id id)
-    (let* ((query (format #f "SELECT ~a FROM log WHERE id = ~a LIMIT 1"
-                          cols-sql
-                          (value->sql-literal id)))
-           (rows (execute-read "get-log-by-id" query)))
+    (let* ((rows (execute-read "get-log-by-id"
+                               (sql-select "log"
+                                           #:columns columns
+                                           #:where (list (cons 'id id))
+                                           #:limit 1))))
       (if (nil? rows) #f
           (car rows))))
 
   (define* (get-logs #:key limit offset)
-    (let* ((query (format #f
-                   "SELECT ~a FROM log
-                   ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                   cols-sql limit offset)))
-      (execute-read "get-logs" query)))
+    (execute-read "get-logs"
+                  (sql-select "log"
+                              #:columns columns
+                              #:order-by '((created-at desc))
+                              #:limit limit
+                              #:offset offset)))
 
   (define (get-logs-by-job-ids ids)
-    (let* ((query (format #f "SELECT ~a FROM log WHERE job_id IN (~a)"
-                          cols-sql
-                          (string-join (map value->sql-literal ids) ", "))))
-      (execute-read "get-logs-by-job-ids" query)))
+    (execute-read "get-logs-by-job-ids"
+                  (sql-select "log"
+                              #:columns columns
+                              #:where (list (list 'job-id 'in ids)))))
 
   (define (delete-log-by-id id)
-    (let* ((query (format #f "DELETE FROM log WHERE id = ~a"
-                          (value->sql-literal id))))
-      (execute-write "delete-log-by-id" query)))
+    (execute-write "delete-log-by-id"
+                   (sql-delete "log"
+                               #:where (list (cons 'id id)))))
 
   (define (insert-log attrs)
-    (let* ((vals (map (lambda (x)
-                        (value->sql-literal (assq-ref attrs x)))
-                      insert-columns))
-           (query (format #f "INSERT INTO log (~a) VALUES (~a)"
-                          insert-cols-sql
-                          (string-join vals ", "))))
-      (execute-write "insert-log" query)))
+    (execute-write "insert-log"
+                   (sql-insert "log" attrs)))
 
   (define (update-log-by-id id attrs)
-    (let* ((query (format #f "UPDATE log SET ~a WHERE id = ~a"
-                          (string-join (map pair->sql-assignment attrs) ", ")
-                          (value->sql-literal id))))
-      (execute-write "update-log-by-id" query)))
+    (execute-write "update-log-by-id"
+                   (sql-update "log" attrs
+                               #:where (list (cons 'id id)))))
 
   (mk-log-repository #:get-log-by-id-proc get-log-by-id
                      #:get-logs-proc get-logs

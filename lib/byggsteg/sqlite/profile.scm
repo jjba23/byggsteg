@@ -20,75 +20,59 @@
   #:declarative? #t
   #:use-module (srfi srfi-9)
   #:use-module (kracht prelude)
-  #:use-module (artanis db)
+  #:use-module (kracht sql)
   #:use-module (byggsteg sqlite util)
   #:use-module (byggsteg domain profile)
   #:export (make-sqlite-profile-repository))
 
 ;; --- SQLite implementation ---
-(define (make-sqlite-profile-repository rc)
+(define (make-sqlite-profile-repository)
   (define columns
     '(id title profile-data created-at updated-at))
 
-  (define cols-sql
-    (symbols->sql-columns-list columns))
-
-  (define insert-columns
-    (delq 'updated-at columns))
-
-  (define insert-cols-sql
-    (symbols->sql-columns-list insert-columns))
-
-  (define conn
-    (DB-open rc))
-
   (define execute-write
-    (db-write conn))
+    (db-write (database)))
 
   (define execute-read
-    (db-read conn))
+    (db-read (database)))
 
   (define (get-profile-by-id id)
-    (let* ((query (format #f "SELECT ~a FROM profile WHERE id = ~a LIMIT 1"
-                          cols-sql
-                          (value->sql-literal id)))
-           (rows (execute-read "get-profile-by-id" query)))
+    (let* ((rows (execute-read "get-profile-by-id"
+                               (sql-select "profile"
+                                           #:columns columns
+                                           #:where (list (cons 'id id))
+                                           #:limit 1))))
       (if (nil? rows) #f
           (car rows))))
 
   (define (get-profile-by-title title)
-    (let* ((query (format #f "SELECT ~a FROM profile WHERE title = ~a LIMIT 1"
-                          cols-sql
-                          (value->sql-literal title)))
-           (rows (execute-read "get-profile-by-title" query)))
+    (let* ((rows (execute-read "get-profile-by-title"
+                               (sql-select "profile"
+                                           #:columns columns
+                                           #:where (list (cons 'title title))
+                                           #:limit 1))))
       (if (nil? rows) #f
           (car rows))))
 
-  (define* (get-profiles)
-    (let* ((query (format #f "SELECT ~a FROM profile
-                   ORDER BY created_at DESC"
-                          cols-sql)))
-      (execute-read "get-profiles" query)))
+  (define (get-profiles)
+    (execute-read "get-profiles"
+                  (sql-select "profile"
+                              #:columns columns
+                              #:order-by '((created-at desc)))))
 
   (define (delete-profile-by-id id)
-    (let* ((query (format #f "DELETE FROM profile WHERE id = ~a"
-                          (value->sql-literal id))))
-      (execute-write "delete-profile-by-id" query)))
+    (execute-write "delete-profile-by-id"
+                   (sql-delete "profile"
+                               #:where (list (cons 'id id)))))
 
   (define (insert-profile attrs)
-    (let* ((vals (map (lambda (x)
-                        (value->sql-literal (assq-ref attrs x)))
-                      insert-columns))
-           (query (format #f "INSERT INTO profile (~a) VALUES (~a)"
-                          insert-cols-sql
-                          (string-join vals ", "))))
-      (execute-write "insert-profile" query)))
+    (execute-write "insert-profile"
+                   (sql-insert "profile" attrs)))
 
   (define (update-profile-by-title title attrs)
-    (let* ((query (format #f "UPDATE profile SET ~a WHERE title = ~a"
-                          (string-join (map pair->sql-assignment attrs) ", ")
-                          (value->sql-literal title))))
-      (execute-write "update-profile-by-title" query)))
+    (execute-write "update-profile-by-title"
+                   (sql-update "profile" attrs
+                               #:where (list (cons 'title title)))))
 
   (mk-profile-repository #:get-profile-by-id-proc get-profile-by-id
                          #:get-profile-by-title-proc get-profile-by-title

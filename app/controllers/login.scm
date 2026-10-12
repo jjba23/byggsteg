@@ -47,7 +47,7 @@
                (body (alist-from-url-encoded-body (rc-body rc)))
                (email (assoc-ref body "email"))
                (password (assoc-ref body "password"))
-               (user-repo (make-sqlite-user-repository rc))
+               (user-repo (make-sqlite-user-repository))
                (u (get-user-by-email user-repo email))
                (get-owner-details (lambda ()
                                     `((id unquote

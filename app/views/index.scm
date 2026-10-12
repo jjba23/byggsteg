@@ -56,7 +56,7 @@
 
 (define (job-type-expl G_)
   (let* ((dl-classes '(flex flex-col gap-1 py-2))
-         (dd-classes '(py-3 px-2 text-asparagus-300 font-mono)))
+         (dd-classes '(py-3 px-2 text-asparagus-900 dark:text-asparagus-300 font-mono)))
     `(div (@ (class ,(terminal-frame-class #:extra '(max-w-prose p-4))))
           ,(terminal-heading (G_ "job types"))
           ,(dl (list (dt (list (terminal-code "maak-test") " | "
@@ -117,7 +117,7 @@
                               (div (@ (class ,(terminal-frame-class
                                                #:extra '(my-6 overflow-hidden))))
                                    (div (@ (class ,terminal-chrome))
-                                        (div (@ (class ,(mk-class '(text-asparagus-100
+                                        (div (@ (class ,(mk-class '(text-asparagus-900 dark:text-asparagus-100
                                                                     animate-pulse))))
                                              "●")
                                         (div (G_ "byggsteg") "@localhost: ~"))

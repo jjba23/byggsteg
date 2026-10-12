@@ -200,6 +200,10 @@ concurrently by default.")
                           guile-hygguile
                           guile-uuid
                           guile-kracht
+                          ;; The sqlite layer binds values through guile-sqlite3;
+                          ;; guile-dbi (which Artanis uses) can only take a
+                          ;; finished SQL string.
+                          (specification->package "guile-sqlite3")
                           guile-dbi
                           guile-gcrypt
                           guile-bewaking

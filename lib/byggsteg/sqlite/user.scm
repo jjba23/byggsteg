@@ -20,72 +20,65 @@
   #:declarative? #t
   #:use-module (srfi srfi-9)
   #:use-module (kracht prelude)
-  #:use-module (artanis db)
+  #:use-module (kracht sql)
   #:use-module (byggsteg sqlite util)
   #:use-module (byggsteg domain user)
   #:export (make-sqlite-user-repository))
 
 ;; --- SQLite implementation ---
-(define (make-sqlite-user-repository rc)
+(define (make-sqlite-user-repository)
   (define columns
     '(id username email password salt permissions))
 
-  (define cols-sql
-    (symbols->sql-columns-list columns))
-
-  (define conn
-    (DB-open rc))
-
   (define execute-write
-    (db-write conn))
+    (db-write (database)))
 
   (define execute-read
-    (db-read conn))
+    (db-read (database)))
 
   (define (get-id-to-username)
-    (let* ((query "SELECT id, username FROM user
-                   ORDER BY username ASC"))
-      (execute-read "get-id-to-username" query)))
+    (execute-read "get-id-to-username"
+                  (sql-select "user"
+                              #:columns '(id username)
+                              #:order-by '((username asc)))))
 
   (define (get-user-by-email email)
-    (let* ((query (format #f "SELECT ~a FROM user WHERE email = ~a LIMIT 1"
-                          cols-sql
-                          (value->sql-literal email)))
-           (rows (execute-read "get-user-by-email" query)))
+    (let* ((rows (execute-read "get-user-by-email"
+                               (sql-select "user"
+                                           #:columns columns
+                                           #:where (list (cons 'email email))
+                                           #:limit 1))))
       (if (nil? rows) #f
           (car rows))))
 
   (define (get-user-by-id id)
-    (let* ((query (format #f "SELECT ~a FROM user WHERE id = ~a LIMIT 1"
-                          cols-sql
-                          (value->sql-literal id)))
-           (rows (execute-read "get-user-by-id" query)))
+    (let* ((rows (execute-read "get-user-by-id"
+                               (sql-select "user"
+                                           #:columns columns
+                                           #:where (list (cons 'id id))
+                                           #:limit 1))))
       (if (nil? rows) #f
           (car rows))))
 
   (define (get-users)
-    (let* ((query (format #f "SELECT ~a FROM user
-                   ORDER BY username ASC"
-                          cols-sql)))
-      (execute-read "get-users" query)))
+    (execute-read "get-users"
+                  (sql-select "user"
+                              #:columns columns
+                              #:order-by '((username asc)))))
 
   (define (update-user-by-id id attrs)
-    (let* ((query (format #f "UPDATE user SET ~a WHERE id = ~a"
-                          (string-join (map pair->sql-assignment attrs) ", ")
-                          (value->sql-literal id))))
-      (execute-write "update-user-by-id" query)))
+    (execute-write "update-user-by-id"
+                   (sql-update "user" attrs
+                               #:where (list (cons 'id id)))))
 
   (define (delete-user-by-id id)
-    (let* ((query (format #f "DELETE FROM user WHERE id = ~a"
-                          (value->sql-literal id))))
-      (execute-write "delete-user-by-id" query)))
+    (execute-write "delete-user-by-id"
+                   (sql-delete "user"
+                               #:where (list (cons 'id id)))))
 
   (define (insert-user attrs)
-    (let* ((vals (map (lambda (x)
-                        (value->sql-literal (assq-ref attrs x))) columns))
-           (query (format #f "INSERT INTO user (~a) VALUES (~a)" cols-sql
-                          (string-join vals ", "))))
-      (execute-write "insert-user" query)))
+    (execute-write "insert-user"
+                   (sql-insert "user" attrs)))
 
   (mk-user-repository #:get-id-to-username-proc get-id-to-username
                       #:get-user-by-email-proc get-user-by-email

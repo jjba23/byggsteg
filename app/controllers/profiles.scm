@@ -36,7 +36,7 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let* ((profile-repo (make-sqlite-profile-repository rc))
+       (let* ((profile-repo (make-sqlite-profile-repository))
               (profiles (get-profiles profile-repo)))
          (response-emit (:mime rc
                                (profile-list-page rc profiles
@@ -48,7 +48,7 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let* ((profile-repo (make-sqlite-profile-repository rc))
+       (let* ((profile-repo (make-sqlite-profile-repository))
               (p (get-profile-by-id profile-repo
                                     (params rc "id"))))
          (response-emit (:mime rc
@@ -74,7 +74,7 @@
                  (profile-data (assoc-ref body "job-code"))
                  (profile-name (assoc-ref body "profile-name"))
                  (new-uuid (generate-string-uuid))
-                 (profile-repo (make-sqlite-profile-repository rc))
+                 (profile-repo (make-sqlite-profile-repository))
                  (found-profile (get-profile-by-title profile-repo
                                                       (html-escape
                                                        profile-name))))
@@ -118,7 +118,7 @@
         (define (do-delete)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
                  (profile-id (assoc-ref body "profile-id"))
-                 (profile-repo (make-sqlite-profile-repository rc)))
+                 (profile-repo (make-sqlite-profile-repository)))
             (delete-profile-by-id profile-repo profile-id)
 
             (redirect-to rc

@@ -54,10 +54,10 @@
                                                                   font-mono
                                                                   text-sm
                                                                   md:text-md
-                                                                  border-asparagus-900
-                                                                  text-olive-100
+                                                                  border-asparagus-700 dark:border-asparagus-900
+                                                                  text-asparagus-900 dark:text-olive-100
                                                                   caret-asparagus-300
-                                                                  bg-onyx-900
+                                                                  bg-stone-100 dark:bg-onyx-900
                                                                   border-2
                                                                   min-h-72
                                                                   max-w-prose

@@ -16,90 +16,170 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
+;; Running a kracht <sql-query> against the byggsteg SQLite file.
+;;
+;; Every statement reaching this module arrives built by `(kracht sql)': a SQL
+;; string with `?' placeholders and a separate list of values.  The values are
+;; handed to SQLite with `sqlite-bind-arguments', so they are bound by the
+;; engine and never spliced into the statement text.  A value therefore cannot
+;; change the shape of the statement, which is what removes the escaping
+;; problem instead of restating it.
+;;
+;; Artanis' own `DB-query' cannot do this: it forwards a single string to
+;; guile-dbi, whose `dbi-query' takes exactly two arguments and has no binding
+;; step at all.  That is why byggsteg talks to its SQLite file through
+;; guile-sqlite3, the binding Artanis is configured to name (`db.name' in
+;; conf/artanis.conf), and why this module, rather than a request, owns the
+;; connection.
+
 (define-module (byggsteg sqlite util)
   #:declarative? #t
   #:use-module (srfi srfi-9)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
-  #:use-module (artanis db)
+  #:use-module (artanis config)
+  #:use-module (kracht prelude)
+  #:use-module (kracht sql)
+  #:use-module (sqlite3)
   #:use-module (scriba scriba)
   #:use-module (scriba auto)
-  #:use-module (kracht prelude)
-  #:export (symbols->sql-columns-list sql-row->scheme-alist
-                                      symbol->sql-column
-                                      sql-column->symbol
-                                      alist?
-                                      value->sql-literal
-                                      pair->sql-assignment
-                                      db-read
-                                      db-write))
+  #:export (database-path
+            sqlite-database-path
+            open-database
+            database
+            close-databases!
+            db-read
+            db-write))
 
-(define (symbol->sql-column x)
-  (string-replace-substring (symbol->string x) "-" "_"))
+;; NOTE: `sql-row->scheme-alist' comes from `(kracht sql)' and is used below.
+;; It is deliberately not listed in `#:export': this is a declarative module,
+;; where every exported name is created as an unbound local binding first, so
+;; exporting an imported name would shadow the import and unbound it.
 
-(define (sql-column->symbol x)
-  (string->symbol (string-replace-substring x "_" "-")))
+;;;
+;;; Which file, and which connection
+;;;
 
-(define (symbols->sql-columns-list xs)
-  (string-join (map symbol->sql-column xs) ", "))
+;; #f means "take it from the Artanis configuration", which is where the rest
+;; of the deployment is described; a caller may set it to point the repositories
+;; at another file (a test database, for instance).
+(define database-path
+  (make-parameter #f))
 
-(define (alist? obj)
-  (cond
-    ((null? obj)
-     #t)
-    ((not (pair? obj))
-     #f)
-    ((not (pair? (car obj)))
-     #f)
-    (else (alist? (cdr obj)))))
+(define (configured-database-name)
+  (catch #t
+         (lambda ()
+           (let ((name (get-conf '(db name))))
+             (and name (format #f "~a" name))))
+         (lambda (key . args) #f)))
 
-(define (sql-row->scheme-alist xs)
-  (cond
-    ((alist? xs)
-     (map (lambda (pair)
-            (cons (sql-column->symbol (car pair))
-                  (cdr pair))) xs))
-    (else xs)))
+(define (sqlite-database-path)
+  "Path of the byggsteg SQLite file: `db.name' from the Artanis configuration,
+with the `.db' suffix that Artanis' own sqlite3 connector appends."
+  (or (database-path)
+      (let ((name (configured-database-name)))
+        (if (and name (not (string-null? name)))
+            (string-append name ".db")
+            ;; Artanis serves its defaults before its configuration is read, so
+            ;; an unreadable setting falls back to the file byggsteg ships with.
+            "byggsteg.db"))))
 
-(define (pair->sql-assignment a)
-  (cond
-    ((number? (cdr a))
-     (format #f "~a = ~a"
-             (symbol->sql-column (car a))
-             (cdr a)))
-    ((eq? #t
-          (cdr a))
-     (format #f "~a = 1"
-             (symbol->sql-column (car a))))
-    ((eq? #f
-          (cdr a))
-     (format #f "~a = 0"
-             (symbol->sql-column (car a))))
-    (else (format #f "~a = '~a'"
-                  (symbol->sql-column (car a))
-                  (cdr a)))))
+;; One connection per path, kept for the lifetime of the process.  Guile's
+;; threads here are green threads, and a SQLite call does not yield to another
+;; one mid-statement, so a single handle serves both the web workers and the
+;; queue worker without them interleaving.
+(define *connections* (make-hash-table))
 
-(define (value->sql-literal a)
-  (cond
-    ((number? a)
-     (format #f "~a" a))
-    ((eq? #t a)
-     "1")
-    ((eq? #f a)
-     "0")
-    (else (format #f "'~a'" a))))
+(define* (open-database #:key (path (sqlite-database-path)))
+  "Open PATH as a new SQLite connection and hand it back."
+  (let ((db (sqlite-open path)))
+    ;; A sweep and a request can meet at the same file; wait for the lock
+    ;; instead of failing the statement.
+    (sqlite-busy-timeout db 5000)
+    db))
+
+(define* (database #:key (path (sqlite-database-path)))
+  "The connection for PATH, opening it on first use."
+  (or (hash-ref *connections* path)
+      (let ((db (open-database #:path path)))
+        (hash-set! *connections* path db)
+        db)))
+
+(define (close-databases!)
+  "Close every connection this process opened.  For shutdown and for tests."
+  (hash-for-each (lambda (path db)
+                   (sqlite-close db))
+                 *connections*)
+  (hash-clear! *connections*))
+
+;;;
+;;; Running a query
+;;;
 
 (define s
   (scriba-auto-logger))
 
-(define (db-read conn)
-  (lambda (name query)
-    (log-debug s "~a query:\n\t~a\n" name query)
-    (let ((rows (map sql-row->scheme-alist
-                     (DB-get-all-rows (DB-query conn query)))))
-      (log-debug s "~a rows: ~a\n" name
-                 (length rows)) rows)))
+(define (bindable-value value)
+  "SQLite has no boolean type and `sqlite-bind' rejects a Scheme boolean, so
+#t and #f travel as the 1 and 0 the columns hold."
+  (cond
+    ((eq? value #t) 1)
+    ((eq? value #f) 0)
+    (else value)))
 
-(define (db-write conn)
+(define (bind-parameters! stmt params)
+  (apply sqlite-bind-arguments stmt (map bindable-value params)))
+
+(define (row->alist column-names row)
+  "Name the values of ROW (a vector, in COLUMN-NAMES order) and hand the result
+to kracht, which hyphenates the column names the way the domain records expect."
+  (sql-row->scheme-alist (map cons
+                              (vector->list column-names)
+                              (vector->list row))))
+
+(define (step-until-done stmt on-row)
+  "Step STMT to the end, calling ON-ROW with every row vector."
+  (let loop ()
+    (let ((row (sqlite-step stmt)))
+      (if row
+          (begin
+            (on-row row)
+            (loop))
+          #t))))
+
+(define (db-read db)
+  "Curry DB into a reader: `(execute-read \"name\" query)' where QUERY is a
+<sql-query>.  Rows come back as alists keyed by hyphenated column symbols."
   (lambda (name query)
-    (log-debug s "~a query:\n\t~a\n" name query)
-    (DB-query conn query)))
+    (log-debug s "~a query:\n\t~a\n" name (sql-query-sql query))
+    (let ((stmt (sqlite-prepare db (sql-query-sql query))))
+      (dynamic-wind
+       (lambda () #t)
+       (lambda ()
+         (bind-parameters! stmt (sql-query-params query))
+         (let* ((column-names (sqlite-column-names stmt))
+                (rows '()))
+           (step-until-done stmt
+                            (lambda (row)
+                              (set! rows (cons (row->alist column-names row)
+                                               rows))))
+           (log-debug s "~a rows: ~a\n" name
+                      (length rows))
+           (reverse rows)))
+       (lambda ()
+         (sqlite-finalize stmt))))))
+
+(define (db-write db)
+  "Curry DB into a writer: `(execute-write \"name\" query)' where QUERY is a
+<sql-query>.  The statement runs to completion and its rows, if it returns any,
+are dropped."
+  (lambda (name query)
+    (log-debug s "~a query:\n\t~a\n" name (sql-query-sql query))
+    (let ((stmt (sqlite-prepare db (sql-query-sql query))))
+      (dynamic-wind
+       (lambda () #t)
+       (lambda ()
+         (bind-parameters! stmt (sql-query-params query))
+         (step-until-done stmt (lambda (row) row)))
+       (lambda ()
+         (sqlite-finalize stmt))))))

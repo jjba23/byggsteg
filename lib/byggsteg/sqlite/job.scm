@@ -20,13 +20,13 @@
   #:declarative? #t
   #:use-module (srfi srfi-9)
   #:use-module (kracht prelude)
-  #:use-module (artanis db)
+  #:use-module (kracht sql)
   #:use-module (byggsteg sqlite util)
   #:use-module (byggsteg domain job)
   #:export (make-sqlite-job-repository))
 
 ;; --- SQLite implementation ---
-(define (make-sqlite-job-repository rc)
+(define (make-sqlite-job-repository)
   (define columns
     '(id title
          job-data
@@ -36,30 +36,19 @@
          created-at
          updated-at))
 
-  (define cols-sql
-    (symbols->sql-columns-list columns))
-
-  (define insert-columns
-    (delq 'updated-at columns))
-
-  (define insert-cols-sql
-    (symbols->sql-columns-list insert-columns))
-
-  (define conn
-    (DB-open rc))
-
   (define execute-write
-    (db-write conn))
+    (db-write (database)))
 
   (define execute-read
-    (db-read conn))
+    (db-read (database)))
 
   (define* (get-jobs #:key limit offset)
-    (let* ((query (format #f
-                   "SELECT ~a FROM job
-                   ORDER BY created_at DESC LIMIT ~a OFFSET ~a"
-                   cols-sql limit offset)))
-      (execute-read "get-jobs" query)))
+    (execute-read "get-jobs"
+                  (sql-select "job"
+                              #:columns columns
+                              #:order-by '((created-at desc))
+                              #:limit limit
+                              #:offset offset)))
 
   (define (get-job-by-id id)
     (let* ((rows (get-jobs-by-ids (list id))))
@@ -67,36 +56,32 @@
           (car rows))))
 
   (define (get-jobs-by-ids ids)
-    (let* ((query (format #f "SELECT ~a FROM job WHERE id IN(~a)" cols-sql
-                          (string-join (map value->sql-literal ids) ", "))))
-      (execute-read "get-jobs-by-ids" query)))
+    (execute-read "get-jobs-by-ids"
+                  (sql-select "job"
+                              #:columns columns
+                              #:where (list (list 'id 'in ids)))))
 
   (define* (get-jobs-in-progress #:key limit)
-    (let* ((query (format #f
-                   "SELECT ~a FROM job WHERE job_in_progress = 1
-                   ORDER BY created_at ASC LIMIT ~a"
-                   cols-sql limit)))
-      (execute-read "get-jobs-in-progress" query)))
+    (execute-read "get-jobs-in-progress"
+                  (sql-select "job"
+                              #:columns columns
+                              #:where '((job-in-progress . 1))
+                              #:order-by '((created-at asc))
+                              #:limit limit)))
 
   (define (delete-job-by-id id)
-    (let* ((query (format #f "DELETE FROM job WHERE id = ~a"
-                          (value->sql-literal id))))
-      (execute-write "delete-job-by-id" query)))
+    (execute-write "delete-job-by-id"
+                   (sql-delete "job"
+                               #:where (list (cons 'id id)))))
 
   (define (insert-job attrs)
-    (let* ((vals (map (lambda (x)
-                        (value->sql-literal (assq-ref attrs x)))
-                      insert-columns))
-           (query (format #f "INSERT INTO job (~a) VALUES (~a)"
-                          insert-cols-sql
-                          (string-join vals ", "))))
-      (execute-write "insert-job" query)))
+    (execute-write "insert-job"
+                   (sql-insert "job" attrs)))
 
   (define (update-job-by-id id attrs)
-    (let* ((query (format #f "UPDATE job SET ~a WHERE id = ~a"
-                          (string-join (map pair->sql-assignment attrs) ", ")
-                          (value->sql-literal id))))
-      (execute-write "update-job-by-id" query)))
+    (execute-write "update-job-by-id"
+                   (sql-update "job" attrs
+                               #:where (list (cons 'id id)))))
 
   (mk-job-repository #:get-jobs-proc get-jobs
                      #:get-job-by-id-proc get-job-by-id

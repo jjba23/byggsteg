@@ -38,14 +38,14 @@
                              ((not (nil? (get-from-qstr rc "limit")))
                               (string->number (get-from-qstr rc "limit")))
                              (else 24)))
-              (log-repo (make-sqlite-log-repository rc))
+              (log-repo (make-sqlite-log-repository))
               (logs (get-logs log-repo
                               #:limit query-limit
                               #:offset query-offset))
               (job-ids (map (lambda (l)
                               (assq-ref l
                                         'job-id)) logs))
-              (job-repo (make-sqlite-job-repository rc))
+              (job-repo (make-sqlite-job-repository))
               (jobs (cond
                       ((not (nil? job-ids))
                        (get-jobs-by-ids job-repo job-ids))
@@ -74,8 +74,8 @@
      #:mime 'xml
      #:i18n '(cookie "lang")
      (lambda (rc)
-       (let* ((log-repo (make-sqlite-log-repository rc))
-              (job-repo (make-sqlite-job-repository rc))
+       (let* ((log-repo (make-sqlite-log-repository))
+              (job-repo (make-sqlite-job-repository))
               (l (get-log-by-id log-repo
                                 (params rc "id")))
               (j (get-job-by-id job-repo

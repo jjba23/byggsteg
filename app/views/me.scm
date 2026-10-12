@@ -277,15 +277,13 @@
                                         (checked #f)
                                         (input-css '(p-3 max-w-prose
                                                      rounded-none
-                                                     border-asparagus-900
-                                                     text-stone-300
-                                                     bg-onyx-700
+                                                     border-asparagus-700 dark:border-asparagus-900
+                                                     text-asparagus-900 dark:text-stone-300
+                                                     bg-stone-100 dark:bg-onyx-700
                                                      border-2
                                                      font-mono
                                                      shadow-md))
-                                        (label-css '(text-md font-bold
-
-                                                     text-stone-300))
+                                        (label-css '(text-md font-bold text-asparagus-900 dark:text-stone-300))
                                         (input-flex-css '(my-2 flex flex-row
                                                                gap-1)))
   
