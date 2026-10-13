@@ -170,8 +170,14 @@
                                                     "inspect the job's lambda expression"))))
                               ,(terminal-pre detail-data
                                              #:size '(text-sm md:text-md)))
+                     ;; The job's output, left to run off the side rather than
+                     ;; wrapped: a wrapped log on a phone is a column and a half
+                     ;; of build output with every line broken in the middle of
+                     ;; it, and a reader who is following a command's line means
+                     ;; to follow that line.  The pane scrolls sideways instead.
                      ,(terminal-pre log-data
-                                    #:size '(text-sm md:text-md)))))
+                                    #:size '(text-sm md:text-md)
+                                    #:wrap? #f))))
     
     (html-template G_
                    #:title (format #f "byggsteg - ~a" (G_ "job log"))
@@ -181,18 +187,8 @@
                    ;; runs a crawler can read instead.
                    #:robots "noindex, nofollow"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(w-full flex
-                                                               flex-col
-                                                               gap-3
-                                                               py-3
-                                                               px-3
-                                                               sm:gap-4
-                                                               sm:py-4
-                                                               sm:px-4
-                                                               md:gap-6
-                                                               md:py-6
-                                                               md:px-6
-                                                               align-center))))
+                   #:body `((div (@ (class ,(page-body-class
+                                            #:extra '(align-center))))
                                  ,log-html))
                    ;; A job that is still going is followed closely: the worker
                    ;; streams its output into the log row in batches, and this is
@@ -234,25 +230,16 @@
                                         ,(terminal-icon-button #:icon 'arrow-right
                                                       #:content (G_ "next"))))
                                    '()))))
-         (logs-html `((div (@ (class ,(mk-class '(w-full flex
-                                                  flex-col
-                                                  gap-3
-                                                  py-3
-                                                  px-3
-                                                  sm:gap-4
-                                                  sm:py-4
-                                                  sm:px-4
-                                                  md:gap-6
-                                                  md:py-6
-                                                  md:px-6
-                                                  align-center
-                                                  whitespace-break-spaces))))
+         (logs-html `((div (@ (class ,(page-body-class
+                                       #:extra '(align-center
+                                                 whitespace-break-spaces))))
                            ,(terminal-heading (G_ "logs")
                                               #:tag 'h1
                                               #:size '(text-2xl))
                            (div (@ (class ,(terminal-frame-class
-                                            #:extra '(flex flex-col gap-4
-                                                       py-8 px-6))))
+                                            #:extra (append panel-body-classes
+                                                            '(flex flex-col
+                                                               gap-4)))))
                                 ,jobs-html)
                            ,page-buttons))))
     (html-template G_

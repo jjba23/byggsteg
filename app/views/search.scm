@@ -123,10 +123,7 @@ back into the page, so a log line that prints a `<` arrives as that character."
          (profiles (or (assq-ref results 'profiles) '()))
          (total (+ (length jobs) (length logs) (length profiles)))
          (searched? (and (string? query) (not (string-null? query))))
-         (body `((div (@ (class ,(mk-class '(w-full flex flex-col gap-4
-                                                       py-3 px-3
-                                                       sm:py-4 sm:px-4
-                                                       md:py-6 md:px-6))))
+         (body `((div (@ (class ,(page-body-class)))
                       ,(terminal-heading (G_ "search")
                                          #:tag 'h1
                                          #:size '(text-2xl))

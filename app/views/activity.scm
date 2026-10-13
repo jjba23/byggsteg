@@ -188,10 +188,7 @@
          (total (heatmap-total heatmap))
          (busiest (heatmap-max heatmap))
          (weeks (length (heatmap-weeks heatmap)))
-         (body `((div (@ (class ,(mk-class '(w-full flex flex-col gap-4
-                                                       py-3 px-3
-                                                       sm:py-4 sm:px-4
-                                                       md:py-6 md:px-6))))
+         (body `((div (@ (class ,(page-body-class)))
                       ,(terminal-heading (G_ "activity")
                                          #:tag 'h1
                                          #:size '(text-2xl))

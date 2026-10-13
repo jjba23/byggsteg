@@ -78,7 +78,7 @@
                                                  #:required #t)
 
                                       (div ,(terminal-submit-button (G_ "save"))))))
-         (body `((div (@ (class ,(mk-class '(px-4))))
+         (body `((div (@ (class ,(page-body-class)))
                       (div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                        align-center
                                                        items-center gap-6))))
@@ -158,7 +158,7 @@
                    ;; hold, so the form is nobody's search result.
                    #:robots "noindex, nofollow"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(px-3))))
+                   #:body `((div (@ (class ,(page-body-class)))
                                  ,(terminal-heading (G_ "new profile")
                                                     #:tag 'h2)
                                  ,(job-form G_ "/profiles/manage/submit" #t))))))
@@ -173,20 +173,19 @@
                                   "The jobs this byggsteg deployment has saved as profiles, each ready to run again")
                    #:path "/profiles"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(w-full flex
-                                                        flex-col
-                                                        gap-6
-                                                        py-6
-                                                        px-6
-                                                        align-center
-                                                        whitespace-break-spaces))))
+                   #:body `((div (@ (class ,(page-body-class
+                                            #:extra '(align-center
+                                                      whitespace-break-spaces))))
                                  ,(terminal-heading (G_ "profiles")
                                                     #:tag 'h1
                                                     #:size '(text-2xl))
                                  (div (@ (class ,(terminal-frame-class
-                                                  #:extra '(w-full flex flex-col
-                                                             gap-4 my-6 py-8 px-6
-                                                             align-center))))
+                                                  #:extra (append panel-body-classes
+                                                                  '(w-full flex
+                                                                    flex-col
+                                                                    gap-4
+                                                                    my-4 sm:my-6
+                                                                    align-center)))))
                                       ,profiles-html)
                                  (a (@ (href "/profiles/manage/create"))
                                     ,(terminal-icon-button #:icon 'plus

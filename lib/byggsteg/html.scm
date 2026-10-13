@@ -262,154 +262,106 @@ cannot be closed early by it."
                                                ,@body))
                                      ,(page-footer G_)))))))
 
+;; The bar's buttons, sized in one place for all of them.
+;;
+;; A phone is where the bar is read in the palm of a hand and where a row of
+;; buttons is crowded, so it is there that they are at their smallest: the icons
+;; are put away -- each one of them has a word beside it saying the same thing,
+;; and on a bar that is four words wide it is the words a reader follows -- and
+;; the padding is the tightest step this sheet offers.  From `sm' up the icons
+;; come back and from `md' up the words are read at the size the bar was drawn
+;; at.
+;;
+;; Stated once rather than at each button, because a bar whose buttons were each
+;; sized on their own is a bar that ends up a size out somewhere -- and because
+;; seven copies of one set of classes is seven places to change them.  They are
+;; asked not to shrink as well, so that a narrow screen wraps the bar into rows
+;; instead of squeezing the words in it.
+(define nav-button-size '(text-sm md:text-md))
+(define nav-button-icon-css '(text-onyx-300 dark:text-stone-100
+                              hidden sm:inline text-sm md:text-md))
+(define nav-button-classes '(py-1 px-1 sm:px-2 md:py-2 md:px-3
+                             shrink-0 max-w-prose cursor-pointer select-none
+                             transition-colors duration-200 ease-in-out
+                             focus-visible:outline-2 focus-visible:outline-offset-2
+                             outline-asparagus-500
+                             text-asparagus-900 dark:text-asparagus-300))
+
+(define (nav-link-button G_ href icon-type label)
+  "One button of the bar: an icon, a word, and where it goes."
+  `((a (@ (href ,href))
+       ,(terminal-icon-button #:icon icon-type
+                              #:size nav-button-size
+                              #:icon-css nav-button-icon-css
+                              #:extra-classes nav-button-classes
+                              #:content label))))
+
 (define (activity-button G_)
-  `((a (@ (href "/activity"))
-       ,(terminal-icon-button #:icon 'chart-bar
-                     #:size '(text-md)
-                     #:extra-classes '(py-1 md:py-2
-                                            px-2
-                                            md:px-3
-                                            max-w-prose
-                                            cursor-pointer
-                                            text-asparagus-900 dark:text-asparagus-300
-)
-                     #:content (G_ "activity")))))
+  (nav-link-button G_ "/activity" 'chart-bar (G_ "activity")))
 
 (define (search-button G_)
-  `((a (@ (href "/search"))
-       ,(terminal-icon-button #:icon 'magnifying-glass
-                     #:size '(text-md)
-                     #:extra-classes '(py-1 md:py-2
-                                            px-2
-                                            md:px-3
-                                            max-w-prose
-                                            cursor-pointer
-                                            text-asparagus-900 dark:text-asparagus-300
-)
-                     #:content (G_ "search")))))
+  (nav-link-button G_ "/search" 'magnifying-glass (G_ "search")))
 
 (define (logs-button G_)
-  `((a (@ (href "/logs"))
-       ,(terminal-icon-button #:icon 'scroll
-                     #:size '(text-md)
-                     #:extra-classes '(py-1 md:py-2
-                                            px-2
-                                            md:px-3
-                                            max-w-prose
-                                            cursor-pointer
-                                            text-asparagus-900 dark:text-asparagus-300
-)
-                     #:content (G_ "logs")))))
+  (nav-link-button G_ "/logs" 'scroll (G_ "logs")))
 
 (define (run-job-button G_)
-  `((a (@ (href "/jobs/request"))
-       ,(terminal-icon-button #:icon 'circuitry
-                     #:size '(text-md)
-                     #:extra-classes '(py-1 md:py-2
-                                            px-2
-                                            md:px-3
-                                            max-w-prose
-                                            cursor-pointer
-                                            text-asparagus-900 dark:text-asparagus-300
-)
-                     #:content (G_ "run job")))))
-
-(define (login-button G_)
-  `((a (@ (class ,(mk-class '(lowercase
-
-                                        text-onyx-900
-                                        dark:text-white
-                                        font-sans
-                                        font-medium
-                                        py-1
-                                        md:py-2
-                                        px-2
-                                        md:px-3
-                                        flex-items-center
-                                        gap-2)))
-          (href "/login"))
-       ,(terminal-icon-button #:icon 'sign-in
-                     #:size '(text-md)
-                     #:extra-classes '(py-1 md:py-2
-                                            px-2
-                                            md:px-3
-                                            max-w-prose
-                                            cursor-pointer
-                                            text-asparagus-900 dark:text-asparagus-300
-)
-                     #:content (G_ "login")))))
-
-(define (me-button G_)
-  `((a (@ (class ,(mk-class '(lowercase text-onyx-900
-                                        dark:text-white
-                                        font-sans
-                                        font-medium
-                                        py-1
-                                        md:py-2
-                                        px-2
-                                        md:px-3
-                                        flex-items-center
-                                        gap-2)))
-          (href "/me"))
-       ,(terminal-icon-button #:icon 'user-circle
-                     #:size '(text-md)
-                     #:extra-classes '(py-1 md:py-2
-                                            px-2
-                                            md:px-3
-                                            max-w-prose
-                                            cursor-pointer
-                                            text-asparagus-900 dark:text-asparagus-300
-)
-                     #:content (G_ "me")))))
+  (nav-link-button G_ "/jobs/request" 'circuitry (G_ "run job")))
 
 (define (profiles-button G_)
-  `((a (@ (href "/profiles"))
-       ,(terminal-icon-button #:icon 'folder
-                     #:size '(text-md)
-                     #:extra-classes '(py-1 md:py-2
-                                            px-2
-                                            md:px-3
-                                            max-w-prose
-                                            cursor-pointer
-                                            text-asparagus-900 dark:text-asparagus-300
-)
-                     #:content (G_ "profiles")))))
+  (nav-link-button G_ "/profiles" 'folder (G_ "profiles")))
+
+;; The two buttons that say who the reader is rather than what the deployment
+;; holds: hygguile dresses those in the sans face, which is why they are not the
+;; bar's other buttons.  They are the bar's size all the same, so that the two
+;; of them stand no taller than the row beside them, and they are written once
+;; because a login and an account are the same button with another word on it.
+(define (account-button G_ href icon-type label)
+  `((a (@ (class ,(mk-class '(lowercase no-underline
+                              text-onyx-900 dark:text-white
+                              font-sans font-medium
+                              flex flex-row items-center gap-2)))
+          (href ,href))
+       ,(terminal-icon-button #:icon icon-type
+                              #:size nav-button-size
+                              #:icon-css nav-button-icon-css
+                              #:extra-classes nav-button-classes
+                              #:content (G_ label)))))
+
+(define (login-button G_)
+  (account-button G_ "/login" 'sign-in "login"))
+
+(define (me-button G_)
+  (account-button G_ "/me" 'user-circle "me"))
 (define* (page-top G_
                    #:key is-logged-in)
   (let* ((action-buttons `(,(run-job-button G_)
 
                            ;; Theme switch
                            ,(ui-mode-button #:icon ""
-                                            #:size '(text-sm sm:text-md)
-                                            #:icon-css '(text-asparagus-900 dark:text-asparagus-300
-
-                                                         text-sm sm:text-md)
+                                            #:size nav-button-size
+                                            #:icon-css nav-button-icon-css
                                             #:family '(font-mono)
                                             #:rounding '(rounded-none)
+                                            ;; An icon-only button: what it is
+                                            ;; is the two icons, so they are
+                                            ;; the one pair the bar does not
+                                            ;; put away on a phone.
                                             #:content `((div ,(icon #:type 'sun
                                                                     #:icon-css '
                                                                     (text-sm
-                                                                     sm:text-md
-                                                                     lg:text-lg
+                                                                     md:text-md
                                                                      text-asparagus-900
                                                                      dark:text-stone-300))
                                                              ,(icon #:type 'moon
                                                                     #:icon-css '
                                                                     (text-sm
-                                                                     sm:text-md
-                                                                     lg:text-lg
+                                                                     md:text-md
                                                                      text-asparagus-900
                                                                      dark:text-stone-300))))
-                                            #:color '(text-asparagus-900 dark:text-asparagus-300
-)
+                                            #:color '(text-asparagus-900 dark:text-asparagus-300)
                                             #:weight '(font-light)
-                                            #:extra-classes '(shrink-0 py-1
-                                                              px-2
-                                                              sm:py-1
-                                                              sm:px-2
-                                                              md:py-2
-                                                              md:px-3
-                                                              cursor-pointer))))
+                                            #:extra-classes nav-button-classes)))
          (link-buttons `((div ,(logs-button G_))
                          (div ,(activity-button G_))
                          (div ,(search-button G_))
@@ -423,7 +375,7 @@ cannot be closed early by it."
     ;; buttons are all there is to see through it -- and no rounding, so it reads
     ;; as a full-width shelf of the same console as the frames below.
     (terminal-glass-panel
-     `((div (@ (class ,(mk-class '(px-3 pb-3 pt-1 w-full))))
+     `((div (@ (class ,(mk-class '(px-2 pb-1 pt-1 sm:px-3 sm:pb-2 w-full))))
                 ;; The wordmark is a shell prompt with a live block cursor.
                 (a (@ (href "/")
                       (class ,(mk-class '(flex flex-row items-center gap-2
@@ -431,21 +383,38 @@ cannot be closed early by it."
                    (span (@ (class ,prompt-face)) "$")
                    ,(h3 (list (G_ "byggsteg"))
                         #:color '(text-asparagus-900 dark:text-asparagus-100 hover:text-onyx-900 dark:hover:text-olive-100)
-                        #:size '(text-lg lg:text-xl))
+                        #:size '(text-md sm:text-lg lg:text-xl))
                    (span (@ (class ,caret-face)) "▮")))
+           ;; On a phone the two groups are not drawn as two groups: there is no
+           ;; room between them to say anything with, and one row of buttons
+           ;; that wraps where it needs to holds more of them than a row per
+           ;; group does -- the words of a group that wraps still leave the space
+           ;; beside it empty.  `contents' is what says so: the two wrappers stop
+           ;; being boxes of their own, and their buttons become children of the
+           ;; bar, packing left to right and wrapping as one row.  From `sm' up
+           ;; the boxes come back and the bar is the bar of a wide screen -- the
+           ;; deployment's buttons at one end, the reader's at the other.
            (div (@ (class ,(mk-class '(flex flex-row
                                             flex-wrap
-                                            justify-between
                                             items-center
                                             align-center
-                                            gap-3))))
-                (div (@ (class ,(mk-class '(flex flex-row justify-start gap-2))))
+                                            gap-1 sm:gap-2
+                                            sm:justify-between))))
+                (div (@ (class ,(mk-class '(contents sm:flex sm:flex-row
+                                                    sm:flex-wrap
+                                                    sm:justify-start
+                                                    gap-1 sm:gap-2))))
                      ,link-buttons)
-                (div (@ (class ,(mk-class '(flex flex-row justify-start gap-2))))
+                (div (@ (class ,(mk-class '(contents sm:flex sm:flex-row
+                                                    sm:flex-wrap
+                                                    sm:justify-start
+                                                    gap-1 sm:gap-2))))
                      ,action-buttons)))
      #:tag 'header
      #:position '(sticky top-0 z-10)
-     #:padding '(py-1 px-2 md:px-3 sm:px-5)
+     ;; The room either side of the bar steps up with the screen: the buttons
+     ;; of a phone get the width instead.
+     #:padding '(py-1 px-2 sm:px-3 md:px-5)
      #:classes '(w-full)
      #:rounding '()
      #:border '(border-b-2 border-asparagus-700 dark:border-asparagus-900)
@@ -454,56 +423,53 @@ cannot be closed early by it."
 (define (page-footer G_)
   ;; The footer is hygguile's own component, so the terminal surface is a
   ;; matter of its olive knobs rather than a panel div wrapped around it.
+  ;;
+  ;; It says two things and stops: where to read more, and under which licence
+  ;; this deployment is built.  What byggsteg is, and what it is built with, is
+  ;; prose, and prose belongs to the manual those links lead to, where a reader
+  ;; who wants it has come to read it -- not to a line of every page of the
+  ;; deployment.  The last of the links is the way back to the top, which a
+  ;; reader at the end of a long list of runs is the reader who wants.
   (let ((fragments
-         `((div (@ (class ,(mk-class '(py-2))))
-                 ,(em (G_ "the hackable and extensible CI/CD system")))
-           ,(em (G_
-                 "byggsteg is free software, available under the GNU AGPL v3 or newer")
-                 #:size '(text-sm))
-           (div (@ (class ,(mk-class '(mt-1 flex
-                                            flex-row
-                                            flex-wrap
-                                            gap-2
-                                            align-center
-                                            items-center))))
-                ,(em (G_ "find here the:"))
-                ,(a "source code"
-                    #:href "https://codeberg.org/jjba23/byggsteg"
-                    #:size '(text-md)
-                    #:color '(text-asparagus-900 dark:text-olive-300))
-                ,(a "documentation"
-                    #:href "https://jointhefreeworld.org/manuals/byggsteg/"
-                    #:size '(text-md)
-                    #:color '(text-asparagus-900 dark:text-olive-300))
-                ,(a "manual (kept as the project's README)"
-                    #:href "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org"
-                    #:size '(text-md)
-                    #:color '(text-asparagus-900 dark:text-olive-300)))
-           (div ,(em (G_
-                      "the manual -- jobs, artifacts, users, permissions, and how to host byggsteg yourself -- is the project's README, which the documentation above is built from")
-                     #:size '(text-sm)))
-           (div ,(em (G_
-                      "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS")
-                     #:size '(text-sm)))
-           (div ,(em (G_ "Copyright © Josep Bigorra & NalaGinrut")
-                     #:size '(text-sm)))
-           (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-8
+         `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
+                                            gap-x-4 gap-y-1
                                             align-center items-center))))
-                (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-2
-                                                 align-center items-center))))
-                     (a (@ (href "javascript:void(0)")
-                           (class ,(mk-class '(no-underline text-asparagus-900 dark:text-asparagus-300
-                                               cursor-pointer font-light)))
-                           (onclick
-                            "window.scrollTo({ top: 0, behavior: 'smooth' })"))
-                        "⬆️ back to the top"))
-                (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-2
-                                                 align-center items-center))))
-                     ,(em "version:")
-                     ,(mono (format #f "~a"
-                                    (get-short-commit-sha))
-                            #:size '(text-md)
-                            #:weight '(font-light)))))))
+                ,(a (G_ "source")
+                    #:href "https://codeberg.org/jjba23/byggsteg"
+                    #:family '(font-mono)
+                    #:size '(text-xs sm:text-sm)
+                    #:color '(text-asparagus-900 dark:text-olive-300))
+                ,(a (G_ "manual")
+                    #:href "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org"
+                    #:family '(font-mono)
+                    #:size '(text-xs sm:text-sm)
+                    #:color '(text-asparagus-900 dark:text-olive-300))
+                ,(a (G_ "documentation")
+                    #:href "https://jointhefreeworld.org/manuals/byggsteg/"
+                    #:family '(font-mono)
+                    #:size '(text-xs sm:text-sm)
+                    #:color '(text-asparagus-900 dark:text-olive-300))
+                (a (@ (href "javascript:void(0)")
+                      (class ,(mk-class '(no-underline cursor-pointer
+                                          font-mono font-medium
+                                          text-xs sm:text-sm
+                                          text-asparagus-900 dark:text-asparagus-300)))
+                      (onclick
+                       "window.scrollTo({ top: 0, behavior: 'smooth' })"))
+                   ,(G_ "back to the top")))
+           (div (@ (class ,(mk-class '(flex flex-row flex-wrap
+                                            gap-x-3 gap-y-1
+                                            align-center items-center))))
+                ,(em (G_ "© Josep Bigorra & NalaGinrut -- AGPL-3.0-or-later")
+                     #:family '(font-mono)
+                     #:size '(text-xs)
+                     #:color '(text-asparagus-900 dark:text-asparagus-300))
+                ,(em (format #f "~a ~a"
+                             (G_ "version:")
+                             (get-short-commit-sha))
+                     #:family '(font-mono)
+                     #:size '(text-xs)
+                     #:color '(text-asparagus-900 dark:text-asparagus-300))))))
     (footer fragments
             #:background '(bg-stone-300 dark:bg-onyx-900)
             #:shadow '()
@@ -512,8 +478,8 @@ cannot be closed early by it."
                                font-mono
                                border-t-2
                                border-asparagus-700 dark:border-asparagus-900
-                               flex flex-col gap-3 items-start justify-start
-                               px-6 py-8 sm:px-8 md:px-12))))
+                               flex flex-col gap-1 items-start justify-start
+                               px-3 py-3 sm:px-6 sm:py-4 md:px-10))))
 
 (define project-logo
   `(div (@ (class ,(terminal-frame-class #:extra '(p-4))))

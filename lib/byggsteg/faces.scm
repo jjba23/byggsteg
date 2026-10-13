@@ -90,6 +90,43 @@
 (export terminal-frame-class)
 
 ;;
+;; The gutter of a page
+;;
+
+;; The margin a page's own body sits in: its room either side, the room above
+;; and below it, and the step between the blocks it holds.
+;;
+;; A phone is read nearly edge to edge and a wide screen in a column, so every
+;; one of those is a step tighter on a phone than on a wide screen.  Stated once
+;; here rather than at each page, because a deployment whose pages each chose
+;; their own gutter is a deployment whose text jumps sideways as a reader moves
+;; between two of them; a page that lays its body out as a column or centres it
+;; adds those classes beside this one.  `w-full' and `flex flex-col' are part of
+;; it because a body that is a block of its own is a body the gutter measures.
+(define-public page-body-face
+  (mk-class '(w-full flex flex-col gap-3 py-3 px-3
+              sm:gap-4 sm:py-4 sm:px-4
+              md:gap-6 md:py-6 md:px-6)))
+
+;; The gutter with room to add layout classes of a page's own, e.g.
+;; `align-center' or `whitespace-break-spaces'; the shape of
+;; `terminal-frame-class' beside it.
+(define* (page-body-class #:key (extra '()))
+  (if (null? extra)
+      page-body-face
+      (string-append page-body-face " " (mk-class extra))))
+(export page-body-class)
+
+;; The room inside a framed panel of a page -- a list of runs, a form, a set of
+;; fields.  The same two steps as the gutter, so a panel on a phone is a panel
+;; with room around what it holds rather than one of the screen's own edges, and
+;; a list to be appended to: such a panel adds its own layout classes beside
+;; these (`terminal-frame-class' takes its extras as a list for the same
+;; reason).
+(define-public panel-body-classes
+  '(p-4 sm:py-6 sm:px-6))
+
+;;
 ;; Frosted terminal glass
 ;;
 
@@ -359,7 +396,15 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 (define (terminal-input . args)
   (apply input
          (append args (list #:input-css
-                            '(p-4 max-w-prose
+                            ;; `min-w-0' is what keeps a field from deciding how
+                            ;; wide the form around it is: a field's own width is
+                            ;; its `size' in characters, and a row of them sized
+                            ;; by that is a page wider than the phone it is read
+                            ;; on.  Allowed to shrink, a field is as wide as the
+                            ;; room it is given -- which on a wide screen is the
+                            ;; size it always had, and on a narrow one is the
+                            ;; screen.
+                            '(p-4 max-w-prose min-w-0
                                  rounded-none
                                  border-asparagus-700 dark:border-asparagus-900
                                  text-asparagus-900 dark:text-olive-100
@@ -411,7 +456,15 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 
 ;; Console output: hygguile's `pre' already exposes every knob this needs, so
 ;; the terminal look is stated once here instead of being patched afterwards.
-(define* (terminal-pre content #:key (size '(text-sm)) (extra '()))
+;;
+;; WRAP? is what happens to a line that is longer than the screen: wrapped onto
+;; the next one, which is how prose and a form's own code are read, or left to
+;; run off the side, where the pane can be scrolled along it.  A log is read the
+;; second way -- on a phone, wrapped output is a page of a column and a half,
+;; and a reader following a line of build output means to follow that line -- so
+;; the side of the pre is where the room comes from rather than the page's, and
+;; the pane is narrower on either side to hand the output the width it has.
+(define* (terminal-pre content #:key (size '(text-sm)) (extra '()) (wrap? #t))
   (pre content
        #:color '(text-asparagus-900 dark:text-olive-100)
        #:background '(bg-stone-100 dark:bg-onyx-900)
@@ -420,12 +473,15 @@ z-10)' is what keeps a bar of glass under the reader's eye."
        #:size size
        #:leading '(leading-6)
        #:width '(w-full max-w-full min-w-0)
-       #:padding-x '(px-4)
+       #:padding-x '(px-2 sm:px-4)
        #:padding-y '(py-4)
-       #:pre-classes (append '(font-mono overflow-x-auto whitespace-pre-wrap
-                              caret-asparagus-300
-                              border border-asparagus-700
-                              dark:border-asparagus-900)
+       #:pre-classes (append (if wrap?
+                                '(font-mono whitespace-pre-wrap)
+                                '(font-mono whitespace-pre))
+                             '(overflow-x-auto
+                               caret-asparagus-300
+                               border border-asparagus-700
+                               dark:border-asparagus-900)
                              extra)))
 (export terminal-pre)
 

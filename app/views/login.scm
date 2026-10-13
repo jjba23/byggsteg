@@ -67,20 +67,29 @@
                                   "Log in to this byggsteg deployment to run jobs and profiles, follow a running job's log, and manage the users and their permissions")
                    #:path "/login"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(px-4))))
+                   ;; The two forms are columns beside each other where there is
+                   ;; room for two and stacked where there is not: side by side
+                   ;; on a phone they are two squeezed columns whose fields are
+                   ;; wider than either one, which is how a page ends up wider
+                   ;; than the screen it is read on.
+                   #:body `((div (@ (class ,(page-body-class)))
                                  (div (@ (class ,(mk-class '(w-full flex
-                                                                    flex-row
-                                                                    flex-wrap
-                                                                    gap-8))))
+                                                                    flex-col
+                                                                    gap-6 sm:gap-8
+                                                                    md:flex-row))))
                                       (div (@ (class ,(mk-class '(flex
                                                                   flex-col
-                                                                  gap-4))))
+                                                                  gap-4
+                                                                  min-w-0
+                                                                  flex-1))))
                                            ,(terminal-heading (G_ "login to byggsteg")
                                                               #:tag 'h2)
                                            (div ,login-form))
                                       (div (@ (class ,(mk-class '(flex
                                                                   flex-col
-                                                                  gap-4))))
+                                                                  gap-4
+                                                                  min-w-0
+                                                                  flex-1))))
                                            ,(terminal-heading (G_ "reset password")
                                                               #:tag 'h2)
                                            (div ,reset-form))))))))

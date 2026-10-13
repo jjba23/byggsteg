@@ -100,7 +100,8 @@
 (define* (welcome-page rc
                        #:key is-logged-in selected-locale)
   (let* ((G_ (:i18n rc))
-         (welcome-html `((div (@ (class ,(mk-class '(px-3))))
+         (welcome-html `((div (@ (class ,(page-body-class
+                                          #:extra '(gap-2 sm:gap-3))))
 
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                gap-4
@@ -128,7 +129,7 @@
                                         (div (G_ "byggsteg") "@localhost: ~"))
                                    ,(terminal-hero))
 
-                              (div (@ (class ,(mk-class '(my-6 py-6
+                              (div (@ (class ,(mk-class '(my-4 py-4 sm:my-6 sm:py-6
 
                                                                flex
                                                                flex-row
@@ -138,15 +139,26 @@
                                                                items-center
                                                                gap-6))))
 
-                                   (div ,(job-type-expl G_))
+                                   ;; Each of the three is allowed to be
+                                   ;; narrower than what it holds: the row is
+                                   ;; centred, so a panel that cannot shrink is
+                                   ;; a panel that is half off the screen once
+                                   ;; the row wraps on a phone.
+                                   (div (@ (class ,(mk-class '(min-w-0
+                                                               max-w-full))))
+                                        ,(job-type-expl G_))
 
-                                   (div ,(terminal-glass-panel
+                                   (div (@ (class ,(mk-class '(min-w-0
+                                                               max-w-full))))
+                                        ,(terminal-glass-panel
                                           (list (terminal-heading (G_ "a pipeline"))
                                                 (pipeline-sample))
                                           #:content-classes '(flex flex-col gap-2)))
 
                                    (div (@ (class ,(mk-class '(flex flex-col
                                                                gap-4
+                                                               min-w-0
+                                                               max-w-full
                                                                items-center))))
 
                                         ,project-logo))))))

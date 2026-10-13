@@ -46,11 +46,49 @@
   #:use-module (ice-9 threads)
   #:export (run-pipeline-task job-pipeline job-specs job-title-prefix
                               fail-job run-one-job run-jobs-concurrently
-                              run-fallible-pipeline run-infallible-pipeline))
+                              run-fallible-pipeline run-infallible-pipeline
+                              request-service-restart! run-requested-restart!))
 
 ;;;
 ;;; What a job asks for
 ;;;
+
+;;;
+;;; Restarting byggsteg from inside a job
+;;;
+
+;; A version update job ends by restarting the daemon that is running it, so the
+;; job cannot outlive the restart: the process that would write down how the job
+;; went is the process the restart stops.  Asking for the restart, and having the
+;; worker make it once the job's row is written, is what keeps the two apart.
+;;
+;; It used to be a thread of the job's own that waited two seconds and then
+;; restarted byggsteg -- a race with the job's own recording, which it usually
+;; lost, since a job clones and describes its project before it gets to its task.
+;; The row was then still marked in progress when the daemon came back, so the
+;; worker found the version update unfinished, ran it again, and restarted
+;; byggsteg again: a deployment that restarted itself for as long as it was up.
+(define *restart-request* (make-atomic-box #f))
+
+(define (request-service-restart! command)
+  "Ask that COMMAND -- a restart of byggsteg's own service -- be run once this
+job has been recorded, and answer whether one was not already asked for."
+  (atomic-box-set! *restart-request* command)
+  #t)
+
+(define (run-requested-restart!)
+  "Run the restart a job asked for, if one did, and answer the command it ran.
+
+The call is made after the job's row says how the job went, so a deployment
+stopped here comes back to a queue that does not still hold this job."
+  (let ((command (atomic-box-ref *restart-request*)))
+    (if command
+        (begin
+          (atomic-box-set! *restart-request* #f)
+          (display (format #f "\nrestarting byggsteg: ~a\n" command))
+          ($ command)
+          command)
+        #f)))
 
 (define* (run-pipeline-task #:key project
                             branch-name
@@ -61,13 +99,12 @@
   (cond
     ;; Byggsteg version update
     ((equal? task "byggsteg-version")
-     (call-with-new-thread (lambda ()
-                             (sleep 2)
-                             ($ (format #f
-                                 "cd ~a && sudo herd restart ~a || true"
-                                 (string-append (job-clone-location) project
-                                                "/" branch-name)
-                                 "byggsteg-daemon"))))
+     (request-service-restart!
+      (format #f
+              "cd ~a && sudo herd restart ~a || true"
+              (string-append (job-clone-location) project
+                             "/" branch-name)
+              "byggsteg-daemon"))
      (byggsteg-version-step #:project project
                             #:branch-name branch-name
                             #:daemon-name daemon-name
@@ -341,7 +378,11 @@ bundle."
                       `((job-success unquote (if succeeded? 1 0))
                         (job-in-progress . 0)
                         (job-failed unquote (if succeeded? 0 1))
-                        (updated-at unquote (current-time))))))
+                        (updated-at unquote (current-time))))
+    ;; A job that version updates byggsteg -- and so stops the daemon running it
+    ;; -- is only restarted once its row says how it went.  Written after the
+    ;; update above: a job that this stops has still been recorded.
+    (run-requested-restart!)))
 
 ;;;
 ;;; The queue worker's sweep

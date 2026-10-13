@@ -42,7 +42,7 @@
                    ;; with.
                    #:robots "noindex, nofollow"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(mk-class '(px-4))))
+                   #:body `((div (@ (class ,(page-body-class)))
                                  ,(terminal-heading (G_ "run job")
                                                     #:tag 'h2)
                                  ,(job-form G_ "/jobs/manage/submit" #f))))))

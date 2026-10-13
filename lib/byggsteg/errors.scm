@@ -183,7 +183,11 @@ request left by the time this runs (see the note at the top of the file)."
                   ;; reading of this deployment, whatever a crawler did to
                   ;; arrive at it.
                   #:robots "noindex, nofollow"
-                  #:body (list (error-body status)))))
+                  ;; The pane sits in the same gutter as the body of every
+                  ;; other page, so a reader who arrives at a 404 is still
+                  ;; reading the same console.
+                  #:body (list `(div (@ (class ,(page-body-class)))
+                                    ,(error-body status))))))
 
 ;;; ====== Handing the pages to Artanis ======
 
