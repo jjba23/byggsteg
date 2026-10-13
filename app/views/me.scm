@@ -17,6 +17,7 @@
 
 (define-module (app views me)
   #:use-module (byggsteg faces)
+  #:use-module (byggsteg permissions)
   #:use-module (byggsteg html)
   #:use-module (artanis artanis)
   #:use-module (artanis i18n)
@@ -86,7 +87,11 @@
                                                                      token
                                                                      'token-expires-at)))))))))
     (html-template G_
-                   #:title "byggsteg"
+                   #:title (format #f "byggsteg - ~a" (G_ "me"))
+                   #:path "/me"
+                   ;; A page about the reader's own account is nobody's search
+                   ;; result, and a crawler holds no account at all.
+                   #:robots "noindex, nofollow"
                    #:is-logged-in is-logged-in
                    #:body `((div (@ (class ,(mk-class '(px-4))))
                                  (div (@ (class ,(mk-class '(flex flex-col
@@ -177,7 +182,9 @@
 (define* (users-page G_
                      #:key users)
   (html-template G_
-                 #:title "byggsteg"
+                 #:title (format #f "byggsteg - ~a" (G_ "user management"))
+                 #:path "/users/manage"
+                 #:robots "noindex, nofollow"
                  #:is-logged-in #t
                  #:body `((div (@ (class ,(mk-class '(px-4))))
                                ,(terminal-heading (G_ "User management")
@@ -195,6 +202,11 @@
 (define* (reset-password-page G_
                               #:key token email)
   (html-template G_
+                 #:title (format #f "byggsteg - ~a" (G_ "Reset your password"))
+                 #:path "/password/reset"
+                 ;; The page is reached by a one-time link in a mail; a crawler
+                 ;; that wanders in would be resetting nothing.
+                 #:robots "noindex, nofollow"
                  #:is-logged-in #f
                  #:body `((div (@ (class ,(mk-class '(py-6 px-4))))
                                ,(terminal-heading (G_ "Reset your password")
@@ -235,7 +247,9 @@
 
 (define* (new-user-page G_)
   (html-template G_
-                 #:title "byggsteg"
+                 #:title (format #f "byggsteg - ~a" (G_ "new user"))
+                 #:path "/users/new"
+                 #:robots "noindex, nofollow"
                  #:is-logged-in #t
                  #:body `((div (@ (class ,(mk-class '(px-4))))
                                (div ,(terminal-heading (G_ "New User")
@@ -260,13 +274,7 @@
 
                                                     ,(map
                                                       make-permission-checkbox
-                                                      '(byggsteg:job-create
-                                                        byggsteg:job-delete
-                                                        byggsteg:profile-create
-                                                        byggsteg:profile-delete
-                                                        byggsteg:user-create
-                                                        byggsteg:user-delete
-                                                        byggsteg:modify-permissions)))
+                                                      all-permissions))
                                                (div ,(terminal-submit-button (G_
                                                                      "create"))))))))))
 
@@ -300,7 +308,10 @@
 
 (define* (edit-user-page G_ u)
   (html-template G_
-                 #:title "byggsteg"
+                 #:title (format #f "byggsteg - ~a" (G_ "edit user"))
+                 #:path (format #f "/users/edit/~a" (assq-ref u
+                                                                 'id))
+                 #:robots "noindex, nofollow"
                  #:is-logged-in #t
                  #:body `((div (@ (class ,(mk-class '(px-4))))
                                (div ,(terminal-heading (G_ "Edit User")
@@ -348,11 +359,5 @@
                                                                                (assq-ref
                                                                                 u
                                                                                 'permissions)))))))
-                                                          '(byggsteg:job-create
-                                                            byggsteg:job-delete
-                                                            byggsteg:profile-create
-                                                            byggsteg:profile-delete
-                                                            byggsteg:user-create
-                                                            byggsteg:user-delete
-                                                            byggsteg:modify-permissions)))
+                                                          all-permissions))
                                                (div ,(terminal-submit-button (G_ "edit"))))))))))

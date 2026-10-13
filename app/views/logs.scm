@@ -35,7 +35,14 @@
   #:export (log-page logs-page))
 
 (define* (log-page rc
-                   #:key job log artifacts is-logged-in)
+                   #:key job log artifacts is-logged-in
+                   ;; What the reader's session may do, so that the forms this
+                   ;; page carries -- a retry and a delete -- are drawn only
+                   ;; for a reader who can send them.  A caller that does not
+                   ;; say is read as a reader who may do nothing: a form drawn
+                   ;; for the wrong reader is the worse mistake, and this page
+                   ;; is public, so most of its readers hold nothing.
+                   (permissions '()))
   (let* ((log-id (assq-ref log
                            'id))
          ;; The row's keys are the columns' names, as symbols; a job looked up
@@ -122,13 +129,17 @@
 
                      (div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                         gap-3 py-2))))
-                          ;; A job's own page offers a retry whatever its status,
-                          ;; except while it is still running: the same data
-                          ;; would then be running twice.
-                          ,(if (retry-offered-on-page? job)
+                          ;; A job's own page offers a retry whatever its status
+                          ;; -- except while it is still running, when the same
+                          ;; data would be running twice -- to a reader whose
+                          ;; session may submit one.
+                          ,(if (retry-offered-on-page? job #:permissions
+                                                      permissions)
                                (retry-button G_ job #:content "retry")
                                '())
-                          ,delete-button)
+                          ,(if (delete-offered-on-page? permissions)
+                               delete-button
+                               '()))
 
                      ,(artifact-downloads G_ artifacts)
 
@@ -163,7 +174,12 @@
                                     #:size '(text-sm md:text-md)))))
     
     (html-template G_
-                   #:title "byggsteg"
+                   #:title (format #f "byggsteg - ~a" (G_ "job log"))
+                   #:path (format #f "/logs/~a" log-id)
+                   ;; A page that asks for itself every few seconds is a crawl
+                   ;; nobody wants, and the job it describes is on the list of
+                   ;; runs a crawler can read instead.
+                   #:robots "noindex, nofollow"
                    #:is-logged-in is-logged-in
                    #:body `((div (@ (class ,(mk-class '(w-full flex
                                                                flex-col
@@ -189,13 +205,18 @@
                     logs
                     offset
                     limit
-                    is-logged-in)
+                    is-logged-in
+                    ;; What the reader's session may do: a failed row offers a
+                    ;; retry, and a retry is a form.  A caller that does not
+                    ;; say is read as a reader who may do nothing.
+                    (permissions '()))
   (let* ((G_ (:i18n rc))
          (jobs-html (map (lambda (l)
                            (make-job-link G_
                                           (assoc-ref jobs-of-logs
                                                      (assq-ref l
-                                                               'id)) l))
+                                                               'id)) l
+                                          #:permissions permissions))
                          logs))
          (page-buttons `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                           gap-3 my-4))))
@@ -235,7 +256,10 @@
                                 ,jobs-html)
                            ,page-buttons))))
     (html-template G_
-                   #:title "byggsteg"
+                   #:title (format #f "byggsteg - ~a" (G_ "logs"))
+                   #:description (G_
+                                  "The runs this byggsteg deployment has executed, newest first, each with its status and the artifacts it collected")
+                   #:path "/logs"
                    #:is-logged-in is-logged-in
                    #:body logs-html
                    #:should-auto-refresh #t)))

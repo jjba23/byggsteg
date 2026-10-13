@@ -162,5 +162,12 @@ back into the page, so a log line that prints a `<` arrives as that character."
                             '())))))
     (html-template G_
                    #:title (format #f "byggsteg - ~a" (G_ "search"))
+                   #:description (G_
+                                  "Search this byggsteg deployment's jobs, logs and profiles")
+                   #:path "/search"
+                   ;; A result page is about the query, not about the
+                   ;; deployment, and what it lists is listed better on the
+                   ;; pages those rows have of their own.
+                   #:robots "noindex, follow"
                    #:is-logged-in is-logged-in
                    #:body body)))

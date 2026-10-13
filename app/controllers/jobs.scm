@@ -40,12 +40,22 @@
 (get "/jobs/request"
      #:mime 'xml
      #:i18n '(cookie "lang")
+     #:cookies '(names x-bewaking-byggsteg)
      (lambda (rc)
-       (response-emit (:mime rc
-                             (job-request-form-page rc
-                                                    #:is-logged-in (:cookies-value
-                                                                    rc
-                                                                    "x-bewaking-byggsteg"))))))
+       (define (show-the-form)
+         (response-emit (:mime rc
+                               (job-request-form-page rc
+                                                      #:is-logged-in (:cookies-value
+                                                                      rc
+                                                                      "x-bewaking-byggsteg")))))
+       ;; The page is a form for submitting a job, and submitting one takes
+       ;; `byggsteg:job-create', so a reader who does not hold it is sent to
+       ;; sign in rather than shown a form they cannot send.
+       (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                          #:needed-permissions '(byggsteg:job-create)
+                          #:rc rc
+                          #:happy-flow show-the-form
+                          #:unhappy-flow back-to-login)))
 
 (post "/jobs/manage/submit"
       #:cookies '(names x-bewaking-byggsteg)

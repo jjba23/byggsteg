@@ -174,6 +174,15 @@ request left by the time this runs (see the note at the top of the file)."
    (html-template (lambda (string) string)
                   #:title (format #f "byggsteg - ~a ~a" status
                                   (car (error-account status)))
+                  #:description (let ((account (error-account status)))
+                                 (format #f "~a ~a: ~a"
+                                         status
+                                         (car account)
+                                         (cadr account)))
+                  ;; A page that answers a request by refusing it is not a
+                  ;; reading of this deployment, whatever a crawler did to
+                  ;; arrive at it.
+                  #:robots "noindex, nofollow"
                   #:body (list (error-body status)))))
 
 ;;; ====== Handing the pages to Artanis ======

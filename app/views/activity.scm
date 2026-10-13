@@ -217,5 +217,8 @@
                          ,(G_ "each square is one day; darker means more jobs were queued that day"))))))
     (html-template G_
                    #:title (format #f "byggsteg - ~a" (G_ "activity"))
+                   #:description (G_
+                                  "A year of runs this byggsteg deployment has executed, drawn as a heatmap: one square per day, darker where more jobs were queued")
+                   #:path "/activity"
                    #:is-logged-in is-logged-in
                    #:body body)))

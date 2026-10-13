@@ -9,3 +9,4 @@ byggsteg.db-wal
 env.scm
 .nrepl-port
 reports/
+README.html

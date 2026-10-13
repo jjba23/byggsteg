@@ -19,6 +19,7 @@
 (define-artanis-controller profiles)
 
 (import (byggsteg html)
+        (byggsteg errors)
         (byggsteg env)
         (web uri)
         (uuid generate)
@@ -51,20 +52,44 @@
        (let* ((profile-repo (make-sqlite-profile-repository))
               (p (get-profile-by-id profile-repo
                                     (params rc "id"))))
-         (response-emit (:mime rc
-                               (profile-page rc p
-                                             #:is-logged-in (:cookies-value rc
-                                                             "x-bewaking-byggsteg")))))))
+         ;; A saved profile that is not there is a 404 rather than a page about
+         ;; nothing: the id is the whole of the request, so it either names a
+         ;; profile or the path names none -- the answer the log and artifact
+         ;; pages give for the same question.
+         (if (not p)
+             (response-emit (error-page 404)
+                            #:status 404
+                            #:headers '((content-type . (text/html))))
+             (response-emit (:mime rc
+                                   (profile-page rc p
+                                                 #:is-logged-in (:cookies-value rc
+                                                                 "x-bewaking-byggsteg")
+                                                 ;; The page reads the saved job --
+                                                 ;; which is public -- and draws
+                                                 ;; the forms under it for whoever
+                                                 ;; may send them.
+                                                 #:permissions (session-permissions
+                                                                rc))))))))
 
 (get "/profiles/manage/create"
      #:mime 'xml
      #:i18n '(cookie "lang")
+     #:cookies '(names x-bewaking-byggsteg)
      (lambda (rc)
-       (response-emit (:mime rc
-                             (add-profile-form-page rc
-                                                    #:is-logged-in (:cookies-value
-                                                                    rc
-                                                                    "x-bewaking-byggsteg"))))))
+       (define (show-the-form)
+         (response-emit (:mime rc
+                               (add-profile-form-page rc
+                                                      #:is-logged-in (:cookies-value
+                                                                      rc
+                                                                      "x-bewaking-byggsteg")))))
+       ;; The page is a form for saving a profile, and saving one takes
+       ;; `byggsteg:profile-create', so a reader who does not hold it is sent to
+       ;; sign in rather than shown a form they cannot send.
+       (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                          #:needed-permissions '(byggsteg:profile-create)
+                          #:rc rc
+                          #:happy-flow show-the-form
+                          #:unhappy-flow back-to-login)))
 
 (post "/profiles/manage/submit"
       #:cookies '(names x-bewaking-byggsteg)

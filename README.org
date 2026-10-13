@@ -1,13 +1,17 @@
-#+title: byggsteg
+#+title: byggsteg - manual & documentation
 #+author: Josep Bigorra
 #+email: jjbigorra@gmail.com
 #+language: en
+#+options: html-style:nil
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://jointhefreeworld.org/static/css/jointhefreeworld.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" />
 
 [[https://jointhefreeworld.org/ggg/dist/scheme-guile.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-guix.svg]]
 [[https://jointhefreeworld.org/ggg/dist/license-agpl3+.svg]]    [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/maak.svg]]  [[https://jointhefreeworld.org/ggg/dist/gnu-artanis.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]]
 
+This is the byggsteg manual, and it is also the project's README: one document, so that a reader has one place to look and the two cannot come to say different things.
 
-byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme), leverages SXML, SQLite3, some POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
+byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme). It leverages SXML, SQLite3, some POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
 
 If you like my work, please support me by [[https://bmc.link/jjbigorra][buying me a cup of coffee ☕]] so I can continue with a lot of motivation.
 
@@ -25,17 +29,24 @@ Easily deploy stuff, for example to your private VPS, self-hosting or to cloud.
 
 I don't mind having the software building and testing happening in the same machine as where I run the production workloads, since I am looking for supreme cost-efficiency, but it's highly recommended that you do separate these things, if you can afford it.
 
+Byggsteg enhances the use of Agile work methodologies in teams due to its fast-paced no nonsense workflows and its customizability, also thanks to being written in Lisp (GNU Guile Scheme).
+
+- *Fully Customizable:* Hack the behavior and content of each UI element with Scheme code.
+- *Cross-platform:* Runs anywhere that Guile Scheme can run, and exposes web endpoints, and is thus accessible from computers, phones, etc.
+- *Free Software:* Contribute to its development or extend it with your own custom features.
+
 [[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
 
---------------------
+Byggsteg is powered by: Guile Scheme, GNU Artanis, SQLite, Olive CSS, Maak, Emacs
 
-* Byggsteg Manuals
+------------------
 
-I strive to provide proper and extensive documentation on Byggsteg, available at your convenience.
+* Where this manual lives
+
+The manual is this README, which is rendered as a single HTML page:
 
 - Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
-- Org format: [[file:docs/manual/en.org]]
-
+- The source of that page: [[file:README.org]] (this file), rendered by ~maak build-manual~ and published by ~maak deploy~
 
 --------------
 
@@ -45,11 +56,11 @@ Jobs are simple Lisp (Guile Scheme) code. Profiles are just saved jobs.
 
 byggsteg allows you to send code over the wire (HTTP) and save it too, in a thunk form, for example :
 #+begin_src  scheme
-  (lambda()
-    `((project . "kracht")
-      (branch-name . "trunk")
-      (task . "maak-test")
-      (clone-url . "https://codeberg.org/jjba23/kracht")))
+(lambda()
+  `((project . "kracht")
+    (branch-name . "trunk")
+    (task . "maak-test")
+    (clone-url . "https://codeberg.org/jjba23/kracht")))
 #+end_src
 
 Sending things in thunk form allows one to execute any code arbitrarily, inside the lambda expression. Be responsible and wary of who you give access to your byggsteg instance.
@@ -67,12 +78,69 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
     (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
-
 ----------------
 
-* Pipelines, artifacts, and watching a job run
+* Types of jobs
 
-A thunk may answer with a *list* of jobs instead of one, in which case they run in order, as a pipeline, and the first one that fails stops those behind it. The stages share one row and one log:
+When defining a pipeline alist, the task field can be either a single step, or multiple.
+You should either pass a string or a list of strings of job names.
+
+~make-test~ | ~maak-test~ - Run test suite with ~make~ or ~maak~.
+
+~pull-and-restart~ - Git pull and restart a GNU Shepherd service.
+
+~pull-and-deploy~ | ~maak-deploy~ - Run a deploy with make or maak.
+
+~byggsteg-version~ - Byggsteg pull and restart the Shepherd daemon itself.
+
+~make-build~ | ~maak-build~ - Run a build with ~make~ or ~maak~ (~make-build~ is the fallback task).
+
+~trivial~ - Allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.
+
+------------
+
+* Fields of a job
+
+~project~ is a string indicating the project's Git repository name
+
+~branch-name~ is a string indicating the name of the branch to checkout and run the job on
+
+~clone-url~ is a string which contains the HTTPS or SSH URL to clone the Git repository
+
+~task~ is either a string or a list of strings that indicate what tasks (pipeline steps) should be run
+
+~daemon-name~ is a string that indicates the name of the daemon, it's used in certain tasks like ~pull-and-restart~, if not specified, this will default to ~project~
+
+~env~ is a list of pairs that indicates which environment variables should be added to the environment.
+
+~trivial-cmds~ is a list of strings which represent commands to be run.
+
+~artifacts~ is a list of what to keep once the job's commands are over: a path, relative to the job's clone, or a bundle written as ~(name . (path ...))~ that is packed into a tarball of its own and offered under that name. See [[*Artifacts]].
+
+** Example jobs
+
+An example showing a herd daemon restart after the git pull:
+#+begin_src scheme
+(lambda()
+  `((project . "lucidplan")
+    (branch-name . "trunk")
+    (task . ("pull-and-restart" "maak-deploy"))
+    (daemon-name . "lucidplan-daemon")
+    (clone-url . "https://codeberg.org/jjba23/lucidplan")))
+#+end_src
+
+An example showing the "trivial" approach where you are free to run what shell commands you please.
+#+begin_src scheme
+(lambda()
+  `((task . "trivial")
+    (trivial-cmds . ("echo 'HELLO WORLD'"))))
+#+end_src
+
+------------------
+
+* Pipelines of jobs
+
+A job usually asks for one thing. When it asks for several, its thunk answers with a *list* of those alists instead of one, and byggsteg runs them in the order they are written:
 
 #+begin_src scheme
 (lambda()
@@ -82,22 +150,525 @@ A thunk may answer with a *list* of jobs instead of one, in which case they run 
           (clone-url . "https://codeberg.org/jjba23/wikimusic-api"))
         `((project . "wikimusic-api")
           (branch-name . "trunk")
-          (task . "maak-build")
-          ;; what to keep, relative to the clone: a bare path, or a (name . paths) bundle
-          (artifacts . ("dist/wikimusic-api"
-                        ("docs" . ("docs/manual"))))
+          (task . "maak-deploy")
+          (daemon-name . "wikimusic-api-daemon")
           (clone-url . "https://codeberg.org/jjba23/wikimusic-api"))))
 #+end_src
 
-What a job prints reaches its log /while it runs/, in batches, so there is something to watch rather than a console that fills up at the end. What it collects is packed into gzipped tarballs once its commands are over -- whether they passed or failed, since a build that broke halfway is exactly when its partial output is worth keeping -- and is downloadable from its log page. The bare paths of an ~artifacts~ field share one tarball, offered under the job's title; each ~(name . paths)~ bundle is packed into a tarball of its own and offered under the name it was given, so one stage can keep several things apart.
+The jobs of one request are one job in byggsteg's eyes: one row, one log, one status. That is what makes a pipeline useful -- the stages share a log, so a reader sees the whole run in one place.
 
-A job that failed is offered a retry in the list of logs, and any job that is not still running is offered one on its own page. The deployment as a whole can be read at ~/activity~ (a year of job runs, drawn like a commit heatmap) and searched at ~/search~ across jobs, logs and profiles.
+The stages run one after the other, and the first one that fails stops the rest: a stage that was going to deploy a build the previous stage never produced does not run. The job is then marked as failed, as a single failing job would be.
 
-Runs do not pile up for ever: a finished run is kept for ~job-retention-days~ (30 by default) and then removed with its log and its tarballs, so an older deployment is also a smaller one. Set it to 0 to keep every run.
+The title of a pipeline names its first job's project, and ~trivial~ when it runs bare commands; a pipeline none of whose jobs names a project is titled ~pipeline~.
 
-All of it is described at length in the [[file:docs/manual/en.org][manual]].
+------------------
 
-----------------
+* Artifacts
+
+A job can keep what it built. Add an ~artifacts~ field to a job, and list what to keep as it is relative to that job's clone:
+
+#+begin_src scheme
+(lambda()
+  `((project . "wikimusic-api")
+    (branch-name . "trunk")
+    (task . "maak-build")
+    (artifacts . ("dist/wikimusic-api" "docs/manual"))
+    (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
+#+end_src
+
+The bare paths share one tarball, which is offered under the job's title. When one stage has several things to keep apart, write each as a bundle instead -- a name, and the paths behind it -- and each is packed into a tarball of its own, offered for download under the name it was given:
+
+#+begin_src scheme
+(lambda()
+  `((project . "wikimusic-api")
+    (branch-name . "trunk")
+    (task . "maak-build")
+    (artifacts . (("binaries" . ("dist/wikimusic-api" "bin"))
+                  ("docs" . ("docs/manual" "README.org"))))
+    (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
+#+end_src
+
+A field may mix the two, and the order the entries are written in is the order the tarballs are packed in, so the first one a job asks for is the one that keeps the unnumbered name:
+
+#+begin_src scheme
+(lambda()
+  `((project . "wikimusic-api")
+    (branch-name . "trunk")
+    (task . "maak-build")
+    ;; dist.tar.gz (under the job's title), then binaries-2.tar.gz
+    (artifacts . ("dist" ("binaries" . ("bin"))))
+    (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
+#+end_src
+
+Once the job's own commands are over -- whether they passed or failed, since a build that broke halfway is exactly when its partial output is worth keeping -- the bundles are packed; a pipeline whose two stages each collect keeps both sets of tarballs, the later ones numbered. A name is written as a string, and reaches the ~Content-Disposition~ header as a plain file name: whatever a header could read twice -- a slash, a quote, a space -- is turned into a dash, and ~.tar.gz~ is added whether or not the name ends in one.
+
+The tarballs are written under the directory ~artifact-location~ points at (~/etc/byggsteg/artifacts/~ by default, or whatever ~BYGGSTEG_ARTIFACT_LOCATION~ names) and recorded in the database. They are offered on the job's log page, and at ~/artifacts/<id>~, where the browser downloads them under the name they were given -- the job's title for the tarball of bare paths, the bundle's name for a bundle. Nothing outside that directory is ever served, whatever a row says.
+
+Deleting a job deletes what it collected with it: the tarballs are removed from the directory and the rows are dropped, so a job that is gone leaves no download behind and the directory does not grow with jobs that no longer exist. A file outside that directory is never removed either, whatever a row says.
+
+A tarball that no row points at belongs to nothing -- one left by a deployment stopped between writing a tarball and recording it, or by a job removed before deleting one took its tarballs with it -- so the queue worker sweeps the directory for those. It looks once an hour (~artifact-sweep-interval~) and removes only a plain file whose name ends in ~.tar.gz~ and that was written more than an hour ago (~artifact-sweep-grace-seconds~): the grace period is what keeps a sweep from removing a tarball that is still being packed, and the ~.tar.gz~ test is what keeps it from touching a directory, a symbolic link, or a file somebody else keeps in there. Point ~artifact-location~ at a directory byggsteg owns. To sweep once by hand -- a directory that collected orphans before this was the worker's business, say -- run ~maak sweep-artifacts~.
+
+------------------
+
+* Watching a job run
+
+A running job's output reaches its log as it is produced, in batches of twenty lines (~log-stream-batch-size~), so the log page a reader has open fills up while the job is still running rather than all at once when it ends.
+
+What a job prints is announced command by command, each with the line ~→ running command: <cmd>~, so a long log reads as the list of commands that produced it.
+
+The REST API answers with what the log holds at the moment it is read, and the job's status with it, so a client can poll for both:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/logs/<log-id>'
+#+end_src
+
+* Reading a job's status
+
+Every list of jobs gives each of them a colour: green for one that finished well, blue for one still in progress, red for one that failed. The same three colours label the status on the job's log page, so a pipeline's stage is found by its colour rather than by reading its flags.
+
+* Retrying a job
+
+A job can be run again from the UI. Its own page offers a ~retry~ button whatever the job's status -- a reader is there about that one job -- while the list of logs offers one only for a job that failed, since a list is read for what needs attention and a green row already says it does not. A job that is still running is the one case with no retry anywhere: the same data would then be running twice.
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/retry' \
+    -X POST -H 'content-type: application/x-www-form-urlencoded' \
+    -H 'x-bewaking-byggsteg: <your token here>' \
+    --data-urlencode 'job-id=<job-id>'
+
+#  {
+#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326"
+#  }
+#+end_src
+
+A retry is a job of its own rather than the old row set going again: its output is its own to log, its title marks it as a retry, and the job it retries goes on saying what it said. The answer is the new job's log id, which is the log to follow for how the retry goes. Retrying takes the ~byggsteg:job-create~ permission, since that is what it does.
+
+A call that cannot be answered says so in the answer: a job or a log that is not there, a token that is missing or expired, or credentials that do not match all come back as a JSON object with an ~error~ field and the status that goes with it (~404~, ~401~), rather than a page to render or a status a client has to read the body to interpret.
+
+------------------
+
+* Activity and search
+
+Two pages read a deployment as a whole.
+
+~/activity~ draws a year of job runs the way a code hosting site draws a year of commits: one square per day, one column per week, darkest where the most jobs were queued. A square is a day the job was *queued* on, and a day that has not happened yet is left blank rather than drawn as a day without jobs. The number of columns is ~activity-weeks~ (53 by default).
+
+~/search?q=...~ answers with the jobs, the logs and the profiles that match, each listed the way its own page lists it, and a job is offered together with the log its output is in. A search for ~%~ or ~_~ looks for those characters rather than treating them as wildcards. An empty search answers with the form alone, and no search reads anything.
+
+------------------
+
+* Retention
+
+A deployment that runs jobs every day fills up with runs nobody will read again, so a finished run is kept for a while and then removed: its tarballs, its log and the job itself. Half of a run would be worse than all of it -- a log whose job is gone is a page about nothing, and a job whose log is gone has no page at all -- so the three go together.
+
+The period is ~job-retention-days~, counted from the moment the run finished, and it is 30 days unless the deployment sets it otherwise, where the other preferences are set (~lib/byggsteg/preferences.scm~). 0 keeps every run for ever:
+
+#+begin_src scheme
+(use-modules (byggsteg preferences))
+
+;; This deployment prunes nothing.
+(job-retention-days 0)
+#+end_src
+
+A run that is still going is never touched, however long it has been going: a deployment that keeps its runs for a month must still be able to watch a job that has been running for two. Neither is a run that finished inside the period. The queue worker looks once a day (~job-retention-interval~) and removes at most ~job-retention-batch~ runs (100) in one visit, so a deployment that has just shortened its retention is pruned over several visits rather than in one long one.
+
+A deployment that has been running longer than the period has runs older than it, and they are removed the first time the worker looks -- there is no grandparenting, and the runs of a year are gone along with the tarballs they offer. Set ~job-retention-days~ to 0 to keep them, or set it to something longer than the oldest run before starting byggsteg with this in it.
+
+To prune by hand -- after a shorter retention, or on a deployment whose worker has not been running -- run ~maak prune-old-runs~, which says what it removed:
+
+#+begin_src sh
+maak prune-old-runs
+#  keeping runs for 30 day(s)
+#  2 run(s) pruned
+#    e2e-retained  e2e-retained-job
+#+end_src
+
+------------------
+
+* Users, authentication and permissions
+
+[[https://codeberg.org/jjba23/bewaking][bewaking]] 🔗 is a nice library to help you secure your web applications with Guile Scheme.
+
+With bewaking we use secure tokens encrypted and stored in secure cookies (for browsers) and headers (for REST API) as well as authentication and authorization, with ACLs (access control list) and fine-grained permissions.
+
+** The permission model
+
+Byggsteg's permission model is an ACL of seven permissions:
+
+- ~byggsteg:job-create~ :: submit a job, and retry a job that was submitted
+- ~byggsteg:job-delete~ :: delete a job and the log and tarballs that go with it
+- ~byggsteg:profile-create~ :: save a job as a profile, and start a job from one
+- ~byggsteg:profile-delete~ :: delete a saved profile
+- ~byggsteg:user-create~ :: make a user
+- ~byggsteg:user-delete~ :: delete a user
+- ~byggsteg:modify-permissions~ :: change what any user, including yourself, is allowed to do, and edit users at all
+
+An account holding ~byggsteg:modify-permissions~ can give itself every other permission, so that one permission is what makes a super user a super user. The pages that manage users (~/users/manage~, ~/users/new~, ~/users/edit/<id>~) ask for it, which is why a deployment with no users cannot make its first one from the web interface -- see [[*Making the first user (the super user)]].
+
+An account with no permissions at all is still a signed-in reader: it sees the same pages a visitor sees, and it can reset its own password.
+
+** Which pages ask for a permission
+
+A page that exists to submit something asks for the permission that submission takes, and a reader who does not hold it is sent to sign in rather than shown a form they cannot send: ~/jobs/request~ is behind ~byggsteg:job-create~ and ~/profiles/manage/create~ behind ~byggsteg:profile-create~. Every submission behind them is guarded too, so the page and the endpoint agree about who may do what.
+
+Two pages ask for something other than a permission, because a permission is not what their submission takes. ~/me~ is the reader's own account, and every button on it changes that account and nothing else, so it asks for a live session and no more: an account holding no permissions at all still has a ~/me~ page, while a session that has expired, one this deployment cannot read, and one whose account was deleted while it was signed in are all sent to sign in rather than handed the forms. ~/password/reset/token/<token>~ asks for a live reset link, since the token in the path is the whole of what that page carries: a link no reset row answers, one made longer ago than the week it lives for, and one naming an account that has since been deleted all answer as a path that names nothing rather than as a form that cannot be sent. That rule is one question with a name -- ~password-reset-live?~, in ~lib/byggsteg/domain/password-reset.scm~ -- asked by the page and by the submission behind it, and the suite reads it at its edges: the last instant of the week is still usable, the instant after it is not.
+
+A path that names a row which is not there -- a log, a saved profile, a user to edit, a reset link -- answers with the console's own page for a status, rather than with a crash: the id is the whole of the request, so it either names the row or the path names none.
+
+The pages that mix reading with acting -- a saved profile, and a job's own log page -- are not guarded, because what they show is public and worth reading on its own.  There the forms are drawn one by one, each for a reader whose session holds the permission its submission takes: the profile page offers to start the job (~byggsteg:job-create~), to save it (~byggsteg:profile-create~) and to delete it (~byggsteg:profile-delete~) to whoever may do each, and the log page offers a retry (~byggsteg:job-create~) and a delete (~byggsteg:job-delete~) the same way.  A visitor who is not signed in sees the reading and no buttons at all.
+
+The rules behind those decisions live in ~lib/byggsteg/permissions.scm~ (~all-permissions~ and ~may?~) and next to the pages that use them, and the suite reads them: what a reader is offered is a question with an answer, not a condition buried in a view.
+
+** Making the first user (the super user)
+
+A blank deployment has no users, and byggsteg will not let you make one from the web interface until somebody already holds ~byggsteg:modify-permissions~. The first account is made from the command line, where a password can be set directly:
+
+#+begin_src sh
+# username, email, password -- the account gets every permission
+maak create-user alice alice@example.org 'a-strong-password'
+#+end_src
+
+The password is hashed (SHA-256, with a salt of its own per user) the same way a login checks one, so the account this makes can sign in straight away at ~/login~. The task says which database it wrote to, and it is the one a server started in that directory uses (see [[*Making the database]]).
+
+** Making the other users
+
+Once one super user exists, the rest are made at ~/users/new~ while signed in as it. There you give a username, an email and the permissions the account should hold, and the account is created with no password: byggsteg sends it a password-reset link through Pingwing (see [[*Sending mail (Pingwing)]]), and the person sets a password from that link. Until they do, the account exists and cannot sign in.
+
+For a deployment that has no mail service yet, a user can also be made from the command line, with the permissions named as a comma-separated list after the password:
+
+#+begin_src sh
+# a user that runs jobs but hands out nothing
+maak create-user bob bob@example.org 'another-password' \
+    byggsteg:job-create,byggsteg:job-delete
+
+# a user that can only look around: an empty permission list, which is said
+# by passing an empty last argument -- leaving it out asks for every
+# permission instead, as the first command does
+maak create-user carol carol@example.org 'a-third-password' ""
+#+end_src
+
+The last command's empty word is an empty list of permissions, so carol's account can sign in and read, and nothing more.
+
+~/users/manage~ lists the users and offers to delete each one, and ~/users/edit/<id>~ changes a username, an email or a set of permissions. An account whose permissions were changed keeps the ones it was given until its session ends: the token it is carrying was minted with the old set, which is why the pages remind a reader to sign out and in again.
+
+** Signing in from a script
+
+Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles. For web browsers you can simply use the login page, for scripts and headless usage, use the ~/api/v1/login~ endpoint and take the ~x-bewaking-byggsteg~ response header:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/login' \
+    -X POST -H 'content-type: application/x-www-form-urlencoded' \
+    --data-urlencode 'email=you@example.org' \
+    --data-urlencode 'password=your-password' \
+    -i
+#+end_src
+
+The response carries the token in a ~x-bewaking-byggsteg~ header and in a cookie; a script sends the header back with every request that needs a permission. The token is good for 31 days, and it holds the permissions the account had at the moment it was made.
+
+If running locally, it's recommended to use ~localhost~ instead of ~127.0.0.1~ as this will work better with the authentication/authorization and other cookies.
+
+** Sending mail (Pingwing)
+
+Pingwing is a mail and notification solution written in Guile Scheme and also part of the jointhefreeworld project. Byggsteg uses it for password resets, among other notifications. Find more about it here: https://codeberg.org/jjba23/pingwing
+
+It is configured in ~env.scm~ (see [[*Writing env.scm]]): a deployment without it can still run jobs, and its users are made from the command line.
+
+------------------
+
+* Starting a job
+
+Byggsteg provides HTTP endpoints. After logging in -- with an account that holds ~byggsteg:job-create~, which the form page itself asks for -- you can use the UI and visit ~/jobs/request~, or you can also invoke this via the REST API by first calling ~/api/v1/login~ with the right credentials and then calling ~/api/v1/jobs/manage/submit~.
+
+You could also do this for example from your favourite programming language, or system, or via cURL, etc:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
+    -X POST -H 'content-type: application/x-www-form-urlencoded' \
+    -H 'x-bewaking-byggsteg: <your token here>' \
+    --data-urlencode 'job-code=(lambda() `((project . "kracht")(branch-name . "trunk")(task . "maak-test")(clone-url . "https://codeberg.org/jjba23/kracht")))'
+
+#  {
+#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
+#    "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
+#  }
+#+end_src
+
+You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until success or failure is true.
+
+#+begin_src  shell
+  curl 'http://localhost:50002/api/v1/logs/ce24da08-1833-4821-b7e3-e2bacaa79326'
+  #
+  # {
+  #   "success": 1,
+  #   "failure": 0,
+  #   "in-progress": 0,
+  #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
+  #   "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
+  #   "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
+  # }
+#+end_src
+
+-------------
+
+* Integration with CIs
+
+Find a nice integration with Woodpecker here, complete with retries on submit and configurable polling for status:
+
+https://codeberg.org/jjba23/byggsteg-woodpecker
+
+These pipeline steps act as a bridge, allowing the Woodpecker CI system to leverage Byggsteg for its powerful Lisp-based CI/CD orchestration, especially when working with source code hosted on platforms like Codeberg.
+
+The pipeline steps are written in shell script, and use Alpine Linux images achieving a great performance, simplicity and minimalism.
+
+------------------
+
+* Running byggsteg yourself
+
+Everything below is what a self-hosted deployment does, in the order it does it. It is not long: a clone, one file of secrets, a database, one user, and a server.
+
+** Installing GNU Guix
+
+First make sure you use the Guix package manager, whether as a standalone distro (Guix System) or on top of any other GNU/Linux distribution: https://guix.gnu.org/
+
+I include a ~manifest.scm~ in the repo so that it's easy to run the project if you use the Guix package manager. If you want to run without Guix you should check that ~manifest.scm~ anyway, since it will give you exactly the packages that you need: Guile, GNU Artanis, SQLite, Maak, Emacs and the rest.
+
+** Getting the source
+
+#+begin_src sh
+git clone https://codeberg.org/jjba23/byggsteg
+cd byggsteg
+#+end_src
+
+Every command below is a ~maak~ task, run from the root of that clone. ~maak --list~ shows them all.
+
+** Writing env.scm
+
+For running byggsteg yourself, you'll need to define and load a module called ~(byggsteg env)~ where you add some required environment variables. I recommend creating an ~env.scm~ in the root of the project and excluding it from Git (it is not in the repository, and it holds secrets).
+
+#+begin_src scheme
+(define-module (byggsteg env))
+
+;; The two keys byggsteg encrypts and signs its session tokens with.  Change
+;; them: anyone who knows them can mint a token.  Each is any string; a UUID or
+;; the output of `openssl rand -hex 32' is a fine one.
+(define-public encryption-key "a2ebe4c5-4a78-4490-af83-cfb05a285bf9")
+
+(define-public signing-key "8d3a5bcc-973e-4f80-aa3d-33be33d6631c")
+
+;; Pingwing, for the mails byggsteg sends (password resets, and the invitation
+;; a user made at /users/new receives).  A deployment without it can run jobs
+;; and have users; see "Users, authentication and permissions".
+(define-public pingwing-url
+  "my-pingwing-host")
+
+(define-public pingwing-basic-auth-user
+  "my-user")
+
+(define-public pingwing-basic-auth-password
+  "my-password")
+#+end_src
+
+The file is loaded by ~ENTRY~ when the server starts, so a change to it needs a restart.
+
+** Making the database
+
+You will need a database in the root folder of the project (alongside ~app~, ~lib~, etc.). Byggsteg uses SQLite; its schema is the migration files under ~resources/migrations/sqlite~, one per change, to be applied in file order.
+
+For a new deployment, one command makes the file, turns on WAL mode -- which is what lets the web workers and the queue worker write at the same time -- and applies every migration:
+
+#+begin_src sh
+maak init-db
+#+end_src
+
+Be careful with it: it deletes whatever ~byggsteg.db~ is already there. To bring an existing database up to what the source in front of it expects, apply the migrations to it instead, which is safe to run at any time:
+
+#+begin_src sh
+maak migrate
+#+end_src
+
+Both tasks act on ~byggsteg.db~ in the directory they are run from, which is the file a server started there uses (it is what ~db.name~ in ~conf/artanis.conf~ and ~conf/production.conf~ says). A deployment that keeps its database elsewhere names it in ~BYGGSTEG_DB~ -- ~BYGGSTEG_DB=/etc/byggsteg/byggsteg.db maak migrate~ -- and the server is pointed at it through its own ~db.name~.
+
+** Making your first user
+
+A deployment with no users cannot be given one from the web interface -- see [[*Making the first user (the super user)]] -- so make it here:
+
+#+begin_src sh
+maak create-user alice alice@example.org 'a-strong-password'
+#+end_src
+
+That account holds every permission; sign in with it at ~/login~ and make the rest at ~/users/new~.
+
+** Running it
+
+If you are hacking away at the project, use
+
+#+begin_src sh
+maak dev
+#+end_src
+
+which runs the server under ~watchexec~ and restarts it when a Scheme, CSS or JavaScript file changes. It uses the default ~conf/artanis.conf~, where the hostname, the database path and the database itself are configured.
+
+To run it the way a deployment does, use the production configuration:
+
+#+begin_src sh
+maak production-server
+#+end_src
+
+which is ~art work -c conf/production.conf~ inside the project's Guix shell. Either way the server listens on the port ~conf/*.conf~ names (~50002~) and the queue worker starts with it, three seconds later.
+
+If you are hosting this for production, run Byggsteg as a Shepherd service so that it is restarted when it stops and started when the machine boots.
+
+** Where byggsteg writes
+
+Beside its database, byggsteg writes two things to the filesystem: the clones its jobs run in, under ~/etc/byggsteg/job-clone/~, and the tarballs they collect, under ~/etc/byggsteg/artifacts/~. ~maak dir-install~ creates the first of those and changes the ownership of ~/etc/byggsteg~ to the current user, which is what a first deployment needs before its jobs can clone anything.
+
+A deployment that keeps them elsewhere -- a development server, a second instance on one machine, a test -- names the directories in the environment it starts byggsteg in:
+
+#+begin_src sh
+BYGGSTEG_JOB_CLONE=/tmp/byggsteg-clone/ \
+BYGGSTEG_ARTIFACT_LOCATION=/tmp/byggsteg-artifacts/ \
+maak production-server
+#+end_src
+
+Both are read once, when byggsteg starts, and an empty value is read as no value at all: ~BYGGSTEG_JOB_CLONE=~ leaves the default in place rather than naming a directory called nothing.
+
+The artifact directory belongs to byggsteg: its queue worker removes what the database no longer records (see [[*Artifacts]]). The same worker prunes the runs themselves once they have outlived their retention, which is 30 days by default; see [[*Retention]] before starting a deployment that has runs older than that.
+
+** Keeping it running: a Shepherd service
+
+Here follows an example of a Guix Shepherd service:
+
+#+begin_src scheme
+(define-module (wolk-jjba byggsteg)
+  #:use-module (gnu)
+  #:use-module (guix))
+
+(use-service-modules shepherd)
+
+(define-public (wolk-jjba-byggsteg-service config)
+  (list (shepherd-service (documentation "Run byggsteg as a daemon")
+                          (provision '(byggsteg))
+                          (requirement '())
+                          (start #~(make-forkexec-constructor '("maak"
+                                                                "production-server")
+                                    #:directory
+                                    "/etc/byggsteg/job-clone/byggsteg/trunk"
+                                    #:environment-variables '("GUILE_LOAD_PATH=/run/current-system/profile/share/guile/site/3.0"
+                                                              "GUILE_DBD_PATH=/run/current-system/profile/lib"
+                                                              "C_INCLUDE_PATH=/run/current-system/profile/include"
+                                                              "GUILE_LOAD_COMPILED_PATH=/run/current-system/profile/lib/guile/3.0/site-ccache:/run/current-system/profile/share/guile/site/3.0"
+                                                              "LIBRARY_PATH=/run/current-system/profile/lib"
+                                                              "GIT_SSL_NO_VERIFY=1"
+                                                              "PATH=/run/privileged/bin:/run/current-system/profile/bin:/run/current-system/profile/sbin")))
+                          (stop #~(make-kill-destructor))
+                          (auto-start? #t)
+                          (respawn? #t))))
+
+(define-public wolk-jjba-byggsteg-service-type
+  (service-type (name 'byggsteg)
+                (description "Run byggsteg as a daemon")
+                (extensions (list (service-extension
+                                   shepherd-root-service-type
+                                   wolk-jjba-byggsteg-service)))
+                (default-value '())))
+#+end_src
+
+The service's working directory is the clone it runs from, which is also where its ~byggsteg.db~ and its ~env.scm~ are; ~maak production-server~ starts the server with the production configuration, and byggsteg needs the same Guile environment variables a ~guix shell~ would have given it, which is what the list above is. Note that ~pull-and-restart~ and ~byggsteg-version~ jobs restart the service by name: the ~provision~ above names it ~byggsteg~.
+
+** On being found: what the pages say about themselves
+
+Every page byggsteg serves carries a sentence about itself for the readers that never open the terminal: a ~description~, the Open Graph and Twitter Card tags a shared link is drawn from, a canonical address, and a ~SoftwareApplication~ block of JSON-LD saying what the software is, that it is free, and where its source is.
+
+The address those absolute links are written with is the one Artanis derives from its own configuration, which says ~http~ even for a deployment reached over https behind a TLS terminator. A deployment like that names its own address, so its canonical links, its sharing card and its JSON-LD agree with the address a reader used:
+
+#+begin_src sh
+BYGGSTEG_PUBLIC_URL=https://byggsteg.example.org maak production-server
+#+end_src
+
+The pages that answer only to an account -- ~/me~, ~/users/*~, ~/password/*~, and the two form pages, ~/jobs/request~ and ~/profiles/manage/create~ -- ask not to be crawled, and so do the pages that are about a query or a running log. Which paths a crawler may look at is the deployment's own business, in [[file:pub/robots.txt]]: the file it ships with welcomes crawlers to the public pages and turns them away from those, and a private deployment can turn them away from everything.
+
+------------------
+
+* Preferences
+
+The knobs byggsteg's worker and pages are tuned with are parameters in ~lib/byggsteg/preferences.scm~, each with a comment saying what it does: how many jobs run at once (~job-concurrency~), how long a run is kept (~job-retention-days~), how much a page of search results holds (~search-result-limit~), how many weeks the activity page draws (~activity-weeks~), and the rest. A deployment that wants different numbers changes them there, or sets them from its own code before the server starts.
+
+The two things a deployment has to be able to move -- where the clones are made and where the tarballs are written -- are read from the environment as well, as are the public address of the deployment (~BYGGSTEG_PUBLIC_URL~) and the database the command-line tasks act on (~BYGGSTEG_DB~).
+
+------------------
+
+* Performance
+
+Byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
+
+Running the jobs is what byggsteg spends its time on, and that is not done one at a time: the queue worker runs several jobs at once on a scheduler of green threads (fibers), so a job waiting for a clone or a compiler to finish does not hold up the others. How many jobs run at the same time is ~job-concurrency~ (4 by default), and how many one visit to the queue claims is ~job-sweep-limit~ (64), after which the worker rests for ~worker-pause-seconds~ (3) and looks again.
+
+The output of every command is read as it arrives rather than waited for, which is what lets the log of a running job be read at all; a command that prints nothing therefore costs nothing.
+
+Using the ~drill~ HTTP load testing tool written in Rust.
+
+#+begin_src yaml
+---
+
+concurrency: 8
+base: 'https://byggsteg.jointhefreeworld.org'
+iterations: 100
+rampup: 4
+
+plan:
+  - name: Fetch logs
+    request:
+      url: https://byggsteg.jointhefreeworld.org/logs
+  - name: Fetch log by UUID
+    request:
+      url: https://byggsteg.jointhefreeworld.org/logs/4868ce1e-d029-4fdb-bbbe-d54d1616a631
+
+
+#+end_src
+
+#+begin_example
+Fetch logs                Total requests            100
+Fetch logs                Successful requests       100
+Fetch logs                Failed requests           0
+Fetch logs                Median time per request   164ms
+Fetch logs                Average time per request  173ms
+Fetch logs                Sample standard deviation 47ms
+Fetch logs                99.0'th percentile        315ms
+Fetch logs                99.5'th percentile        338ms
+Fetch logs                99.9'th percentile        338ms
+
+Fetch log by UUID         Total requests            100
+Fetch log by UUID         Successful requests       100
+Fetch log by UUID         Failed requests           0
+Fetch log by UUID         Median time per request   214ms
+Fetch log by UUID         Average time per request  196ms
+Fetch log by UUID         Sample standard deviation 71ms
+Fetch log by UUID         99.0'th percentile        295ms
+Fetch log by UUID         99.5'th percentile        297ms
+Fetch log by UUID         99.9'th percentile        297ms
+
+Time taken for tests      4.7 seconds
+Total requests            200
+Successful requests       200
+Failed requests           0
+Requests per second       42.37 [#/sec]
+Median time per request   185ms
+Average time per request  184ms
+Sample standard deviation 62ms
+99.0'th percentile        297ms
+99.5'th percentile        315ms
+99.9'th percentile        338ms
+#+end_example
+
+------------------
+
+* On accessibility
+
+We believe creating accessible websites for everyone, including people with disabilities, is crucial for equality, helps provide a good user experience.
+
+Byggsteg chooses lots of its UI to appeal to hackers, and computer aficionados by default, but is very configurable to allow extensibility.
+
+------------------
 
 * Licensing
 
@@ -109,7 +680,7 @@ The documentation and examples, including this document, which are provided with
 
 https://www.gnu.org/licenses/fdl-1.3.html
 
-----------------------
+----------------
 
 * AI Policy
 
@@ -133,6 +704,37 @@ In summary, we foster an inclusive, respectful, and cooperative environment for 
 
 ---------
 
+* Code owners
+
+The project's main branch is ~trunk~. Find a list of roles and people involved in the project.
+
+Only the BDFL (Benevolent Dictator For Life) can merge PRs.
+Only the BDFL is allowed to push directly to ~trunk~ in case a quick fix is needed.
+
+The MFL (Maintainer For Life) can ascend to BDFL after extensive productive collaboration.
+The MFL has write permissions to all branches (except trunk) and can open PRs.
+
+- *BDFL* :: @jjba23 - Josep Bigorra <jjbigorra@gmail.com>
+- *MFL* :: @NalaGinrut - Mu Lei <NalaGinrut@hardenedlinux.org>
+
+Other contributors must fork byggsteg and create a pull request to contribute back.
+After productive collaboration other kinds of roles can be added and assigned.
+
+-------
+
+* Translation effort
+
+byggsteg is a community driven effort and as such, can use your help in translating to several different languages.
+
+- English language (en_US) :: 100% translated
+- Dutch language (nl_NL) :: 100% translated
+- Spanish language (es_ES) :: 100% translated
+- Japanese language (ja_JP) :: 100% translated
+
+The strings live in ~sys/i18n/locale~, one ~.po~ file per language, and ~maak i18n-update-template~ collects the ones a change added.
+
+---------
+
 * About this Project and Contributing
 
 Contributing to free software (as in freedom) is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
@@ -145,7 +747,9 @@ We encourage active contribution in all forms, to improve it and/or suggest impr
 
 Feel free to open issue on tracker, on Git / Codeberg repository, or mail me <jjbigorra@gmail.com> to chat, discuss or report feedback.
 
-See here the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][Backlog and Kanban]]  for this project.
+See here the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][Backlog and Kanban]] for this project.
+
+Running the test suite is one command: ~maak test~.
 
 -------
 
@@ -172,3 +776,29 @@ A build should never fail because "it worked on my machine." Reliable software d
 - *Time Travel:* Rebuild the exact system state from any point in git history using ~guix time-machine~.
 - *Atomic Operations:* Instantly upgrade or roll back environments without leaving orphaned dependencies or broken states.
 - *Unified Tooling:* One tool manages development shells, isolated containers, package builds, and full system configurations.
+
+-------
+
+* On GNU Artanis
+
+Find the documentation for Artanis here: https://www.gnu.org/software/artanis/manual/
+
+GNU Artanis is the first production-level modern Web framework of Scheme programming language.
+
+It is designed and maintained to be robust, fast, and easy to use for professional web development.
+
+Here lies not just a framework, but a canvas where your ideas take flight with remarkable speed and grace. Artanis isn't about wrestling with complexity; it's about the joy of creation.
+
+It's about harnessing the power of a robust and mature language to build something truly your own, something beautiful, nimble, flexible, powerful, efficient, understandable and maintainable. GNU Artanis was Certificated as Awesome Project at 2013 Lisp in summer projects.
+
+One day, the folks at GNU were discussing what language they would write the GNU website in - and many chose Python. But I found that strange, because the official extension language of GNU is GNU Guile. And I wondered aloud - why not start a brand new project to provide a web framework written with GNU Guile? To which RMS said, "It's cool, I like this idea."
+
+But at that time, it was just an idea without a plan.
+
+Fortunately, a few months later, the Guile community held a hack-potluck to celebrate Guile2 turning two - which is a contest to write a cool program in a few weeks. And so, Artanis was born.
+
+- February 2013 - Artanis born at the GNU Guile hack-potluck.
+- 2013 - Artanis submitted to "Lisp In Summer Projects" contest. Received "Certificated awesome project award" in 2014.
+- 1st January, 2015 - the first stable version Artanis-0.0.1 was released.
+- 19th January, 2015 - offers Artanis to FSF/GNU, and RMS inducts it as an official GNU project. Artanis becomes GNU Artanis.
+- 29 December 2021 - GNU Artanis donates to HardenedLinux community to connect with product environment more tightly.

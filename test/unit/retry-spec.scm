@@ -30,10 +30,16 @@
 ;;; so the readings below take them from the one seam both pages use.  The list
 ;;; is read a second time as markup as well, so that the button being offered and
 ;;; the button being drawn cannot drift apart.
+;;;
+;;; A retry is also a form, and a form is only worth drawing for a reader who may
+;;; send it: submitting one takes `byggsteg:job-create'.  So each rule is read
+;;; twice, for a reader holding every permission and for one holding none, and
+;;; the two readings together say when a control is drawn at all.
 
 (define-module (veritas unit retry-spec)
   #:use-module (veritas veritas)
   #:use-module (byggsteg html)
+  #:use-module (byggsteg permissions)
   #:use-module (sxml simple)
   #:export (spec))
 
@@ -66,21 +72,34 @@ creation time, and the three flags that say how the job went."
          (cons (car pair) (read (cdr pair))))
        states))
 
+(define (readings-for read permissions)
+  "The result of READ over each state, for a reader holding PERMISSIONS.
+
+READ is handed the job and the reader's permissions."
+  (map (lambda (pair)
+         (cons (car pair) (read (cdr pair) permissions)))
+       states))
+
 ;;; ====== The row a list draws ======
 
-(define (row-of job)
-  "JOB as a row of a list of logs, serialized the way the server serializes it."
+(define* (row-of job #:key (permissions all-permissions))
+  "JOB as a row of a list of logs, serialized the way the server serializes it,
+for a reader holding PERMISSIONS."
   (with-output-to-string
     (lambda ()
       (sxml->xml
        (make-job-link (lambda (s) s)
                       job
                       `((id . "spec-log")
-                        (title . "spec job")))))))
+                        (title . "spec job"))
+                      #:permissions permissions)))))
 
-(define (row-offers-retry? job)
-  "Whether the row drawn for JOB leads to the retry action."
-  (and (string-contains (row-of job) "/jobs/manage/retry") #t))
+(define* (row-offers-retry? job #:key (permissions all-permissions))
+  "Whether the row drawn for JOB, to a reader holding PERMISSIONS, leads to the
+retry action."
+  (and (string-contains (row-of job #:permissions permissions)
+                        "/jobs/manage/retry")
+       #t))
 
 ;;; ====== The suite ======
 
@@ -111,7 +130,59 @@ creation time, and the three flags that say how the job went."
                            (succeeded . #t)
                            (running . #f)
                            (queued . #t))
-                #:got (readings-of retry-offered-on-page?)))))
+                #:got (readings-of retry-offered-on-page?)))
+         (test "a reader who may not submit a retry is offered none"
+               #:shuffle? #f
+               (assert-equal
+                #:name "with no permission at all, neither a row nor a job's own page offers a retry"
+                #:expect '((failed . #f)
+                           (succeeded . #f)
+                           (running . #f)
+                           (queued . #f))
+                #:got (readings-for (lambda (job permissions)
+                                      (retry-offered-in-list?
+                                       job #:permissions permissions))
+                                    '()))
+               (assert-equal
+                #:name "and the page is no more generous than the list: a form a reader cannot send is not drawn"
+                #:expect '((failed . #f)
+                           (succeeded . #f)
+                           (running . #f)
+                           (queued . #f))
+                #:got (readings-for (lambda (job permissions)
+                                      (retry-offered-on-page?
+                                       job #:permissions permissions))
+                                    '()))
+               (assert-equal
+                #:name "holding byggsteg:job-create, the rules read exactly as they do for a super user"
+                #:expect '((failed . #t)
+                           (succeeded . #f)
+                           (running . #f)
+                           (queued . #f))
+                #:got (readings-for (lambda (job permissions)
+                                      (retry-offered-in-list?
+                                       job #:permissions permissions))
+                                    '(byggsteg:job-create)))
+               (assert-equal
+                #:name "and the row that rule answers for is the row that carries the form, for a reader who may send it"
+                #:expect '((failed . #t)
+                           (succeeded . #f)
+                           (running . #f)
+                           (queued . #f))
+                #:got (readings-for (lambda (job permissions)
+                                      (row-offers-retry?
+                                       job #:permissions permissions))
+                                    '(byggsteg:job-create)))
+               (assert-equal
+                #:name "while a reader who may not send one is drawn no form, however red the row"
+                #:expect '((failed . #f)
+                           (succeeded . #f)
+                           (running . #f)
+                           (queued . #f))
+                #:got (readings-for (lambda (job permissions)
+                                      (row-offers-retry?
+                                       job #:permissions permissions))
+                                    '())))))
 
 (define (spec)
   (veritas-run retry-suite))

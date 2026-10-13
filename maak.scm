@@ -36,6 +36,17 @@
 (define byggsteg-db
   "byggsteg.db")
 
+;; The database the tasks act on: the file in this directory -- the one a
+;; server started here uses, since `db.name' in conf/*.conf is byggsteg -- or,
+;; where a deployment keeps it elsewhere, the file `BYGGSTEG_DB' names.  The
+;; three tasks that touch the database read it the same way, so the database a
+;; deployment makes is the database it makes users in.
+(define (deployment-db)
+  (let ((named (getenv "BYGGSTEG_DB")))
+    (if (and named (positive? (string-length named)))
+        named
+        byggsteg-db)))
+
 ;; The main copyright holders of the project.
 (define copyright-holders
   '("Josep Bigorra" "Mu Lei"))
@@ -54,11 +65,32 @@
 (define hot-reload-file-types
   '(scm css js))
 
-;; The Emacs Lisp script to run for publishing the manual.
+;; The Emacs Lisp script to run for publishing the manual, which is the
+;; project's README: one document, so a reader has one place to look and the
+;; two cannot come to say different things.
 (define emacs-lisp-manual-publish-cmd
-  '(progn (find-file "./docs/manual/en.org")
+  '(progn (find-file "./README.org")
           (org-html-export-to-html)
-          (message "finished publishing Byggsteg manual")))
+          (message "finished publishing the Byggsteg manual")))
+
+;; The SQL migrations, oldest first, as the file names sort.
+(define migrations-glob
+  "resources/migrations/sqlite/*.sql")
+
+;; Quote TEXT the way a POSIX shell reads it back as TEXT: wrapped in single
+;; quotes, where every character is literal, with a single quote of its own
+;; closed, escaped and reopened.  A password is allowed to hold one, and this
+;; is what keeps it from ending the argument early.
+(define (shell-quoted text)
+  (string-append
+   "'"
+   (apply string-append
+          (map (lambda (c)
+                 (if (eqv? c #\')
+                     "'\\''"
+                     (string c)))
+               (string->list text)))
+   "'"))
 
 ;; ====== Maak i18n abstractions ======
 
@@ -152,17 +184,17 @@ the module name it derives from that directory."
                                      "-c '(begin (use-modules (veritas runner)) (run-tests))'")))
 
 (define (build-manual)
-  "Render the project's manual."
+  "Render the project's manual -- the README -- as a single HTML page."
   (time-machine-manifest-shell (list (~ "emacs -Q --batch --eval '~s'"
                                         emacs-lisp-manual-publish-cmd))
                                #:verbose? #t))
 
 (define (deploy)
-  "Deploy the project's documentation."
+  "Deploy the project's documentation, which is its README."
   (build-manual)
   (mkdir-p (~ "~a/manuals/byggsteg" deploy-dir))
   (delete-file-recursively (~ "~a/manuals/byggsteg/index.html" deploy-dir))
-  (mv "docs/manual/en.html"
+  (mv "README.html"
       (~ "~a/manuals/byggsteg/index.html" deploy-dir)))
 
 (define (fmt)
@@ -205,14 +237,89 @@ the module name it derives from that directory."
   (kill-server)
   (time-machine-manifest-shell '("art work -c conf/production.conf")))
 
+(define (migrate)
+  "Apply the SQL migrations, oldest first, to the database in this directory.
+
+Every migration is written to be applied once and to be harmless to apply
+again, so this is also the way to bring a database that one deployment made up
+to what the source in front of it expects."
+  ;; The loop is the argument of an `sh -c' of its own.  Written straight into
+  ;; the command, its `;' would be read by the shell maak runs the command in,
+  ;; which would hand `for' to the Guix shell as the program to run and then
+  ;; choke on the `do' that followed it.
+  (time-machine-manifest-shell
+   (list (format #f
+                 "sh -c 'for m in ~a; do echo \"  $m\"; sqlite3 ~a < \"$m\"; done'"
+                 migrations-glob (deployment-db)))))
+
 (define (init-db)
-  "Initialize a new database and enable WAL mode
-for higher concurrent writes to SQLite 3."
-  (delete-file-recursively byggsteg-db)
-  (delete-file-recursively (~ "~a-shm" byggsteg-db))
-  (delete-file-recursively (~ "~a-wal" byggsteg-db))
-  (time-machine-manifest-shell (~ "sqlite3 ~a 'PRAGMA journal_mode=WAL;'"
-                                  byggsteg-db)))
+  "Initialize a new database: the file, WAL mode, and the schema.
+
+The database that comes out is empty and ready -- every migration under
+resources/migrations/sqlite is applied to it in file order -- so this is the
+first command of a new deployment.  It deletes whatever file is already there,
+which is why a deployment that has data runs `maak migrate' instead."
+  (delete-file-recursively (deployment-db))
+  (delete-file-recursively (~ "~a-shm" (deployment-db)))
+  (delete-file-recursively (~ "~a-wal" (deployment-db)))
+  ;; The command list, not the bare string: `time-machine-manifest-shell'
+  ;; appends what it is given to the `guix time-machine ... shell' it builds,
+  ;; so a string here would make the whole command an improper list.
+  (time-machine-manifest-shell
+   (list (~ "sqlite3 ~a 'PRAGMA journal_mode=WAL;'" (deployment-db))))
+  (migrate))
+
+(define (create-user username email password . permissions)
+  "Create a user, with PERMISSIONS (all of them, unless they are named).
+
+The first account of a deployment is made here, because byggsteg's own user
+management needs an account that already holds byggsteg:modify-permissions,
+and the password reset it would send needs a mail service.  The account this
+makes holds every permission -- it is the super user -- unless the permissions
+are named after the password, comma separated, in which case it holds those:
+
+  maak create-user alice alice@example.org 'a-strong-password'
+  maak create-user bob bob@example.org 'another-one' \\
+      byggsteg:job-create,byggsteg:profile-create
+
+Once one super user exists, the rest are made at /users/new with it."
+  (let* ((wanted (if (null? permissions)
+                     ;; Nothing said means every permission: the account is
+                     ;; the super user.
+                     #f
+                     ;; An empty word is not a permission.  An empty last
+                     ;; argument is how a deployment asks for an account that
+                     ;; holds none, which is an empty list rather than a list
+                     ;; of one nameless symbol.
+                     (filter (lambda (permission)
+                               (positive? (string-length permission)))
+                             (string-split (car permissions) #\,))))
+         (expression (format #f
+                             "(begin (use-modules (byggsteg user-bootstrap) (byggsteg sqlite util)) (database-path ~s) ~a)"
+                             (deployment-db)
+                             (format #f
+                                     "(create-user! #:username ~s #:email ~s #:password ~s~a)"
+                                     username email password
+                                     ;; The names go in as strings, turned into
+                                     ;; symbols where they arrive: a bare
+                                     ;; `byggsteg:job-create' in evaluated code
+                                     ;; is a variable, and there is no such
+                                     ;; variable to hold it.
+                                     (cond
+                                       ((not wanted) "")
+                                       ((null? wanted) " #:permissions (list)")
+                                       (else
+                                        (format #f
+                                                " #:permissions (map string->symbol (list ~a))"
+                                                (string-join
+                                                 (map (lambda (permission)
+                                                        (format #f "~s"
+                                                                permission))
+                                                      wanted)
+                                                 " "))))))))
+    (time-machine-manifest-shell
+     (list (format #f "guile -L ./lib -L . -c ~a"
+                   (shell-quoted expression))))))
 
 ;; ====== Maak i18n tasks ======
 

@@ -62,6 +62,10 @@
                                                 #:type 'submit
                                                 #:content (G_ "reset")))))))
     (html-template G_
+                   #:title (format #f "byggsteg - ~a" (G_ "login"))
+                   #:description (G_
+                                  "Log in to this byggsteg deployment to run jobs and profiles, follow a running job's log, and manage the users and their permissions")
+                   #:path "/login"
                    #:is-logged-in is-logged-in
                    #:body `((div (@ (class ,(mk-class '(px-4))))
                                  (div (@ (class ,(mk-class '(w-full flex

@@ -1,2 +1,15 @@
 User-agent: *
+# The pages this deployment is for -- the landing page, the runs it has
+# executed and the jobs it has saved -- are welcome.
 Allow: /
+
+# The pages that answer only to an account, and the page a job is submitted
+# from, whose submission asks for a permission: there is nothing here for a
+# crawler, and nothing for it to ask for.  A deployment that is entirely
+# private can turn the Allow above into `Disallow: /'.
+Disallow: /me
+Disallow: /users/
+Disallow: /password/
+Disallow: /logout
+Disallow: /jobs/
+Disallow: /search

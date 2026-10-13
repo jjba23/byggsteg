@@ -75,7 +75,12 @@
                                           #:offset query-offset
                                           #:limit query-limit
                                           #:is-logged-in (:cookies-value rc
-                                                          "x-bewaking-byggsteg")))))))
+                                                          "x-bewaking-byggsteg")
+                                          ;; What the reader may do with a row:
+                                          ;; a failed row offers a retry, and a
+                                          ;; retry is a form.
+                                          #:permissions (session-permissions
+                                                         rc)))))))
 
 (get "/logs/:id"
      #:mime 'xml
@@ -105,4 +110,9 @@
                                                                "x-bewaking-byggsteg")
                                                #:job j
                                                #:log l
-                                               #:artifacts artifacts))))))))
+                                               #:artifacts artifacts
+                                               ;; What the reader may do with
+                                               ;; this run: retry it, delete it,
+                                               ;; or neither.
+                                               #:permissions (session-permissions
+                                                              rc)))))))))

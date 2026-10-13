@@ -36,20 +36,22 @@
   (define execute-read
     (db-read (database)))
 
+  ;; The row comes back whole, keyed by the columns it was read with: a caller
+  ;; asks for the reset a token names and then reads the three things the row
+  ;; holds -- whose reset it is, and when it was made -- so handing back the row
+  ;; is what lets it ask.  A reader that collapses the row into one of its pairs
+  ;; leaves the page that opens the link, and the submission behind it, without
+  ;; the `created-at' they measure the week against, and without the `user-id'
+  ;; that says whose password is being set.
   (define (get-password-reset-by-token token)
-    (let* ((rows (execute-read "get-password-reset-by-token"
-                               (sql-select "password_reset"
-                                           #:columns columns
-                                           #:where (list (cons 'reset-token
-                                                               token))
-                                           #:limit 1)))
-           (mapped-rows (map (lambda (r)
-                               (cons (assq-ref r
-                                               'reset-token)
-                                     (assq-ref r
-                                               'user-id))) rows)))
-      (if (nil? mapped-rows) #f
-          (car mapped-rows))))
+    (let ((rows (execute-read "get-password-reset-by-token"
+                              (sql-select "password_reset"
+                                          #:columns columns
+                                          #:where (list (cons 'reset-token
+                                                              token))
+                                          #:limit 1))))
+      (if (nil? rows) #f
+          (car rows))))
 
   (define (delete-password-reset-by-user-id user-id)
     (execute-write "delete-password-reset-by-user-id"

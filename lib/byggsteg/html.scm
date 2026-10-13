@@ -18,6 +18,7 @@
 
 (define-module (byggsteg html)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg permissions)
   #:use-module (byggsteg job pipeline)
   #:use-module (byggsteg artifacts)
   #:use-module (byggsteg faces)
@@ -28,6 +29,7 @@
   #:use-module (ice-9 format)
   #:use-module (web uri)
   #:use-module (hygguile hygguile)
+  #:use-module (json)
   #:use-module (kracht prelude)
   #:use-module (artanis artanis)
   #:use-module (ice-9 string-fun)
@@ -42,6 +44,7 @@
                           retry-button
                           retry-offered-in-list?
                           retry-offered-on-page?
+                          delete-offered-on-page?
                           artifact-downloads
                           text-from-db
                           search-form
@@ -62,8 +65,120 @@ escaped shape or not, is safe either way."
                                   value
                                   (format #f "~a" (or value ""))))))
 
+;;; ====== What a page says about itself ======
+;;;
+;;; A page a reader opens is also read by two readers that never see the
+;;; terminal: the crawler that decides what the page is about, and the card a
+;;; chat client or a search result draws out of the link.  Both read the head,
+;;; so the head says what the page is and where it is, in the words a page is
+;;; written in rather than in the words of whoever linked to it.
+
+(define site-name "byggsteg")
+
+;; The sentence the landing page has always opened with, and the one every page
+;; without a description of its own is announced with.
+(define site-description
+  (string-append
+   "byggsteg is a hackable and extensible CI/CD orchestrator written in Guile Scheme: "
+   "a pipeline is Lisp code, a running job's log is read while it is written, "
+   "and the runner, the logs, the artifacts and the users are all yours to host."))
+
+;; The image a shared link is drawn with.  It has to be an absolute address:
+;; the service drawing the card never loaded the page it describes.  The
+;; project's own logo is at a stable one, so a deployment that has put up no
+;; image of its own still shares as byggsteg.
+(define social-image
+  "https://jointhefreeworld.org/static-assets/byggsteg/logo.png")
+
+(define (deployment-url)
+  "The address this deployment calls itself by, without a trailing slash.
+
+`BYGGSTEG_PUBLIC_URL' where the deployment named one, and the host Artanis
+works out from its own configuration -- the address a request's redirects are
+already built from -- otherwise.  A page built where there is no running server
+(a status page, a test) has neither, and is given nothing rather than half an
+address."
+  (let ((named (public-url)))
+    (cond
+      ((and (string? named) (positive? (string-length named)))
+       (string-trim-right named #\/))
+      (else
+       (catch #t
+              (lambda () (current-myhost))
+              (lambda (key . args) ""))))))
+
+(define* (discovery-meta #:key title description path robots)
+  "The head of a page as the readers that never open the terminal read it.
+
+The canonical link and `og:url' say where the page is, so a crawler meeting
+the same page under two names -- a port, a trailing slash, the www -- is told
+which one counts.  They are left out where the deployment has no address to
+name, since a half-written one points a crawler somewhere that is not here.
+
+`og:image:alt' is a name the serializer refuses (it allows one colon, and that
+tag has two), so the image is announced by the two tags that can be written."
+  (let* ((base (deployment-url))
+         (url (if (or (string-null? base) (not (string? path)))
+                  ""
+                  (string-append base path))))
+    `((meta (@ (name description) (content ,description)))
+      (meta (@ (name robots) (content ,robots)))
+      ,@(if (string-null? url)
+            '()
+            (list `(link (@ (rel canonical) (href ,url)))))
+      (meta (@ (property og:type) (content "website")))
+      (meta (@ (property og:site_name) (content ,site-name)))
+      (meta (@ (property og:title) (content ,title)))
+      (meta (@ (property og:description) (content ,description)))
+      ,@(if (string-null? url)
+            '()
+            (list `(meta (@ (property og:url) (content ,url)))))
+      (meta (@ (property og:image) (content ,social-image)))
+      (meta (@ (name twitter:card) (content "summary_large_image")))
+      (meta (@ (name twitter:title) (content ,title)))
+      (meta (@ (name twitter:description) (content ,description)))
+      (meta (@ (name twitter:image) (content ,social-image))))))
+
+(define* (structured-data #:key description path)
+  "This deployment as a schema.org `SoftwareApplication', for the crawlers
+that read JSON-LD rather than a `<meta>' tag: what the software is, where to
+get it, and that it costs nothing.
+
+The string goes into the page as it stands -- the framework's serializer
+writes this deployment's pages without escaping their text, which is why the
+module escapes the text it takes from a column itself -- so the braces and
+quotes arrive as JSON and not as markup.  It holds no `</script', so the page
+cannot be closed early by it."
+  (let* ((base (deployment-url))
+         (url (if (or (string-null? base) (not (string? path)))
+                  #f
+                  (string-append base path))))
+    (scm->json-string
+     (append `((@context . "https://schema.org")
+               (@type . "SoftwareApplication")
+               (name . ,site-name)
+               (alternateName . "byggsteg CI/CD")
+               (applicationCategory . "DeveloperApplication")
+               (operatingSystem . "GNU/Linux")
+               (programmingLanguage . "Scheme")
+               (description . ,description)
+               (isAccessibleForFree . #t)
+               (license . "https://www.gnu.org/licenses/agpl-3.0.html")
+               (codeRepository . "https://codeberg.org/jjba23/byggsteg")
+               (downloadUrl . "https://codeberg.org/jjba23/byggsteg")
+               (author . ((@type . "Person") (name . "Josep Bigorra")))
+               (offers . ((@type . "Offer")
+                          (price . "0")
+                          (priceCurrency . "EUR"))))
+             (if url
+                 (list `(url . ,url))
+                 '())))))
+
 (define* (html-template G_
                         #:key title
+                        (description site-description)
+                        (path "/")
+                        (robots "index, follow")
                         body
                         (should-auto-refresh #f)
                         (auto-refresh-seconds 12)
@@ -97,6 +212,10 @@ escaped shape or not, is safe either way."
 })()
 ")
                                 ,(hygguile-recommended-meta)
+                                ,@(discovery-meta #:title title
+                                                  #:description description
+                                                  #:path path
+                                                  #:robots robots)
                                 ,(hygguile-recommended-resources #:fonts (custom-fonts))
                                 (link (@ (rel stylesheet)
                                          (href "/css/byggsteg.olive.min.css"))
@@ -112,7 +231,11 @@ escaped shape or not, is safe either way."
     }
   ]
 }
-"))
+")
+                                (script (@ (type "application/ld+json"))
+                                        ,(structured-data #:description
+                                                          description
+                                                          #:path path)))
                           ;; The whole terminal is olive utilities: the dark
                           ;; `onyx' neutral, phosphor `olive' prose,
                           ;; monospaced and square.
@@ -347,14 +470,18 @@ escaped shape or not, is safe either way."
                 ,(a "source code"
                     #:href "https://codeberg.org/jjba23/byggsteg"
                     #:size '(text-md)
-                    #:color '(text-asparagus-900 dark:text-olive-300)))
-           (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-2
-                                            align-center items-center))))
-                ,(em (G_ "find here the:"))
-                ,(a "manual"
+                    #:color '(text-asparagus-900 dark:text-olive-300))
+                ,(a "documentation"
                     #:href "https://jointhefreeworld.org/manuals/byggsteg/"
                     #:size '(text-md)
+                    #:color '(text-asparagus-900 dark:text-olive-300))
+                ,(a "manual (kept as the project's README)"
+                    #:href "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org"
+                    #:size '(text-md)
                     #:color '(text-asparagus-900 dark:text-olive-300)))
+           (div ,(em (G_
+                      "the manual -- jobs, artifacts, users, permissions, and how to host byggsteg yourself -- is the project's README, which the documentation above is built from")
+                     #:size '(text-sm)))
            (div ,(em (G_
                       "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS")
                      #:size '(text-sm)))
@@ -514,22 +641,40 @@ went well, blue for one still going, red for one that did not."
                     #:color job-running-face
                     #:size size)))))
 
-(define (retry-offered-in-list? job)
-  "Whether a row of a list offers a retry for JOB.
+;; Both rules below answer for a reader as well as for a job, because a retry is
+;; a form: what is offered is what the reader can send, and a form drawn for
+;; somebody who cannot send it is a control that does nothing.
+
+(define* (retry-offered-in-list? job #:key (permissions all-permissions))
+  "Whether a row of a list offers a retry for JOB to a reader holding
+PERMISSIONS.
 
 A list is read for what needs attention, and a green row already says it does
-not; a job that failed is therefore the one offered a retry there."
-  (equal? (assoc-ref job
-                     'job-failed) 1))
+not; a job that failed is therefore the one offered a retry there.  Submitting
+that retry takes `byggsteg:job-create', so a reader who does not hold it is
+offered nothing, however red the row is."
+  (if (and (equal? (assoc-ref job
+                              'job-failed) 1)
+           (may? permissions 'byggsteg:job-create))
+      #t #f))
 
-(define (retry-offered-on-page? job)
-  "Whether JOB's own page offers a retry.
+(define* (retry-offered-on-page? job #:key (permissions all-permissions))
+  "Whether JOB's own page offers a retry to a reader holding PERMISSIONS.
 
 A job that is still running is the one case that is not: the same data would
 then be running twice.  Every other job -- queued, succeeded or failed -- can be
-run again from the page that reads it."
-  (not (equal? (assoc-ref job
-                          'job-in-progress) 1)))
+run again from the page that reads it, by a reader who may submit one."
+  (if (and (not (equal? (assoc-ref job
+                                   'job-in-progress) 1))
+           (may? permissions 'byggsteg:job-create))
+      #t #f))
+
+(define (delete-offered-on-page? permissions)
+  "Whether a reader holding PERMISSIONS is offered the form that deletes a job.
+
+Its submission takes `byggsteg:job-delete', and a job is deletable whatever its
+status, so the permission is the whole of the question."
+  (may? permissions 'byggsteg:job-delete))
 
 (define* (retry-button G_ job #:key (content #f))
   "A button that queues the job data of JOB again, as a job of its own.
@@ -598,14 +743,14 @@ it answers with."
                   #:placeholder (G_ "a project, a branch, a word from a log"))
           ,(terminal-submit-button (G_ "search")))))
 
-(define (make-job-link G_ job log)
+(define* (make-job-link G_ job log #:key (permissions all-permissions))
   (let* ((log-filename (text-from-db (assq-ref log
                                                'title)))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
                             (assq-ref log
                                       'id)))
-         (retry? (retry-offered-in-list? job)))
+         (retry? (retry-offered-in-list? job #:permissions permissions)))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))

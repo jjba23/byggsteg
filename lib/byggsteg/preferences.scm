@@ -21,6 +21,7 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:export (job-clone-location
+            public-url
             artifact-location
             artifact-sweep-grace-seconds
             artifact-sweep-interval
@@ -60,6 +61,19 @@ means the deployment did not say, not that it wants a directory called nothing."
 (define artifact-location
   (make-parameter (deployment-path "BYGGSTEG_ARTIFACT_LOCATION"
                                    "/etc/byggsteg/artifacts/")))
+
+;;; The address a deployment is reached at, as the pages it serves write links
+;;;
+;;; A page's canonical link, its sharing card and the JSON-LD a crawler reads
+;;; all name the page by its full address, and that address has to be the one a
+;;; reader used rather than the one this process happens to listen on.  Artanis
+;;; derives a host from its own configuration, and calls it http: correct for a
+;;; development server, wrong for the deployment it is meant to describe behind
+;;; a TLS terminator.  A deployment reached over https names itself here --
+;;; `BYGGSTEG_PUBLIC_URL=https://byggsteg.example.org' -- and the two agree.
+
+(define public-url
+  (make-parameter (deployment-path "BYGGSTEG_PUBLIC_URL" "")))
 
 ;; How long a tarball may sit in the artifact directory with no row naming it
 ;; before the sweep removes it.  A collection writes the file and records it a

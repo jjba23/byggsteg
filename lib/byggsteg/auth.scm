@@ -24,6 +24,7 @@
   #:use-module (byggsteg env)
   #:use-module (json)
   #:export (back-to-login unauthorized-api-message api-error
+                          session-permissions
                           bewaking-endpoint bewaking-api-endpoint))
 
 (define* (bewaking-endpoint #:key token-name
@@ -80,6 +81,34 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
           (happy-flow))
          (else (unhappy-flow rc)))))
     (else (unhappy-flow rc))))
+
+(define (session-permissions rc)
+  "The permissions the session in RC holds: what its token was minted with.
+
+Both places a token is carried are read, because both are read by the guards: a
+browser sends the cookie, a script the header.  A request with neither, or with
+a token this deployment cannot read -- one signed with a key that has since been
+changed, say -- is answered with the empty list rather than an error: a page
+asks what the reader may do, and `nothing' is an answer to that, the same answer
+a visitor who never signed in is given.
+
+This is the question a page asks when it decides which controls to draw.  The
+question a guard asks is a different one -- whether a request may reach an
+endpoint at all -- and that is `bewaking-endpoint', which turns a reader away
+rather than drawing a smaller page for them."
+  (let ((token (or (get-header rc 'x-bewaking-byggsteg)
+                   (:cookies-value rc "x-bewaking-byggsteg"))))
+    (if (or (not token) (equal? "" token))
+        '()
+        (catch #t
+               (lambda ()
+                 (let ((t (decrypt-token #:token token
+                                         #:encryption-key encryption-key
+                                         #:signing-key signing-key)))
+                   (if (token-valid? #:token t)
+                       (or (assoc-ref t 'owner-permissions) '())
+                       '())))
+               (lambda (key . args) '())))))
 
 (define (api-error rc status message)
   "Answer an API request with MESSAGE as a JSON error and the given STATUS.

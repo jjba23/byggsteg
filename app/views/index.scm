@@ -153,6 +153,9 @@
     (html-template G_
                    #:title (format #f "byggsteg - ~a"
                                    (G_ "welcome to byggsteg"))
+                   #:description (G_
+                                  "byggsteg is a hackable, extensible CI/CD orchestrator written in Guile Scheme: write a pipeline as Lisp, watch its log while it runs, and host the whole system yourself")
+                   #:path "/"
                    #:is-logged-in is-logged-in
                    #:body welcome-html)))
 

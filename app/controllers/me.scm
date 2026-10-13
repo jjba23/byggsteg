@@ -19,11 +19,13 @@
 (define-artanis-controller me)
 
 (import (byggsteg html)
+        (byggsteg errors)
         (web uri)
         (ice-9 string-fun)
         (byggsteg env)
         (byggsteg sqlite user)
         (byggsteg domain user)
+        (byggsteg permissions)
         (byggsteg auth)
         (app views me)
         (curl)
@@ -41,32 +43,40 @@
      #:i18n '(cookie "lang")
      #:cookies '(names x-bewaking-byggsteg)
      (lambda (rc)
-       (let* ((t (decrypt-token #:token (:cookies-value rc
-                                                        "x-bewaking-byggsteg")
-                                #:encryption-key encryption-key
-                                #:signing-key signing-key))
-              (user-repo (make-sqlite-user-repository))
-              (user (get-user-by-id user-repo
-                                    (assq-ref t
-                                              'owner-id))))
-         
-         (catch #t
-                (lambda ()
-                  (response-emit (:mime rc
-                                        (me-page (:i18n rc)
-                                                 #:user user
-                                                 #:token t
-                                                 #:is-logged-in (:cookies-value
-                                                                 rc
-                                                                 "x-bewaking-byggsteg")))))
-                (lambda (key . args)
-                  (display (format #f
-                            "error getting user details-me page: ~a: ~a" key
-                            args))
-                  (redirect-to rc
-                               (string->uri (format #f "~a/login"
-                                                    (current-myhost)))
-                               #:status 302))))))
+       (define (show-my-account)
+         (let* ((t (decrypt-token #:token (:cookies-value rc
+                                                         "x-bewaking-byggsteg")
+                                  #:encryption-key encryption-key
+                                  #:signing-key signing-key))
+                (user-repo (make-sqlite-user-repository))
+                (user (get-user-by-id user-repo
+                                      (assq-ref t
+                                                'owner-id))))
+           ;; A token outlives the account it was minted for: an account deleted
+           ;; while it was signed in leaves a session that authenticates as
+           ;; nobody.  There is no account to show and no form to send, so the
+           ;; session is sent to sign in again rather than handed a page of
+           ;; blanks.
+           (if user
+               (response-emit (:mime rc
+                                     (me-page (:i18n rc)
+                                              #:user user
+                                              #:token t
+                                              #:is-logged-in (:cookies-value
+                                                              rc
+                                                              "x-bewaking-byggsteg"))))
+               (back-to-login rc))))
+       ;; Every button on this page changes the reader's own account, so the
+       ;; permission it asks for is a live session and nothing more: an account
+       ;; holding no permissions at all still has a /me page.  Asking here, at
+       ;; the door, is what keeps a session that has expired -- or a cookie this
+       ;; deployment cannot read -- from being handed the forms at all, instead
+       ;; of failing somewhere inside the page once they have been drawn.
+       (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                          #:needed-permissions '()
+                          #:rc rc
+                          #:happy-flow show-my-account
+                          #:unhappy-flow back-to-login)))
 
 (get "/users/manage"
      #:mime 'xml
@@ -98,25 +108,32 @@
      #:i18n '(cookie "lang")
      (lambda (rc)
        (let* ((password-reset-repo (make-sqlite-password-reset-repository))
-              (tt (get-password-reset-by-token password-reset-repo
-                                               (params rc "token")))
-              (now (current-time))
-              (allowance (* 24 7 3600)) ;reset token is valid for a week
-              (_ (when (> now
-                          (+ allowance
-                             (assq-ref tt
-                                       'created-at)))
-                   (error "reset token is found but not valid anymore")))
-              (user-id (assq-ref tt
-                                 'user-id))
-              (user-repo (make-sqlite-user-repository))
-              (u (get-user-by-id user-repo user-id))
-              (email (assq-ref u
-                               'email)))
-         (response-emit (:mime rc
-                               (reset-password-page (:i18n rc)
-                                                    #:token (params rc "token")
-                                                    #:email email))))))
+              (token (params rc "token"))
+              (tt (get-password-reset-by-token password-reset-repo token))
+              ;; The token is the whole of the request, and the only thing the
+              ;; page can be sent with: one that names no reset, or one issued
+              ;; longer ago than the week it lives for, is a link that cannot
+              ;; send the form it opens.
+              (live? (password-reset-live? tt))
+              ;; A reset names an account, and an account can be deleted while
+              ;; its link is in an inbox: there is then no password to set.
+              (u (if live?
+                     (get-user-by-id (make-sqlite-user-repository)
+                                     (assq-ref tt
+                                               'user-id))
+                     #f)))
+         ;; A link that cannot be used is a path that answers nothing -- the
+         ;; same answer the pages addressed by a job's or a profile's id give
+         ;; -- rather than a form drawn for a reader who cannot send it.
+         (if u
+             (response-emit (:mime rc
+                                   (reset-password-page (:i18n rc)
+                                                        #:token token
+                                                        #:email (assq-ref u
+                                                                         'email))))
+             (response-emit (error-page 404)
+                            #:status 404
+                            #:headers '((content-type . (text/html))))))))
 
 (define* (send-to-pingwing #:key body)
   
@@ -186,42 +203,52 @@
                (password-reset-repo (make-sqlite-password-reset-repository))
                (tt (get-password-reset-by-token password-reset-repo
                                                 reset-token))
-               (now (current-time))
-               (allowance (* 24 7 3600)) ;reset token is valid for a week
-               (_ (when (> now
-                           (+ allowance
-                              (assq-ref tt
-                                        'created-at)))
-                    (error "reset token is found but not valid anymore!")))
-               (_ (when (not (equal? new-password confirm-password))
-                    (error "password confirmation did not match!")))
-               (user-id (assq-ref tt
-                                  'user-id))
+               ;; The token is the whole of what a reset carries, and so the
+               ;; whole of what this submission is guarded by: one that names no
+               ;; reset, or one issued longer ago than the week it lives for, is
+               ;; a link that changes no password.  The page asks the same
+               ;; question of the same rule, so the form it draws is one this
+               ;; submission takes.
+               (live? (password-reset-live? tt))
                (user-repo (make-sqlite-user-repository))
-               (u (get-user-by-id user-repo user-id))
-               (new-salt (generate-string-uuid))
-               (h (string->sha-256 (string-append new-password new-salt)))
-               (_ (update-user-by-id user-repo
-                                     (assq-ref u
-                                               'id)
-                                     `((salt unquote new-salt)
-                                       (password unquote h))))
-               (_ (delete-password-reset-by-user-id password-reset-repo
-                                                    (assq-ref u
-                                                              'id))))
-          (:cookies-set! rc
-                         'x-bewaking-byggsteg "x-bewaking-byggsteg" "")
-          (:cookies-setattr! rc
-                             'x-bewaking-byggsteg
-                             #:expires 1
-                             #:path "/"
-                             #:secure #t
-                             #:http-only #t)
-          (redirect-to rc
-                       (string->uri (format #f
-                                     "~a/login?has-reset-password=true"
-                                     (current-myhost)))
-                       #:status 302))))
+               ;; A reset names an account, and an account can be deleted while
+               ;; its link is in an inbox: there is then no password to set.
+               (u (if live?
+                      (get-user-by-id user-repo
+                                      (assq-ref tt
+                                                'user-id))
+                      #f)))
+          (if u
+              (let* ((_ (when (not (equal? new-password confirm-password))
+                          (error "password confirmation did not match!")))
+                     (new-salt (generate-string-uuid))
+                     (h (string->sha-256 (string-append new-password new-salt)))
+                     (_ (update-user-by-id user-repo
+                                           (assq-ref u
+                                                     'id)
+                                           `((salt unquote new-salt)
+                                             (password unquote h))))
+                     (_ (delete-password-reset-by-user-id password-reset-repo
+                                                          (assq-ref u
+                                                                    'id))))
+                (:cookies-set! rc
+                               'x-bewaking-byggsteg "x-bewaking-byggsteg" "")
+                (:cookies-setattr! rc
+                                   'x-bewaking-byggsteg
+                                   #:expires 1
+                                   #:path "/"
+                                   #:secure #t
+                                   #:http-only #t)
+                (redirect-to rc
+                             (string->uri (format #f
+                                           "~a/login?has-reset-password=true"
+                                           (current-myhost)))
+                             #:status 302))
+              ;; A link that cannot be used is the same path that answers
+              ;; nothing that the page itself is given.
+              (response-emit (error-page 404)
+                             #:status 404
+                             #:headers '((content-type . (text/html))))))))
 
 (define (request-password-reset password-reset-repo u)
   (let* ((_ (delete-password-reset-by-user-id password-reset-repo
@@ -288,8 +315,16 @@
          (let* ((user-repo (make-sqlite-user-repository))
                 (user (get-user-by-id user-repo
                                       (params rc "id"))))
-           (response-emit (:mime rc
-                                 (edit-user-page (:i18n rc) user)))))
+           ;; The id names the account to change or it names none: there is
+           ;; nothing to edit and no form to draw, so the reader gets the
+           ;; console's page for a path that answers nothing rather than a form
+           ;; about an account that is not there.
+           (if user
+               (response-emit (:mime rc
+                                     (edit-user-page (:i18n rc) user)))
+               (response-emit (error-page 404)
+                              #:status 404
+                              #:headers '((content-type . (text/html)))))))
 
        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                           #:needed-permissions '(byggsteg:modify-permissions)
@@ -319,13 +354,7 @@
                                         (not (equal? #f p)))
                                       (map (lambda (p)
                                              (from-checkbox body p))
-                                           '(byggsteg:job-create
-                                             byggsteg:job-delete
-                                             byggsteg:profile-create
-                                             byggsteg:profile-delete
-                                             byggsteg:user-create
-                                             byggsteg:user-delete
-                                             byggsteg:modify-permissions))))
+                                           all-permissions)))
                  (new-id (generate-string-uuid))
                  (user-repo (make-sqlite-user-repository))
                  (password-reset-repo (make-sqlite-password-reset-repository))
@@ -383,13 +412,7 @@
                                         (not (equal? #f p)))
                                       (map (lambda (p)
                                              (from-checkbox body p))
-                                           '(byggsteg:job-create
-                                             byggsteg:job-delete
-                                             byggsteg:profile-create
-                                             byggsteg:profile-delete
-                                             byggsteg:user-create
-                                             byggsteg:user-delete
-                                             byggsteg:modify-permissions))))
+                                           all-permissions)))
                  (user-repo (make-sqlite-user-repository))
                  (_ (update-user-by-id user-repo
                                        (params rc "id")
