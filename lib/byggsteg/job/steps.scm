@@ -228,14 +228,16 @@ back with the newlines the reader took off."
           ($ pull-cmd)))))
 
 (define* (collect-artifacts-step #:key id title artifact-repo project branch-name
-                                 artifacts (env #f) (number 1))
+                                 artifacts (env #f) (number 1) (name #f))
   "Tar up the ARTIFACTS a job asked for, and record the tarball in ARTIFACT-REPO.
 
-ARTIFACTS are paths relative to the job's clone, as `tar' reads them.  The step
-is run by the pipeline once the job's own steps are over, whether it passed or
-failed, because a build that broke halfway is exactly when its partial output is
-worth keeping; it answers as a step that succeeded either way, so a missing path
-is reported in the job's log rather than turning a green job red.
+ARTIFACTS are paths relative to the job's clone, as `tar' reads them.  NAME is
+the name the bundle was given, when it was given one, and the tarball is then
+offered for download under that name rather than under the job's TITLE.  The
+step is run by the pipeline once the job's own steps are over, whether it passed
+or failed, because a build that broke halfway is exactly when its partial output
+is worth keeping; it answers as a step that succeeded either way, so a missing
+path is reported in the job's log rather than turning a green job red.
 
 The row is inserted from here because the tarball is this step's product, and
 the step is where the fact that it exists is still known."
@@ -255,7 +257,9 @@ the step is where the fact that it exists is still known."
                      (file-exists? tarball))))
     (if made?
         (let ((size (stat:size (stat tarball)))
-              (file-name (artifact-download-name title number)))
+              ;; A named bundle is offered under its own name; one the job did
+              ;; not name is offered under the job's title, as before.
+              (file-name (artifact-download-name (or name title) number)))
           (insert-artifact artifact-repo
                            `((id unquote (generate-string-uuid))
                              (job-id unquote id)

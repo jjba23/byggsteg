@@ -40,6 +40,8 @@
                           job-form
                           job-status-label
                           retry-button
+                          retry-offered-in-list?
+                          retry-offered-on-page?
                           artifact-downloads
                           text-from-db
                           search-form
@@ -512,6 +514,23 @@ went well, blue for one still going, red for one that did not."
                     #:color job-running-face
                     #:size size)))))
 
+(define (retry-offered-in-list? job)
+  "Whether a row of a list offers a retry for JOB.
+
+A list is read for what needs attention, and a green row already says it does
+not; a job that failed is therefore the one offered a retry there."
+  (equal? (assoc-ref job
+                     'job-failed) 1))
+
+(define (retry-offered-on-page? job)
+  "Whether JOB's own page offers a retry.
+
+A job that is still running is the one case that is not: the same data would
+then be running twice.  Every other job -- queued, succeeded or failed -- can be
+run again from the page that reads it."
+  (not (equal? (assoc-ref job
+                          'job-in-progress) 1)))
+
 (define* (retry-button G_ job #:key (content #f))
   "A button that queues the job data of JOB again, as a job of its own.
 
@@ -586,8 +605,7 @@ it answers with."
                             (current-myhost)
                             (assq-ref log
                                       'id)))
-         (in-progress (assoc-ref job
-                                 'job-in-progress)))
+         (retry? (retry-offered-in-list? job)))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
@@ -608,11 +626,9 @@ it answers with."
                                                      'created-at)))
                      #:size '(text-sm))
                 ,(job-status-label G_ job)
-                ;; A job that is still running is not offered a retry: the same
-                ;; data would be running twice.
-                ,(if (equal? in-progress 1)
-                     '()
-                     (retry-button G_ job #:content "retry")))))))
+                ,(if retry?
+                     (retry-button G_ job #:content "retry")
+                     '()))))))
 
 (define (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"

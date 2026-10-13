@@ -173,7 +173,7 @@ You should either pass a string or a list of strings of job names.
 
 ~trivial-cmds~ is a list of strings which represent commands to be run.
 
-~artifacts~ is a list of strings: paths, relative to the job's clone, that should be collected into a tarball and kept for download once the job's commands are over. See [[*Artifacts]].
+~artifacts~ is a list of what to keep once the job's commands are over: a path, relative to the job's clone, or a bundle written as ~(name . (path ...))~ that is packed into a tarball of its own and offered under that name. See [[*Artifacts]].
 
 ** Example jobs
 
@@ -223,7 +223,7 @@ The title of a pipeline names its first job's project, and ~trivial~ when it run
 
 * Artifacts
 
-A job can keep what it built. Add an ~artifacts~ field to a job, whose value is a list of the paths to collect, relative to that job's clone:
+A job can keep what it built. Add an ~artifacts~ field to a job, and list what to keep as it is relative to that job's clone:
 
 #+begin_src scheme
 (lambda()
@@ -234,9 +234,33 @@ A job can keep what it built. Add an ~artifacts~ field to a job, whose value is 
     (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
 #+end_src
 
-Once the job's own commands are over -- whether they passed or failed, since a build that broke halfway is exactly when its partial output is worth keeping -- the paths are packed into a gzipped tarball, one per job that asks. A pipeline whose two stages each ask for something keeps both tarballs, the second numbered.
+The bare paths share one tarball, which is offered under the job's title. When one stage has several things to keep apart, write each as a bundle instead -- a name, and the paths behind it -- and each is packed into a tarball of its own, offered for download under the name it was given:
 
-The tarballs are written under the directory ~artifact-location~ points at (~/etc/byggsteg/artifacts/~ by default) and recorded in the database. They are offered on the job's log page, and at ~/artifacts/<id>~, where the browser downloads them under the job's title. Nothing outside that directory is ever served, whatever a row says.
+#+begin_src scheme
+(lambda()
+  `((project . "wikimusic-api")
+    (branch-name . "trunk")
+    (task . "maak-build")
+    (artifacts . (("binaries" . ("dist/wikimusic-api" "bin"))
+                  ("docs" . ("docs/manual" "README.org"))))
+    (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
+#+end_src
+
+A field may mix the two, and the order the entries are written in is the order the tarballs are packed in, so the first one a job asks for is the one that keeps the unnumbered name:
+
+#+begin_src scheme
+(lambda()
+  `((project . "wikimusic-api")
+    (branch-name . "trunk")
+    (task . "maak-build")
+    ;; dist.tar.gz (under the job's title), then binaries-2.tar.gz
+    (artifacts . ("dist" ("binaries" . ("bin"))))
+    (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
+#+end_src
+
+Once the job's own commands are over -- whether they passed or failed, since a build that broke halfway is exactly when its partial output is worth keeping -- the bundles are packed; a pipeline whose two stages each collect keeps both sets of tarballs, the later ones numbered. A name is written as a string, and reaches the ~Content-Disposition~ header as a plain file name: whatever a header could read twice -- a slash, a quote, a space -- is turned into a dash, and ~.tar.gz~ is added whether or not the name ends in one.
+
+The tarballs are written under the directory ~artifact-location~ points at (~/etc/byggsteg/artifacts/~ by default, or whatever ~BYGGSTEG_ARTIFACT_LOCATION~ names) and recorded in the database. They are offered on the job's log page, and at ~/artifacts/<id>~, where the browser downloads them under the name they were given -- the job's title for the tarball of bare paths, the bundle's name for a bundle. Nothing outside that directory is ever served, whatever a row says.
 
 ------------------
 
@@ -254,7 +278,7 @@ curl 'https://byggsteg.jointhefreeworld.org/api/v1/logs/<log-id>'
 
 * Retrying a job
 
-A finished job can be run again from the UI: a ~retry~ button sits on its log page and beside it in the list of logs. A job that is still running is not offered one.
+A job can be run again from the UI. Its own page offers a ~retry~ button whatever the job's status -- a reader is there about that one job -- while the list of logs offers one only for a job that failed, since a list is read for what needs attention and a green row already says it does not. A job that is still running is the one case with no retry anywhere: the same data would then be running twice.
 
 #+begin_src sh
 curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/retry' \
@@ -469,6 +493,16 @@ Byggsteg uses SQLite by default but is also compatible with PostgreSQL and MySQL
 If using SQLite you should enable WAL mode for concurrent writes.
 
 Byggsteg uses [[https://codeberg.org/jjba23/mutastructura][mutastructura]] to manage database and schema migrations. See ~resources/migrations/~ for more details.
+
+Beside its database, byggsteg writes two things to the filesystem: the clones its jobs run in, under ~/etc/byggsteg/job-clone/~, and the tarballs they collect, under ~/etc/byggsteg/artifacts/~. A deployment that keeps them elsewhere -- a development server, a second instance on one machine, a test -- names the directories in the environment it starts byggsteg in:
+
+#+begin_src sh
+BYGGSTEG_JOB_CLONE=/tmp/byggsteg-clone/ \
+BYGGSTEG_ARTIFACT_LOCATION=/tmp/byggsteg-artifacts/ \
+make production-server
+#+end_src
+
+Both are read once, when byggsteg starts, and an empty value is read as no value at all: ~BYGGSTEG_JOB_CLONE=~ leaves the default in place rather than naming a directory called nothing.
 
 If you are hacking away at the project, I would suggest using ~make dev~ since this will effectively run the project with hot-reloading capabilities and it will use the default ~artanis.conf~ where we configure hostname, db path, etc.
 

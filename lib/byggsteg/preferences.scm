@@ -29,12 +29,32 @@
             search-result-limit
             activity-weeks))
 
+;;; Where a deployment keeps what is not in its database
+;;;
+;;; The clones its jobs run in and the tarballs they collect are the two things
+;;; byggsteg writes to the filesystem, and both are read once, at startup.  Each
+;;; has the path a system-wide deployment uses, and each can be pointed
+;;; elsewhere by the environment: a development server, a test, or a second
+;;; deployment on one machine should not have to edit the source to say so.
+
+(define (deployment-path variable default)
+  "DEFAULT, or the path the deployment set for VARIABLE in its environment.
+
+An empty value is read as no value at all: `BYGGSTEG_JOB_CLONE=' in a unit file
+means the deployment did not say, not that it wants a directory called nothing."
+  (let ((set (getenv variable)))
+    (if (and (string? set) (positive? (string-length set)))
+        set
+        default)))
+
 (define job-clone-location
-  (make-parameter "/tmp/byggsteg-e2e-clone/"))
+  (make-parameter (deployment-path "BYGGSTEG_JOB_CLONE"
+                                   "/etc/byggsteg/job-clone/")))
 
 ;; Where the tarballs a job asks for as its artifacts are written.
 (define artifact-location
-  (make-parameter "/tmp/byggsteg-e2e-artifacts/"))
+  (make-parameter (deployment-path "BYGGSTEG_ARTIFACT_LOCATION"
+                                   "/etc/byggsteg/artifacts/")))
 
 ;; How many jobs one sweep may run at the same time.  Jobs are green threads on
 ;; one scheduler, so this is the number of jobs whose commands are in flight,

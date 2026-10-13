@@ -18,6 +18,7 @@
 
 (define-module (byggsteg job pipeline)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg artifacts)
   #:use-module (byggsteg job steps)
   #:use-module (byggsteg job streaming)
   #:use-module (byggsteg domain job)
@@ -233,33 +234,52 @@ was started in."
   "Tar up what JOB's SPECS ask for, and answer with what to add to its log.
 
 Every spec that names an `artifacts' field is collected from its own clone, and
-each tarball is recorded against the job, so a pipeline whose first stage builds
-one thing and whose second builds another keeps both."
+every bundle a spec asks for is packed into a tarball of its own and recorded
+against the job.  A pipeline whose first stage builds one thing and whose second
+builds another therefore keeps both, and a stage that names several bundles --
+`(artifacts . ((\"binaries\" . (\"dist\")) (\"docs\" . (\"docs/manual\"))))' --
+keeps one tarball for each.
+
+The tarballs are numbered in the order they are packed, so the first one a job
+asks for is the one that keeps the unnumbered name; a spec that names bundles
+the job has no clone to collect from is reported once rather than once per
+bundle."
   (let loop ((specs specs) (number 1) (text ""))
     (if (null? specs)
         text
         (let* ((spec (car specs))
-               (artifacts (assq-ref spec 'artifacts))
+               (bundles (artifact-bundles (assq-ref spec 'artifacts)))
                (project (assq-ref spec 'project))
                (branch-name (assq-ref spec 'branch-name)))
-          (if (nil? artifacts)
-              (loop (cdr specs) number text)
-              (loop (cdr specs)
+          (cond
+            ((null? bundles)
+             (loop (cdr specs) number text))
+            ((or (not project) (not branch-name))
+             (loop (cdr specs)
+                   (+ number (length bundles))
+                   (string-append
+                    text
+                    "\n⚠ no artifact was collected: the job has no clone to collect from\n")))
+            (else
+             (let bundle-loop ((bundles bundles) (number number) (text text))
+               (if (null? bundles)
+                   (loop (cdr specs) number text)
+                   (bundle-loop
+                    (cdr bundles)
                     (+ number 1)
                     (string-append
                      text
-                     (if (or (not project) (not branch-name))
-                         "\n⚠ no artifact was collected: the job has no clone to collect from\n"
-                         (step-result-stdout
-                          (collect-artifacts-step
-                           #:id (assq-ref job 'id)
-                           #:number number
-                           #:title (assq-ref job 'title)
-                           #:artifact-repo artifact-repo
-                           #:project project
-                           #:branch-name branch-name
-                           #:artifacts artifacts
-                           #:env (assq-ref spec 'env)))))))))))
+                     (step-result-stdout
+                      (collect-artifacts-step
+                       #:id (assq-ref job 'id)
+                       #:number number
+                       #:name (car (car bundles))
+                       #:title (assq-ref job 'title)
+                       #:artifact-repo artifact-repo
+                       #:project project
+                       #:branch-name branch-name
+                       #:artifacts (cdr (car bundles))
+                       #:env (assq-ref spec 'env)))))))))))))
 
 ;;;
 ;;; One job, from its data to its row

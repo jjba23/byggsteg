@@ -122,11 +122,12 @@
 
                      (div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                         gap-3 py-2))))
-                          ;; A job that is still running is not offered a retry:
-                          ;; the same data would then be running twice.
-                          ,(if (equal? in-progress 1)
-                               '()
-                               (retry-button G_ job #:content "retry"))
+                          ;; A job's own page offers a retry whatever its status,
+                          ;; except while it is still running: the same data
+                          ;; would then be running twice.
+                          ,(if (retry-offered-on-page? job)
+                               (retry-button G_ job #:content "retry")
+                               '())
                           ,delete-button)
 
                      ,(artifact-downloads G_ artifacts)

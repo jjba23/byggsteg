@@ -35,8 +35,10 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg domain job)
   #:use-module (byggsteg domain log)
+  #:use-module (byggsteg domain artifact)
   #:use-module (byggsteg sqlite job)
   #:use-module (byggsteg sqlite log)
+  #:use-module (byggsteg sqlite artifact)
   #:use-module (byggsteg sqlite util)
   ;; A job reads its commands' output cooperatively, which needs a scheduler to
   ;; suspend to: the queue worker runs every job inside one, so a suite that ran
@@ -53,19 +55,28 @@
 (define spec-db
   (format #f "/tmp/byggsteg-job-pipelines-spec-~a.db" (getpid)))
 
-(define migration-file
+;; Every migration the deployment runs, in the order it runs them: the artifact
+;; table arrives in the second one, and the collecting job below writes to it.
+(define migrations
+  '("2026-04-07_12:21:00_init_byggsteg_schema.sql"
+    "2026-10-13_09:30:00_add_artifact_table.sql"))
+
+(define (migration-path name)
   (let ((here (current-filename)))
     (string-append (if (string? here)
                        (dirname (dirname (dirname here)))
                        ".")
-                   "/resources/migrations/sqlite/2026-04-07_12:21:00_init_byggsteg_schema.sql")))
+                   "/resources/migrations/sqlite/" name)))
 
 (define (create-schema! db)
-  (for-each (lambda (statement)
-              (if (string-any char-set:graphic statement)
-                  (sqlite-exec db statement)))
-            (string-split (call-with-input-file migration-file get-string-all)
-                          #\;)))
+  (for-each (lambda (name)
+              (for-each (lambda (statement)
+                          (if (string-any char-set:graphic statement)
+                              (sqlite-exec db statement)))
+                        (string-split (call-with-input-file (migration-path name)
+                                        get-string-all)
+                                      #\;)))
+            migrations))
 
 (if (file-exists? spec-db)
     (delete-file spec-db))
@@ -73,9 +84,15 @@
 ;; A clone directory that does not exist, so no step of a spec that forgot its
 ;; `trivial-cmds' could reach a real checkout.
 (job-clone-location (string-append spec-db ".clone/"))
+;; What a job collects is written outside the database, so the suite points the
+;; tarballs at a directory of its own rather than at a deployment's.
+(define artifact-root (string-append spec-db ".artifacts/"))
+(artifact-location artifact-root)
 (let ((db (sqlite-open spec-db)))
   (create-schema! db)
   (sqlite-close db))
+
+(define artifact-repo (make-sqlite-artifact-repository))
 
 (define job-repo (make-sqlite-job-repository))
 (define log-repo (make-sqlite-log-repository))
@@ -132,6 +149,33 @@
 (define one-stage-job "spec-one-stage")
 (enqueue! one-stage-job (list (stage (list first-stage-command)))
          #:created-at "2026-01-01 00:00:02")
+
+;; A job that keeps three things apart: a bare path, which shares the tarball
+;; named after the job's title, and two bundles, each packed into a tarball of
+;; its own and offered under the name it was given.
+(define collecting-job "spec-collecting")
+
+(define collecting-clone
+  (string-append (job-clone-location) "spec/trunk/"))
+
+(define (collecting-stage)
+  "One stage that names a bare path and two bundles, and makes what they need."
+  (list (cons 'project "spec")
+        (cons 'branch-name "trunk")
+        (cons 'task "trivial")
+        (cons 'artifacts '("dist"
+                           ("binaries" . ("bin"))
+                           ("docs" . ("docs/manual"))))
+        (cons 'trivial-cmds
+              (list (format #f "mkdir -p ~a/dist ~a/bin ~a/docs/manual"
+                            collecting-clone collecting-clone collecting-clone)
+                    (format #f "echo KEPT-PATH > ~a/dist/out.txt" collecting-clone)
+                    (format #f "echo KEPT-BIN > ~a/bin/tool" collecting-clone)
+                    (format #f "echo KEPT-DOC > ~a/docs/manual/index.org"
+                            collecting-clone)))))
+
+(enqueue! collecting-job (list (collecting-stage))
+         #:created-at "2026-01-01 00:00:03")
 
 ;;; ====== Reading a pipeline back ======
 
@@ -191,6 +235,38 @@
   (list (list 'the-job-ran (holds? (log-text one-stage-job) first-stage-command))
         (list 'outcome (outcome-flags one-stage-job))))
 
+;; The names the collecting job's tarballs are offered under: the bare path's
+;; tarball under the job's title, then each bundle under its own name, numbered
+;; in the order the entries were written.
+(define expected-artifacts
+  '("spec-spec-collecting.tar.gz" "binaries-2.tar.gz" "docs-3.tar.gz"))
+
+(define (artifacts-of job-id)
+  "The artifact rows of JOB-ID, as the repository reads them back."
+  (get-artifacts-by-job-ids artifact-repo (list job-id)))
+
+(define (collecting-readings)
+  "What a stage that named several bundles collected.
+
+The rows come back newest-first and the three are written in the same second, so
+the names are read as a set rather than in the order the query happens to give
+them; that the numbering is the one the field asked for is what the names say."
+  (run! collecting-job)
+  (let* ((artifacts (artifacts-of collecting-job))
+         (titles (map (lambda (artifact)
+                        (assq-ref artifact 'title))
+                      artifacts)))
+    (list (list 'how-many (length artifacts))
+          (list 'named-as-asked
+                (map (lambda (name)
+                       (if (member name titles) name #f))
+                     expected-artifacts))
+          (list 'the-tarballs-are-there
+                (map (lambda (artifact)
+                       (file-exists? (assq-ref artifact 'artifact-path)))
+                     artifacts))
+          (list 'outcome (outcome-flags collecting-job)))))
+
 (define (spec-readings)
   "How a job's data is read into the jobs it asks for."
   (list (list 'a-list-of-two
@@ -231,12 +307,20 @@ it lives in."
          #:concurrent? #f
          #:after-all (lambda (vc)
                        (close-databases!)
+                       ;; The database and the tarballs the collecting job wrote
+                       ;; are the suite's own, and go with it.
                        (for-each (lambda (path)
                                    (if (file-exists? path)
                                        (delete-file path)))
-                                 (list spec-db
-                                       (string-append spec-db "-wal")
-                                       (string-append spec-db "-shm"))))
+                                 (append (list spec-db
+                                               (string-append spec-db "-wal")
+                                               (string-append spec-db "-shm"))
+                                         (map (lambda (name)
+                                                (string-append artifact-root
+                                                               name))
+                                              '("spec-collecting.tar.gz"
+                                                "spec-collecting-2.tar.gz"
+                                                "spec-collecting-3.tar.gz")))))
          (test "the jobs a request asks for are read from its data"
                #:shuffle? #f
                (assert-equal
@@ -269,7 +353,18 @@ it lives in."
                 #:name "a single job's commands ran and its row says so"
                 #:expect '((the-job-ran #t)
                            (outcome ("1" "0" "0")))
-                #:got (deferred 'one-stage-readings)))))
+                #:got (deferred 'one-stage-readings)))
+         (test "a stage that names several bundles collects a tarball for each"
+               #:shuffle? #f
+               (assert-equal
+                #:name "the bare path's tarball keeps the title, and each bundle its name"
+                #:expect '((how-many 3)
+                           (named-as-asked ("spec-spec-collecting.tar.gz"
+                                            "binaries-2.tar.gz"
+                                            "docs-3.tar.gz"))
+                           (the-tarballs-are-there (#t #t #t))
+                           (outcome ("1" "0" "0")))
+                #:got (deferred 'collecting-readings)))))
 
 (define (spec)
   (veritas-run pipelines-suite))

@@ -106,9 +106,9 @@
                            #:happy-flow do-submit
                            #:unhappy-flow back-to-login)))
 
-;; Retrying is offered where a job can be read: on its log page, and in the list
-;; of logs.  It takes the same permission as submitting one, because that is
-;; what it does.
+;; Retrying is offered where a job can be read: on its log page whatever the
+;; job's status, and in the list of logs for a job that failed.  It takes the
+;; same permission as submitting one, because that is what it does.
 (post "/jobs/manage/retry"
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)

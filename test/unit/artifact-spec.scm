@@ -158,6 +158,32 @@
             (path-served (car pair)))
           refused-paths))
 
+;;; ====== The tarballs a job's `artifacts' field asks for ======
+
+;; Each field a job can write, and the bundles it is read as: bare paths packed
+;; as one tarball, bundles named apart, the two mixed, and the shapes a
+;; hand-written field can take.
+(define (bundle-readings)
+  (list (cons 'paths-in-one-bundle
+              (artifact-bundles '("dist/wikimusic-api" "docs/manual")))
+        (cons 'bundles-named-apart
+              (artifact-bundles '( ("binaries" . ("dist" "bin"))
+                                   ("docs" . ("docs/manual")))))
+        (cons 'bare-paths-and-bundles-together
+              (artifact-bundles '("README.org"
+                                  ("binaries" . ("dist"))
+                                  ("docs" . ("docs/manual")))))
+        (cons 'a-bundle-written-as-one-list
+              (artifact-bundles '( ("binaries" "dist" "bin"))))
+        (cons 'a-name-that-is-a-symbol
+              (artifact-bundles '( (binaries . ("dist")))))
+        (cons 'one-path-rather-than-a-list
+              (artifact-bundles "dist/app"))
+        (cons 'nothing-at-all
+              (artifact-bundles '()))
+        (cons 'a-bundle-with-no-path
+              (artifact-bundles '( ("empty" . ()))))))
+
 ;;; ====== The readings ======
 
 (define artifact-suite
@@ -210,6 +236,43 @@
                (assert-false
                 (artifact-download-path '())
                 #:name "a row with no path is not servable"))
+         (test "a job asks for one tarball of bare paths, or a bundle per name"
+               #:shuffle? #f
+               (assert-equal
+                #:name "a list of paths is one unnamed bundle, in the order written"
+                #:expect '((#f "dist/wikimusic-api" "docs/manual"))
+                #:got (assq-ref (bundle-readings) 'paths-in-one-bundle))
+               (assert-equal
+                #:name "each named bundle keeps its name and its paths"
+                #:expect '( ("binaries" "dist" "bin") ("docs" "docs/manual"))
+                #:got (assq-ref (bundle-readings) 'bundles-named-apart))
+               (assert-equal
+                #:name "bare paths and bundles mix, and keep the order they were written in"
+                #:expect '( (#f "README.org")
+                            ("binaries" "dist")
+                            ("docs" "docs/manual"))
+                #:got (assq-ref (bundle-readings)
+                                'bare-paths-and-bundles-together))
+               (assert-equal
+                #:name "a bundle written as one list is a name and the paths behind it"
+                #:expect '( ("binaries" "dist" "bin"))
+                #:got (assq-ref (bundle-readings) 'a-bundle-written-as-one-list))
+               (assert-equal
+                #:name "a name written as a symbol is read as the name it spells"
+                #:expect '( ("binaries" "dist"))
+                #:got (assq-ref (bundle-readings) 'a-name-that-is-a-symbol))
+               (assert-equal
+                #:name "one path written without its list is still one path"
+                #:expect '((#f "dist/app"))
+                #:got (assq-ref (bundle-readings) 'one-path-rather-than-a-list))
+               (assert-equal
+                #:name "a field of nothing asks for nothing"
+                #:expect '()
+                #:got (assq-ref (bundle-readings) 'nothing-at-all))
+               (assert-equal
+                #:name "a bundle that names no path is dropped rather than packed empty"
+                #:expect '()
+                #:got (assq-ref (bundle-readings) 'a-bundle-with-no-path)))
          (test "a download is offered under a name a header can carry"
                #:shuffle? #f
                (assert-equal
@@ -220,6 +283,12 @@
                 #:name "the second tarball of one job is numbered"
                 #:expect "byggsteg-job-2.tar.gz"
                 #:got (artifact-download-name "byggsteg job" 2))
+               (assert-equal
+                #:name "a named bundle is offered under its own name"
+                #:expect '( "binaries.tar.gz" "binaries-2.tar.gz" "docs-manual.tar.gz")
+                #:got (list (artifact-download-name "binaries" 1)
+                            (artifact-download-name "binaries" 2)
+                            (artifact-download-name "docs/manual" 1)))
                (assert-equal
                 #:name "a size is read in the unit a reader can hold in mind"
                 #:expect "2.0 KiB"

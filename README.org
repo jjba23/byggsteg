@@ -83,12 +83,15 @@ A thunk may answer with a *list* of jobs instead of one, in which case they run 
         `((project . "wikimusic-api")
           (branch-name . "trunk")
           (task . "maak-build")
-          ;; what to keep, relative to the clone, packed as a tarball per stage
-          (artifacts . ("dist/wikimusic-api"))
+          ;; what to keep, relative to the clone: a bare path, or a (name . paths) bundle
+          (artifacts . ("dist/wikimusic-api"
+                        ("docs" . ("docs/manual"))))
           (clone-url . "https://codeberg.org/jjba23/wikimusic-api"))))
 #+end_src
 
-What a job prints reaches its log /while it runs/, in batches, so there is something to watch rather than a console that fills up at the end; what it collects is downloadable from its log page. A finished job can be run again with one button, and the deployment as a whole can be read at ~/activity~ (a year of job runs, drawn like a commit heatmap) and searched at ~/search~ across jobs, logs and profiles.
+What a job prints reaches its log /while it runs/, in batches, so there is something to watch rather than a console that fills up at the end. What it collects is packed into gzipped tarballs once its commands are over -- whether they passed or failed, since a build that broke halfway is exactly when its partial output is worth keeping -- and is downloadable from its log page. The bare paths of an ~artifacts~ field share one tarball, offered under the job's title; each ~(name . paths)~ bundle is packed into a tarball of its own and offered under the name it was given, so one stage can keep several things apart.
+
+A job that failed is offered a retry in the list of logs, and any job that is not still running is offered one on its own page. The deployment as a whole can be read at ~/activity~ (a year of job runs, drawn like a commit heatmap) and searched at ~/search~ across jobs, logs and profiles.
 
 All of it is described at length in the [[file:docs/manual/en.org][manual]].
 
