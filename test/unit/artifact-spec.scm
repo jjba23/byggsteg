@@ -158,6 +158,117 @@
             (path-served (car pair)))
           refused-paths))
 
+;;; ====== Forgetting a job's artifacts ======
+
+;; A job of its own, with three rows: two that name tarballs really written into
+;; the artifact directory, and one that names a file outside it -- a row no
+;; collection would make, but a row a database can hold all the same.
+(define forget-job-id "spec-forget-job")
+
+(define inside-tarballs
+  (list (string-append artifact-root forget-job-id ".tar.gz")
+        (string-append artifact-root forget-job-id "-2.tar.gz")))
+
+(define outside-file
+  (string-append "/tmp/byggsteg-artifact-spec-outside-"
+                 (number->string (getpid))
+                 ".tar.gz"))
+
+(define (write-file! path)
+  "A file at PATH, standing in for a tarball a job wrote."
+  (call-with-output-file path
+    (lambda (port)
+      (display "a tarball, for the length of this reading" port))))
+
+(define (artifact-row id path)
+  "An artifact row of the forgetting job, naming PATH."
+  `((id unquote id)
+    (job-id unquote forget-job-id)
+    (title unquote "forgotten.tar.gz")
+    (artifact-path unquote path)
+    (artifact-size unquote 44)
+    (created-at unquote (current-time))))
+
+(if (not (file-exists? artifact-root))
+    (mkdir artifact-root))
+(for-each write-file! (append inside-tarballs (list outside-file)))
+(for-each (lambda (row) (insert-artifact artifact-repo row))
+          (list (artifact-row "spec-forget-1" (car inside-tarballs))
+                (artifact-row "spec-forget-2" (cadr inside-tarballs))
+                (artifact-row "spec-forget-3" outside-file)))
+
+(define (forgetting-readings)
+  "What forgetting a job's artifacts leaves behind.
+
+The rows go whichever file they name, since a row is the job's own record and
+the job is gone; a file goes only where a download would have served it, so the
+row naming something outside the artifact directory leaves that something
+alone."
+  (let ((forgotten (forget-job-artifacts! artifact-repo forget-job-id)))
+    (list (list 'forgotten forgotten)
+          (list 'rows-left
+                (length (get-artifacts-by-job-ids artifact-repo
+                                                  (list forget-job-id))))
+          (list 'tarballs-gone
+                (map (lambda (path)
+                       (file-exists? path))
+                     inside-tarballs))
+          (list 'a-file-outside-the-directory-was-left-alone
+                (file-exists? outside-file)))))
+
+;;; ====== Sweeping tarballs no row points at ======
+
+;; Five things standing in the artifact directory: two tarballs no row names --
+;; one written long ago and one written just now -- a tarball a row does name, a
+;; file byggsteg never writes, and a directory.
+(define orphan-old (string-append artifact-root "orphan-old.tar.gz"))
+(define orphan-fresh (string-append artifact-root "orphan-fresh.tar.gz"))
+(define named-tarball (string-append artifact-root job-id ".tar.gz"))
+(define not-a-tarball (string-append artifact-root "orphan-notes.txt"))
+(define orphan-directory (string-append artifact-root "orphan-dir/"))
+
+(define (age! path seconds)
+  "Write PATH's times SECONDS into the past, so a grace period has passed it by."
+  (let ((past (- (current-time) seconds)))
+    (utime path past past)))
+
+(for-each write-file! (list orphan-old orphan-fresh named-tarball not-a-tarball))
+(mkdir orphan-directory)
+;; Everything but the fresh orphan is old enough for the grace period to have
+;; passed it by.  The fresh one is written now, the way a collection that is
+;; still packing its tarball would have written it.
+(for-each (lambda (path) (age! path 7200))
+          (list orphan-old named-tarball not-a-tarball))
+
+(define (sweep-readings)
+  "What the sweep removes, and what it leaves standing."
+  (let ((removed (sweep-orphaned-artifacts! artifact-repo)))
+    (list (list 'removed removed)
+          (list 'the-old-orphan-is-gone (file-exists? orphan-old))
+          (list 'the-fresh-one-is-kept (file-exists? orphan-fresh))
+          (list 'one-a-row-still-names-is-kept (file-exists? named-tarball))
+          (list 'a-name-byggsteg-never-writes-is-left (file-exists? not-a-tarball))
+          (list 'a-directory-is-left (file-exists? orphan-directory)))))
+
+(define (due-readings)
+  "The worker's own visit: what a due one removes, and what its next one leaves.
+
+An orphan is written after the first visit and before the second, so that a
+second visit answering nothing can only mean it did not look -- the interval, not
+a quiet directory, is what stopped it."
+  (let ((first-orphan (string-append artifact-root "orphan-due-one.tar.gz"))
+        (later-orphan (string-append artifact-root "orphan-due-two.tar.gz")))
+    (write-file! first-orphan)
+    (age! first-orphan 7200)
+    (let ((first (sweep-orphaned-artifacts-when-due! artifact-repo)))
+      (write-file! later-orphan)
+      (age! later-orphan 7200)
+      (list (list 'a-due-visit-removed (length first))
+            (list 'a-visit-straight-after-it-removed
+                  (length (sweep-orphaned-artifacts-when-due! artifact-repo)))
+            (list 'the-orphan-it-did-not-look-for-is-still-there
+                  (file-exists? later-orphan))))))
+
 ;;; ====== The tarballs a job's `artifacts' field asks for ======
 
 ;; Each field a job can write, and the bundles it is read as: bare paths packed
@@ -195,9 +306,25 @@
                        (for-each (lambda (path)
                                    (if (file-exists? path)
                                        (delete-file path)))
-                                 (list spec-db
-                                       (string-append spec-db "-wal")
-                                       (string-append spec-db "-shm"))))
+                                 (append (list spec-db
+                                               (string-append spec-db "-wal")
+                                               (string-append spec-db "-shm")
+                                               outside-file
+                                               orphan-old
+                                               orphan-fresh
+                                               named-tarball
+                                               not-a-tarball
+                                               (string-append artifact-root
+                                                              "orphan-due-one.tar.gz")
+                                               (string-append artifact-root
+                                                              "orphan-due-two.tar.gz"))
+                                         inside-tarballs))
+                       ;; The directory the sweep kept goes last, once nothing is
+                       ;; left in it.
+                       (if (file-exists? orphan-directory)
+                           (rmdir orphan-directory))
+                       (if (file-exists? artifact-root)
+                           (rmdir artifact-root)))
          (test "the table a collection writes to is the table the migrations make"
                #:shuffle? #f
                (assert-equal
@@ -273,6 +400,34 @@
                 #:name "a bundle that names no path is dropped rather than packed empty"
                 #:expect '()
                 #:got (assq-ref (bundle-readings) 'a-bundle-with-no-path)))
+         (test "forgetting a job's artifacts takes the tarballs and the rows"
+               #:shuffle? #f
+               (assert-equal
+                #:name "both go, and a row naming a file outside the directory leaves it alone"
+                #:expect '((forgotten 3)
+                           (rows-left 0)
+                           (tarballs-gone (#f #f))
+                           (a-file-outside-the-directory-was-left-alone #t))
+                #:got (forgetting-readings)))
+         (test "a sweep removes the tarballs no row points at, and nothing else"
+               #:shuffle? #f
+               (assert-equal
+                #:name "the old orphan goes; the fresh one, the named one, a name byggsteg never writes and a directory stay"
+                #:expect (list (list 'removed (list orphan-old))
+                               (list 'the-old-orphan-is-gone #f)
+                               (list 'the-fresh-one-is-kept #t)
+                               (list 'one-a-row-still-names-is-kept #t)
+                               (list 'a-name-byggsteg-never-writes-is-left #t)
+                               (list 'a-directory-is-left #t))
+                #:got (sweep-readings)))
+         (test "the worker's sweep runs on its interval, not on every visit"
+               #:shuffle? #f
+               (assert-equal
+                #:name "a due visit removes, the one straight after it does not look"
+                #:expect '((a-due-visit-removed 1)
+                           (a-visit-straight-after-it-removed 0)
+                           (the-orphan-it-did-not-look-for-is-still-there #t))
+                #:got (due-readings)))
          (test "a download is offered under a name a header can carry"
                #:shuffle? #f
                (assert-equal

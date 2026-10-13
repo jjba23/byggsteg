@@ -16,22 +16,32 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-;; A job's artifacts are one tarball per job, written by the queue worker into
-;; the directory `artifact-location' names and recorded in the `artifact' table.
-;; The two ends of that -- the name a tarball is given when a job collects it,
-;; and the path a download may be served from -- are stated here once, so the
-;; worker and the download route cannot drift apart about where artifacts live.
+;; A job's artifacts are one tarball per collection, written by the queue worker
+;; into the directory `artifact-location' names and recorded in the `artifact'
+;; table.  The ends of that -- the name a tarball is given when a job collects
+;; it, the path a download may be served from, and the path a tarball may be
+;; removed from -- are stated here once, so the worker, the download route and
+;; the page that deletes a job cannot drift apart about where artifacts live.
+;;
+;; The sweep below stands here for the same reason: a tarball that no row names
+;; belongs to nothing, and the reading of which files belong to the directory is
+;; the same question as which files may be served out of it.
 
 (define-module (byggsteg artifacts)
   #:use-module (ice-9 format)
   #:use-module (ice-9 binary-ports)
+  #:use-module (ice-9 ftw)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg upkeep)
   #:use-module (byggsteg domain artifact)
   #:use-module (kracht prelude)
   #:use-module (srfi srfi-1)
   #:export (artifact-root artifact-path-for-job
                           artifact-download-name artifact-download-path
                           artifact-bundles
+                          delete-artifact-file! forget-job-artifacts!
+                          artifact-files sweep-orphaned-artifacts!
+                          sweep-orphaned-artifacts-when-due!
                           human-bytes read-artifact-file))
 
 (define (artifact-root)
@@ -95,6 +105,124 @@ directory was never asked to hold."
          (string-prefix? root path)
          (not (string-contains path ".."))
          path)))
+
+(define* (delete-artifact-file! path #:optional (root (artifact-root)))
+  "Whether the tarball at PATH was removed, and #f when it was not.
+
+A file may be removed only where a download may be served from, because the two
+stand on the same fact -- a row names a tarball inside the artifact directory,
+or it names nothing byggsteg wrote -- so a row that may not be served may not be
+deleted through either.
+
+#f is also the answer for a path whose file is not there, and for one that names
+a directory rather than a file: forgetting a tarball that is already gone is not
+an error, and a directory is not something a collection ever wrote."
+  (let ((safe (artifact-download-path `((artifact-path unquote path)) root)))
+    (and safe
+         (file-exists? safe)
+         (eq? 'regular (stat:type (stat safe)))
+         (begin (delete-file safe) #t))))
+
+(define* (forget-job-artifacts! artifact-repo job-id)
+  "Remove the tarballs JOB-ID collected, and the rows that record them.
+
+Both go, because either alone is a lie: a row whose file is gone offers a
+download that cannot be served, and a file whose row is gone is a tarball
+nothing points at.  The file is removed first, so a tarball that cannot be
+removed is not left unrecorded.
+
+The rows are read before any of them is deleted, so the query does not walk a
+table that is being cut from under it.  The answer is how many rows were
+forgotten, which is what a caller reporting the deletion has to say."
+  (let ((artifacts (get-artifacts-by-job-ids artifact-repo (list job-id))))
+    (for-each (lambda (artifact)
+                (delete-artifact-file! (assq-ref artifact 'artifact-path))
+                (delete-artifact-by-id artifact-repo (assq-ref artifact 'id)))
+              artifacts)
+    (length artifacts)))
+
+;;; Tarballs no row points at
+
+(define (plain-file? path)
+  "Whether PATH is a plain file, rather than a directory or a symbolic link.
+
+`lstat' is deliberate: a symbolic link is not something a collection wrote, and
+a sweep that read through one could remove a link standing in for a file kept
+somewhere else entirely."
+  (catch #t
+         (lambda ()
+           (eq? 'regular (stat:type (lstat path))))
+         (lambda (key . args) #f)))
+
+(define (file-age path now)
+  "How many seconds ago PATH was last written.
+
+A file whose time cannot be read answers 0, as though it had just been written:
+the grace period is what protects a file that is still being made, so an age a
+sweep cannot read must not be mistaken for an old one."
+  (catch #t
+         (lambda ()
+           (max 0 (- now (stat:mtime (stat path)))))
+         (lambda (key . args) 0)))
+
+(define* (artifact-files #:optional (root (artifact-root)))
+  "The tarballs standing in the artifact directory, as their full paths.
+
+Only a plain file whose name ends in `.tar.gz' is a tarball byggsteg could have
+written, so only those are considered: a directory, a symbolic link, or a name
+this deployment never gives is left where it is, and a directory pointed at by
+mistake is not emptied by a sweep."
+  (if (not (file-exists? root))
+      '()
+      (map (lambda (name)
+             (string-append root name))
+           (scandir root (lambda (name)
+                           (and (string-suffix? ".tar.gz" name)
+                                (plain-file? (string-append root name))))))))
+
+(define* (sweep-orphaned-artifacts! artifact-repo
+                                    #:key
+                                    (root (artifact-root))
+                                    (grace-seconds (artifact-sweep-grace-seconds)))
+  "Remove the tarballs in the artifact directory that no row points at.
+
+A tarball is written by a collection and recorded a moment later, so one younger
+than GRACE-SECONDS is left alone: what looks orphaned may be a tarball the queue
+worker is still packing.  Past that, a file no row names is one nothing can serve
+and nothing can delete from the UI -- left by a job row removed before deleting a
+job took its tarballs with it, or by a process stopped between the two writes --
+and it is removed.
+
+The answer is the paths that were removed, so a caller can say what it did; a
+sweep that found nothing answers the empty list."
+  (let* ((recorded (map (lambda (artifact)
+                          (assq-ref artifact 'artifact-path))
+                        (get-artifacts artifact-repo)))
+         (now (current-time)))
+    (let loop ((files (artifact-files root)) (removed '()))
+      (cond
+        ((null? files) (reverse removed))
+        ((member (car files) recorded)
+         (loop (cdr files) removed))
+        ((< (file-age (car files) now) grace-seconds)
+         (loop (cdr files) removed))
+        ((delete-artifact-file! (car files) root)
+         (loop (cdr files) (cons (car files) removed)))
+        (else (loop (cdr files) removed))))))
+
+;; When the last sweep was made, so that a worker visiting this on every trip
+;; round its loop sweeps on the clock rather than on the trip.
+(define *artifact-sweep-clock* (make-upkeep))
+
+(define* (sweep-orphaned-artifacts-when-due! artifact-repo
+                                             #:key
+                                             (every (artifact-sweep-interval)))
+  "Sweep ORPHANED-ARTIFACTS once EVERY seconds have passed, and answer the paths.
+
+Nothing is read and nothing is removed until the interval has gone by, so a
+caller may visit this as often as it likes."
+  (when-due *artifact-sweep-clock* every
+            (lambda () (sweep-orphaned-artifacts! artifact-repo))))
 
 ;;; The tarballs a job's `artifacts' field asks for
 

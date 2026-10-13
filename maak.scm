@@ -216,6 +216,17 @@ for higher concurrent writes to SQLite 3."
 
 ;; ====== Maak i18n tasks ======
 
+(define (sweep-artifacts)
+  "Remove artifact files that no row in the database points at.
+
+The queue worker does this on its own once an hour, so this task is for a
+directory that has already collected orphans: tarballs left by a job removed
+before deleting one took them with it, or by a deployment that was stopped
+between writing a tarball and recording it."
+  (time-machine-manifest-shell
+   (list "guile -L ./lib -L ."
+         "-c '(begin (use-modules (byggsteg sqlite artifact) (byggsteg artifacts)) (let ((removed (sweep-orphaned-artifacts! (make-sqlite-artifact-repository)))) (format #t \"~a orphaned artifact(s) removed~%\" (length removed)) (for-each (lambda (path) (format #t \"  ~a~%\" path)) removed)))'")))
+
 (define (i18n-compile)
   "Compile the translation files for all locales."
   (for-each i18n-compile* i18n-locales))

@@ -262,6 +262,10 @@ Once the job's own commands are over -- whether they passed or failed, since a b
 
 The tarballs are written under the directory ~artifact-location~ points at (~/etc/byggsteg/artifacts/~ by default, or whatever ~BYGGSTEG_ARTIFACT_LOCATION~ names) and recorded in the database. They are offered on the job's log page, and at ~/artifacts/<id>~, where the browser downloads them under the name they were given -- the job's title for the tarball of bare paths, the bundle's name for a bundle. Nothing outside that directory is ever served, whatever a row says.
 
+Deleting a job deletes what it collected with it: the tarballs are removed from the directory and the rows are dropped, so a job that is gone leaves no download behind and the directory does not grow with jobs that no longer exist. A file outside that directory is never removed either, whatever a row says.
+
+A tarball that no row points at belongs to nothing -- one left by a deployment stopped between writing a tarball and recording it, or by a job removed before deleting one took its tarballs with it -- so the queue worker sweeps the directory for those. It looks once an hour (~artifact-sweep-interval~) and removes only a plain file whose name ends in ~.tar.gz~ and that was written more than an hour ago (~artifact-sweep-grace-seconds~): the grace period is what keeps a sweep from removing a tarball that is still being packed, and the ~.tar.gz~ test is what keeps it from touching a directory, a symbolic link, or a file somebody else keeps in there. Point ~artifact-location~ at a directory byggsteg owns.
+
 ------------------
 
 * Watching a job run
@@ -503,6 +507,8 @@ make production-server
 #+end_src
 
 Both are read once, when byggsteg starts, and an empty value is read as no value at all: ~BYGGSTEG_JOB_CLONE=~ leaves the default in place rather than naming a directory called nothing.
+
+The artifact directory belongs to byggsteg: its queue worker removes what the database no longer records (see [[*Artifacts]]). To sweep it once by hand -- a directory that collected orphans before this was the worker's business, say -- run ~maak sweep-artifacts~.
 
 If you are hacking away at the project, I would suggest using ~make dev~ since this will effectively run the project with hot-reloading capabilities and it will use the default ~artanis.conf~ where we configure hostname, db path, etc.
 

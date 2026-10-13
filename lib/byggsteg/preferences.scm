@@ -22,6 +22,8 @@
   #:use-module (ice-9 string-fun)
   #:export (job-clone-location
             artifact-location
+            artifact-sweep-grace-seconds
+            artifact-sweep-interval
             job-concurrency
             job-sweep-limit
             log-stream-batch-size
@@ -55,6 +57,17 @@ means the deployment did not say, not that it wants a directory called nothing."
 (define artifact-location
   (make-parameter (deployment-path "BYGGSTEG_ARTIFACT_LOCATION"
                                    "/etc/byggsteg/artifacts/")))
+
+;; How long a tarball may sit in the artifact directory with no row naming it
+;; before the sweep removes it.  A collection writes the file and records it a
+;; moment later, so the grace period is what keeps a sweep from removing a
+;; tarball that is still being packed.
+(define artifact-sweep-grace-seconds
+  (make-parameter 3600))
+
+;; How often the queue worker looks for tarballs that no row names.
+(define artifact-sweep-interval
+  (make-parameter 3600))
 
 ;; How many jobs one sweep may run at the same time.  Jobs are green threads on
 ;; one scheduler, so this is the number of jobs whose commands are in flight,

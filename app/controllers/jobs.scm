@@ -23,6 +23,7 @@
         (byggsteg errors)
         (web uri)
         (byggsteg preferences)
+        (byggsteg artifacts)
         (byggsteg auth)
         (uuid generate)
         (kracht prelude)
@@ -33,6 +34,7 @@
         (byggsteg domain log)
         (byggsteg sqlite job)
         (byggsteg sqlite log)
+        (byggsteg sqlite artifact)
         (app views jobs))
 
 (get "/jobs/request"
@@ -137,6 +139,10 @@
                            #:happy-flow do-retry
                            #:unhappy-flow back-to-login)))
 
+;; Deleting a job takes what the job collected with it.  Its tarballs are files
+;; on disk and the rows that record them are what makes them downloadable, so
+;; both go: a job that is gone must not leave a download behind, and one that
+;; collected several tarballs must not leave the directory growing without end.
 (post "/jobs/manage/delete"
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
@@ -145,7 +151,9 @@
                  (job-id (assoc-ref body "job-id"))
                  (log-id (assoc-ref body "log-id"))
                  (log-repo (make-sqlite-log-repository))
-                 (job-repo (make-sqlite-job-repository)))
+                 (job-repo (make-sqlite-job-repository))
+                 (artifact-repo (make-sqlite-artifact-repository)))
+            (forget-job-artifacts! artifact-repo job-id)
             (delete-job-by-id job-repo job-id)
             (delete-log-by-id log-repo log-id)
             (redirect-to rc

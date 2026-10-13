@@ -94,17 +94,39 @@
                                                   "initializing byggsteg queue worker")))
 
                                 (use-modules (byggsteg job pipeline)
+                                             (byggsteg artifacts)
                                              (byggsteg domain job)
                                              (byggsteg domain log)
                                              (byggsteg sqlite job)
-                                             (byggsteg sqlite log))
+                                             (byggsteg sqlite log)
+                                             (byggsteg sqlite artifact))
                                 (let ((job-repo (make-sqlite-job-repository))
-                                      (log-repo (make-sqlite-log-repository)))
+                                      (log-repo (make-sqlite-log-repository))
+                                      (artifact-repo
+                                       (make-sqlite-artifact-repository)))
                                   (while #t
                                          (run-infallible-pipeline #:job-repo
                                                                   job-repo
                                                                   #:log-repo
-                                                                  log-repo)))))))
+                                                                  log-repo)
+                                         ;; The worker is the one process that
+                                         ;; outlives a request, so what the
+                                         ;; artifact directory has collected
+                                         ;; and no longer needs is sorted out
+                                         ;; here -- on its own clock, so the
+                                         ;; visit costs nothing between sweeps.
+                                         (catch #t
+                                                (lambda ()
+                                                  (for-each (lambda (path)
+                                                              (display (format #f
+                                                                               "\nremoved orphaned artifact ~a\n"
+                                                                               path)))
+                                                            (sweep-orphaned-artifacts-when-due!
+                                                             artifact-repo)))
+                                                (lambda (key . args)
+                                                  (display (format #f
+                                                                   "\n  could not sweep artifacts: ~a ~s\n"
+                                                                   key args))))))))))
 
 ;; Add hook on before running the Artanis application to start the queue worker
 (run-before-run! start-worker)
