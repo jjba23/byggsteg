@@ -24,6 +24,9 @@
             artifact-location
             artifact-sweep-grace-seconds
             artifact-sweep-interval
+            job-retention-days
+            job-retention-interval
+            job-retention-batch
             job-concurrency
             job-sweep-limit
             log-stream-batch-size
@@ -68,6 +71,25 @@ means the deployment did not say, not that it wants a directory called nothing."
 ;; How often the queue worker looks for tarballs that no row names.
 (define artifact-sweep-interval
   (make-parameter 3600))
+
+;; How long a finished run is kept, in days, counted from when it finished.  A
+;; run older than this is removed whole: its tarballs, its log and the job
+;; itself.  0 keeps every run for ever, which is the way to say that a deployment
+;; prunes nothing.
+(define job-retention-days
+  (make-parameter 30))
+
+;; How often the queue worker looks for runs that have outlived the retention.
+;; A day is enough -- the age of a run changes once a second, and what is pruned
+;; today would have been pruned yesterday.
+(define job-retention-interval
+  (make-parameter 86400))
+
+;; The most runs one pass removes.  A deployment that has ever held more than
+;; this many runs is pruned over several passes rather than in one long visit,
+;; so the queue worker is never away from the queue for long.
+(define job-retention-batch
+  (make-parameter 100))
 
 ;; How many jobs one sweep may run at the same time.  Jobs are green threads on
 ;; one scheduler, so this is the number of jobs whose commands are in flight,
