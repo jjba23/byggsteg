@@ -20,11 +20,14 @@
 
 (import (byggsteg html)
         (byggsteg auth)
+        (byggsteg errors)
         (app views logs)
         (byggsteg domain job)
         (byggsteg sqlite job)
         (byggsteg domain log)
-        (byggsteg sqlite log))
+        (byggsteg domain artifact)
+        (byggsteg sqlite log)
+        (byggsteg sqlite artifact))
 
 (get "/logs"
      #:mime 'xml
@@ -50,15 +53,19 @@
                       ((not (nil? job-ids))
                        (get-jobs-by-ids job-repo job-ids))
                       (else '())))
+              ;; Each row of the list is a log and the job behind it, keyed by
+              ;; the log's id: the page draws the job's status and links to the
+              ;; job's own log page, so it needs the job itself rather than its
+              ;; id, and the log's title is not the job's.
               (job-map (map (lambda (j)
-                              (list (assq-ref j
+                              (cons (assq-ref j
                                               'id) j)) jobs))
               (jobs-of-logs (map (lambda (l)
-                                   (list (assq-ref l
+                                   (cons (assq-ref l
                                                    'id)
-                                         (car (assoc-ref job-map
-                                                         (assq-ref l
-                                                                   'job-id)))))
+                                         (assoc-ref job-map
+                                                    (assq-ref l
+                                                              'job-id))))
                                  logs)))
          
          (response-emit (:mime rc
@@ -76,14 +83,26 @@
      (lambda (rc)
        (let* ((log-repo (make-sqlite-log-repository))
               (job-repo (make-sqlite-job-repository))
+              (artifact-repo (make-sqlite-artifact-repository))
               (l (get-log-by-id log-repo
-                                (params rc "id")))
-              (j (get-job-by-id job-repo
-                                (assoc-ref l
-                                           'job-id))))
-         (response-emit (:mime rc
-                               (log-page rc
-                                         #:is-logged-in (:cookies-value rc
-                                                         "x-bewaking-byggsteg")
-                                         #:job j
-                                         #:log l))))))
+                                (params rc "id"))))
+         ;; A log that is not there is a 404 rather than a page about nothing:
+         ;; the id is the whole of the request, so it either names a log or the
+         ;; path names none.
+         (if (not l)
+             (response-emit (error-page 404)
+                            #:status 404
+                            #:headers '((content-type . (text/html))))
+             (let* ((job-id (assoc-ref l
+                                       'job-id))
+                    (j (get-job-by-id job-repo job-id))
+                    ;; What the job built, if it asked for artifacts.
+                    (artifacts (get-artifacts-by-job-ids artifact-repo
+                                                         (list job-id))))
+               (response-emit (:mime rc
+                                     (log-page rc
+                                               #:is-logged-in (:cookies-value rc
+                                                               "x-bewaking-byggsteg")
+                                               #:job j
+                                               #:log l
+                                               #:artifacts artifacts))))))))

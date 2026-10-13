@@ -35,40 +35,35 @@
   #:export (log-page logs-page))
 
 (define* (log-page rc
-                   #:key job log is-logged-in)
+                   #:key job log artifacts is-logged-in)
   (let* ((log-id (assq-ref log
                            'id))
-         (job-id (assoc-ref job "id"))
-         (log-filename (html-unescape (assq-ref log
-                                                'title)))
-         (log-data (assq-ref log
-                             'log-data))
-         (detail-data (html-unescape (assq-ref job
-                                               'job-data)))
-         (success (assq-ref job
-                            'job-success))
+         ;; The row's keys are the columns' names, as symbols; a job looked up
+         ;; by the string "id" is a job with no id, and its delete button would
+         ;; post an empty one.
+         (job-id (assq-ref job
+                           'id))
+         (log-filename (text-from-db (assq-ref log
+                                               'title)))
+         ;; `log_data' and `job_data' are written into the page through
+         ;; `text-from-db' as well, so a console line that prints a `<' is read
+         ;; as the character it is rather than opened as a tag.
+         (log-data (text-from-db (assq-ref log
+                                           'log-data)))
+         (detail-data (text-from-db (assq-ref job
+                                              'job-data)))
          (in-progress (assq-ref job
                                 'job-in-progress))
-         (failure (assq-ref job
-                            'job-failed))
          (G_ (:i18n rc))
          (dl-class (mk-class '(py-3 gap-2)))
          (dt-class (mk-class '(font-mono text-xs uppercase tracking-widest
                                          text-asparagus-900 dark:text-asparagus-300 font-bold pt-2)))
          (dd-class (mk-class '(pl-3 font-mono text-sm text-asparagus-900 dark:text-olive-100
  font-medium)))
-         (job-status (cond
-                       ((equal? success 1)
-                        (sub-h4 (G_ "job succeeded")
-                                #:color '(text-asparagus-900 dark:text-asparagus-100)
-                                #:size '(text-base sm:text-lg md:text-xl)))
-                       ((equal? failure 1)
-                        (sub-h4 (G_ "job failed")
-                                #:color '(text-redwood-900 dark:text-redwood-300)
-                                #:size '(text-xl)))
-                       (else (sub-h4 (G_ "job in progress")
-                                     #:color '(text-asparagus-900 dark:text-olive-300)
-                                     #:size '(text-xl)))))
+         ;; The status is the one reading of a job both this page and the list
+         ;; of logs draw, so the two cannot come to different colours for it.
+         (job-status (job-status-label G_ job
+                                       #:size '(text-base sm:text-lg md:text-xl)))
          (delete-button `(form (@ (method POST)
                                   (enctype application/x-www-form-urlencoded)
                                   (action "/jobs/manage/delete"))
@@ -125,7 +120,16 @@
                             ,(dt (G_ "log uuid"))
                             ,(dd (terminal-code log-id #:size '(text-md)))))
 
-                     ,delete-button
+                     (div (@ (class ,(mk-class '(flex flex-row flex-wrap
+                                                        gap-3 py-2))))
+                          ;; A job that is still running is not offered a retry:
+                          ;; the same data would then be running twice.
+                          ,(if (equal? in-progress 1)
+                               '()
+                               (retry-button G_ job #:content "retry"))
+                          ,delete-button)
+
+                     ,(artifact-downloads G_ artifacts)
 
                      ;; Open by default: the expression a job will run is the
                      ;; first thing a reader wants when a job misbehaves, and a
@@ -173,7 +177,11 @@
                                                                md:px-6
                                                                align-center))))
                                  ,log-html))
-                   #:should-auto-refresh (equal? 1 in-progress))))
+                   ;; A job that is still going is followed closely: the worker
+                   ;; streams its output into the log row in batches, and this is
+                   ;; how often a reader picks it up.
+                   #:should-auto-refresh (equal? 1 in-progress)
+                   #:auto-refresh-seconds 3)))
 
 (define* (logs-page #:key rc
                     jobs-of-logs
@@ -184,9 +192,9 @@
   (let* ((G_ (:i18n rc))
          (jobs-html (map (lambda (l)
                            (make-job-link G_
-                                          (car (assoc-ref jobs-of-logs
-                                                          (assq-ref l
-                                                                    'id))) l))
+                                          (assoc-ref jobs-of-logs
+                                                     (assq-ref l
+                                                               'id)) l))
                          logs))
          (page-buttons `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                           gap-3 my-4))))

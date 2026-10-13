@@ -19,6 +19,7 @@
 (define-module (byggsteg html)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg job pipeline)
+  #:use-module (byggsteg artifacts)
   #:use-module (byggsteg faces)
   #:use-module (sxml simple)
   #:use-module (ice-9 popen)
@@ -37,18 +38,41 @@
                           maybe-profile-name
                           locale-choose-form
                           job-form
+                          job-status-label
+                          retry-button
+                          artifact-downloads
+                          text-from-db
+                          search-form
                           make-job-link
                           make-profile-link
                           if-job-was-updated-html))
+
+(define (text-from-db value)
+  "VALUE as a column holds it, ready to be written into a page.
+
+Columns hold escaped text, and the serializer writes a page's text through as
+it stands, so what comes out of a column is put back into the shape the
+serializer expects: unescaped once, escaped once.  That is what makes a job
+titled after a project whose name holds a `<', or a log line that prints one,
+arrive as the text it is rather than as markup; text written by hand, in the
+escaped shape or not, is safe either way."
+  (html-escape (html-unescape (if (string? value)
+                                  value
+                                  (format #f "~a" (or value ""))))))
 
 (define* (html-template G_
                         #:key title
                         body
                         (should-auto-refresh #f)
+                        (auto-refresh-seconds 12)
                         (is-logged-in #f))
+  ;; The wait before a page asks for itself again.  A log being followed while
+  ;; its job runs is served every few seconds rather than every twelve, which is
+  ;; what makes a streamed log arrive while it is still being written.
   (let ((maybe-auto-refresh (cond
                               ((equal? should-auto-refresh #t)
-                               `(meta (@ (content "12")
+                               `(meta (@ (content ,(format #f "~a"
+                                                           auto-refresh-seconds))
                                          (http-equiv "refresh")) ()))
                               (else `()))))
     ;; Olive switches its dark palette on `data-theme' at the root element, and
@@ -112,6 +136,32 @@
                                                                       mx-auto))))
                                                ,@body))
                                      ,(page-footer G_)))))))
+
+(define (activity-button G_)
+  `((a (@ (href "/activity"))
+       ,(terminal-icon-button #:icon 'chart-bar
+                     #:size '(text-md)
+                     #:extra-classes '(py-1 md:py-2
+                                            px-2
+                                            md:px-3
+                                            max-w-prose
+                                            cursor-pointer
+                                            text-asparagus-900 dark:text-asparagus-300
+)
+                     #:content (G_ "activity")))))
+
+(define (search-button G_)
+  `((a (@ (href "/search"))
+       ,(terminal-icon-button #:icon 'magnifying-glass
+                     #:size '(text-md)
+                     #:extra-classes '(py-1 md:py-2
+                                            px-2
+                                            md:px-3
+                                            max-w-prose
+                                            cursor-pointer
+                                            text-asparagus-900 dark:text-asparagus-300
+)
+                     #:content (G_ "search")))))
 
 (define (logs-button G_)
   `((a (@ (href "/logs"))
@@ -236,6 +286,8 @@
                                                               md:px-3
                                                               cursor-pointer))))
          (link-buttons `((div ,(logs-button G_))
+                         (div ,(activity-button G_))
+                         (div ,(search-button G_))
                          (div ,(profiles-button G_))
                          (div ,(if (not is-logged-in)
                                    (login-button G_)
@@ -432,32 +484,110 @@
                                          min-w-prose))
          (div ,(terminal-submit-button (G_ "submit")))))
 
+(define* (job-status-label G_ job #:key (size '(text-md)))
+  "The status of JOB as the heading a reader reads it in: green for a job that
+went well, blue for one still going, red for one that did not."
+  (let ((success (assoc-ref job
+                            'job-success))
+        (failure (assoc-ref job
+                            'job-failed))
+        (in-progress (assoc-ref job
+                                'job-in-progress)))
+    (cond
+      ((equal? success 1)
+       (sub-h4 (G_ "job succeeded")
+               #:color job-succeeded-face
+               #:size size))
+      ((equal? failure 1)
+       (sub-h4 (G_ "job failed")
+               #:color job-failed-face
+               #:size size))
+      ((equal? in-progress 1)
+       (sub-h4 (G_ "job in progress")
+               #:color job-running-face
+               #:size size))
+      ;; A job that is neither running nor finished is one whose flags say
+      ;; nothing yet; it is still worth a colour rather than a blank.
+      (else (sub-h4 (G_ "job queued")
+                    #:color job-running-face
+                    #:size size)))))
+
+(define* (retry-button G_ job #:key (content #f))
+  "A button that queues the job data of JOB again, as a job of its own.
+
+A retry is a new job rather than the same row set going again: its output is
+its own to log, and the job it retries keeps saying what it said."
+  (let ((job-id (assoc-ref job
+                           'id)))
+    `((form (@ (method POST)
+               (enctype application/x-www-form-urlencoded)
+               (action "/jobs/manage/retry")
+               (class ,(mk-class '(inline))))
+            (input (@ (type hidden)
+                      (name "job-id")
+                      (value ,job-id)))
+            ,(terminal-icon-button #:icon 'arrow-clockwise
+                          #:content (if content
+                                       (G_ content)
+                                       "")
+                          #:type 'submit
+                          #:size '(text-md)
+                          #:color '(text-stone-100)
+                          #:icon-css '(text-md text-stone-100)
+                          #:background '(bg-asparagus-900)
+                          #:hover-background '(hover:bg-olive-900))))))
+
+(define (artifact-download G_ artifact)
+  "One tarball a job built, as a row of the page."
+  `((div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center gap-3))))
+         (span ,(icon #:type 'archive-box
+                      #:icon-css '(text-lg text-asparagus-900 dark:text-asparagus-300)))
+         (span (@ (class ,(mk-class '(font-mono text-sm))))
+               ,(text-from-db (assq-ref artifact
+                                        'title)))
+         (span (@ (class ,(mk-class '(text-xs
+                                      text-asparagus-900 dark:text-asparagus-300))))
+               ,(human-bytes (assq-ref artifact
+                                       'artifact-size)))
+         ,(a (G_ "download")
+             #:href (format #f "/artifacts/~a"
+                            (assq-ref artifact
+                                      'id))
+             #:size '(text-md)
+             #:color '(text-asparagus-900 dark:text-olive-300)))))
+
+(define* (artifact-downloads G_ artifacts)
+  "The tarballs a job built, each one a download."
+  (if (nil? artifacts)
+      '()
+      (list `(div (@ (class ,(mk-class '(flex flex-col gap-2 py-2))))
+                  ,(terminal-heading (G_ "artifacts"))
+                  ,@(map (lambda (artifact)
+                           (artifact-download G_ artifact))
+                         artifacts)))))
+
+(define* (search-form G_ #:optional (query ""))
+  "The field a search is asked for in, shared by the search page and the pages
+it answers with."
+  `((form (@ (method GET)
+             (action "/search")
+             (class ,(mk-class '(flex flex-col sm:flex-row sm:items-end gap-2
+                                          w-full))))
+          ,(terminal-input #:label (G_ "search jobs, logs and profiles")
+                  #:name 'q
+                  #:value query
+                  #:placeholder (G_ "a project, a branch, a word from a log"))
+          ,(terminal-submit-button (G_ "search")))))
+
 (define (make-job-link G_ job log)
-  (let* ((log-filename (html-unescape (assq-ref log
-                                                'title)))
+  (let* ((log-filename (text-from-db (assq-ref log
+                                               'title)))
          (logs-link (format #f "~a/logs/~a"
                             (current-myhost)
                             (assq-ref log
                                       'id)))
-         (success (assoc-ref job
-                             'job-success))
-         (failure (assoc-ref job
-                             'job-failed))
-         (job-status (cond
-                       ((equal? success 1)
-                        (sub-h4 (G_ "job succeeded")
-                                #:color '(
-                                          text-asparagus-900 dark:text-asparagus-300)
-                                #:size '(text-md)))
-                       ((equal? failure 1)
-                        (sub-h4 (G_ "job failed")
-                                #:color '(
-                                          text-redwood-900 dark:text-redwood-300)
-                                #:size '(text-md)))
-                       (else (sub-h4 (G_ "job in progress")
-                                     #:color '(
-                                               text-asparagus-900 dark:text-olive-300)
-                                     #:size '(text-md))))))
+         (in-progress (assoc-ref job
+                                 'job-in-progress)))
     `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
@@ -472,12 +602,17 @@
                         #:color '(text-asparagus-900 dark:text-asparagus-300 hover:text-onyx-900 dark:hover:text-olive-100
 
                                                 hover:text-onyx-900 dark:hover:text-olive-100))))
-           (div (@ (class "ml-6"))
+           (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center gap-3 ml-6))))
                 ,(em (strftime "%c"
                                (localtime (assoc-ref job
                                                      'created-at)))
                      #:size '(text-sm))
-                ,job-status)))))
+                ,(job-status-label G_ job)
+                ;; A job that is still running is not offered a retry: the same
+                ;; data would be running twice.
+                ,(if (equal? in-progress 1)
+                     '()
+                     (retry-button G_ job #:content "retry")))))))
 
 (define (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"
@@ -490,8 +625,8 @@
                    (span ,(icon #:type 'code
                                 #:icon-css '(text-xl text-asparagus-900 dark:text-asparagus-300
 )))
-                   ,(h4 (html-unescape (assq-ref profile
-                                                 'title))
+                   ,(h4 (text-from-db (assq-ref profile
+                                                'title))
                         #:color '(text-asparagus-900 dark:text-asparagus-300
                                                 hover:text-onyx-900 dark:hover:text-olive-100
                                                 hover:text-onyx-900 dark:hover:text-olive-100))))))))

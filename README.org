@@ -70,6 +70,30 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 
 ----------------
 
+* Pipelines, artifacts, and watching a job run
+
+A thunk may answer with a *list* of jobs instead of one, in which case they run in order, as a pipeline, and the first one that fails stops those behind it. The stages share one row and one log:
+
+#+begin_src scheme
+(lambda()
+  (list `((project . "wikimusic-api")
+          (branch-name . "trunk")
+          (task . "maak-test")
+          (clone-url . "https://codeberg.org/jjba23/wikimusic-api"))
+        `((project . "wikimusic-api")
+          (branch-name . "trunk")
+          (task . "maak-build")
+          ;; what to keep, relative to the clone, packed as a tarball per stage
+          (artifacts . ("dist/wikimusic-api"))
+          (clone-url . "https://codeberg.org/jjba23/wikimusic-api"))))
+#+end_src
+
+What a job prints reaches its log /while it runs/, in batches, so there is something to watch rather than a console that fills up at the end; what it collects is downloadable from its log page. A finished job can be run again with one button, and the deployment as a whole can be read at ~/activity~ (a year of job runs, drawn like a commit heatmap) and searched at ~/search~ across jobs, logs and profiles.
+
+All of it is described at length in the [[file:docs/manual/en.org][manual]].
+
+----------------
+
 * Licensing
 
 byggsteg and all of its source code are free software, licensed under the GNU Affero General Public License v3 (or newer at your convenience).

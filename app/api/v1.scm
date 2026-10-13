@@ -25,6 +25,7 @@
         (ice-9 textual-ports)
         (kracht prelude)
         (byggsteg job pipeline)
+        (byggsteg job queue)
         (byggsteg base64)
         (byggsteg env)
         (bewaking bewaking)
@@ -45,19 +46,16 @@
                  (job-code (assoc-ref body "job-code"))
                  (user-provided-thunk (eval-string job-code))
                  (kvv (user-provided-thunk))
-                 (project (assq-ref kvv
-                                    'project))
-                 (trivial-cmds (assq-ref kvv
-                                         'trivial-cmds))
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
-                 (log-filename project)
                  (job-repo (make-sqlite-job-repository))
                  (log-repo (make-sqlite-log-repository))
+                 ;; The title names the project a job is about; a pipeline of
+                 ;; jobs is titled after its first, and one that runs bare
+                 ;; commands `trivial'.
                  (title (html-escape (format #f "~a-~a"
-                                             (if (not trivial-cmds)
-                                                 (html-escape project)
-                                                 (html-escape "trivial"))
+                                             (html-escape (job-title-prefix
+                                                           kvv))
                                              (string-take new-log-uuid 13)))))
             
             (insert-job job-repo
@@ -89,6 +87,29 @@
                                #:happy-flow do-submit
                                #:unhappy-flow unauthorized-api-message)))
 
+;; The API retries the way the page does: the job's data is queued again as a
+;; job of its own, and the log id of the new one comes back for a client to
+;; follow, exactly as a submission answers.
+(post "/api/v1/jobs/manage/retry"
+      #:mime 'json
+      (lambda (rc)
+        (define (do-retry)
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (job-id (assoc-ref body "job-id"))
+                 (job-repo (make-sqlite-job-repository))
+                 (log-repo (make-sqlite-log-repository))
+                 (new-log-id (retry-job! #:job-repo job-repo
+                                         #:log-repo log-repo
+                                         #:job-id job-id)))
+            (if new-log-id
+                (:mime rc `((log-id unquote new-log-id)))
+                (api-error rc 404 "no job with that id"))))
+        (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
+                               #:needed-permissions '(byggsteg:job-create)
+                               #:rc rc
+                               #:happy-flow do-retry
+                               #:unhappy-flow unauthorized-api-message)))
+
 (get "/api/v1/logs/:id"
      #:mime 'json
      (lambda (rc)
@@ -96,10 +117,16 @@
               (job-repo (make-sqlite-job-repository))
               (l (get-log-by-id log-repo
                                 (params rc "id")))
-              (j (get-job-by-id job-repo
-                                (assq-ref l
-                                          'job-id))))
-         (:mime rc
+              ;; The id is the whole of the request, so a log that is not there
+              ;; -- or one whose job row is gone -- is a path that names nothing
+              ;; rather than a status read off a missing row.
+              (j (and l
+                      (get-job-by-id job-repo
+                                     (assq-ref l
+                                               'job-id)))))
+         (if (not j)
+             (api-error rc 404 "no log with that id")
+             (:mime rc
                 `((success unquote
                            (assq-ref j
                                      'job-success))
@@ -120,7 +147,7 @@
                                                                     'log-data))))
                   (job-data unquote
                             (base64-encode (html-unescape (assq-ref j
-                                                                    'job-data)))))))))
+                                                                    'job-data))))))))))
 
 (post "/api/v1/login"
       #:mime 'json
@@ -148,15 +175,17 @@
                                   #:get-owner-details get-owner-details)))
           
           (cond
-            ((equal? (string->sha-256 (string-append password
-                                                     (assq-ref u
-                                                               'salt)))
-                     (assq-ref u
-                               'password))
+            ;; The credential is checked against a row, so an email this
+            ;; deployment does not know is a failed login rather than a
+            ;; column read off nothing.
+            ((and u
+                  (equal? (string->sha-256 (string-append password
+                                                         (assq-ref u
+                                                                   'salt)))
+                          (assq-ref u
+                                    'password)))
              (response-emit ""
                             #:status 204
                             #:headers `((x-bewaking-byggsteg unquote t))))
-            (else (response-emit '((error . "invalid credentials, could not make token"))
-                                 #:status 401
-                                 #:headers '()))))))
+            (else (api-error rc 401 "invalid credentials, could not make token"))))))
 

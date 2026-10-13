@@ -173,6 +173,8 @@ You should either pass a string or a list of strings of job names.
 
 ~trivial-cmds~ is a list of strings which represent commands to be run.
 
+~artifacts~ is a list of strings: paths, relative to the job's clone, that should be collected into a tarball and kept for download once the job's commands are over. See [[*Artifacts]].
+
 ** Example jobs
 
 An example showing a herd daemon restart after the git pull:
@@ -191,6 +193,97 @@ An example showing the "trivial" approach where you are free to run what shell c
   `((task . "trivial")
     (trivial-cmds . ("echo 'HELLO WORLD'"))))
 #+end_src
+
+------------------
+
+* Pipelines of jobs
+
+A job usually asks for one thing. When it asks for several, its thunk answers with a *list* of those alists instead of one, and byggsteg runs them in the order they are written:
+
+#+begin_src scheme
+(lambda()
+  (list `((project . "wikimusic-api")
+          (branch-name . "trunk")
+          (task . "maak-test")
+          (clone-url . "https://codeberg.org/jjba23/wikimusic-api"))
+        `((project . "wikimusic-api")
+          (branch-name . "trunk")
+          (task . "maak-deploy")
+          (daemon-name . "wikimusic-api-daemon")
+          (clone-url . "https://codeberg.org/jjba23/wikimusic-api"))))
+#+end_src
+
+The jobs of one request are one job in byggsteg's eyes: one row, one log, one status. That is what makes a pipeline useful -- the stages share a log, so a reader sees the whole run in one place.
+
+The stages run one after the other, and the first one that fails stops the rest: a stage that was going to deploy a build the previous stage never produced does not run. The job is then marked as failed, as a single failing job would be.
+
+The title of a pipeline names its first job's project, and ~trivial~ when it runs bare commands; a pipeline none of whose jobs names a project is titled ~pipeline~.
+
+------------------
+
+* Artifacts
+
+A job can keep what it built. Add an ~artifacts~ field to a job, whose value is a list of the paths to collect, relative to that job's clone:
+
+#+begin_src scheme
+(lambda()
+  `((project . "wikimusic-api")
+    (branch-name . "trunk")
+    (task . "maak-build")
+    (artifacts . ("dist/wikimusic-api" "docs/manual"))
+    (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
+#+end_src
+
+Once the job's own commands are over -- whether they passed or failed, since a build that broke halfway is exactly when its partial output is worth keeping -- the paths are packed into a gzipped tarball, one per job that asks. A pipeline whose two stages each ask for something keeps both tarballs, the second numbered.
+
+The tarballs are written under the directory ~artifact-location~ points at (~/etc/byggsteg/artifacts/~ by default) and recorded in the database. They are offered on the job's log page, and at ~/artifacts/<id>~, where the browser downloads them under the job's title. Nothing outside that directory is ever served, whatever a row says.
+
+------------------
+
+* Watching a job run
+
+A running job's output reaches its log as it is produced, in batches of twenty lines (~log-stream-batch-size~), so the log page a reader has open fills up while the job is still running rather than all at once when it ends.
+
+What a job prints is announced command by command, each with the line ~→ running command: <cmd>~, so a long log reads as the list of commands that produced it.
+
+The REST API answers with what the log holds at the moment it is read, and the job's status with it, so a client can poll for both:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/logs/<log-id>'
+#+end_src
+
+* Retrying a job
+
+A finished job can be run again from the UI: a ~retry~ button sits on its log page and beside it in the list of logs. A job that is still running is not offered one.
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/retry' \
+    -X POST -H 'content-type: application/x-www-form-urlencoded' \
+    -H 'x-bewaking-byggsteg: <your token here>' \
+    --data-urlencode 'job-id=<job-id>'
+
+#  {
+#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326"
+#  }
+#+end_src
+
+A retry is a job of its own rather than the old row set going again: its output is its own to log, its title marks it as a retry, and the job it retries goes on saying what it said. The answer is the new job's log id, which is the log to follow for how the retry goes. Retrying takes the ~byggsteg:job-create~ permission, since that is what it does.
+
+A call that cannot be answered says so in the answer: a job or a log that is not there, a token that is missing or expired, or credentials that do not match all come back as a JSON object with an ~error~ field and the status that goes with it (~404~, ~401~), rather than a page to render or a status a client has to read the body to interpret.
+
+* Reading a job's status
+
+Every list of jobs gives each of them a colour: green for one that finished well, blue for one still in progress, red for one that failed. The same three colours label the status on the job's log page, so a pipeline's stage is found by its colour rather than by reading its flags.
+
+------------------
+
+* Activity and search
+
+Two pages read a deployment as a whole.
+
+~/activity~ draws a year of job runs the way a code hosting site draws a year of commits: one square per day, one column per week, darkest where the most jobs were queued. A square is a day the job was *queued* on, and a day that has not happened yet is left blank rather than drawn as a day without jobs. The number of columns is ~activity-weeks~ (53 by default).
+
+~/search?q=...~ answers with the jobs, the logs and the profiles that match, each listed the way its own page lists it, and a job is offered together with the log its output is in. A search for ~%~ or ~_~ looks for those characters rather than treating them as wildcards. An empty search answers with the form alone, and no search reads anything.
 
 ------------------
 
@@ -270,7 +363,11 @@ The pipeline steps are written in shell script, and use Alpine Linux images achi
 
 * Performance
 
-byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
+Byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
+
+Running the jobs is what byggsteg spends its time on, and that is not done one at a time: the queue worker runs several jobs at once on a scheduler of green threads (fibers), so a job waiting for a clone or a compiler to finish does not hold up the others. How many jobs run at the same time is ~job-concurrency~ (4 by default), and how many one visit to the queue claims is ~job-sweep-limit~ (64), after which the worker rests for ~worker-pause-seconds~ (3) and looks again.
+
+The output of every command is read as it arrives rather than waited for, which is what lets the log of a running job be read at all; a command that prints nothing therefore costs nothing.
 
 Using the ~drill~ HTTP load testing tool written in Rust.
 

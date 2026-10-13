@@ -267,6 +267,28 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                        border-asparagus-700 dark:border-asparagus-900)))
 
 ;;
+;; Job status
+;;
+
+;; A job's status is read at a glance, so it is not left to the reader to
+;; compare flags: green while the job went well, blue while it is still going,
+;; red when it did not.  The three faces are stated together here so the log
+;; page and the list of logs cannot disagree about what a colour means.
+;;
+;; These three are lists of classes rather than the string `mk-class' makes of
+;; them, because the component they are handed to takes its classes that way and
+;; works out the string itself.  A face written as a string and passed on as one
+;; is read as a class name to be turned into a string, which fails.
+(define-public job-succeeded-face
+  '(text-asparagus-900 dark:text-asparagus-300))
+
+(define-public job-running-face
+  '(text-jeans-blue-700 dark:text-jeans-blue-300))
+
+(define-public job-failed-face
+  '(text-redwood-900 dark:text-redwood-300))
+
+;;
 ;; Headers
 ;;
 

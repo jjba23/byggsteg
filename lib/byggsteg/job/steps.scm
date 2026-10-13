@@ -18,8 +18,14 @@
 
 (define-module (byggsteg job steps)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg job streaming)
+  #:use-module (byggsteg artifacts)
+  #:use-module (byggsteg domain artifact)
+  #:use-module (fibers scheduler)
+  #:use-module (uuid generate)
   #:use-module (kracht prelude)
   #:use-module (ice-9 textual-ports)
+  #:use-module (ice-9 rdelim)
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (ice-9 iconv)
@@ -39,6 +45,7 @@
                         clone-repo-step
                         trivial-step
                         byggsteg-version-step
+                        collect-artifacts-step
                         step-result
                         step-result?
                         step-result-succeeded?
@@ -54,6 +61,44 @@
   (succeeded? step-result-succeeded?)
   (stdout step-result-stdout)
   (cmd step-result-cmd))
+
+;; The command banner lives in `(byggsteg job streaming)', which writes it into
+;; a running job's log as the command starts; the name is kept here because
+;; `run-steps' and the steps below announce their commands with it.
+(define-syntax-rule (display-cmd cmd)
+  (command-banner cmd))
+
+(define (make-cooperatively-readable! port)
+  "Put PORT's file descriptor in non-blocking mode when a fibers scheduler runs.
+
+A job is run by the queue worker inside a scheduler, where a blocking read on a
+command's pipe would hold the whole scheduler -- and with it every other job --
+until that one command printed something.  On a non-blocking descriptor such a
+read suspends the fiber instead, which is what lets several jobs print at once;
+`(fibers io-wakeup)' is what Guile calls back into.  Outside a scheduler there
+is no one to suspend to, so the descriptor is left alone and reads block the way
+they always have -- the test suite runs pipelines that way."
+  (let ((scheduler (current-scheduler)))
+    (if scheduler
+        (let ((fd (port->fdes port)))
+          (fcntl fd F_SETFL (logior (fcntl fd F_GETFL) O_NONBLOCK)))
+        #t)))
+
+(define (read-command-output port stream cmd)
+  "Read PORT into STREAM a line at a time, and answer with all of it.
+
+Reading as the lines arrive, rather than waiting for the command to be over, is
+what makes a running job's log stream.  What is returned is what the old
+`get-string-all' returned, save for one trailing newline: the lines are joined
+back with the newlines the reader took off."
+  (log-stream-start-command! stream cmd)
+  (let loop ((lines '()))
+    (let ((line (read-line port)))
+      (if (eof-object? line)
+          (string-join (reverse lines) "\n")
+          (begin
+            (log-stream-write! stream (string-append line "\n"))
+            (loop (cons line lines)))))))
 
 (define* ($ cmd
             #:key (env #f))
@@ -72,15 +117,17 @@
                                        (append (environ) formatted-env)
                                        (environ))))
          (_ (close-port (cdr input+output)))
-         (out (get-string-all (car input+output)))
-         (_ (close-port (car input+output)))
+         (in (car input+output))
+         ;; A job with no log row still streams, into a buffer nobody reads, so
+         ;; that every command reads its output the same cooperative way.
+         (stream (or (current-log-stream)
+                     (make-log-stream (lambda (text) #t))))
+         (_ (make-cooperatively-readable! in))
+         (out (read-command-output in stream cmd))
+         (_ (close-port in))
          (ex (waitpid pid))
          (exit-code (status:exit-val (cdr ex))))
     (make-step-result (equal? 0 exit-code) out cmd)))
-
-(define-syntax-rule (display-cmd cmd)
-  (format #f "\n→ running command: ~a\n"
-          (html-unescape cmd)))
 
 (define* (do-in-clone-dir clone-dir cmds
                           #:key (env #f))
@@ -179,6 +226,57 @@
         (let ((pull-cmd (format #f "cd ~s && git reset --hard && git pull"
                                 clone-dir)))
           ($ pull-cmd)))))
+
+(define* (collect-artifacts-step #:key id title artifact-repo project branch-name
+                                 artifacts (env #f) (number 1))
+  "Tar up the ARTIFACTS a job asked for, and record the tarball in ARTIFACT-REPO.
+
+ARTIFACTS are paths relative to the job's clone, as `tar' reads them.  The step
+is run by the pipeline once the job's own steps are over, whether it passed or
+failed, because a build that broke halfway is exactly when its partial output is
+worth keeping; it answers as a step that succeeded either way, so a missing path
+is reported in the job's log rather than turning a green job red.
+
+The row is inserted from here because the tarball is this step's product, and
+the step is where the fact that it exists is still known."
+  (let* ((clone-dir (string-append (job-clone-location) project "/"
+                                   branch-name))
+         (tarball (artifact-path-for-job id number))
+         (cmd (format #f "mkdir -p ~s && tar -czf ~s -C ~s ~a"
+                      (dirname tarball)
+                      tarball
+                      clone-dir
+                      (string-join (map (lambda (path)
+                                          (format #f "~s" path))
+                                        artifacts)
+                                   " ")))
+         (result ($ cmd #:env env))
+         (made? (and (step-result-succeeded? result)
+                     (file-exists? tarball))))
+    (if made?
+        (let ((size (stat:size (stat tarball)))
+              (file-name (artifact-download-name title number)))
+          (insert-artifact artifact-repo
+                           `((id unquote (generate-string-uuid))
+                             (job-id unquote id)
+                             (title unquote file-name)
+                             (artifact-path unquote tarball)
+                             (artifact-size unquote size)
+                             (created-at unquote (current-time))))
+          (make-step-result #t
+                            (string-append
+                             (step-result-stdout result)
+                             (format #f "\n✓ artifact ~a (~a bytes) is ready to download\n"
+                                     file-name size))
+                            cmd))
+        (make-step-result #t
+                          (string-append
+                           (step-result-stdout result)
+                           (format #f "\n⚠ no artifact was collected: ~a\n"
+                                   (if (step-result-succeeded? result)
+                                       (format #f "tar wrote nothing at ~a" tarball)
+                                       "the tar command failed, see above")))
+                          cmd))))
 
 (define* (trivial-step #:key project branch-name cmds
                        (env #f))

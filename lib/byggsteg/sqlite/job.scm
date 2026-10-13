@@ -23,6 +23,8 @@
   #:use-module (kracht sql)
   #:use-module (byggsteg sqlite util)
   #:use-module (byggsteg domain job)
+  #:use-module (byggsteg preferences)
+  #:use-module (ice-9 format)
   #:export (make-sqlite-job-repository))
 
 ;; --- SQLite implementation ---
@@ -69,6 +71,26 @@
                               #:order-by '((created-at asc))
                               #:limit limit)))
 
+  (define (get-job-created-at)
+    ;; One column, oldest first: the heatmap counts jobs by the day they were
+    ;; queued, and nothing but that column is needed to do it.
+    (execute-read "get-job-created-at"
+                  (sql-select "job"
+                              #:columns '(created-at)
+                              #:order-by '((created-at asc)))))
+
+  ;; A search reads two columns for the text and matches either, which an
+  ;; AND-joined condition cannot say; the statement is composed here with the
+  ;; same escape meant for LIKE, so a query cannot be read as a pattern.
+  (define* (search-jobs #:key query (limit (search-result-limit)))
+    (let ((pattern (like-pattern query)))
+      (execute-read "search-jobs"
+                    (make-sql-query
+                     (format #f
+                             "SELECT ~a FROM \"job\" WHERE \"title\" LIKE ? ESCAPE '\\' OR \"job_data\" LIKE ? ESCAPE '\\' ORDER BY \"created_at\" DESC LIMIT ?"
+                             (string-join (map symbol->sql-column columns) ", "))
+                     (list pattern pattern limit)))))
+
   (define (delete-job-by-id id)
     (execute-write "delete-job-by-id"
                    (sql-delete "job"
@@ -87,6 +109,8 @@
                      #:get-job-by-id-proc get-job-by-id
                      #:get-jobs-by-ids-proc get-jobs-by-ids
                      #:get-jobs-in-progress-proc get-jobs-in-progress
+                     #:get-job-created-at-proc get-job-created-at
+                     #:search-jobs-proc search-jobs
                      #:insert-job-proc insert-job
                      #:update-job-by-id-proc update-job-by-id
                      #:delete-job-by-id-proc delete-job-by-id))

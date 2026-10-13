@@ -67,11 +67,14 @@
                                   #:get-owner-details get-owner-details)))
           
           (cond
-            ((equal? (string->sha-256 (string-append password
-                                                     (assq-ref u
-                                                               'salt)))
-                     (assoc-ref u
-                                'password))
+            ;; An email this deployment does not know is a failed login, not
+            ;; a credential compared against no row at all.
+            ((and u
+                  (equal? (string->sha-256 (string-append password
+                                                         (assq-ref u
+                                                                   'salt)))
+                          (assoc-ref u
+                                    'password)))
              (begin
                (:cookies-set! rc
                               'x-bewaking-byggsteg "x-bewaking-byggsteg" t)

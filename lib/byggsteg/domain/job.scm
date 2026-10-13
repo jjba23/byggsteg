@@ -23,6 +23,8 @@
   #:export (get-jobs get-job-by-id
                      get-jobs-by-ids
                      get-jobs-in-progress
+                     get-job-created-at
+                     search-jobs
                      insert-job
                      delete-job-by-id
                      update-job-by-id))
@@ -35,6 +37,8 @@
                        (get-job-by-id-proc repo-get-job-by-id)
                        (get-jobs-by-ids-proc repo-get-jobs-by-ids)
                        (get-jobs-in-progress-proc repo-get-jobs-in-progress)
+                       (get-job-created-at-proc repo-get-job-created-at)
+                       (search-jobs-proc repo-search-jobs)
                        (insert-job-proc repo-insert-job)
                        (update-job-by-id-proc repo-update-job-by-id)
                        (delete-job-by-id-proc repo-delete-job-by-id))
@@ -52,6 +56,13 @@
 
 (define-repo-method get-jobs-in-progress repo-get-jobs-in-progress
                     "Retrieves jobs in progress from the given REPO.")
+
+(define-repo-method get-job-created-at repo-get-job-created-at
+                    "Retrieves when every job was queued from the given REPO,
+for the activity heatmap to count them by day.")
+
+(define-repo-method search-jobs repo-search-jobs
+                    "Retrieves the jobs whose text carries QUERY from the given REPO.")
 
 (define-repo-method insert-job repo-insert-job
                     "Inserts a job with ATTRS in the given REPO.")

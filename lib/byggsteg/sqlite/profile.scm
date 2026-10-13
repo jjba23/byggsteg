@@ -23,6 +23,8 @@
   #:use-module (kracht sql)
   #:use-module (byggsteg sqlite util)
   #:use-module (byggsteg domain profile)
+  #:use-module (byggsteg preferences)
+  #:use-module (ice-9 format)
   #:export (make-sqlite-profile-repository))
 
 ;; --- SQLite implementation ---
@@ -60,6 +62,15 @@
                               #:columns columns
                               #:order-by '((created-at desc)))))
 
+  (define* (search-profiles #:key query (limit (search-result-limit)))
+    (let ((pattern (like-pattern query)))
+      (execute-read "search-profiles"
+                    (make-sql-query
+                     (format #f
+                             "SELECT ~a FROM \"profile\" WHERE \"title\" LIKE ? ESCAPE '\\' OR \"profile_data\" LIKE ? ESCAPE '\\' ORDER BY \"created_at\" DESC LIMIT ?"
+                             (string-join (map symbol->sql-column columns) ", "))
+                     (list pattern pattern limit)))))
+
   (define (delete-profile-by-id id)
     (execute-write "delete-profile-by-id"
                    (sql-delete "profile"
@@ -77,6 +88,7 @@
   (mk-profile-repository #:get-profile-by-id-proc get-profile-by-id
                          #:get-profile-by-title-proc get-profile-by-title
                          #:get-profiles-proc get-profiles
+                         #:search-profiles-proc search-profiles
                          #:insert-profile-proc insert-profile
                          #:update-profile-by-title-proc
                          update-profile-by-title

@@ -22,8 +22,9 @@
   #:use-module (artanis route)
   #:use-module (bewaking bewaking)
   #:use-module (byggsteg env)
-  #:export (back-to-login unauthorized-api-message bewaking-endpoint
-                          bewaking-api-endpoint))
+  #:use-module (json)
+  #:export (back-to-login unauthorized-api-message api-error
+                          bewaking-endpoint bewaking-api-endpoint))
 
 (define* (bewaking-endpoint #:key token-name
                             needed-permissions
@@ -80,9 +81,21 @@ executing either happy-flow-thunk or unhappy-flow-thunk."
          (else (unhappy-flow rc)))))
     (else (unhappy-flow rc))))
 
+(define (api-error rc status message)
+  "Answer an API request with MESSAGE as a JSON error and the given STATUS.
+
+The body is turned into a string here and emitted with `response-emit', rather
+than left to `:mime', because `:mime' cannot set a status: every error through
+it would answer 200, and a client would have to read the body to tell a missing
+row from a broken deployment.  Only a string (or a bytevector, or a port) has a
+content-length, so an alist handed straight to `response-emit' is a response
+the server cannot measure and answers 500 instead."
+  (response-emit (scm->json-string `((error . ,message)))
+                 #:status status
+                 #:headers '((content-type . (application/json)))))
+
 (define (unauthorized-api-message rc)
-  (response-emit '((error . "You must be authenticated to use this API endpoint"))
-                 #:status 401))
+  (api-error rc 401 "You must be authenticated to use this API endpoint"))
 
 (define (back-to-login rc)
   (redirect-to rc

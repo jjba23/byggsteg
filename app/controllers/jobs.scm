@@ -20,12 +20,14 @@
 
 (import (byggsteg html)
         (byggsteg env)
+        (byggsteg errors)
         (web uri)
         (byggsteg preferences)
         (byggsteg auth)
         (uuid generate)
         (kracht prelude)
         (byggsteg job pipeline)
+        (byggsteg job queue)
         (ice-9 string-fun)
         (byggsteg domain job)
         (byggsteg domain log)
@@ -53,10 +55,6 @@
                  (job-code (assoc-ref body "job-code"))
                  (user-provided-thunk (eval-string job-code))
                  (kvv (user-provided-thunk))
-                 (project (assq-ref kvv
-                                    'project))
-                 (trivial-cmds (assq-ref kvv
-                                         'trivial-cmds))
                  (new-job-uuid (generate-string-uuid))
                  (new-log-uuid (generate-string-uuid))
                  (G_ (:i18n rc))
@@ -72,10 +70,12 @@
                                                  (G_
                                                   "A new job has been started at byggsteg with id")
                                                  new-log-uuid))))
+                 ;; A job's title names the project it is about; a pipeline of
+                 ;; jobs -- whose value is a list of them -- is titled after
+                 ;; its first, and one that runs bare commands `trivial'.
                  (title (html-escape (format #f "~a-~a"
-                                             (if (not trivial-cmds)
-                                                 (html-escape project)
-                                                 (html-escape "trivial"))
+                                             (html-escape (job-title-prefix
+                                                           kvv))
                                              (string-take new-log-uuid 13)))))
             
             (insert-job job-repo
@@ -104,6 +104,37 @@
                            #:needed-permissions '(byggsteg:job-create)
                            #:rc rc
                            #:happy-flow do-submit
+                           #:unhappy-flow back-to-login)))
+
+;; Retrying is offered where a job can be read: on its log page, and in the list
+;; of logs.  It takes the same permission as submitting one, because that is
+;; what it does.
+(post "/jobs/manage/retry"
+      #:cookies '(names x-bewaking-byggsteg)
+      (lambda (rc)
+        (define (do-retry)
+          (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 (job-id (assoc-ref body "job-id"))
+                 (job-repo (make-sqlite-job-repository))
+                 (log-repo (make-sqlite-log-repository))
+                 (new-log-id (retry-job! #:job-repo job-repo
+                                         #:log-repo log-repo
+                                         #:job-id job-id)))
+            (if new-log-id
+                (redirect-to rc
+                             (string->uri (format #f "~a/logs/~a"
+                                                  (current-myhost)
+                                                  new-log-id))
+                             #:status 302)
+                ;; Nothing was queued, so there is no new log to follow; the
+                ;; reader is told the job is not there rather than dropped on a
+                ;; page about a job that never ran.
+                (response-emit (error-page 404) #:status 404
+                               #:headers '((content-type . (text/html)))))))
+        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
+                           #:needed-permissions '(byggsteg:job-create)
+                           #:rc rc
+                           #:happy-flow do-retry
                            #:unhappy-flow back-to-login)))
 
 (post "/jobs/manage/delete"
