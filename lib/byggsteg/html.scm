@@ -437,38 +437,43 @@ cannot be closed early by it."
                 ,(a (G_ "source")
                     #:href "https://codeberg.org/jjba23/byggsteg"
                     #:family '(font-mono)
-                    #:size '(text-xs sm:text-sm)
+                    #:size '(text-sm)
                     #:color '(text-asparagus-900 dark:text-olive-300))
                 ,(a (G_ "manual")
                     #:href "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org"
                     #:family '(font-mono)
-                    #:size '(text-xs sm:text-sm)
+                    #:size '(text-sm)
                     #:color '(text-asparagus-900 dark:text-olive-300))
                 ,(a (G_ "documentation")
                     #:href "https://jointhefreeworld.org/manuals/byggsteg/"
                     #:family '(font-mono)
-                    #:size '(text-xs sm:text-sm)
+                    #:size '(text-sm)
                     #:color '(text-asparagus-900 dark:text-olive-300))
                 (a (@ (href "javascript:void(0)")
                       (class ,(mk-class '(no-underline cursor-pointer
-                                          font-mono font-medium
-                                          text-xs sm:text-sm
+                                          font-mono font-medium text-sm
                                           text-asparagus-900 dark:text-asparagus-300)))
                       (onclick
                        "window.scrollTo({ top: 0, behavior: 'smooth' })"))
                    ,(G_ "back to the top")))
+           ;; The licence line reads at the size of the links above it and at
+           ;; the line height of a line rather than of a paragraph: the footer
+           ;; is two lines of small print, and small print is not read any
+           ;; better for being airy.
            (div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                             gap-x-3 gap-y-1
                                             align-center items-center))))
                 ,(em (G_ "© Josep Bigorra & NalaGinrut -- AGPL-3.0-or-later")
                      #:family '(font-mono)
-                     #:size '(text-xs)
+                     #:size '(text-sm)
+                     #:leading '(leading-5)
                      #:color '(text-asparagus-900 dark:text-asparagus-300))
                 ,(em (format #f "~a ~a"
                              (G_ "version:")
                              (get-short-commit-sha))
                      #:family '(font-mono)
-                     #:size '(text-xs)
+                     #:size '(text-sm)
+                     #:leading '(leading-5)
                      #:color '(text-asparagus-900 dark:text-asparagus-300))))))
     (footer fragments
             #:background '(bg-stone-300 dark:bg-onyx-900)
@@ -479,7 +484,7 @@ cannot be closed early by it."
                                border-t-2
                                border-asparagus-700 dark:border-asparagus-900
                                flex flex-col gap-1 items-start justify-start
-                               px-3 py-3 sm:px-6 sm:py-4 md:px-10))))
+                               px-3 py-2 sm:px-6 sm:py-3 md:px-10))))
 
 (define project-logo
   `(div (@ (class ,(terminal-frame-class #:extra '(p-4))))
