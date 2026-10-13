@@ -23,6 +23,7 @@
   #:export (get-jobs get-job-by-id
                      get-jobs-by-ids
                      get-jobs-in-progress
+                     get-jobs-finished-before
                      get-job-created-at
                      search-jobs
                      insert-job
@@ -37,6 +38,8 @@
                        (get-job-by-id-proc repo-get-job-by-id)
                        (get-jobs-by-ids-proc repo-get-jobs-by-ids)
                        (get-jobs-in-progress-proc repo-get-jobs-in-progress)
+                       (get-jobs-finished-before-proc
+                        repo-get-jobs-finished-before)
                        (get-job-created-at-proc repo-get-job-created-at)
                        (search-jobs-proc repo-search-jobs)
                        (insert-job-proc repo-insert-job)
@@ -56,6 +59,10 @@
 
 (define-repo-method get-jobs-in-progress repo-get-jobs-in-progress
                     "Retrieves jobs in progress from the given REPO.")
+
+(define-repo-method get-jobs-finished-before repo-get-jobs-finished-before
+                    "Retrieves the finished jobs that finished before BEFORE, for the
+retention pass to prune.")
 
 (define-repo-method get-job-created-at repo-get-job-created-at
                     "Retrieves when every job was queued from the given REPO,
