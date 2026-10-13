@@ -71,6 +71,19 @@
                               #:order-by '((created-at asc))
                               #:limit limit)))
 
+  (define* (get-jobs-finished-before #:key before (limit #f))
+    ;; A run is kept for its retention counted from when it finished, which is
+    ;; the moment `updated_at' records: a run still going has no `updated_at' at
+    ;; all, and a comparison against NULL matches nothing, so the flag above is
+    ;; a second reading of the same fact rather than the only one.
+    (execute-read "get-jobs-finished-before"
+                  (sql-select "job"
+                              #:columns columns
+                              #:where (list (cons 'job-in-progress 0)
+                                            (list 'updated-at '< before))
+                              #:order-by '((updated-at asc))
+                              #:limit limit)))
+
   (define (get-job-created-at)
     ;; One column, oldest first: the heatmap counts jobs by the day they were
     ;; queued, and nothing but that column is needed to do it.
@@ -109,6 +122,7 @@
                      #:get-job-by-id-proc get-job-by-id
                      #:get-jobs-by-ids-proc get-jobs-by-ids
                      #:get-jobs-in-progress-proc get-jobs-in-progress
+                     #:get-jobs-finished-before-proc get-jobs-finished-before
                      #:get-job-created-at-proc get-job-created-at
                      #:search-jobs-proc search-jobs
                      #:insert-job-proc insert-job

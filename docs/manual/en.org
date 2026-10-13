@@ -315,6 +315,34 @@ Two pages read a deployment as a whole.
 
 ------------------
 
+* Retention
+
+A deployment that runs jobs every day fills up with runs nobody will read again, so a finished run is kept for a while and then removed: its tarballs, its log and the job itself. Half of a run would be worse than all of it -- a log whose job is gone is a page about nothing, and a job whose log is gone has no page at all -- so the three go together.
+
+The period is ~job-retention-days~, counted from the moment the run finished, and it is 30 days unless the deployment sets it otherwise, where the other preferences are set (~lib/byggsteg/preferences.scm~). 0 keeps every run for ever:
+
+#+begin_src scheme
+(use-modules (byggsteg preferences))
+
+;; This deployment prunes nothing.
+(job-retention-days 0)
+#+end_src
+
+A run that is still going is never touched, however long it has been going: a deployment that keeps its runs for a month must still be able to watch a job that has been running for two. Neither is a run that finished inside the period. The queue worker looks once a day (~job-retention-interval~) and removes at most ~job-retention-batch~ runs (100) in one visit, so a deployment that has just shortened its retention is pruned over several visits rather than in one long one.
+
+A deployment that has been running longer than the period has runs older than it, and they are removed the first time the worker looks -- there is no grandparenting, and the runs of a year are gone along with the tarballs they offer. Set ~job-retention-days~ to 0 to keep them, or set it to something longer than the oldest run before starting byggsteg with this in it.
+
+To prune by hand -- after a shorter retention, or on a deployment whose worker has not been running -- run ~maak prune-old-runs~, which says what it removed:
+
+#+begin_src sh
+maak prune-old-runs
+#  keeping runs for 30 day(s)
+#  2 run(s) pruned
+#    e2e-retained  e2e-retained-job
+#+end_src
+
+------------------
+
 * Authentication, Authorization, User management
 
 [[https://codeberg.org/jjba23/bewaking][bewaking]] 🔗 is a nice library to help you secure your web applications with Guile Scheme.
@@ -509,6 +537,8 @@ make production-server
 Both are read once, when byggsteg starts, and an empty value is read as no value at all: ~BYGGSTEG_JOB_CLONE=~ leaves the default in place rather than naming a directory called nothing.
 
 The artifact directory belongs to byggsteg: its queue worker removes what the database no longer records (see [[*Artifacts]]). To sweep it once by hand -- a directory that collected orphans before this was the worker's business, say -- run ~maak sweep-artifacts~.
+
+The same worker prunes the runs themselves once they have outlived their retention, which is 30 days by default; see [[*Retention]] before starting a deployment that has runs older than that.
 
 If you are hacking away at the project, I would suggest using ~make dev~ since this will effectively run the project with hot-reloading capabilities and it will use the default ~artanis.conf~ where we configure hostname, db path, etc.
 

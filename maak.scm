@@ -227,6 +227,16 @@ between writing a tarball and recording it."
    (list "guile -L ./lib -L ."
          "-c '(begin (use-modules (byggsteg sqlite artifact) (byggsteg artifacts)) (let ((removed (sweep-orphaned-artifacts! (make-sqlite-artifact-repository)))) (format #t \"~a orphaned artifact(s) removed~%\" (length removed)) (for-each (lambda (path) (format #t \"  ~a~%\" path)) removed)))'")))
 
+(define (prune-old-runs)
+  "Remove the runs that have outlived their retention, with their tarballs.
+
+The queue worker does this on its own once a day, so this task is for a
+deployment that has just been given a shorter retention, or one whose worker has
+not been running."
+  (time-machine-manifest-shell
+   (list "guile -L ./lib -L ."
+         "-c '(begin (use-modules (byggsteg job retention) (byggsteg preferences)) (format #t \"keeping runs for ~a day(s)~%\" (job-retention-days)) (let ((pruned (prune-old-runs!))) (format #t \"~a run(s) pruned~%\" (length pruned)) (for-each (lambda (run) (format #t \"  ~a  ~a~%\" (assq-ref run 'id) (assq-ref run 'title))) pruned)))'")))
+
 (define (i18n-compile)
   "Compile the translation files for all locales."
   (for-each i18n-compile* i18n-locales))

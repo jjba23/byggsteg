@@ -93,6 +93,8 @@ What a job prints reaches its log /while it runs/, in batches, so there is somet
 
 A job that failed is offered a retry in the list of logs, and any job that is not still running is offered one on its own page. The deployment as a whole can be read at ~/activity~ (a year of job runs, drawn like a commit heatmap) and searched at ~/search~ across jobs, logs and profiles.
 
+Runs do not pile up for ever: a finished run is kept for ~job-retention-days~ (30 by default) and then removed with its log and its tarballs, so an older deployment is also a smaller one. Set it to 0 to keep every run.
+
 All of it is described at length in the [[file:docs/manual/en.org][manual]].
 
 ----------------
