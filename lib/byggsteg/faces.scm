@@ -268,36 +268,72 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;;
 ;; Forms
 ;;
+;; The three faces below are the whole look of a field of this console: the
+;; ground, the ink, the caret and the hairline a text field says something in,
+;; the same statement with room for a pipeline in it, and the label that names
+;; either.  They are stated once here because the wrappers in "Controls" below
+;; hand them to hygguile, which works out the class attribute itself.
+;;
+;; They are lists of classes rather than the string `mk-class' makes of them,
+;; for the reason the job-status faces are (see "Job status"): a face handed to
+;; a component is a list of class names, and a face written as a string is read
+;; as one class name to be turned into a string, which fails.
+;;
+;; `min-w-0' is what keeps a field from deciding how wide the form around it is:
+;; a field's own width is its `size' -- or, for a textarea, its `cols' -- and a
+;; field allowed to shrink is as wide as the room it is given.  That is the size
+;; it always had on a wide screen, and on a narrow one it is the screen.  The
+;; job form's own field was a page wider than the phone it was read on until its
+;; face said so: `min-w-prose' is 84 characters, some 820 pixels, which no phone
+;; has ever held.
 (define-public input-face
-  (mk-class '(bg-stone-100 dark:bg-onyx-900
-                       text-asparagus-900 dark:text-olive-100
-                       caret-asparagus-300
-                       border-2
-                       border-asparagus-700 dark:border-asparagus-900
-                       rounded-none
-                       p-3
-                       text-md
-                       shadow-md
-                       font-mono)))
+  '(bg-stone-100 dark:bg-onyx-900
+                text-asparagus-900 dark:text-olive-100
+                caret-asparagus-300
+                border-2
+                border-asparagus-700 dark:border-asparagus-900
+                rounded-none
+                p-4
+                text-md
+                shadow-md
+                font-mono
+                max-w-prose min-w-0
+                transition-colors
+                duration-150
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                outline-asparagus-700))
 
 (define-public textarea-face
-  (mk-class '(bg-stone-100 dark:bg-onyx-900
-                       text-asparagus-900 dark:text-olive-100
-                       caret-asparagus-300
-                       border-2
-                       border-asparagus-700 dark:border-asparagus-900
-                       rounded-none
-                       p-2
-                       w-full
-                       text-md
-                       shadow-md
-                       font-mono
-                       min-h-64)))
+  '(bg-stone-100 dark:bg-onyx-900
+                text-asparagus-900 dark:text-olive-100
+                caret-asparagus-300
+                border-2
+                border-asparagus-700 dark:border-asparagus-900
+                rounded-none
+                p-3
+                ;; As wide as the room it is given (`w-full'), no wider than a
+                ;; reading line (`max-w-prose'), and as narrow as the screen it
+                ;; is read on when there is no room (`min-w-0').  A maximum is
+                ;; not a floor: the cap is what keeps a code field from running
+                ;; two feet across a wide screen, and `min-w-0' is what keeps it
+                ;; from running off a narrow one.
+                w-full max-w-prose min-w-0
+                text-md
+                leading-6
+                shadow-md
+                font-mono
+                min-h-64
+                transition-colors
+                duration-150
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                outline-asparagus-700))
 
 (define-public label-face
-  (mk-class '(text-asparagus-900 dark:text-asparagus-300
-                                  text-xs font-mono
-                                  uppercase tracking-widest py-2 md:px-2)))
+  '(text-asparagus-900 dark:text-asparagus-300
+                       text-sm font-mono
+                       uppercase tracking-widest py-2 md:px-2))
 
 (define-public hr-face
   (mk-class '(mx-8 my-5 border-t-2
@@ -391,38 +427,37 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                                dark:hover:bg-asparagus-300)))
 (export terminal-submit-button)
 
-;; hygguile's text field on the terminal palette: square, paper or black
-;; ground, green ink and a green caret.
+;; hygguile's text field on the terminal palette: square, paper or black ground,
+;; green ink and a green caret -- `input-face' and `label-face' above, which are
+;; the two things a field of this console is made of.
+;;
+;; The defaults come first and the caller's arguments after them, so a call site
+;; that wants another face says `#:input-css' and is obeyed: in Guile a keyword
+;; given twice takes the value of the later one.  (The button wrappers above do
+;; the opposite on purpose — the keys they own are the ones they insist on.)
 (define (terminal-input . args)
   (apply input
-         (append args (list #:input-css
-                            ;; `min-w-0' is what keeps a field from deciding how
-                            ;; wide the form around it is: a field's own width is
-                            ;; its `size' in characters, and a row of them sized
-                            ;; by that is a page wider than the phone it is read
-                            ;; on.  Allowed to shrink, a field is as wide as the
-                            ;; room it is given -- which on a wide screen is the
-                            ;; size it always had, and on a narrow one is the
-                            ;; screen.
-                            '(p-4 max-w-prose min-w-0
-                                 rounded-none
-                                 border-asparagus-700 dark:border-asparagus-900
-                                 text-asparagus-900 dark:text-olive-100
-                                 caret-asparagus-300
-                                 bg-stone-100 dark:bg-onyx-900
-                                 border-2
-                                 font-mono
-                                 shadow-md
-                                 transition-colors
-                                 duration-150
-                                 focus-visible:outline-2
-                                 focus-visible:outline-offset-2
-                                 outline-asparagus-700)
-                            #:label-css
-                            '(text-sm text-asparagus-900 dark:text-asparagus-300
-                                      font-mono
-                                      uppercase tracking-widest py-2)))))
+         (append (list #:input-css input-face
+                       #:label-css label-face)
+                 args)))
 (export terminal-input)
+
+;; hygguile's textarea, dressed the same way: the job-code field of the console
+;; is the first thing a reader meets and the place a pipeline is written, so it
+;; is worth the ground, the caret and the hairline the rest of the terminal has.
+;;
+;; The wrapper is told it may shrink as well: a flex column takes its width from
+;; its widest child, and a child that cannot shrink is a form that cannot fit
+;; the hand it is read in.
+(define (terminal-textarea . args)
+  (apply textarea
+         (append (list #:textarea-css textarea-face
+                       #:label-css label-face
+                       #:textarea-flex-css '(my-2 flex flex-col gap-1
+                                                w-full min-w-0
+                                                font-sans))
+                 args)))
+(export terminal-textarea)
 
 ;;
 ;; Inline terminal bits

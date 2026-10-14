@@ -161,7 +161,7 @@
                                                                max-w-full
                                                                items-center))))
 
-                                        ,project-logo))))))
+                                        ,(project-logo)))))))
     (html-template G_
                    #:title (format #f "byggsteg - ~a"
                                    (G_ "welcome to byggsteg"))

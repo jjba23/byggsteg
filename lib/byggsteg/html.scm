@@ -73,23 +73,6 @@ escaped shape or not, is safe either way."
 ;;; so the head says what the page is and where it is, in the words a page is
 ;;; written in rather than in the words of whoever linked to it.
 
-(define site-name "byggsteg")
-
-;; The sentence the landing page has always opened with, and the one every page
-;; without a description of its own is announced with.
-(define site-description
-  (string-append
-   "byggsteg is a hackable and extensible CI/CD orchestrator written in Guile Scheme: "
-   "a pipeline is Lisp code, a running job's log is read while it is written, "
-   "and the runner, the logs, the artifacts and the users are all yours to host."))
-
-;; The image a shared link is drawn with.  It has to be an absolute address:
-;; the service drawing the card never loaded the page it describes.  The
-;; project's own logo is at a stable one, so a deployment that has put up no
-;; image of its own still shares as byggsteg.
-(define social-image
-  "https://jointhefreeworld.org/static-assets/byggsteg/logo.png")
-
 (define (deployment-url)
   "The address this deployment calls itself by, without a trailing slash.
 
@@ -127,17 +110,17 @@ tag has two), so the image is announced by the two tags that can be written."
             '()
             (list `(link (@ (rel canonical) (href ,url)))))
       (meta (@ (property og:type) (content "website")))
-      (meta (@ (property og:site_name) (content ,site-name)))
+      (meta (@ (property og:site_name) (content ,(deployment-name))))
       (meta (@ (property og:title) (content ,title)))
       (meta (@ (property og:description) (content ,description)))
       ,@(if (string-null? url)
             '()
             (list `(meta (@ (property og:url) (content ,url)))))
-      (meta (@ (property og:image) (content ,social-image)))
+      (meta (@ (property og:image) (content ,(deployment-logo-url))))
       (meta (@ (name twitter:card) (content "summary_large_image")))
       (meta (@ (name twitter:title) (content ,title)))
       (meta (@ (name twitter:description) (content ,description)))
-      (meta (@ (name twitter:image) (content ,social-image))))))
+      (meta (@ (name twitter:image) (content ,(deployment-logo-url)))))))
 
 (define* (structured-data #:key description path)
   "This deployment as a schema.org `SoftwareApplication', for the crawlers
@@ -156,16 +139,16 @@ cannot be closed early by it."
     (scm->json-string
      (append `((@context . "https://schema.org")
                (@type . "SoftwareApplication")
-               (name . ,site-name)
-               (alternateName . "byggsteg CI/CD")
+               (name . ,(deployment-name))
+               (alternateName . ,(format #f "~a CI/CD" (deployment-name)))
                (applicationCategory . "DeveloperApplication")
                (operatingSystem . "GNU/Linux")
                (programmingLanguage . "Scheme")
                (description . ,description)
                (isAccessibleForFree . #t)
                (license . "https://www.gnu.org/licenses/agpl-3.0.html")
-               (codeRepository . "https://codeberg.org/jjba23/byggsteg")
-               (downloadUrl . "https://codeberg.org/jjba23/byggsteg")
+               (codeRepository . ,(deployment-source-url))
+               (downloadUrl . ,(deployment-source-url))
                (author . ((@type . "Person") (name . "Josep Bigorra")))
                (offers . ((@type . "Offer")
                           (price . "0")
@@ -176,7 +159,7 @@ cannot be closed early by it."
 
 (define* (html-template G_
                         #:key title
-                        (description site-description)
+                        (description (deployment-description))
                         (path "/")
                         (robots "index, follow")
                         body
@@ -311,6 +294,12 @@ cannot be closed early by it."
 (define (profiles-button G_)
   (nav-link-button G_ "/profiles" 'folder (G_ "profiles")))
 
+;; The page that says where the console came from.  It is the bar's last
+;; deployment button and the one no account is needed for, which is why it
+;; sits beside the reader's own button rather than among the work.
+(define (about-button G_)
+  (nav-link-button G_ "/about" 'info (G_ "about")))
+
 ;; The two buttons that say who the reader is rather than what the deployment
 ;; holds: hygguile dresses those in the sans face, which is why they are not the
 ;; bar's other buttons.  They are the bar's size all the same, so that the two
@@ -366,6 +355,7 @@ cannot be closed early by it."
                          (div ,(activity-button G_))
                          (div ,(search-button G_))
                          (div ,(profiles-button G_))
+                         (div ,(about-button G_))
                          (div ,(if (not is-logged-in)
                                    (login-button G_)
                                    (me-button G_))))))
@@ -381,7 +371,7 @@ cannot be closed early by it."
                       (class ,(mk-class '(flex flex-row items-center gap-2
                                                    no-underline))))
                    (span (@ (class ,prompt-face)) "$")
-                   ,(h3 (list (G_ "byggsteg"))
+                   ,(h3 (list (deployment-name))
                         #:color '(text-asparagus-900 dark:text-asparagus-100 hover:text-onyx-900 dark:hover:text-olive-100)
                         #:size '(text-md sm:text-lg lg:text-xl))
                    (span (@ (class ,caret-face)) "▮")))
@@ -435,17 +425,22 @@ cannot be closed early by it."
                                             gap-x-4 gap-y-1
                                             align-center items-center))))
                 ,(a (G_ "source")
-                    #:href "https://codeberg.org/jjba23/byggsteg"
+                    #:href (deployment-source-url)
                     #:family '(font-mono)
                     #:size '(text-sm)
                     #:color '(text-asparagus-900 dark:text-olive-300))
                 ,(a (G_ "manual")
-                    #:href "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org"
+                    #:href (deployment-manual-url)
                     #:family '(font-mono)
                     #:size '(text-sm)
                     #:color '(text-asparagus-900 dark:text-olive-300))
                 ,(a (G_ "documentation")
-                    #:href "https://jointhefreeworld.org/manuals/byggsteg/"
+                    #:href (deployment-documentation-url)
+                    #:family '(font-mono)
+                    #:size '(text-sm)
+                    #:color '(text-asparagus-900 dark:text-olive-300))
+                ,(a (G_ "about")
+                    #:href "/about"
                     #:family '(font-mono)
                     #:size '(text-sm)
                     #:color '(text-asparagus-900 dark:text-olive-300))
@@ -486,12 +481,15 @@ cannot be closed early by it."
                                flex flex-col gap-1 items-start justify-start
                                px-3 py-2 sm:px-6 sm:py-3 md:px-10))))
 
-(define project-logo
+;; The deployment's own logo in the terminal's frame, at the size the landing
+;; page draws it.  Where the image is comes from the deployment's preferences,
+;; so a fork shows its own mark rather than this project's; the size is a knob
+;; because it is the one thing a page lays out around.
+(define* (project-logo #:key (classes '(w-48 h-auto)))
   `(div (@ (class ,(terminal-frame-class #:extra '(p-4))))
         (img (@ (loading lazy)
-                (class ,(mk-class '(w-48 h-auto )))
-                (src
-                 "https://jointhefreeworld.org/static-assets/byggsteg/logo.png")))))
+                (class ,(mk-class classes))
+                (src ,(deployment-logo-url))))))
 
 (define (maybe-profile-name G_ is-profile)
   (cond
@@ -508,19 +506,18 @@ cannot be closed early by it."
                   (enctype application/x-www-form-urlencoded)
                   (method POST)
                   (class ,(mk-class '(flex flex-row gap-4 flex-wrap font-sans))))
+               ;; The chooser is a field of this console like any other, so it
+               ;; wears the console's own field face (`(byggsteg faces)') rather
+               ;; than a second, slightly different copy of it: a copy is a copy,
+               ;; and the one that drifts is the one nobody looked at on a
+               ;; phone.  `cursor-pointer' is the one thing a select wants that
+               ;; a text field does not.
                ,(select #:name 'user-lang
                         #:family '(font-mono)
-                        #:select-classes '(w-full max-w-full px-3 py-2
-                                              border-2 border-asparagus-700 dark:border-asparagus-900
-                                              bg-stone-100 dark:bg-onyx-900 text-asparagus-900 dark:text-olive-100
-                                              text-md rounded-none shadow-md
-                                              font-mono cursor-pointer
-                                              transition-colors duration-150
-                                              focus-visible:outline-2
-                                              focus-visible:outline-offset-2
-                                              outline-asparagus-500)
-                        #:label-css '(text-lg font-light text-asparagus-900 dark:text-stone-300
-                                              font-mono py-2)
+                        #:select-classes (append input-face
+                                                 '(w-full max-w-full
+                                                   cursor-pointer))
+                        #:label-css label-face
                         #:options (list (option #:value 'en_US
                                                 #:content "English (US)"
                                                 #:selected-value
@@ -553,6 +550,20 @@ cannot be closed early by it."
 
          ,(maybe-profile-name G_ is-profile)
 
+         ;; The guide to writing a pipeline, and the address to read it at: the
+         ;; address is the link's own text, and a URL is a word with no space in
+         ;; it to be broken at.  Measured on a phone, this deployment's own
+         ;; address is some 320 pixels of mono type, which is wider than the
+         ;; screen -- so the link is put in a holder of its own that is allowed
+         ;; both to shrink and to break the word it holds.
+         ;;
+         ;; Both halves are needed, and that is the whole reason for the holder.
+         ;; A link in a row of flex items is as wide as its longest word unless it
+         ;; is told it may be narrower (`min-w-0'), and a word is only broken when
+         ;; the box it is in is too narrow to hold it (`wrap-break-word', which is
+         ;; `overflow-wrap' and is inherited).  Saying it on the link itself would
+         ;; mean writing out hygguile's own anchor classes again, which is the copy
+         ;; this module has just stopped keeping.
          (p (@ (class ,(mk-class '(flex flex-row
                                         flex-wrap
                                         align-center
@@ -562,26 +573,21 @@ cannot be closed early by it."
             (span (@ (class ,(mk-class '(text-asparagus-900 dark:text-asparagus-300
                                                        text-sm))))
                   ,(G_ "learn writing a byggsteg pipeline"))
-            ,(a "https://codeberg.org/jjba23/byggsteg"
-                #:size '(text-md)
-                #:color '( text-asparagus-900 dark:text-olive-300)))
+            (span (@ (class ,(mk-class '(min-w-0 wrap-break-word))))
+                  ,(a (deployment-source-url)
+                      #:size '(text-md)
+                      #:color '( text-asparagus-900 dark:text-olive-300))))
 
-         ,(textarea #:label (G_ "job code")
-                    #:value ""
-                    #:name 'job-code
-                    #:required #t
-                    #:textarea-css '(p-3
-                                         rounded-none
-                                         border-asparagus-700 dark:border-asparagus-900
-                                         text-asparagus-900 dark:text-olive-100
-                                         caret-asparagus-300
-                                         bg-stone-100 dark:bg-onyx-900
-                                         border-2
-                                         min-h-72
-                                         max-w-196
-                                         shadow-md
-                                         font-mono
-                                         min-w-prose))
+         ;; The field the pipeline is written in: the console's own textarea
+         ;; face (`terminal-textarea'), which is where the ground, the caret, the
+         ;; hairline and the fact that a field may be narrower than the screen
+         ;; are stated once.  It was a list of classes here, and one of them was
+         ;; `min-w-prose' -- 84 characters, some 820 pixels -- which made this
+         ;; page wider than the phone it was read on.
+         ,(terminal-textarea #:label (G_ "job code")
+                             #:value ""
+                             #:name 'job-code
+                             #:required #t)
          (div ,(terminal-submit-button (G_ "submit")))))
 
 (define* (job-status-label G_ job #:key (size '(text-md)))

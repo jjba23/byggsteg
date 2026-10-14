@@ -595,6 +595,20 @@ The knobs byggsteg's worker and pages are tuned with are parameters in ~lib/bygg
 
 The two things a deployment has to be able to move -- where the clones are made and where the tarballs are written -- are read from the environment as well, as are the public address of the deployment (~BYGGSTEG_PUBLIC_URL~) and the database the command-line tasks act on (~BYGGSTEG_DB~).
 
+A deployment also says who it is from its environment rather than by editing byggsteg: its name is the wordmark at the top of every page, the ~og:site_name~ of a shared link and the ~name~ of the JSON-LD a crawler reads; its mark is the image that link is drawn with and the logo the landing page shows; its sentence is what a page without one of its own is announced with; and its source, manual and documentation are the three links in every page's footer and at the end of [[file:app/views/about.scm][~/about~]].
+
+#+begin_src sh
+BYGGSTEG_NAME="buildbot" \
+BYGGSTEG_DESCRIPTION="the build server of our team" \
+BYGGSTEG_LOGO_URL="https://example.org/static/buildbot.png" \
+BYGGSTEG_SOURCE_URL="https://example.org/buildbot.git" \
+BYGGSTEG_MANUAL_URL="https://example.org/buildbot/manual" \
+BYGGSTEG_DOCUMENTATION_URL="https://example.org/buildbot/docs" \
+maak production-server
+#+end_src
+
+Each has byggsteg's own value until a deployment names another, so a deployment that says nothing is this project's deployment; an empty value is read as no value at all. They are read once, when the server starts, so a rename is a restart rather than a page.
+
 ------------------
 
 * Performance
