@@ -53,7 +53,7 @@ steps:
       BYGGSTEG_URL: *jointhefreeworld_byggsteg_url
       BYGGSTEG_JOB_CODE: |
         (lambda()
-          `((task . ("byggsteg-version" "maak-deploy"))
+          `((task . ("maak-test" "byggsteg-version" "maak-deploy"))
             (daemon-name . "byggsteg-daemon")
             (project . "%%CI_REPO_NAME%%")
             (branch-name . "%%CI_COMMIT_BRANCH%%")
