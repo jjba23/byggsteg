@@ -429,7 +429,11 @@ What a machine running the suite has in its own environment is not something a
 reading can choose, so the parts of the rule a job cannot show are read against
 environments given to it: a deployment that names a locale, one that names the
 same variable the job does, and one whose naming is empty -- which selects no
-locale at all and is not a naming."
+locale at all, and is not a naming.
+
+The last reading is the whole environment a command is handed, as one string, so
+that the deployment's own variables are read to be there and the locale read to
+have been added after them."
   (let ((named (lambda (from job)
                  (as-strings (command-environment job #:from from)))))
     (list (list 'a-deployment-that-names-none
@@ -443,7 +447,10 @@ locale at all and is not a naming."
                 (holds? (named '("LANG=")
                                '())
                         "LC_ALL=C.UTF-8"))
-          (list 'and-the-request-that-named-none
+          (list 'a-name-both-of-them-set
+                (named '("LC_ALL=nl_NL.UTF-8" "PATH=/usr/bin")
+                       '(("LC_ALL" . "C"))))
+          (list 'the-environment-a-command-is-handed
                 (named '("PATH=/usr/bin")
                        '())))))
 
@@ -643,10 +650,12 @@ it lives in."
                 "a locale a deployment names, or an empty naming, is read as it is"
                 #:expect '((a-deployment-that-names-none #t)
                            (a-deployment-that-names-its-own
-                            ("LANG=de_DE.UTF-8"))
+                            "LANG=de_DE.UTF-8")
                            (an-empty-naming #t)
-                           (and-the-request-that-named-none
-                            ("PATH=/usr/bin" "LC_ALL=C.UTF-8")))
+                           (a-name-both-of-them-set
+                            "PATH=/usr/bin LC_ALL=C")
+                           (the-environment-a-command-is-handed
+                            "PATH=/usr/bin LC_ALL=C.UTF-8"))
                 #:got (locale-in-environment-readings)))
          (test "every task of a job is run, and each is a step of its own"
                #:shuffle? #f
