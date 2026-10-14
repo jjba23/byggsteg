@@ -609,13 +609,41 @@ maak production-server
 
 Each has byggsteg's own value until a deployment names another, so a deployment that says nothing is this project's deployment; an empty value is read as no value at all. They are read once, when the server starts, so a rename is a restart rather than a page.
 
+** The console's own resources
+
+The console is served by the deployment that runs it: its typography (`pub/css/fonts.css'), the Lucida faces in front of it (`pub/css/lucida.css'), its icons (`pub/css/phosphor.css'), the utility sheet the terminal is dressed in, the mark its landing page shows (`pub/img/'), and the framework's own scripts. No page of it asks a search engine, a font API, an icon CDN or any other website for anything, so a console behind a firewall, on an intranet or on a machine that is simply offline looks the way it was designed to -- and a reader of a private build server does not announce themselves to two third parties by opening it.
+
+A deployment that keeps its files somewhere else -- a cache, a CDN, an object store -- names that host and every link to them is written to it:
+
+#+begin_src sh
+BYGGSTEG_ASSET_URL="https://assets.example.org" \
+maak production-server
+#+end_src
+
+Left empty, as it is by default, the links are paths of the deployment's own (`/css/fonts.css'), which is also what a deployment behind a TLS terminator wants: the reader's own host answers, in http or https as they arrived.
+
+The one resource byggsteg does not ship is Lucida, which is proprietary: a deployment takes its own copies of those faces (`maak lucida-fonts'), serves them from its own host, and names the stylesheet that declares them:
+
+#+begin_src sh
+# the default: the sheet this deployment serves itself
+BYGGSTEG_LUCIDA_FONT_URL="/css/lucida.css" maak production-server
+
+# a sheet of your own, on a host of your own
+BYGGSTEG_LUCIDA_FONT_URL="https://example.org/lucida.css" maak production-server
+
+# no Lucida at all
+BYGGSTEG_LUCIDA_FONT_URL= maak production-server
+#+end_src
+
+This is the one setting where an empty value is not read as "nothing said": byggsteg has asked, and an empty answer means the console declares no Lucida, reading in the Lucida Sans a reader's own system has or in the bundled Plus Jakarta Sans otherwise. See [[*On Lucida fonts]] for what serving them means, and [[file:test/unit/console-resources-spec.scm][~console-resources-spec~]] for the reading that keeps the console's own files its own.
+
 ------------------
 
 * Performance
 
 Byggsteg is quite a performant implementation of a CI/CD system and the numbers might surprise you for a Scheme only full stack implementation (SXML + SQLite + more).
 
-Running the jobs is what byggsteg spends its time on, and that is not done one at a time: the queue worker runs several jobs at once on a scheduler of green threads (fibers), so a job waiting for a clone or a compiler to finish does not hold up the others. How many jobs run at the same time is ~job-concurrency~ (4 by default), and how many one visit to the queue claims is ~job-sweep-limit~ (64), after which the worker rests for ~worker-pause-seconds~ (3) and looks again.
+Running the jobs is what byggsteg spends its time on, and that is not done one at a time: the queue worker runs several jobs at once on a scheduler of green threads (fibers), so a job waiting for a clone or a compiler to finish does not hold up the others. How many jobs run at the same time is ~job-concurrency~ (4 by default), and how many one visit to the queue claims is ~job-sweep-limit~ (64), after which the worker rests for ~worker-pause-seconds~ (3) and looks again. That machinery is what [[*Concurrency and the queue]] is about.
 
 The output of every command is read as it arrives rather than waited for, which is what lets the log of a running job be read at all; a command that prints nothing therefore costs nothing.
 
@@ -673,6 +701,48 @@ Sample standard deviation 62ms
 99.5'th percentile        315ms
 99.9'th percentile        338ms
 #+end_example
+
+------------------
+
+* Concurrency and the queue
+
+Byggsteg is one process. Everything it does at the same time it does in that process: the pages it serves, the jobs it runs, the logs it streams while they are being written, and the upkeep that keeps its files in order. There is no message broker, no job server and no worker pool beside it -- the queue is a table in the database the console already reads, and the one thing that works it is a thread of the same program. That is the whole of the design, and it is what makes a deployment one thing to run, to watch and to back up.
+
+** The queue is a table
+
+A job is a row. Submitting one writes the job and the log its output will stream into, and says that it is in progress; a retry writes a second row of the same shape rather than reopening the first, so what a job printed stays with the job that printed it and the run it retries goes on saying what it said.
+
+One worker thread -- started three seconds after the server, in ~ENTRY~ -- visits that table in a loop: it takes the jobs that say they are in progress, up to ~job-sweep-limit~ (64) of them; it runs them, ~job-concurrency~ (4) at a time, until every job of the visit has been run to the end; it does whatever upkeep is due, and then rests for ~worker-pause-seconds~ (3) before looking again.
+
+A job is taken by being listed rather than by being marked as taken, so the thing that keeps two sweeps from running one job twice is that there is only ever one sweep: one worker process, one visit at a time. That is also the assumption to keep in mind when running byggsteg -- two deployments against one database would both find the same job.
+
+** Fibers: how several jobs run in one thread
+
+Running four jobs at once inside a single thread is what the fibers are for, and it is the neatest part of the project. A visit that has jobs to run opens a scheduler (guile-fibers), gives each worker of the visit a fiber of its own, and lets each of them take the next job off the list of that visit and run it. The list is a plain list and the take is a ~car~ and a ~cdr~, which needs no lock here: a fibers scheduler switches fibers only at an *operation* -- a read that would have to wait, a sleep -- and a ~car~ is not one, so no two workers can be handed the same job.
+
+A job is nearly all waiting. A clone, a compiler, a ~curl~, a test suite: the work is done by other programs, and what byggsteg does is read what they print. A read that waits on a pipe is exactly the kind of operation that suspends a fiber, so every command a job runs is read line by line while it runs (~(byggsteg job steps)~), on a pipe put in non-blocking mode for the duration of the sweep (~make-cooperatively-readable!~). A command that prints nothing costs nothing; a command that takes a minute suspends its own fiber for a minute and lets the other three jobs print; and a slow job cannot hold up the others because waiting is not holding. Outside a scheduler -- in the test suite, where pipelines are run one at a time -- a descriptor is left as it is and a read blocks the way it always has.
+
+That is also what makes a running job's log readable: nothing is collected until the command is over, because the lines are written into the job's log as they arrive, and a reader waiting on the log page sees them in batches of ~log-stream-batch-size~ (20) rather than all at the end. Streaming, in this project, is a consequence of the concurrency rather than a feature beside it.
+
+The scheduler is opened for a visit and drained at the end of it (~#:drain? #t~), so the thread that runs the worker stays an ordinary thread, nothing of a finished visit is left behind, and the rest between visits is a plain sleep that does not care what a job was doing.
+
+The green threads are what let the whole thing stay one readable program: no thread per job, no process per request, no external queue to operate, several jobs streaming at once, and the code that does it small enough to follow from the sweep to the pipe. It is a good deal of the reason a full-stack Scheme CI runner can be this enjoyable to hack on.
+
+** What the worker does between jobs
+
+Two things that have no request to hang off are done by the worker itself, between visits, each on a clock of its own, so a visit costs nothing until one of them is due: the tarballs the database no longer names are swept from the artifact directory, and the runs that have outlived their retention are pruned. Both are caught, separately, so a sweep that fails says so in the log and the queue is served on the next pass regardless (see [[*Artifacts]] and [[*Retention]]).
+
+A job that updates byggsteg ends by restarting the daemon that is running it, which is a job outliving the process that would record it. The job therefore *asks* for the restart, and the worker performs it once the job's row says how the job went -- so a deployment stopped in the middle of an update comes back to a queue that does not still hold that job.
+
+** One writer, and a lock that holds statements
+
+Everything above shares one SQLite file, in WAL mode: WAL is what lets a reader read a page while a job writes its log. The connection to it is one per process, behind one lock (~(byggsteg sqlite util)~). That is not an accident of the design but a property of guile-sqlite3: the prepared statements it keeps are held in a plain Guile hash table per connection, and two threads making statements on one connection at the same time can be handed each other's. Rather than give every thread a connection of its own -- which would turn into writes failing against SQLite's single writer, to be retried -- every statement byggsteg runs holds the lock for the moment it takes. Statements are short; the commands a job spends its minutes in are not run under it.
+
+** What this is not
+
+- One worker per deployment. The queue is a table and the sweep assumes it is the only one visiting it.
+- ~job-concurrency~ is how many jobs have commands in flight, not how many cores they use. Four jobs of a compiler each build with the machine they are on.
+- Sweeps do not overlap. Upkeep, claims and logging all take their turn; a thousand queued jobs are worked through over several visits rather than all at once.
 
 ------------------
 
@@ -772,6 +842,10 @@ Running the test suite is one command: ~maak test~.
 Lucida fonts are proprietary typefaces originally developed by Bigelow & Holmes. They remain a long-time favorite for many people and are very legible in many situations and hardware/software. While they are bundled pre-installed on many operating systems and platforms, they remain proprietary fonts.
 
 You may use these font files under principles of fair use or for local development and non-commercial purposes, provided it is not for profit and used without securing a proper commercial license where required by law. Users and contributors are solely responsible for ensuring their usage complies with applicable software licensing terms and intellectual property rights.
+
+Because of that, byggsteg ships no Lucida files and asks nobody else for them. Where it used to reach for a copy on another website, the deployment now serves its own: ~maak lucida-fonts~ fetches the faces into ~pub/fonts/lucida/~, ~pub/css/lucida.css~ declares them -- the sheet the console links, with the addresses of the files relative to it, so the two move together -- and the console reads in Lucida wherever a reader's system has not got it. A deployment that may not serve them sets ~BYGGSTEG_LUCIDA_FONT_URL=~ and declares none, and a deployment with a licence of its own for them, or with its own mirror of the files, names the sheet it keeps them in: ~BYGGSTEG_LUCIDA_FONT_URL=https://example.org/lucida.css~. The task takes its copies from this project's host of them unless the deployment names another with ~BYGGSTEG_LUCIDA_FONT_SOURCE~.
+
+The other faces are not a question of permission: Intel One Mono and Plus Jakarta Sans, the two families byggsteg bundles for its terminal, are under the SIL Open Font License; the Phosphor icon font is MIT.
 
 --------
 

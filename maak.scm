@@ -380,6 +380,37 @@ not been running."
   ($ '("curl --output \"./pub/css/byggsteg.olive.min.css\""
        "\"https://codeberg.org/jjba23/olive-css/raw/branch/trunk/resources/css/byggsteg.olive.min.css\"")))
 
+;; The Lucida faces `pub/css/lucida.css' declares, by the names it declares them
+;; under.  The console asks for these files from its own host, and Lucida is
+;; proprietary -- the files are not byggsteg's to give away, so the source does
+;; not carry them -- which is why a deployment fetches its own copies:
+;;
+;;   maak lucida-fonts
+;;
+;; from the root of the clone the server serves `pub/' from, which is where a
+;; deployed byggsteg runs from.  Where they are taken from is this project's own
+;; host of them unless the deployment names another (`BYGGSTEG_LUCIDA_FONT_SOURCE',
+;; a directory of `.woff' files), which is what a deployment with its own mirror
+;; of the faces -- or a licence of its own for them -- sets.  See "On Lucida
+;; fonts" in the manual before serving them.
+(define lucida-font-files
+  '("LSANS" "LSANSI" "LSANSD" "LSANSDI"
+    "LTYPE" "LTYPEO" "LTYPEB" "LTYPEBO"
+    "l_10646"))
+
+(define (lucida-font-source)
+  (let ((named (getenv "BYGGSTEG_LUCIDA_FONT_SOURCE")))
+    (if (and named (positive? (string-length named)))
+        named
+        "https://jointhefreeworld.org/static-assets/fonts")))
+
+(define (lucida-fonts)
+  "Fetch the Lucida faces the console serves from this deployment's own host."
+  ($ (list (format #f
+                   "mkdir -p ./pub/fonts/lucida && for f in ~a; do curl --fail --location --output \"./pub/fonts/lucida/$f.woff\" \"~a/$f.woff\" || exit 1; done"
+                   (string-join lucida-font-files " ")
+                   (lucida-font-source)))))
+
 (define (import-production-database)
   "Import production env's database to local workspace via SSH/SCP"
   ($ '("scp wolk-jjba:/etc/byggsteg/job-clone/byggsteg/trunk/byggsteg.db* .")))

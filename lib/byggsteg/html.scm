@@ -29,6 +29,11 @@
   #:use-module (ice-9 format)
   #:use-module (web uri)
   #:use-module (hygguile hygguile)
+  ;; The framework's own stylesheets and script blocks.  `(hygguile hygguile)'
+  ;; re-exports most of them but not the three sheets, nor every script, which
+  ;; is why they are asked for where they are written.
+  #:use-module (hygguile embed css)
+  #:use-module (hygguile embed js)
   #:use-module (json)
   #:use-module (kracht prelude)
   #:use-module (artanis artanis)
@@ -90,6 +95,24 @@ address."
               (lambda () (current-myhost))
               (lambda (key . args) ""))))))
 
+(define (absolute-address address)
+  "ADDRESS as the readers that never loaded this page have to read it.
+
+A crawler drawing a card out of a link, or a chat client beside it, fetches
+what the page names without having been to the page, so the one thing it needs
+is a host: an image the deployment serves itself is named as a path, and is
+announced here as this deployment's address followed by it.  An address that
+already names a host -- a deployment's own mark, wherever it keeps it -- is
+left as it is, and a page built where there is no running server and no address
+of its own keeps the path rather than being announced by half an address."
+  (let ((base (deployment-url)))
+    (if (or (string-prefix? "http://" address)
+            (string-prefix? "https://" address)
+            (string-prefix? "//" address)
+            (not (positive? (string-length base))))
+        address
+        (string-append base address))))
+
 (define* (discovery-meta #:key title description path robots)
   "The head of a page as the readers that never open the terminal read it.
 
@@ -116,11 +139,11 @@ tag has two), so the image is announced by the two tags that can be written."
       ,@(if (string-null? url)
             '()
             (list `(meta (@ (property og:url) (content ,url)))))
-      (meta (@ (property og:image) (content ,(deployment-logo-url))))
+      (meta (@ (property og:image) (content ,(absolute-address (deployment-logo)))))
       (meta (@ (name twitter:card) (content "summary_large_image")))
       (meta (@ (name twitter:title) (content ,title)))
       (meta (@ (name twitter:description) (content ,description)))
-      (meta (@ (name twitter:image) (content ,(deployment-logo-url)))))))
+      (meta (@ (name twitter:image) (content ,(absolute-address (deployment-logo))))))))
 
 (define* (structured-data #:key description path)
   "This deployment as a schema.org `SoftwareApplication', for the crawlers
@@ -156,6 +179,70 @@ cannot be closed early by it."
              (if url
                  (list `(url . ,url))
                  '())))))
+
+;;; ====== What the console is built of ======
+;;;
+;;; Every stylesheet, script and icon a page of this console is built from is a
+;;; file of the deployment, served from its own host and named through
+;;; `asset-url': the typography of the console (`fonts.css'), the Lucida faces
+;;; in front of it (`lucida.css', which a deployment fetches for itself), the
+;;; Phosphor icon font, the utility sheet the terminal is dressed in, and the
+;;; framework's own script blocks.  A deployment that keeps its assets on
+;;; another host -- a cache, a CDN, an object store -- names that host in
+;;; `BYGGSTEG_ASSET_URL' and every one of these links is written to it; one that
+;;; keeps them where it is asks nobody at all, and a console behind a firewall,
+;;; on an intranet or on a machine that is simply offline looks the way it was
+;;; designed to.
+;;;
+;;; The list below is `(hygguile hygguile)'s own list of recommended resources,
+;;; which is not used here: its typography comes from a font API on the public
+;;; web and its icons from a CDN, so every page of this console would ask two
+;;; third parties for its own appearance -- and tell them who read it.  The
+;;; framework's script blocks are the framework's own and are taken as they
+;;; come; what this console asks for by itself is asked for below.
+(define (console-resources)
+  "The stylesheets, icons and script blocks every page of the console is
+built from, each served by this deployment itself."
+  (list (console-typography)
+        (phosphor-icons #:stylesheet-href (asset-url "/css/phosphor.css"))
+        (fly-out-css)
+        (hygguile-extras-css)
+        `(noscript ,@(no-js-css))
+        (toggle-dark-theme-js)
+        (copy-pre-inner-text-js)
+        (show-notifications-from-url-js)
+        (carousel-button-js)
+        (remember-dark-theme-js)
+        (color-show-js)
+        (fly-out-js)
+        (code-sample-js)
+        (tray-js)))
+
+(define (console-typography)
+  "The faces the console is read in, as this deployment serves them.
+
+`fonts.css' is the two families byggsteg bundles with it: Intel One Mono for
+the terminal's mono type and Plus Jakarta Sans for its sans faces, both under
+the Open Font License.  `lucida.css' is the Lucida the console's own stack
+names first, which is proprietary and so is not byggsteg's to ship: a
+deployment fetches its own copy of the faces (`maak lucida-fonts') and serves
+them from its own host, names a sheet of its own by setting
+`BYGGSTEG_LUCIDA_FONT_URL' to its address, or sets that variable to nothing and
+then asks for no Lucida at all -- the stack reads in the Lucida Sans the
+reader's own system has, or in the Plus Jakarta Sans beside it.
+
+An address that is a path is served by this deployment and follows it to its
+asset host if it has one; one that is a whole address -- a sheet on a host of
+its own -- is asked for as it stands."
+  (let ((lucida (lucida-font-url)))
+    (append (list `(link (@ (rel stylesheet)
+                            (href ,(asset-url "/css/fonts.css")))))
+            (if (and (string? lucida) (positive? (string-length lucida)))
+                (list `(link (@ (rel stylesheet)
+                                (href ,(if (string-prefix? "/" lucida)
+                                           (asset-url lucida)
+                                           lucida)))))
+                '()))))
 
 (define* (html-template G_
                         #:key title
@@ -199,9 +286,10 @@ cannot be closed early by it."
                                                   #:description description
                                                   #:path path
                                                   #:robots robots)
-                                ,(hygguile-recommended-resources #:fonts (custom-fonts))
+                                ,(console-resources)
                                 (link (@ (rel stylesheet)
-                                         (href "/css/byggsteg.olive.min.css"))
+                                         (href ,(asset-url
+                                                 "/css/byggsteg.olive.min.css")))
                                       "")
                                 (script (@ (type speculationrules))
                                         "
@@ -489,7 +577,7 @@ cannot be closed early by it."
   `(div (@ (class ,(terminal-frame-class #:extra '(p-4))))
         (img (@ (loading lazy)
                 (class ,(mk-class classes))
-                (src ,(deployment-logo-url))))))
+                (src ,(deployment-logo))))))
 
 (define (maybe-profile-name G_ is-profile)
   (cond

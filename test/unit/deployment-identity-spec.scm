@@ -99,10 +99,16 @@
                 #:name "the footer leads to the project's own source"
                 #:expect (page-as-a-landing-page)
                 #:got "https://codeberg.org/jjba23/byggsteg")
+               ;; The mark byggsteg ships, which the deployment serves itself:
+               ;; a deployment that has put up no image of its own still shows
+               ;; one, and one that has named its own shows that instead (read
+               ;; below).  The source of the page is read for where the image
+               ;; comes from, and it is this deployment's own `/img/', not a
+               ;; second host beside it.
                (assert-contains
                 #:name "and the landing page shows the project's own mark"
                 #:expect (page-as-a-landing-page)
-                #:got "https://jointhefreeworld.org/static-assets/byggsteg/logo.png"))
+                #:got "src=\"/img/byggsteg-logo.png\""))
          (test "the name a deployment chose is the name it is read by"
                #:shuffle? #f
                (assert-contains

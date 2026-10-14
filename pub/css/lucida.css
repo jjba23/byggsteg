@@ -1,0 +1,107 @@
+/* byggsteg - the Lucida faces of the console, served by the deployment itself.
+
+   The console is read in Lucida Sans where a reader's system has it -- the
+   family is first in the `font-sans' stack of byggsteg.olive.min.css -- and
+   this sheet is what gives that stack the files, so a reader who does not have
+   Lucida installed still reads the console in it.
+
+   Lucida is proprietary (Bigelow & Holmes) and these files are not byggsteg's
+   to give away, which is why they are not part of the source: a deployment
+   fetches its own copies into `pub/fonts/lucida' -- `maak lucida-fonts' -- and
+   serves them from its own host, exactly as it serves every other resource of
+   its console.  See "On Lucida fonts" in the manual for what that means for
+   anyone running this.
+
+   The addresses below are relative to this sheet (`../fonts/lucida/') rather
+   than absolute, so the sheet and the files it names are served from the same
+   place: a deployment that keeps its assets on another host (see
+   `BYGGSTEG_ASSET_URL') moves the two together, and one that serves its own
+   files asks nobody else for anything.
+
+   A deployment that may not serve these faces sets `BYGGSTEG_LUCIDA_FONT_URL'
+   to the empty string, and no page of its console asks for this sheet at all;
+   the stack then falls back to the bundled Plus Jakarta Sans.
+
+   `font-display: swap' is the policy of the console's other sheet
+   (`fonts.css'): text is read in the fallback while a face is on its way
+   rather than held invisible, and every face here is one the reader's system
+   may already have.  Only the faces of the families this console names are
+   declared: a family nothing sets in is a file nobody fetches. */
+
+/* --- Lucida Sans --- */
+
+@font-face {
+  font-family: 'Lucida Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/lucida/LSANS.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Lucida Sans';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/lucida/LSANSI.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Lucida Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/lucida/LSANSD.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Lucida Sans';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/lucida/LSANSDI.woff') format('woff');
+}
+
+/* --- Lucida Sans Typewriter --- */
+
+@font-face {
+  font-family: 'Lucida Sans Typewriter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/lucida/LTYPE.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Lucida Sans Typewriter';
+  font-style: oblique;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/lucida/LTYPEO.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Lucida Sans Typewriter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/lucida/LTYPEB.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Lucida Sans Typewriter';
+  font-style: oblique;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/lucida/LTYPEBO.woff') format('woff');
+}
+
+/* --- Lucida Sans Unicode --- */
+
+@font-face {
+  font-family: 'Lucida Sans Unicode';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/lucida/l_10646.woff') format('woff');
+}

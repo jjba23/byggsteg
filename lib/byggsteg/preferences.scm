@@ -28,6 +28,10 @@
             deployment-source-url
             deployment-manual-url
             deployment-documentation-url
+            deployment-logo
+            asset-base-url
+            asset-url
+            lucida-font-url
             artifact-location
             artifact-sweep-grace-seconds
             artifact-sweep-interval
@@ -95,13 +99,24 @@ means the deployment did not say, not that it wants to be called nothing."
      "and the runner, the logs, the artifacts and the users are all yours to host."))))
 
 ;; The image a shared link is drawn with and the logo the landing page shows.
-;; It has to be an absolute address: the service drawing the card never loaded
-;; the page it describes.  The project's own logo is at a stable one, so a
-;; deployment that has put up no image of its own still shares as byggsteg.
+;; A deployment with a mark of its own names it here -- absolutely, since the
+;; service drawing a card never loaded the page the card describes, and a page
+;; that has its mark somewhere else is drawn with the one it named.
 (define deployment-logo-url
-  (make-parameter (deployment-setting
-                   "BYGGSTEG_LOGO_URL"
-                   "https://jointhefreeworld.org/static-assets/byggsteg/logo.png")))
+  (make-parameter (deployment-setting "BYGGSTEG_LOGO_URL" "")))
+
+(define (deployment-logo)
+  "The image a page draws as this deployment's mark.
+
+A deployment that named one (`BYGGSTEG_LOGO_URL') is drawn with it, and one
+that named nothing is drawn with the mark byggsteg ships -- which the
+deployment serves itself, like every other resource of its console (see
+`asset-url') -- so a page that shows a logo shows a logo rather than an empty
+frame, and a console that is nobody's in particular is still this project's."
+  (let ((named (deployment-logo-url)))
+    (if (and (string? named) (positive? (string-length named)))
+        named
+        (asset-url "/img/byggsteg-logo.png"))))
 
 ;; Where the software is read, and where its manual and its documentation are:
 ;; the three links every page's footer offers, and a fork points them at its own.
@@ -118,6 +133,58 @@ means the deployment did not say, not that it wants to be called nothing."
   (make-parameter (deployment-setting
                    "BYGGSTEG_DOCUMENTATION_URL"
                    "https://jointhefreeworld.org/manuals/byggsteg/")))
+
+;;; Where the console's own resources are served from
+;;;
+;;; The stylesheets, fonts, icons and logo a page of this console is built out
+;;; of are byggsteg's own files, kept under `pub/' and served by the deployment
+;;; that runs it -- which is what makes a deployment self-contained: no page
+;;; asks a search engine, a CDN or another website for anything, so a console
+;;; behind a firewall, on an intranet or on a machine that is simply offline
+;;; looks the way it was designed to.
+;;;
+;;; A deployment that keeps its assets somewhere else -- a cache, a CDN, an
+;;; object store -- names that host here, and every link to them is rewritten to
+;;; it.  Empty is the deployment's own address, and the links are then paths
+;;; (`/css/fonts.css'), which is also what a deployment behind a TLS terminator
+;;; wants: the reader's own host answers, in http or https as they arrived.
+(define asset-base-url
+  (make-parameter (deployment-setting "BYGGSTEG_ASSET_URL" "")))
+
+(define (asset-url path)
+  "PATH as this deployment serves it: its asset host, or its own address."
+  (let ((base (asset-base-url)))
+    (if (and (string? base) (positive? (string-length base)))
+        (string-append (string-trim-right base #\/) path)
+        path)))
+
+;;; The Lucida faces of the console, and whether it asks for them at all
+;;;
+;;; The console is read in Lucida Sans where a reader's system has it -- the
+;;; family is first in the `font-sans' stack of `pub/css/byggsteg.olive.min.css'
+;;; -- and the faces that stack falls back to are declared by a stylesheet of
+;;; the deployment's own, `pub/css/lucida.css', whose files a deployment fetches
+;;; into `pub/fonts/lucida' with `maak lucida-fonts'.  Lucida is proprietary: it
+;;; is not byggsteg's to give away, so the source ships no faces and each
+;;; deployment serves its own, from its own host, like every other resource of
+;;; its console (see `asset-url').
+;;;
+;;; This is the address of that stylesheet.  A deployment that keeps it -- or a
+;;; sheet of its own -- elsewhere names it here, and one that may not serve
+;;; these faces at all sets the variable to nothing,
+;;; `BYGGSTEG_LUCIDA_FONT_URL=', and no page of its console asks for Lucida: the
+;;; stack then reads in the Lucida Sans the reader's own system has, or in the
+;;; bundled Plus Jakarta Sans beside it.
+;;;
+;;; The empty value is read here rather than by `deployment-setting', which
+;;; takes an empty value for a deployment that did not say -- but this one has
+;;; been asked, and an answer of nothing is an answer.
+(define lucida-font-url
+  (make-parameter
+   (let ((set (getenv "BYGGSTEG_LUCIDA_FONT_URL")))
+     (if (string? set)
+         set
+         "/css/lucida.css"))))
 
 ;;; The address a deployment is reached at, as the pages it serves write links
 ;;;
