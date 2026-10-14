@@ -223,18 +223,18 @@ frame, and a console that is nobody's in particular is still this project's."
 ;; moment later, so the grace period is what keeps a sweep from removing a
 ;; tarball that is still being packed.
 (define artifact-sweep-grace-seconds
-  (make-parameter 3600))
+  (make-parameter 86400))
 
 ;; How often the queue worker looks for tarballs that no row names.
 (define artifact-sweep-interval
-  (make-parameter 3600))
+  (make-parameter 86400))
 
 ;; How long a finished run is kept, in days, counted from when it finished.  A
 ;; run older than this is removed whole: its tarballs, its log and the job
 ;; itself.  0 keeps every run for ever, which is the way to say that a deployment
 ;; prunes nothing.
 (define job-retention-days
-  (make-parameter 30))
+  (make-parameter 400))
 
 ;; How often the queue worker looks for runs that have outlived the retention.
 ;; A day is enough -- the age of a run changes once a second, and what is pruned
@@ -246,7 +246,7 @@ frame, and a console that is nobody's in particular is still this project's."
 ;; this many runs is pruned over several passes rather than in one long visit,
 ;; so the queue worker is never away from the queue for long.
 (define job-retention-batch
-  (make-parameter 100))
+  (make-parameter 300))
 
 ;; How many jobs one sweep may run at the same time.  Jobs are green threads on
 ;; one scheduler, so this is the number of jobs whose commands are in flight,
@@ -276,4 +276,4 @@ frame, and a console that is nobody's in particular is still this project's."
 
 ;; How many weeks the activity heatmap draws, counting back from today.
 (define activity-weeks
-  (make-parameter 53))
+  (make-parameter 50))
