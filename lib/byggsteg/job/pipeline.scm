@@ -269,17 +269,25 @@ was started in."
                                                           #:branch-name
                                                           branch-name)))
                                 '()))
-         (pipe-steps (list (lambda ()
-                             (map (lambda (task)
-                                    (run-pipeline-task #:project project
-                                                       #:branch-name
-                                                       branch-name
-                                                       #:task task
-                                                       #:daemon-name
-                                                       daemon-name
-                                                       #:env env
-                                                       #:trivial-cmds
-                                                       trivial-cmds)) tasks)))))
+         ;; One task is one step, rather than one step that runs the whole list.
+         ;;
+         ;; A single step wrapping the `map' below would run every task in the
+         ;; list before `run-steps' ever saw a result, so its circuit breaker --
+         ;; which stops at the first step that fails by not applying the steps
+         ;; behind it -- could never stop at a failed task: the tasks behind it
+         ;; had already run.  A byggsteg deployment of this project is exactly
+         ;; such a job, `maak-test' followed by `byggsteg-version' and
+         ;; `maak-deploy', and it used to deploy after its own tests had failed.
+         (pipe-steps (map (lambda (task)
+                            (lambda ()
+                              (run-pipeline-task #:project project
+                                                 #:branch-name branch-name
+                                                 #:task task
+                                                 #:daemon-name daemon-name
+                                                 #:env env
+                                                 #:trivial-cmds
+                                                 trivial-cmds)))
+                          tasks)))
     (append clone-steps sys-steps git-details-steps pipe-steps)))
 
 ;;;

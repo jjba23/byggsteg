@@ -18,6 +18,7 @@
 
 (define-module (app views logs)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg ansi)
   #:use-module (kracht prelude)
   #:use-module (byggsteg faces)
   #:use-module (kracht prelude)
@@ -32,7 +33,48 @@
   #:use-module (byggsteg html)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun)
-  #:export (log-page logs-page))
+  #:export (log-page logs-page log-output))
+
+(define* (log-output #:key log job (view 'output) (have #f)
+                     (frames-label "frames"))
+  "A job's output as the pane it is read in, and the state of the job that wrote it.
+
+The output is read two ways and a pane is one of them: `output' is the console
+the job printed -- the escapes read, the colours drawn, a line a program painted
+over itself arriving as the reading it ended on with the readings it passed
+through beside it -- and `raw' is the bytes the command sent, with the control
+characters spelled out (`(byggsteg ansi)', `ansi->raw-text'), which is what a
+reader looks at when they want to see what the command actually wrote rather
+than what a terminal made of it.
+
+A page following a running job asks for this again every few seconds, so the
+state of the job travels in the pane rather than beside it: whether the job is
+still writing, which is what tells the page whether to ask again at all.  HAVE
+is the length of the log row the reader was last sent, and a reader who already
+has the whole row is told that it has not changed rather than sent the output
+a second time to say so."
+  (let* ((escaped (if (string? (assq-ref log
+                                         'log-data))
+                      (assq-ref log
+                                'log-data) ""))
+         (output (html-unescape escaped))
+         (running? (equal? 1 (assq-ref job
+                                       'job-in-progress)))
+         (unchanged? (and have
+                          (equal? have (number->string (string-length escaped))))))
+    `((div (@ (data-log-running ,(if running? "true" "false"))
+              (data-log-length ,(number->string (string-length escaped))))
+           ;; A job that has printed nothing yet still has a pane: the reader is
+           ;; following it, and an empty frame is what there is to follow.
+           ,@(if unchanged?
+                 '()
+                 (list (terminal-pre (if (eq? view 'raw)
+                                         (html-escape (ansi->raw-text output))
+                                         output)
+                                     #:size '(text-sm md:text-md)
+                                     #:wrap? #f
+                                     #:ansi? (eq? view 'output)
+                                     #:frames-label frames-label)))))))
 
 (define* (log-page rc
                    #:key job
@@ -55,13 +97,13 @@
                            'id))
          (log-filename (text-from-db (assq-ref log
                                                'title)))
-         ;; `log_data' and `job_data' are written into the page through
-         ;; `text-from-db' as well, so a console line that prints a `<' is read
-         ;; as the character it is rather than opened as a tag.
-         (log-data (text-from-db (assq-ref log
-                                           'log-data)))
+         ;; `job_data' is written into the page through `text-from-db', so the
+         ;; expression of a job that prints a `<' is read as the character it is
+         ;; rather than opened as a tag.
          (detail-data (text-from-db (assq-ref job
                                               'job-data)))
+         ;; Whether the job is still writing its output, which is what says
+         ;; whether the page follows it and whether the pane says so.
          (in-progress (assq-ref job
                                 'job-in-progress))
          (G_ (:i18n rc))
@@ -189,10 +231,52 @@
                      ;; of build output with every line broken in the middle of
                      ;; it, and a reader who is following a command's line means
                      ;; to follow that line.  The pane scrolls sideways instead.
-                     ,(terminal-pre log-data
-                                    #:size '(text-sm md:text-md)
-                                    #:wrap? #f))))
-    
+                     ;;
+                     ;; The pane is the page's own: a job that is still running
+                     ;; has its output streamed into it (see
+                     ;; `pub/js/byggsteg-log.js', and `/logs/:id/output' for the
+                     ;; pane it asks for), and the two readings of the output --
+                     ;; the console and the bytes -- are chosen between beside
+                     ;; it, so a reader can read the log or look at what the
+                     ;; command sent.
+                     (section (@ (id "job-log")
+                                 (data-log-url ,(format #f
+                                               "/logs/~a/output"
+                                               log-id))
+                                 (data-log-running ,(if (equal? 1 in-progress)
+                                                        "true" "false"))
+                                 (class ,(mk-class '(flex flex-col gap-3
+                                                            my-4))))
+                              (div (@ (class ,(mk-class '(flex flex-row
+                                                          flex-wrap
+                                                          items-center
+                                                          gap-3))))
+                                   (button (@ (type "button")
+                                              (data-log-tab "output")
+                                              (aria-pressed "true")
+                                              (class ,(mk-class '(cursor-pointer
+                                                                  font-mono text-xs
+                                                                  uppercase
+                                                                  tracking-widest
+                                                                  text-asparagus-900
+                                                                  dark:text-asparagus-300))))
+                                           ,(G_ "rendered"))
+                                   (button (@ (type "button")
+                                              (data-log-tab "raw")
+                                              (aria-pressed "false")
+                                              (class ,(mk-class '(cursor-pointer
+                                                                  font-mono text-xs
+                                                                  uppercase
+                                                                  tracking-widest
+                                                                  text-asparagus-900
+                                                                  dark:text-asparagus-300))))
+                                           ,(G_ "raw bytes")))
+                              (div (@ (data-log-pane "output"))
+                                   ,(log-output #:log log
+                                                #:job job
+                                                #:frames-label (G_ "frames")))
+                              (div (@ (data-log-pane "raw")
+                                      (hidden "")))))))
     (html-template G_
                    #:title (format #f "byggsteg - ~a"
                                    (G_ "job log"))
@@ -203,12 +287,18 @@
                    #:robots "noindex, nofollow"
                    #:is-logged-in is-logged-in
                    #:body `((div (@ (class ,(page-body-class #:extra '(align-center))))
-                                 ,log-html))
-                   ;; A job that is still going is followed closely: the worker
-                   ;; streams its output into the log row in batches, and this is
-                   ;; how often a reader picks it up.
-                   #:should-auto-refresh (equal? 1 in-progress)
-                   #:auto-refresh-seconds 3)))
+                                 ,log-html)
+                            ;; A job that is still writing is followed by this
+                            ;; page's own script rather than by the page asking
+                            ;; for itself again: the output arrives in the pane
+                            ;; it is read in, drawn the way a terminal draws it,
+                            ;; and a reader keeps the place in the page they were
+                            ;; reading while it does (see
+                            ;; `pub/js/byggsteg-log.js').  The whole page was
+                            ;; reloaded for this before, which threw away both.
+                            (script (@ (type "text/javascript")
+                                       (src ,(asset-url "/js/byggsteg-log.js")))
+                                    "")))))
 
 (define* (logs-page #:key rc
                     jobs-of-logs

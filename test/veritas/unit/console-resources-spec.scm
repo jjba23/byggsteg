@@ -36,6 +36,7 @@
 
 (define-module (veritas unit console-resources-spec)
   #:use-module (veritas veritas)
+  #:use-module (veritas support deployment)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg html)
   ;; `sxml->xml-string' is Artanis' own writer, the one `(:mime rc ...)' puts a
@@ -91,7 +92,13 @@
 
 ;;; ====== The suite ======
 
-(define console-resources-suite
+;; The suite is declared inside `as-an-unnamed-deployment', because a page is
+;; read while the suite is being *declared* rather than while it runs.  Every
+;; reading below is therefore the page of a deployment that has named nothing --
+;; this project's own -- even where the machine running the suite is a
+;; deployment that has named an asset host, a public address or a sheet of its
+;; own.  The tests that name a deployment name it themselves.
+(define (console-resources-suite)
   (suite "the console's own appearance, served by the deployment itself"
          (test "no page of the console asks anybody else for it"
                #:shuffle? #f
@@ -188,4 +195,6 @@
                                                     face))) faces))))))
 
 (define (spec)
-  (veritas-run console-resources-suite))
+  (as-an-unnamed-deployment
+   (lambda ()
+     (veritas-run (console-resources-suite)))))

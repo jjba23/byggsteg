@@ -28,6 +28,7 @@
 ;; Light is a printed circuit diagram (green ink on paper) and dark is the
 ;; phosphor screen; both are the same terminal.
 (define-module (byggsteg faces)
+  #:use-module (byggsteg ansi)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 time)
@@ -571,8 +572,22 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 (define* (terminal-pre content
                        #:key (size '(text-sm))
                        (extra '())
-                       (wrap? #t))
-  (pre content
+                       (wrap? #t)
+                       ;; A job's console output is not plain text: it carries the
+                       ;; escapes a terminal reads -- colours, and a carriage
+                       ;; return a progress bar redraws its line with.  `#:ansi?'
+                       ;; says so, and `(byggsteg ansi)' turns the text into the
+                       ;; runs the pane is drawn with -- together with the
+                       ;; control that unfolds the readings a line a program
+                       ;; painted again was painted in.  Everything else here
+                       ;; is prose or code and is written as it stands.
+                       (ansi? #f)
+                       ;; What that control is labelled with: a word the page
+                       ;; translates, since this module is read in every
+                       ;; language the console is and knows none of them.
+                       (frames-label "frames"))
+  (pre (if ansi? (ansi->sxml content #:frames? #t #:frames-label frames-label)
+           content)
        #:color '(text-asparagus-900 dark:text-olive-100)
        #:background '(bg-stone-100 dark:bg-onyx-900)
        #:rounding '(rounded-none)

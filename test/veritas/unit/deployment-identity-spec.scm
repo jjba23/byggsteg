@@ -36,6 +36,7 @@
 
 (define-module (veritas unit deployment-identity-spec)
   #:use-module (veritas veritas)
+  #:use-module (veritas support deployment)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg html)
   #:use-module (app views about)
@@ -84,7 +85,14 @@
 
 ;;; ====== The suite ======
 
-(define deployment-identity-suite
+;; The suite is declared inside `as-an-unnamed-deployment', because a page is
+;; read while the suite is being *declared* rather than while it runs: the
+;; first test below is a reading of what this project's own deployment says, and
+;; it has to say it on a configured deployment as much as on a laptop.  The two
+;; tests that read a deployment that has named itself name it themselves, and
+;; one of them -- the mark and the sentence another deployment is drawn with --
+;; overrides a single setting of this project's own.
+(define (deployment-identity-suite)
   (suite "what a deployment calls itself"
          (test "an unnamed deployment is this project's own"
                #:shuffle? #f
@@ -174,4 +182,6 @@
                                 #:got "a build server of our own"))))
 
 (define (spec)
-  (veritas-run deployment-identity-suite))
+  (as-an-unnamed-deployment
+   (lambda ()
+     (veritas-run (deployment-identity-suite)))))

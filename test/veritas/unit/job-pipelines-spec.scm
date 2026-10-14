@@ -28,6 +28,16 @@
 ;;; after a failed one would report a green run for a build whose first stage
 ;;; never finished, so the failing case below reads the log of the job behind it
 ;;; rather than only the flags of the job that failed.
+;;;
+;;; The same stopping has to hold one level down, between the tasks of one job:
+;;; a job's `task' field may name a list of tasks, and those are the steps of
+;;; that job rather than several jobs.  The byggsteg deployment of byggsteg is
+;;; such a job -- `maak-test', then `byggsteg-version', then `maak-deploy' -- and
+;;; a task that failed used to leave the tasks behind it running, so a
+;;; deployment deployed after its own tests had failed.  Both failing cases are
+;;; read here -- the job behind a failure by its log, and the task behind one by
+;;; a file it would have written, since a task that runs behind a failure still
+;;; has its output dropped and would otherwise look as though it had never run.
 
 (define-module (veritas unit job-pipelines-spec)
   #:use-module (veritas veritas)
@@ -158,6 +168,55 @@
                 (stage (list second-stage-command)))
           #:created-at "2026-01-01 00:00:01")
 
+;; One *job* that asks for several *tasks*, the task behind a failed one of
+;; which must not run.  A job's `task' field may name a list of tasks, and those
+;; are the steps of that one job rather than several jobs, which is what the
+;; pipeline above does not read.
+;;
+;; The job this is written after is this project's own: the byggsteg deployment
+;; of byggsteg asks for `maak-test', then `byggsteg-version', then `maak-deploy',
+;; and a task that failed used to leave the tasks behind it running -- so a
+;; deployment deployed after its own tests had failed.
+;;
+;; The first task is one that works in the job's clone, and this job has none:
+;; the suite points the clone location at a directory that does not exist, so the
+;; task fails at its `cd' without reaching a network or a checkout.  The second
+;; is a `trivial' task, which is run only if the first one let it be.
+;;
+;; What the task behind the failure is read by is a file it writes, rather than
+;; the log: a task that runs after a failed one still has its output dropped --
+;; `run-steps' stops recording at the failure, not running -- so a deploy behind
+;; a failed test would have happened with nothing in the log to show it, which is
+;; the failure this test is about and the reason it reads the filesystem.
+(define later-task-marker
+  (string-append spec-db ".later-task-ran"))
+
+(define broken-tasks-job
+  "spec-broken-tasks")
+(enqueue! broken-tasks-job
+          (list (list (cons 'project "spec")
+                      (cons 'branch-name "trunk")
+                      (cons 'task (list "maak-test" "trivial"))
+                      (cons 'trivial-cmds
+                            (list (format #f "echo ran > ~a"
+                                          later-task-marker)))))
+          #:created-at "2026-01-01 00:00:04")
+
+;; One job that asks for two tasks, both of which run -- the other half of the
+;; reading below.  Each naming of a task is a step of its own, so a job that
+;; asks for two of them runs two tasks and not one; that both tasks of this job
+;; are the same task is a limit of what a spec can ask for without a clone, and
+;; what is read is that there are two steps rather than one.
+(define each-task-command
+  "echo BYGGSTEG-EACH-TASK")
+
+(define two-task-job
+  "spec-two-tasks")
+(enqueue! two-task-job
+          (list (list (cons 'task (list "trivial" "trivial"))
+                      (cons 'trivial-cmds (list each-task-command))))
+          #:created-at "2026-01-01 00:00:05")
+
 ;; One job, sent the way a request that asks for a single job sends it.
 (define one-stage-job
   "spec-one-stage")
@@ -261,6 +320,40 @@
           (list 'outcome
                 (outcome-flags broken-pipeline-job)))))
 
+(define (broken-tasks-readings)
+  "The tasks behind a failed one in the same job: which of them ran."
+  (if (file-exists? later-task-marker)
+      (delete-file later-task-marker) #t)
+  (run! broken-tasks-job)
+  (list (list 'the-failing-task-ran
+              (holds? (log-text broken-tasks-job) "maak test"))
+        (list 'the-task-behind-it-ran
+              (file-exists? later-task-marker))
+        (list 'outcome
+              (outcome-flags broken-tasks-job))))
+
+(define (lines-of text)
+  "TEXT as the lines it is made of."
+  (string-split text #\newline))
+
+(define (count-of-lines text line)
+  "How many lines of TEXT are exactly LINE.
+
+The lines are compared whole rather than searched for, so that a command
+announced in the log -- the line that carries it -- is not counted as the
+command having printed it."
+  (length (filter (lambda (each)
+                    (string=? each line)) (lines-of text))))
+
+(define (two-task-readings)
+  "Both tasks of a job that asks for two: each of them ran."
+  (run! two-task-job)
+  (let ((text (log-text two-task-job)))
+    (list (list 'how-many-tasks-ran
+                (count-of-lines text "BYGGSTEG-EACH-TASK"))
+          (list 'outcome
+                (outcome-flags two-task-job)))))
+
 (define (one-stage-readings)
   "A request that asks for one job is a pipeline of one."
   (run! one-stage-job)
@@ -351,6 +444,7 @@ it lives in."
                                    (if (file-exists? path)
                                        (delete-file path)))
                                  (append (list spec-db
+                                               later-task-marker
                                                (string-append spec-db "-wal")
                                                (string-append spec-db "-shm"))
                                          (map (lambda (name)
@@ -386,6 +480,21 @@ it lives in."
                 #:expect '((the-later-job-ran #f)
                            (outcome ("0" "0" "1")))
                 #:got (deferred 'broken-pipeline-readings)))
+         (test "a task that fails stops the tasks behind it in the same job"
+               #:shuffle? #f
+               (assert-equal #:name
+                "the task behind the failure did not run, and the job failed"
+                #:expect '((the-failing-task-ran #t)
+                           (the-task-behind-it-ran #f)
+                           (outcome ("0" "0" "1")))
+                #:got (deferred 'broken-tasks-readings)))
+         (test "every task of a job is run, and each is a step of its own"
+               #:shuffle? #f
+               (assert-equal #:name
+                "a job that asks for two tasks ran two, and the job passed"
+                #:expect '((how-many-tasks-ran 2)
+                           (outcome ("1" "0" "0")))
+                #:got (deferred 'two-task-readings)))
          (test "a pipeline of one job is a job"
                #:shuffle? #f
                (assert-equal #:name

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-19 16:01+0100\n"
+"POT-Creation-Date: 2026-10-14 15:09+0200\n"
 "PO-Revision-Date: 2025-01-18 01:28+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -18,67 +18,450 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ENTRY:50
+#: ENTRY:94
 msgid "initializing byggsteg queue worker"
 msgstr "inicializando el trabajador de cola de byggsteg"
 
-#: app/views/index.scm:39
+#: app/controllers/jobs.scm:80
+msgid "Job started successfully!"
+msgstr ""
+
+#: app/controllers/jobs.scm:83
+msgid "A new job has been started at byggsteg with id"
+msgstr ""
+
+#: app/controllers/login.scm:92
+msgid "You are now logged in successfully!"
+msgstr ""
+
+#: app/controllers/me.scm:158
+msgid "a password needs to be longer, or of more kinds of character"
+msgstr ""
+
+#: app/controllers/me.scm:160 app/views/me.scm:317 app/views/me.scm:345
+#, fuzzy
+msgid "a password needs"
+msgstr "contraseña"
+
+#: app/controllers/me.scm:201
+#, fuzzy
+msgid "Password reset"
+msgstr "contraseña"
+
+#: app/controllers/me.scm:203
+msgid "Password reset link sent"
+msgstr ""
+
+#: app/controllers/me.scm:205
+msgid "Could not send the password reset link"
+msgstr ""
+
+#: app/controllers/me.scm:209
+msgid "If that address has an account here, a reset link is on its way."
+msgstr ""
+
+#: app/controllers/me.scm:214
+msgid "Look in the inbox of"
+msgstr ""
+
+#: app/controllers/me.scm:219
+msgid "The mail service did not take it. Please try again in a moment."
+msgstr ""
+
+#: app/controllers/me.scm:272
+msgid "The two passwords did not match"
+msgstr ""
+
+#: app/controllers/me.scm:273
+msgid "Type the same password in both fields."
+msgstr ""
+
+#: app/controllers/me.scm:278
+msgid "That password is not strong enough"
+msgstr ""
+
+#: app/controllers/me.scm:306
+msgid "Your password has been reset"
+msgstr ""
+
+#: app/controllers/me.scm:308
+msgid "Sign in with the password you just chose."
+msgstr ""
+
+#: app/controllers/me.scm:444
+msgid "User created"
+msgstr ""
+
+#: app/controllers/me.scm:446
+msgid "User created, but the invitation could not be sent"
+msgstr ""
+
+#: app/controllers/me.scm:449
+msgid "A link to set a password has been sent to them."
+msgstr ""
+
+#: app/controllers/me.scm:451
+msgid ""
+"The account has no password yet: use reset password on it to send the "
+"invitation again."
+msgstr ""
+
+#: app/views/about.scm:133
+#, fuzzy
+msgid "read the source"
+msgstr "encuentra el código fuente aquí"
+
+#: app/views/about.scm:138
+msgid "read the manual"
+msgstr ""
+
+#: app/views/about.scm:143
+msgid "read the documentation"
+msgstr ""
+
+#: app/views/about.scm:170
+msgid "byggsteg --origin"
+msgstr ""
+
+#: app/views/about.scm:174
+msgid ""
+"the account of a build step: where this console came from, the framework it "
+"stands on, and why it was written to be extended rather than configured."
+msgstr ""
+
+#: app/views/about.scm:183
+msgid "the short version"
+msgstr ""
+
+#: app/views/about.scm:185
+msgid ""
+"byggsteg is the Norwegian word for a build step, and that is the size of the "
+"thing: one step, then the next, and then the one nobody has written yet. It "
+"is a continuous integration and delivery system written in Lisp, and it is "
+"made of five moving parts you can read, run and replace."
+msgstr ""
+
+#: app/views/about.scm:188
+msgid ""
+"a piece of Lisp that returns a plan: the project, the branch to take, where "
+"to clone it from and which tasks to run on it"
+msgstr ""
+
+#: app/views/about.scm:191
+msgid ""
+"one loop in one thread, taking whatever the queue holds and doing the steps "
+"the job asks for"
+msgstr ""
+
+#: app/views/about.scm:194
+msgid ""
+"written as the command prints it, so a run is read while it runs rather than "
+"once it is over"
+msgstr ""
+
+#: app/views/about.scm:197
+msgid ""
+"what a run leaves behind: kept where the deployment can serve it, and swept "
+"when it is no longer wanted"
+msgstr ""
+
+#: app/views/about.scm:200
+msgid ""
+"one SQLite file and one server on a machine of your own, under a licence "
+"that lets you take it apart"
+msgstr ""
+
+#: app/views/about.scm:206
+msgid "how byggsteg came to be"
+msgstr ""
+
+#: app/views/about.scm:208
+msgid ""
+"There is no first version of this page. Every delivery system is built "
+"twice: once by the people who had to deliver before it existed, and once "
+"more by whoever inherits the story. This is the second telling of "
+"byggsteg's, and it is shorter than the first."
+msgstr ""
+
+#: app/views/about.scm:210
+msgid ""
+"Before byggsteg, a release was a ritual performed by hand. A person signed "
+"in to a machine, pulled a branch, built it, restarted a service, and "
+"watched. It worked. It always works, for one person, on one machine, at the "
+"hour that person happens to be awake. What it could not do was remember what "
+"it had done, and what it could not say was why it had failed."
+msgstr ""
+
+#: app/views/about.scm:212
+msgid ""
+"Then two people met, and a door appeared where a wall had stood. Mu Lei, "
+"known as NalaGinrut, showed Josep Bigorra, known as jjba23, GNU Artanis, and "
+"with the framework came a whole new world of possibilities: pages that are "
+"lists, routes that are procedure calls, and a place to put everything a "
+"deployment believes about itself. This console is what grew in that world."
+msgstr ""
+
+#: app/views/about.scm:214
+msgid ""
+"The framework itself came out of a question. At GNU, the project was "
+"choosing a language for its own website, and many of the answers were "
+"Python. That struck NalaGinrut as strange, because the official extension "
+"language of GNU is Guile; so he asked instead why nobody had begun a project "
+"to write the web in it. RMS agreed it was a good idea. For a while it was "
+"only an idea, without a plan. Then the Guile community held a hack-potluck "
+"to celebrate Guile 2 turning two — a contest to write something cool in a "
+"few weeks — and the framework was born there, in February 2013. It was "
+"entered in the Lisp in Summer Projects contest and certified an awesome "
+"project; the first stable release arrived on the first of January, 2015; and "
+"on the nineteenth of that month it was offered to the FSF, where RMS "
+"inducted it as an official GNU project. That is the ground this console "
+"stands on."
+msgstr ""
+
+#: app/views/about.scm:216
+msgid ""
+"And so byggsteg was written in that world and named in another. It is a "
+"build step, and only a build step: not a platform, not a shelf, not a "
+"product with a feature list. The smallest thing that can be asked of a "
+"delivery is the thing it was built to answer."
+msgstr ""
+
+#: app/views/about.scm:222
+msgid "the world that Artanis opened"
+msgstr ""
+
+#: app/views/about.scm:224
+msgid ""
+"It is worth saying plainly what was handed over, because it was not a "
+"library so much as a country with its borders left open."
+msgstr ""
+
+#: app/views/about.scm:227
+msgid ""
+"a page is announced as a method and a path, and the answer is a procedure of "
+"your own"
+msgstr ""
+
+#: app/views/about.scm:230
+msgid ""
+"SXML: the page you are reading is a list, built by Scheme, in the same "
+"language as the job it describes"
+msgstr ""
+
+#: app/views/about.scm:233
+msgid ""
+"translation is part of the framework, which is why this deployment answers "
+"in English, Dutch, Spanish and Japanese"
+msgstr ""
+
+#: app/views/about.scm:236
+msgid ""
+"mime types, cookies, static files and a page of its own for each status "
+"code: a frame a deployment hangs its own chrome on"
+msgstr ""
+
+#: app/views/about.scm:239
+msgid ""
+"the whole console is one process started from one configuration file, with "
+"no container between you and it"
+msgstr ""
+
+#: app/views/about.scm:241
+msgid ""
+"Of all of it, one sentence did the most work: a page in Artanis is a list, "
+"and a list is a program. A system whose interface is a list is a system "
+"whose interface can be computed, and a system whose interface can be "
+"computed is one nobody has to wait for permission to change."
+msgstr ""
+
+#: app/views/about.scm:262
+msgid "an infinitely extensible system"
+msgstr ""
+
+#: app/views/about.scm:264
+msgid ""
+"Most continuous integration systems are shelves. You take a step down from "
+"the shelf, put it in the order the shelf expects, and configure it. A shelf "
+"is useful, and a shelf is also a ceiling: what it cannot hold, you cannot do."
+msgstr ""
+
+#: app/views/about.scm:266
+msgid ""
+"byggsteg was built the other way round — it is a library with a page on top "
+"— and the library has three doors in it, one for each thing a delivery is "
+"made of."
+msgstr ""
+
+#: app/views/about.scm:269
+msgid ""
+"a thunk returning an alist, so a pipeline is a value your own program can "
+"compute, save as a profile, or send from a phone"
+msgstr ""
+
+#: app/views/about.scm:272
+msgid ""
+"the worker looks the name up and runs the clause that answers to it; "
+"teaching byggsteg a new verb is adding a clause, not inventing a plugin "
+"protocol"
+msgstr ""
+
+#: app/views/about.scm:275
+msgid ""
+"it is handed the clone directory, announces what it is doing in the log as "
+"it does it, and answers with a result — and the trivial task is the door "
+"left open for the day a deployment wants something nobody has written yet"
+msgstr ""
+
+#: app/views/about.scm:278
+msgid ""
+"Nothing in it is finished in the sense of closed. The set of things byggsteg "
+"can do is not a list of features somebody chose in advance; it is the set of "
+"things the person running it can write down. That is what an infinitely "
+"extensible CI/CD system means — not a system with infinite features, but a "
+"system whose next feature is a definition."
+msgstr ""
+
+#: app/views/about.scm:284
+msgid "who made what"
+msgstr ""
+
+#: app/views/about.scm:286
+msgid ""
+"Every file of byggsteg carries two copyright lines, and they are the story "
+"told plainly: the orchestrator and the framework it is served from, the "
+"maintainer who wrote one and the engineer who wrote the other."
+msgstr ""
+
+#: app/views/about.scm:289
+msgid ""
+"Josep Bigorra (@jjba23): the orchestrator, its pages, and hygguile, the "
+"interface library they are built from"
+msgstr ""
+
+#: app/views/about.scm:292
+msgid ""
+"Mu Lei (@NalaGinrut): the framework every page of this deployment is served "
+"from, and the second name on each file of this repository"
+msgstr ""
+
+#: app/views/about.scm:295
+msgid ""
+"the language both of them are written in, and the reason a job can be data"
+msgstr ""
+
+#: app/views/about.scm:298
+msgid ""
+"the utility stylesheet the terminal is dressed in, also by @jjba23, under "
+"the LGPL"
+msgstr ""
+
+#: app/views/about.scm:301
+msgid ""
+"the manifest that pins the toolchain, so that a build here is a build "
+"wherever the pipeline runs"
+msgstr ""
+
+#: app/views/about.scm:304
+msgid ""
+"the file that remembers, the task runner, and the editor the whole of it was "
+"written in"
+msgstr ""
+
+#: app/views/about.scm:306
+msgid ""
+"byggsteg is free software under the GNU Affero General Public License, "
+"either version 3 or later. Take it, run it on your own machine, read it, "
+"break it, and add the step it is missing: that is the door this page is "
+"about."
+msgstr ""
+
+#: app/views/about.scm:333 lib/byggsteg/html.scm:431 lib/byggsteg/html.scm:594
+msgid "about"
+msgstr ""
+
+#: app/views/about.scm:335
+msgid ""
+"How byggsteg came to be: how NalaGinrut showed Josep Bigorra the world GNU "
+"Artanis opened, and why byggsteg is an infinitely extensible CI/CD system -- "
+"a job is data, a task is a name, and a step is a procedure you write"
+msgstr ""
+
+#: app/views/activity.scm:121
+msgid "job runs"
+msgstr ""
+
+#: app/views/activity.scm:190
+msgid "a calendar of the days jobs ran on"
+msgstr ""
+
+#: app/views/activity.scm:203
+msgid "fewer"
+msgstr ""
+
+#: app/views/activity.scm:210
+msgid "more"
+msgstr ""
+
+#: app/views/activity.scm:221 app/views/activity.scm:247
+#: lib/byggsteg/html.scm:403
+msgid "activity"
+msgstr ""
+
+#: app/views/activity.scm:227
+msgid "no job has run in this deployment yet"
+msgstr ""
+
+#: app/views/activity.scm:229
+msgid "job runs, week by week"
+msgstr ""
+
+#: app/views/activity.scm:233
+msgid "busiest day"
+msgstr ""
+
+#: app/views/activity.scm:236
+msgid "weeks shown"
+msgstr ""
+
+#: app/views/activity.scm:244
+msgid "each square is one day; darker means more jobs were queued that day"
+msgstr ""
+
+#: app/views/activity.scm:249
+msgid ""
+"A year of runs this byggsteg deployment has executed, drawn as a heatmap: "
+"one square per day, darker where more jobs were queued"
+msgstr ""
+
+#: app/views/index.scm:63
 msgid "job types"
 msgstr "tipos de trabajo"
 
-#: app/views/index.scm:45
-msgid "Haskell project build and test with Stack + Hackage bundle"
-msgstr "Construir proyecto Haskell y testear con Stack + Hackage bundle"
+#: app/views/index.scm:68
+msgid "Run test suite with Maak or Make"
+msgstr ""
 
-#: app/views/index.scm:49
-msgid "Haskell project build with Stack + Hackage bundle"
-msgstr "Construir proyecto Haskell con Stack + Hackage bundle"
-
-#: app/views/index.scm:53
-msgid "Nix build (flake)"
-msgstr "Construir Nix (flake)"
-
-#: app/views/index.scm:57
-msgid "Byggsteg pull and restart GNU Shepherd daemon itself"
-msgstr "Actualiza byggsteg y reinicia el daemon GNU Shepherd del mismo"
-
-#: app/views/index.scm:61
+#: app/views/index.scm:74
 msgid "Git pull and restart wanted GNU Shepherd service"
 msgstr "Git pull y reinicia el servicio GNU Shepherd deseado"
 
-#: app/views/index.scm:65
-msgid "Git pull and run a make deploy"
-msgstr "Git pull y haz un make deploy"
-
-#: app/views/index.scm:69
-msgid "Scala project test with SBT"
-msgstr "Testea proyecto Scala con SBT"
-
-#: app/views/index.scm:72 app/views/index.scm:76 app/views/index.scm:81
-msgid ""
-"As a fallback, if no other task matches are found, byggsteg will default to "
-"doing a make build."
+#: app/views/index.scm:82
+msgid "Run a deploy with Maak or Make"
 msgstr ""
-"Como último recurso, si no se encuentra un match, byggsteg hará por "
-"defectoun make build"
 
-#: app/views/index.scm:73 app/views/index.scm:78
+#: app/views/index.scm:90
+msgid "Run a build with Maak or Make (make-build is the fallback task)"
+msgstr ""
+
+#: app/views/index.scm:96
+msgid "Byggsteg pull and restart GNU Shepherd daemon itself"
+msgstr "Actualiza byggsteg y reinicia el daemon GNU Shepherd del mismo"
+
+#: app/views/index.scm:101
 msgid "Allow passing arbitrary list of commands (via trivial-cmds field)"
 msgstr "Permite pasar una lista de instrucciones (con el campo trivial-cmds)"
 
-#: app/views/index.scm:73
-msgid "Scala project test with SBT, testcontainers and Podman"
-msgstr "Testea proyecto Scala con SBT, testcontainers y Podman"
-
-#: app/views/index.scm:77 app/views/index.scm:78 app/views/index.scm:80
-#: app/views/index.scm:81 app/views/index.scm:85 app/views/index.scm:86
-#: app/views/index.scm:87 app/views/index.scm:88 app/views/index.scm:92
-#: app/views/index.scm:96 app/views/index.scm:98
-msgid "welcome to byggsteg"
-msgstr "bienvenid@ a byggsteg"
-
-#: app/views/index.scm:85 app/views/index.scm:89 app/views/index.scm:93
-#: app/views/index.scm:95 app/views/index.scm:97
+#: app/views/index.scm:131
 msgid ""
 "byggsteg aims to be the hackable continuous integration and delivery system, "
 "allowing engineers to deliver software quicker and with less friction"
@@ -87,138 +470,453 @@ msgstr ""
 "delivery hackeable, haciendo posible a ingenieros a sacar y publicar "
 "software más rapido y con menos fricción"
 
-#: app/views/jobs.scm:41 app/views/jobs.scm:67 lib/byggsteg/html.scm:82
-#: lib/byggsteg/html.scm:85
+#: app/views/index.scm:140
+#, fuzzy
+msgid "byggsteg"
+msgstr "iniciar sesión en byggsteg"
+
+#: app/views/index.scm:168
+msgid "a pipeline"
+msgstr ""
+
+#: app/views/index.scm:182
+msgid "welcome to byggsteg"
+msgstr "bienvenid@ a byggsteg"
+
+#: app/views/index.scm:184
+msgid ""
+"byggsteg is a hackable, extensible CI/CD orchestrator written in Guile "
+"Scheme: write a pipeline as Lisp, watch its log while it runs, and host the "
+"whole system yourself"
+msgstr ""
+
+#: app/views/jobs.scm:39 app/views/jobs.scm:47 lib/byggsteg/html.scm:418
 msgid "run job"
 msgstr "empezar trabajo"
 
-#: app/views/jobs.scm:47 lib/byggsteg/html.scm:150 lib/byggsteg/html.scm:156
-#: lib/byggsteg/html.scm:157 lib/byggsteg/html.scm:164
-msgid "learn writing a byggsteg pipeline"
-msgstr "aprende a escribir una byggsteg pipeline"
+#: app/views/login.scm:43 app/views/me.scm:147 app/views/me.scm:431
+#: app/views/me.scm:523
+msgid "email"
+msgstr ""
 
-#: app/views/jobs.scm:61 lib/byggsteg/html.scm:149 lib/byggsteg/html.scm:164
-#: lib/byggsteg/html.scm:170 lib/byggsteg/html.scm:171
-#: lib/byggsteg/html.scm:178
-msgid "submit"
-msgstr "hecho"
-
-#: app/views/login.scm:39
-msgid "login to byggsteg"
-msgstr "iniciar sesión en byggsteg"
-
-#: app/views/login.scm:47 app/views/login.scm:48
-msgid "username"
-msgstr "usuario"
-
-#: app/views/login.scm:53 app/views/login.scm:54
+#: app/views/login.scm:48
 msgid "password"
 msgstr "contraseña"
 
-#: app/views/login.scm:59 app/views/login.scm:60 lib/byggsteg/html.scm:89
-#: lib/byggsteg/html.scm:94
+#: app/views/login.scm:53 app/views/login.scm:75 app/views/me.scm:131
 msgid "login"
 msgstr "inicia sesión"
 
-#: app/views/logs.scm:46 app/views/logs.scm:52 app/views/logs.scm:146
-#: app/views/logs.scm:152 lib/byggsteg/html.scm:176 lib/byggsteg/html.scm:182
-#: lib/byggsteg/html.scm:183 lib/byggsteg/html.scm:190
-msgid "job succeeded"
-msgstr "trabajo completado"
+#: app/views/login.scm:65
+msgid "account to reset (email)"
+msgstr ""
 
-#: app/views/logs.scm:49 app/views/logs.scm:55 app/views/logs.scm:149
-#: app/views/logs.scm:155 lib/byggsteg/html.scm:179 lib/byggsteg/html.scm:185
-#: lib/byggsteg/html.scm:186 lib/byggsteg/html.scm:193
-msgid "job failed"
-msgstr "trabajo falló"
+#: app/views/login.scm:72 app/views/me.scm:398
+msgid "reset"
+msgstr ""
 
-#: app/views/logs.scm:51 app/views/logs.scm:57 app/views/logs.scm:151
-#: app/views/logs.scm:157 lib/byggsteg/html.scm:181 lib/byggsteg/html.scm:187
-#: lib/byggsteg/html.scm:188 lib/byggsteg/html.scm:195
-msgid "job in progress"
-msgstr "trabajo activo"
+#: app/views/login.scm:77
+msgid ""
+"Log in to this byggsteg deployment to run jobs and profiles, follow a "
+"running job's log, and manage the users and their permissions"
+msgstr ""
 
-#: app/views/logs.scm:73 app/views/profiles.scm:83 app/views/profiles.scm:84
+#: app/views/login.scm:96
+msgid "login to byggsteg"
+msgstr "iniciar sesión en byggsteg"
+
+#: app/views/login.scm:105 app/views/me.scm:126
+#, fuzzy
+msgid "reset password"
+msgstr "contraseña"
+
+#: app/views/logs.scm:139 app/views/me.scm:170 app/views/profiles.scm:136
 msgid "delete"
 msgstr "borrar"
 
-#: app/views/logs.scm:77 app/views/logs.scm:79 app/views/logs.scm:80
-msgid "viewing logs"
-msgstr "viendo registros"
+#: app/views/logs.scm:158
+msgid "time taken"
+msgstr ""
 
-#: app/views/logs.scm:93 app/views/logs.scm:94
+#: app/views/logs.scm:167
 msgid "started at"
 msgstr "empezó en"
 
-#: app/views/logs.scm:101 app/views/logs.scm:104
+#: app/views/logs.scm:173
 msgid "updated at"
 msgstr "actualizado en"
 
-#: app/views/profiles.scm:44 app/views/profiles.scm:45
-msgid "profile details"
-msgstr "detalles del perfil"
+#: app/views/logs.scm:178
+msgid "log uuid"
+msgstr ""
 
-#: app/views/profiles.scm:66 app/views/profiles.scm:67
-msgid "start new job"
-msgstr "empezar trabajo"
+#: app/views/logs.scm:226
+msgid "inspect the job's lambda expression"
+msgstr ""
 
-#: app/views/profiles.scm:98 app/views/profiles.scm:99
-msgid "save"
-msgstr "guardar"
+#: app/views/logs.scm:263
+msgid "rendered"
+msgstr "renderizado"
 
-#: app/views/profiles.scm:104 app/views/profiles.scm:106
-#: lib/byggsteg/html.scm:87 lib/byggsteg/html.scm:91
-msgid "new profile"
-msgstr "perfil nuevo"
+#: app/views/logs.scm:273
+msgid "raw bytes"
+msgstr "bytes sin procesar"
 
-#: app/views/profiles.scm:112 app/views/profiles.scm:116
-#: lib/byggsteg/html.scm:83 lib/byggsteg/html.scm:85 lib/byggsteg/html.scm:88
-msgid "profiles"
-msgstr "perfiles"
+#: app/views/logs.scm:277
+msgid "frames"
+msgstr "fotogramas"
 
-#: lib/byggsteg/html.scm:80 lib/byggsteg/html.scm:82
+#: app/views/logs.scm:282
+msgid "job log"
+msgstr ""
+
+#: app/views/logs.scm:328
+msgid "previous"
+msgstr ""
+
+#: app/views/logs.scm:336
+msgid "next"
+msgstr ""
+
+#: app/views/logs.scm:340 app/views/logs.scm:352 app/views/search.scm:176
+#: lib/byggsteg/html.scm:413
 msgid "logs"
 msgstr "registros"
 
-#: lib/byggsteg/html.scm:93 lib/byggsteg/html.scm:95 lib/byggsteg/html.scm:100
-#: lib/byggsteg/html.scm:102
-msgid "byggsteg is the hackable Guile CI/CD system"
-msgstr "byggsteg es el sistema CI/CD Guile hackeable"
-
-#: lib/byggsteg/html.scm:96 lib/byggsteg/html.scm:98 lib/byggsteg/html.scm:103
-#: lib/byggsteg/html.scm:106
-msgid "byggsteg is free software, available under the GNU AGPL v3 or newer"
-msgstr ""
-"byggsteg es software gratuito, disponible sobre la licencia GNU AGPL v3 o mas "
-"nueva"
-
-#: lib/byggsteg/html.scm:102 lib/byggsteg/html.scm:107
-#: lib/byggsteg/html.scm:110
-msgid "find the source code here"
-msgstr "encuentra el código fuente aquí"
-
-#: lib/byggsteg/html.scm:107 lib/byggsteg/html.scm:112
-#: lib/byggsteg/html.scm:115
-msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS"
-msgstr ""
-"hecho posible gracias a Guile Scheme, GNU Artanis, GNU Guix, OliveCSS"
-
-#: lib/byggsteg/html.scm:110 lib/byggsteg/html.scm:115
-#: lib/byggsteg/html.scm:118
-msgid "Copyright © 2025 - Josep Bigorra (jjba23) & NalaGinrut"
+#: app/views/logs.scm:354
+msgid ""
+"The runs this byggsteg deployment has executed, newest first, each with its "
+"status and the artifacts it collected"
 msgstr ""
 
-#: lib/byggsteg/html.scm:111 lib/byggsteg/html.scm:113
-#: lib/byggsteg/html.scm:118 lib/byggsteg/html.scm:121
-msgid "byggsteg means “build step” in Norwegian."
-msgstr "byggsteg significa “etapa de construcción” en Noruego"
+#: app/views/me.scm:52
+msgid "my unique id:"
+msgstr ""
 
-#: lib/byggsteg/html.scm:119 lib/byggsteg/html.scm:125
-#: lib/byggsteg/html.scm:132
+#: app/views/me.scm:62
+msgid "my permissions (in database):"
+msgstr ""
+
+#: app/views/me.scm:73
+msgid "current session permissions (in token):"
+msgstr ""
+
+#: app/views/me.scm:80
+msgid ""
+"tip: if your session permissions don't match the DB consider logging out and "
+"logging in again"
+msgstr ""
+
+#: app/views/me.scm:86
+msgid "logged in until"
+msgstr ""
+
+#: app/views/me.scm:93
+msgid "me"
+msgstr ""
+
+#: app/views/me.scm:114
+msgid "go to user management"
+msgstr ""
+
+#: app/views/me.scm:119
+msgid "logout"
+msgstr ""
+
+#: app/views/me.scm:141 app/views/me.scm:427 app/views/me.scm:516
+msgid "username"
+msgstr "usuario"
+
+#: app/views/me.scm:152
+msgid "id"
+msgstr ""
+
+#: app/views/me.scm:158
+msgid "permissions"
+msgstr ""
+
+#: app/views/me.scm:175
+msgid "are you sure you want to delete this user?"
+msgstr ""
+
+#: app/views/me.scm:184 app/views/me.scm:553
+msgid "edit"
+msgstr ""
+
+#: app/views/me.scm:193
+#, fuzzy
+msgid "user management"
+msgstr "usuario"
+
+#: app/views/me.scm:198
+msgid "User management"
+msgstr ""
+
+#: app/views/me.scm:204 app/views/me.scm:409
+msgid "new user"
+msgstr ""
+
+#: app/views/me.scm:228 app/views/me.scm:331
+msgid "empty"
+msgstr ""
+
+#: app/views/me.scm:229
+msgid "weak"
+msgstr ""
+
+#: app/views/me.scm:230
+msgid "fair"
+msgstr ""
+
+#: app/views/me.scm:231
+msgid "good"
+msgstr ""
+
+#: app/views/me.scm:232
+msgid "strong"
+msgstr ""
+
+#: app/views/me.scm:326
+#, fuzzy
+msgid "password strength"
+msgstr "contraseña"
+
+#: app/views/me.scm:354 app/views/me.scm:361
+msgid "Reset your password"
+msgstr ""
+
+#: app/views/me.scm:365
+msgid "perform a password reset for"
+msgstr ""
+
+#: app/views/me.scm:383
+#, fuzzy
+msgid "new password"
+msgstr "contraseña"
+
+#: app/views/me.scm:390
+#, fuzzy
+msgid "confirm password"
+msgstr "contraseña"
+
+#: app/views/me.scm:414
+msgid "New User"
+msgstr ""
+
+#: app/views/me.scm:441
+msgid ""
+"the account is created without a password, and a link to set one is sent to "
+"the address above"
+msgstr ""
+
+#: app/views/me.scm:443 app/views/me.scm:531
+msgid "user permissions"
+msgstr ""
+
+#: app/views/me.scm:452
+msgid "create"
+msgstr ""
+
+#: app/views/me.scm:490
+msgid "edit user"
+msgstr ""
+
+#: app/views/me.scm:497
+msgid "Edit User"
+msgstr ""
+
+#: app/views/profiles.scm:59 lib/byggsteg/html.scm:669
 msgid "profile name"
 msgstr "nombre del perfil"
 
-#: lib/byggsteg/job/pipeline.scm:153 lib/byggsteg/job/pipeline.scm:156
-#: lib/byggsteg/job/pipeline.scm:158 lib/byggsteg/job/pipeline.scm:160
+#: app/views/profiles.scm:63
+#, fuzzy
+msgid "profile code"
+msgstr "nombre del perfil"
+
+#: app/views/profiles.scm:85
+msgid "save"
+msgstr "guardar"
+
+#: app/views/profiles.scm:90
+msgid "profile details"
+msgstr "detalles del perfil"
+
+#: app/views/profiles.scm:115
+msgid "start new job"
+msgstr "empezar trabajo"
+
+#: app/views/profiles.scm:155
+#, fuzzy
+msgid "profile"
+msgstr "perfiles"
+
+#: app/views/profiles.scm:157
+msgid "the saved byggsteg job"
+msgstr ""
+
+#: app/views/profiles.scm:171 app/views/profiles.scm:178
+#: app/views/profiles.scm:212
+msgid "new profile"
+msgstr "perfil nuevo"
+
+#: app/views/profiles.scm:188 app/views/profiles.scm:195
+#: app/views/search.scm:182 lib/byggsteg/html.scm:423
+msgid "profiles"
+msgstr "perfiles"
+
+#: app/views/profiles.scm:190
+msgid ""
+"The jobs this byggsteg deployment has saved as profiles, each ready to run "
+"again"
+msgstr ""
+
+#: app/views/search.scm:77
+msgid "no matches"
+msgstr ""
+
+#: app/views/search.scm:80
+msgid "matches"
+msgstr ""
+
+#: app/views/search.scm:147 app/views/search.scm:190 lib/byggsteg/html.scm:408
+#: lib/byggsteg/html.scm:901
+msgid "search"
+msgstr ""
+
+#: app/views/search.scm:159
+msgid "search the jobs, logs and profiles of this deployment"
+msgstr ""
+
+#: app/views/search.scm:161
+msgid "nothing matched"
+msgstr ""
+
+#: app/views/search.scm:164
+msgid "matches across the jobs, logs and profiles"
+msgstr ""
+
+#: app/views/search.scm:167
+msgid "jobs"
+msgstr ""
+
+#: app/views/search.scm:192
+msgid "Search this byggsteg deployment's jobs, logs and profiles"
+msgstr ""
+
+#: lib/byggsteg/html.scm:579
+msgid "source"
+msgstr ""
+
+#: lib/byggsteg/html.scm:584
+msgid "manual"
+msgstr ""
+
+#: lib/byggsteg/html.scm:589
+msgid "documentation"
+msgstr ""
+
+#: lib/byggsteg/html.scm:609
+msgid "back to the top"
+msgstr ""
+
+#: lib/byggsteg/html.scm:621
+msgid "© Josep Bigorra & NalaGinrut -- AGPL-3.0-or-later"
+msgstr ""
+
+#: lib/byggsteg/html.scm:628
+msgid "version:"
+msgstr ""
+
+#: lib/byggsteg/html.scm:749
+msgid "learn writing a byggsteg pipeline"
+msgstr "aprende a escribir una byggsteg pipeline"
+
+#: lib/byggsteg/html.scm:761
+#, fuzzy
+msgid "job code"
+msgstr "trabajo completado"
+
+#: lib/byggsteg/html.scm:765
+msgid "submit"
+msgstr "hecho"
+
+#: lib/byggsteg/html.scm:779
+msgid "job succeeded"
+msgstr "trabajo completado"
+
+#: lib/byggsteg/html.scm:783
+msgid "job failed"
+msgstr "trabajo falló"
+
+#: lib/byggsteg/html.scm:787
+msgid "job in progress"
+msgstr "trabajo activo"
+
+#: lib/byggsteg/html.scm:792
+#, fuzzy
+msgid "job queued"
+msgstr "trabajo completado"
+
+#: lib/byggsteg/html.scm:872
+msgid "download"
+msgstr ""
+
+#: lib/byggsteg/html.scm:884
+msgid "artifacts"
+msgstr ""
+
+#: lib/byggsteg/html.scm:896
+msgid "search jobs, logs and profiles"
+msgstr ""
+
+#: lib/byggsteg/html.scm:900
+msgid "a project, a branch, a word from a log"
+msgstr ""
+
+#: lib/byggsteg/job/pipeline.scm:412
 msgid "starting new job"
 msgstr "empezar trabajo"
+
+#~ msgid "Haskell project build and test with Stack + Hackage bundle"
+#~ msgstr "Construir proyecto Haskell y testear con Stack + Hackage bundle"
+
+#~ msgid "Haskell project build with Stack + Hackage bundle"
+#~ msgstr "Construir proyecto Haskell con Stack + Hackage bundle"
+
+#~ msgid "Nix build (flake)"
+#~ msgstr "Construir Nix (flake)"
+
+#~ msgid "Git pull and run a make deploy"
+#~ msgstr "Git pull y haz un make deploy"
+
+#~ msgid "Scala project test with SBT"
+#~ msgstr "Testea proyecto Scala con SBT"
+
+#~ msgid ""
+#~ "As a fallback, if no other task matches are found, byggsteg will default "
+#~ "to doing a make build."
+#~ msgstr ""
+#~ "Como último recurso, si no se encuentra un match, byggsteg hará por "
+#~ "defectoun make build"
+
+#~ msgid "Scala project test with SBT, testcontainers and Podman"
+#~ msgstr "Testea proyecto Scala con SBT, testcontainers y Podman"
+
+#~ msgid "viewing logs"
+#~ msgstr "viendo registros"
+
+#~ msgid "byggsteg is the hackable Guile CI/CD system"
+#~ msgstr "byggsteg es el sistema CI/CD Guile hackeable"
+
+#~ msgid "byggsteg is free software, available under the GNU AGPL v3 or newer"
+#~ msgstr ""
+#~ "byggsteg es software gratuito, disponible sobre la licencia GNU AGPL v3 o "
+#~ "mas nueva"
+
+#~ msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS"
+#~ msgstr ""
+#~ "hecho posible gracias a Guile Scheme, GNU Artanis, GNU Guix, OliveCSS"
+
+#~ msgid "byggsteg means “build step” in Norwegian."
+#~ msgstr "byggsteg significa “etapa de construcción” en Noruego"

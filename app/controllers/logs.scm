@@ -116,3 +116,41 @@
                                                ;; or neither.
                                                #:permissions (session-permissions
                                                               rc)))))))))
+
+;; The pane a job's output is read in, on its own.
+;;
+;; A page following a running job asks for this again every few seconds rather
+;; than for the page: the output arrives where the reader is reading it, drawn
+;; the way a terminal draws it, and the rest of the page -- the status, the
+;; artifacts, the expression the job runs -- is answered once and left alone.
+;;
+;; What is asked for is one of the two readings of the output -- the console, or
+;; the bytes with the control characters spelled out -- and what comes back is
+;; the pane with the state of the job in it (see `log-output').  A reader that
+;; already has the whole log says so, and is told that it has not changed rather
+;; than sent megabytes of build output to say the same thing.
+(get "/logs/:id/output"
+     #:mime 'xml
+     #:i18n '(cookie "lang")
+     (lambda (rc)
+       (let* ((log-repo (make-sqlite-log-repository))
+              (job-repo (make-sqlite-job-repository))
+              (l (get-log-by-id log-repo
+                                (params rc "id"))))
+         ;; A log that is not there has no pane either: the path names one log
+         ;; or it names none, which is the answer the log's own page gives.
+         (if (not l)
+             (response-emit (error-page 404)
+                            #:status 404
+                            #:headers '((content-type text/html)))
+             (let* ((j (get-job-by-id job-repo (assoc-ref l
+                                                          'job-id)))
+                    (view (if (equal? "raw" (get-from-qstr rc "view"))
+                              'raw 'output)))
+               (response-emit (:mime rc (log-output #:log l
+                                                    #:job j
+                                                    #:view view
+                                                    #:have (get-from-qstr rc
+                                                                          "have")
+                                                    #:frames-label ((:i18n rc)
+                                                                    "frames")))))))))

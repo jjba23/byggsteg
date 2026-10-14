@@ -369,7 +369,7 @@ its own -- is asked for as it stands."
 (define nav-button-size
   '(text-sm md:text-md))
 (define nav-button-icon-css
-  '(text-onyx-300 dark:text-stone-100 hidden sm:inline text-sm md:text-md))
+  '(text-asparagus-300 dark:text-asparagus-100 hidden sm:inline text-sm md:text-md))
 (define nav-button-classes
   '(py-1 px-1
          sm:px-2

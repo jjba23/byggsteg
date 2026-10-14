@@ -33,6 +33,7 @@
 
 (define-module (veritas unit error-pages-spec)
   #:use-module (veritas veritas)
+  #:use-module (veritas support deployment)
   #:use-module (byggsteg errors)
   #:use-module (artanis env)
   #:use-module (ice-9 format)
@@ -43,11 +44,18 @@
 
 ;; The four pages, rendered once each: the set is closed, and every reading
 ;; below is taken from the page itself rather than rendered again.
+;;
+;; They are read as this project's own deployment, so that the chrome they are
+;; checked for -- the sheet the whole site is dressed in -- is read at the path
+;; a fresh clone serves it from even where the suite is run by a deployment that
+;; has named an asset host of its own (see `(veritas support deployment)').
 (define pages
-  (map (lambda (status)
-         (cons status
-               (error-page status)))
-       '(400 401 404 500)))
+  (as-an-unnamed-deployment
+   (lambda ()
+     (map (lambda (status)
+            (cons status
+                  (error-page status)))
+          '(400 401 404 500)))))
 
 (define (page status)
   "The page for STATUS."
@@ -66,7 +74,8 @@
 ;; A status the module's table does not name: the fallback reading, rendered the
 ;; same way as the four above.
 (define unnamed-status-page
-  (error-page 418))
+  (as-an-unnamed-deployment (lambda ()
+                              (error-page 418))))
 
 (define (self-closed-elements page)
   "The elements of PAGE that are closed on themselves, if any.

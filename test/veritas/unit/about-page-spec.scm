@@ -35,6 +35,7 @@
 
 (define-module (veritas unit about-page-spec)
   #:use-module (veritas veritas)
+  #:use-module (veritas support deployment)
   #:use-module (app views about)
   #:use-module (byggsteg html)
   ;; `sxml->xml-string' is Artanis' own writer, the one `(:mime rc ...)' puts a
@@ -50,9 +51,17 @@
 
 ;; One reading of the page: the document the server would answer with, with
 ;; every string the page asks to have translated left as it was written.
+;;
+;; It is read as this project's own deployment -- the page a fresh clone serves
+;; -- rather than as the machine the suite happens to run on, which may be a
+;; deployment that has named its own host, its own sheet and its own mark (see
+;; `(veritas support deployment)').  The chrome this suite reads is the chrome
+;; of an unconfigured console, everywhere it is read.
 (define about-markup
-  (sxml->xml-string (about-document (lambda (string)
-                                      string))))
+  (as-an-unnamed-deployment
+   (lambda ()
+     (sxml->xml-string (about-document (lambda (string)
+                                         string))))))
 
 (define (present-in needles)
   "The NEEDLES that the page holds."

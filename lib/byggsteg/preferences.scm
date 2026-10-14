@@ -21,6 +21,11 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:export (job-clone-location public-url
+                               project-name
+                               project-description
+                               project-source-url
+                               project-manual-url
+                               project-documentation-url
                                deployment-name
                                deployment-description
                                deployment-logo-url
@@ -83,16 +88,39 @@ means the deployment did not say, not that it wants to be called nothing."
 ;;; Each is read the way a path is -- the deployment's environment, or the
 ;;; project's own value -- and each is a parameter, so a page can be asked to
 ;;; speak as somebody else in a test without a server being restarted to say so.
-(define deployment-name
-  (make-parameter (deployment-setting "BYGGSTEG_NAME" "byggsteg")))
+;;;
+;;; The project's own values are named below, and the parameters are built from
+;;; them.  A reader that has to know which deployment it is reading as -- the
+;;; suite that reads a page, which has to read the same page on a deployment
+;;; that has named itself as on a laptop -- names these rather than writing the
+;;; same addresses out a second time, so that changing what this project says
+;;; is one edit and not two.
+
+;; What a deployment of this source is called before it has named itself.
+(define project-name "byggsteg")
 
 ;; The sentence a page with no description of its own is announced with.
+(define project-description
+  (string-append
+   "byggsteg is a hackable and extensible CI/CD orchestrator written in Guile Scheme: "
+   "a pipeline is Lisp code, a running job's log is read while it is written, "
+   "and the runner, the logs, the artifacts and the users are all yours to host."))
+
+;; Where the software is read, and where its manual and its documentation are:
+;; the three links every page's footer offers.
+(define project-source-url
+  "https://codeberg.org/jjba23/byggsteg")
+(define project-manual-url
+  "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org")
+(define project-documentation-url
+  "https://jointhefreeworld.org/manuals/byggsteg/")
+
+(define deployment-name
+  (make-parameter (deployment-setting "BYGGSTEG_NAME" project-name)))
+
 (define deployment-description
   (make-parameter (deployment-setting "BYGGSTEG_DESCRIPTION"
-                                      (string-append
-                                       "byggsteg is a hackable and extensible CI/CD orchestrator written in Guile Scheme: "
-                                       "a pipeline is Lisp code, a running job's log is read while it is written, "
-                                       "and the runner, the logs, the artifacts and the users are all yours to host."))))
+                                      project-description)))
 
 ;; The image a shared link is drawn with and the logo the landing page shows.
 ;; A deployment with a mark of its own names it here -- absolutely, since the
@@ -118,15 +146,15 @@ frame, and a console that is nobody's in particular is still this project's."
 ;; the three links every page's footer offers, and a fork points them at its own.
 (define deployment-source-url
   (make-parameter (deployment-setting "BYGGSTEG_SOURCE_URL"
-                                      "https://codeberg.org/jjba23/byggsteg")))
+                                      project-source-url)))
 
 (define deployment-manual-url
   (make-parameter (deployment-setting "BYGGSTEG_MANUAL_URL"
-                   "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org")))
+                                      project-manual-url)))
 
 (define deployment-documentation-url
   (make-parameter (deployment-setting "BYGGSTEG_DOCUMENTATION_URL"
-                   "https://jointhefreeworld.org/manuals/byggsteg/")))
+                                      project-documentation-url)))
 
 ;;; Where the console's own resources are served from
 ;;;

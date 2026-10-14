@@ -26,6 +26,7 @@
 (define-module (app views search)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg search)
+  #:use-module (byggsteg ansi)
   #:use-module (byggsteg html)
   #:use-module (byggsteg faces)
   #:use-module (kracht prelude)
@@ -45,8 +46,16 @@
 
 The text comes out of a column escaped, as `(byggsteg html)' explains; the
 excerpt is read off the text as a reader sees it, then escaped again on its way
-back into the page, so a log line that prints a `<` arrives as that character."
-  (html-escape (search-snippet (html-unescape (if (string? text) text ""))
+back into the page, so a log line that prints a `<` arrives as that character.
+
+`(byggsteg ansi)' is what says what a reader sees: a job's output is not prose
+but a terminal's, and a line of it left as the command wrote it is a line with a
+colour sequence in the middle of it and a progress bar painted over itself a
+hundred times.  Reading it here is what makes a search result carry the line the
+reader will meet when they open the log, rather than the bytes that line is
+sent as.  A row that is not console output at all -- a job's expression, a
+profile's name -- is text with nothing to read, and comes through unchanged."
+  (html-escape (search-snippet (ansi->text (html-unescape (if (string? text) text "")))
                                query)))
 
 (define (snippet-block text query)
