@@ -95,13 +95,20 @@
     }
   }
 
+  /* The tab showing the reading the reader is looking at is filled and the other
+     is paper.  What those two look like is the console's -- the page is drawn
+     with the two faces on each tab, and this script takes whichever of the two
+     it means from the tab itself, so the theme is stated once, where the rest of
+     the console's faces are, and not again here. */
   function choose(name) {
     view = name
     var tabs = section.querySelectorAll('[data-log-tab]')
     for (var i = 0; i < tabs.length; i++) {
       var chosen = tabs[i].getAttribute('data-log-tab') === name
       tabs[i].setAttribute('aria-pressed', chosen ? 'true' : 'false')
-      tabs[i].style.opacity = chosen ? '1' : '0.6'
+      var face = tabs[i].getAttribute(chosen ? 'data-log-tab-chosen'
+                                             : 'data-log-tab-rest')
+      if (face) { tabs[i].className = face }
     }
     pane('output').hidden = name !== 'output'
     pane('raw').hidden = name !== 'raw'

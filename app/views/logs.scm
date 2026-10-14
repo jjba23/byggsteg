@@ -247,29 +247,38 @@ a second time to say so."
                                                         "true" "false"))
                                  (class ,(mk-class '(flex flex-col gap-3
                                                             my-4))))
+                              ;; The two readings are chosen between by two tabs,
+                              ;; each wearing the face of the reading it is (see
+                              ;; `log-view-tab-face' in `(byggsteg faces)').  The
+                              ;; script that switches between them takes those
+                              ;; faces from the tabs themselves rather than
+                              ;; knowing them: what a tab looks like is the
+                              ;; console's business, and the theme is not
+                              ;; written twice (see `pub/js/byggsteg-log.js').
+                              ;; Which of the two a reader is reading is drawn
+                              ;; here -- the console's reading, until the script
+                              ;; has read the one this reader chose last time --
+                              ;; and is announced as `aria-pressed' for a reader
+                              ;; who cannot see the filling at all.
                               (div (@ (class ,(mk-class '(flex flex-row
                                                           flex-wrap
                                                           items-center
-                                                          gap-3))))
+                                                          gap-2))))
                                    (button (@ (type "button")
                                               (data-log-tab "output")
                                               (aria-pressed "true")
-                                              (class ,(mk-class '(cursor-pointer
-                                                                  font-mono text-xs
-                                                                  uppercase
-                                                                  tracking-widest
-                                                                  text-asparagus-900
-                                                                  dark:text-asparagus-300))))
+                                              (data-log-tab-chosen
+                                               ,log-view-tab-chosen-face)
+                                              (data-log-tab-rest ,log-view-tab-face)
+                                              (class ,log-view-tab-chosen-face))
                                            ,(G_ "rendered"))
                                    (button (@ (type "button")
                                               (data-log-tab "raw")
                                               (aria-pressed "false")
-                                              (class ,(mk-class '(cursor-pointer
-                                                                  font-mono text-xs
-                                                                  uppercase
-                                                                  tracking-widest
-                                                                  text-asparagus-900
-                                                                  dark:text-asparagus-300))))
+                                              (data-log-tab-chosen
+                                               ,log-view-tab-chosen-face)
+                                              (data-log-tab-rest ,log-view-tab-face)
+                                              (class ,log-view-tab-face))
                                            ,(G_ "raw bytes")))
                               (div (@ (data-log-pane "output"))
                                    ,(log-output #:log log

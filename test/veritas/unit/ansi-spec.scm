@@ -204,7 +204,11 @@
                (assert-equal #:name
                 "and the line break is still the line break"
                 #:expect "a\nb"
-                #:got (ansi->raw-text "a\nb")))
+                #:got (ansi->raw-text "a\nb"))
+               (assert-equal #:name
+                "and a character outside ASCII is a character, not a byte"
+                #:expect "café ▮ 日本語"
+                #:got (ansi->raw-text "café ▮ 日本語")))
 
          (test "a pane reads its output the way the page is answered"
                #:shuffle? #f

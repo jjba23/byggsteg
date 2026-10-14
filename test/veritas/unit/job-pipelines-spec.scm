@@ -42,6 +42,11 @@
 (define-module (veritas unit job-pipelines-spec)
   #:use-module (veritas veritas)
   #:use-module (byggsteg job pipeline)
+  ;; The environment a command is run in is read here as a rule of its own as
+  ;; well as through a job, which is why the module that builds it is asked for
+  ;; directly: its `command-environment' is the whole of the rule, and a job can
+  ;; only show the part of it that a machine running the suite happens to reach.
+  #:use-module (byggsteg job steps)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg domain job)
   #:use-module (byggsteg domain log)
@@ -202,6 +207,68 @@
                                           later-task-marker)))))
           #:created-at "2026-01-01 00:00:04")
 
+;; A job whose command prints what ASCII cannot hold: a letter with an accent on
+;; it, the block a progress bar is painted with, and a word in Japanese.
+;;
+;; A log row is UTF-8 -- the column holds it that way, the log page reads it that
+;; way, and the terminal glass draws it that way -- so the characters a command
+;; printed are the characters a reader meets.  They are not, on a machine whose
+;; daemon was started without a locale: a pipe read by the locale turns every
+;; byte outside ASCII into a replacement character, so a job's log would lose
+;; them there while the same log on a laptop kept them.  This reading is of the
+;; log row a command that printed them left behind.
+(define non-ascii-command
+  "printf 'caf\\xc3\\xa9 \\xe2\\x96\\xae \\xe6\\x97\\xa5\\xe6\\x9c\\xac\\xe8\\xaa\\x9e\\n'")
+
+(define non-ascii-job
+  "spec-non-ascii")
+(enqueue! non-ascii-job
+          (list (stage (list non-ascii-command)))
+          #:created-at "2026-01-01 00:00:06")
+
+;; The locale a job's commands are run in.
+;;
+;; A command has no machine of its own: it runs where byggsteg runs, in the
+;; environment byggsteg was started in, and a daemon started from a service, a
+;; container or a system unit is usually started without a locale -- the Shepherd
+;; unit in the README names none.  A command started without one reads and writes
+;; in `C', where the text every other part of this deployment carries does not
+;; exist: bash counts the five bytes of `café' rather than its four characters,
+;; GNU sed replaces five of them, and a tool asked to spell a character it cannot
+;; reach writes `?' -- which is what the build's log then holds, and what a
+;; reader of that log is left with.  It is the one failure that reads as the
+;; build's own doing: a green job on a laptop, a log of question marks in
+;; production.
+;;
+;; What is read below is a command's own count of the characters of a word, which
+;; is four under a locale that reads UTF-8 and five under `C'.  The count is
+;; bash's, so the reading does not depend on what else the machine running the
+;; suite has installed, and the word is spelled in octal so that this file stays
+;; ASCII.
+(define characters-of-a-word-command
+  "s=$(printf 'caf\\303\\251'); printf 'CHARS=%s\\n' \"${#s}\"")
+
+(define locale-job
+  "spec-locale")
+(enqueue! locale-job
+          (list (stage (list characters-of-a-word-command)))
+          #:created-at "2026-01-01 00:00:07")
+
+;; And the other half of it: a job that names a locale of its own keeps it.  A
+;; build whose own tools have to see the machine as it stands, or one whose tool
+;; needs `C', says so in its `env' field, and byggsteg's default is the
+;; deployment's business rather than the job's -- so a job naming `C' must still
+;; count bytes when the deployment named nothing, and when the deployment named
+;; the same variable, the job's answer is the one its command reads.
+(define locale-naming-job
+  "spec-locale-named")
+(enqueue! locale-naming-job
+          (list (list (cons 'env (list (cons "LC_ALL" "C")))
+                      (cons 'task "trivial")
+                      (cons 'trivial-cmds
+                            (list characters-of-a-word-command))))
+          #:created-at "2026-01-01 00:00:08")
+
 ;; One job that asks for two tasks, both of which run -- the other half of the
 ;; reading below.  Each naming of a task is a step of its own, so a job that
 ;; asks for two of them runs two tasks and not one; that both tasks of this job
@@ -331,6 +398,73 @@
               (file-exists? later-task-marker))
         (list 'outcome
               (outcome-flags broken-tasks-job))))
+
+(define non-ascii-text
+  "café ▮ 日本語")
+
+(define (non-ascii-readings)
+  "What the log holds of a command that printed outside ASCII.
+
+The whole reading is compared as one string rather than asked for character by
+character: what the log holds is the line the command printed, and a locale read
+into the middle of it would leave a replacement character in each place the
+characters are."
+  (run! non-ascii-job)
+  (let ((text (log-text non-ascii-job)))
+    (list (list 'the-line-is-what-the-command-printed
+                (holds? text non-ascii-text))
+          (list 'a-replacement-character
+                (holds? text (string #\xFFFD)))
+          (list 'outcome
+                (outcome-flags non-ascii-job)))))
+
+(define (as-strings entries)
+  "The environment ENTRIES, as one string a reading can be asked about."
+  (string-join entries " "))
+
+(define (locale-in-environment-readings)
+  "The rule itself, read against environments named here.
+
+What a machine running the suite has in its own environment is not something a
+reading can choose, so the parts of the rule a job cannot show are read against
+environments given to it: a deployment that names a locale, one that names the
+same variable the job does, and one whose naming is empty -- which selects no
+locale at all and is not a naming."
+  (let ((named (lambda (from job)
+                 (as-strings (command-environment job #:from from)))))
+    (list (list 'a-deployment-that-names-none
+                (holds? (named '("PATH=/usr/bin")
+                               '())
+                        "LC_ALL=C.UTF-8"))
+          (list 'a-deployment-that-names-its-own
+                (named '("LANG=de_DE.UTF-8")
+                       '()))
+          (list 'an-empty-naming
+                (holds? (named '("LANG=")
+                               '())
+                        "LC_ALL=C.UTF-8"))
+          (list 'and-the-request-that-named-none
+                (named '("PATH=/usr/bin")
+                       '())))))
+
+(define (locale-readings)
+  "The locale a job's own commands are run in, as the commands see it.
+
+Read through a job rather than around it, because the promise is about the
+command a job runs, and the two halves of it are read together: a command given
+no locale of its own counts characters, and a job that named `C' counts bytes."
+  (run! locale-job)
+  (run! locale-naming-job)
+  (let ((default-text (log-text locale-job))
+        (named-text (log-text locale-naming-job)))
+    (list (list 'the-characters-of-a-word
+                (holds? default-text "CHARS=4"))
+          (list 'the-bytes-of-it
+                (holds? default-text "CHARS=5"))
+          (list 'a-locale-the-job-names-itself
+                (holds? named-text "CHARS=5"))
+          (list 'outcome
+                (outcome-flags locale-job)))))
 
 (define (lines-of text)
   "TEXT as the lines it is made of."
@@ -488,6 +622,32 @@ it lives in."
                            (the-task-behind-it-ran #f)
                            (outcome ("0" "0" "1")))
                 #:got (deferred 'broken-tasks-readings)))
+         (test "a command's output outside ASCII reaches the log it wrote"
+               #:shuffle? #f
+               (assert-equal #:name
+                "the accented word, the block and the Japanese word are all there"
+                #:expect '((the-line-is-what-the-command-printed #t)
+                           (a-replacement-character #f)
+                           (outcome ("1" "0" "0")))
+                #:got (deferred 'non-ascii-readings)))
+         (test "a job's commands read text in a locale of their own"
+               #:shuffle? #f
+               (assert-equal #:name
+                "a command with no locale counts characters, and one a job named counts bytes"
+                #:expect '((the-characters-of-a-word #t)
+                           (the-bytes-of-it #f)
+                           (a-locale-the-job-names-itself #t)
+                           (outcome ("1" "0" "0")))
+                #:got (deferred 'locale-readings))
+               (assert-equal #:name
+                "a locale a deployment names, or an empty naming, is read as it is"
+                #:expect '((a-deployment-that-names-none #t)
+                           (a-deployment-that-names-its-own
+                            ("LANG=de_DE.UTF-8"))
+                           (an-empty-naming #t)
+                           (and-the-request-that-named-none
+                            ("PATH=/usr/bin" "LC_ALL=C.UTF-8")))
+                #:got (locale-in-environment-readings)))
          (test "every task of a job is run, and each is a step of its own"
                #:shuffle? #f
                (assert-equal #:name

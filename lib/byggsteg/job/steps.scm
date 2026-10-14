@@ -53,6 +53,7 @@
                         step-result-cmd
                         run-steps
                         make-step-result
+                        command-environment
                         $
                         display-cmd))
 
@@ -84,6 +85,111 @@ they always have -- the test suite runs pipelines that way."
           (fcntl fd F_SETFL
                  (logior (fcntl fd F_GETFL) O_NONBLOCK))) #t)))
 
+;;; ====== The environment a command is run in ======
+
+;; The variables that say which locale a process reads text in.  A process that
+;; names none is in the `C' locale, where nothing outside ASCII can be written
+;; or read at all.
+(define locale-variables '("LANG" "LC_ALL" "LC_CTYPE"))
+
+;; The locale a job's commands are given when the deployment named none: no
+;; language, and the encoding this deployment's own text is in.  It is built
+;; into the C library rather than generated, so it is the same name on every
+;; machine a job can be run on.
+(define job-locale "C.UTF-8")
+
+(define (variable-of entry)
+  "The variable the `VARIABLE=value' string ENTRY sets, or #f."
+  (let ((equals (string-index entry #\=)))
+    (if equals
+        (substring entry 0 equals) #f)))
+
+(define (value-of entry)
+  "What the `VARIABLE=value' string ENTRY sets its variable to, or #f."
+  (let ((equals (string-index entry #\=)))
+    (and equals (substring entry (+ equals 1)))))
+
+(define (names-a-locale? environment)
+  "Whether ENVIRONMENT, a list of `VARIABLE=value' strings, names a locale.
+
+An empty value names nothing: `LANG=' is how a service unit, a container or a
+shell that wanted a locale and had none says so, and it selects no locale at all.
+It is read the way every other setting a deployment can leave empty is read -- as
+the deployment not having said."
+  (any (lambda (entry)
+         (and (member (variable-of entry) locale-variables)
+              (let ((value (value-of entry)))
+                (and value (positive? (string-length value))))))
+       environment))
+
+(define (without-overridden from job-environment)
+  "FROM, less the variables the job's own environment names again.
+
+The job's `env' is added to the deployment's, and a variable a job names is the
+job's to decide.  Left as it stands, the child of a daemon that sets `LANG' and
+of a job that sets the same variable would hold two answers to one question, and
+which one a program reads would be settled by the order of a list rather than by
+either of them having said so."
+  (let ((named (delete #f (map variable-of job-environment))))
+    (filter (lambda (entry)
+              (not (member (variable-of entry) named))) from)))
+
+(define* (command-environment env #:key (from (environ)))
+  "The environment a job's command is run in, out of FROM and the job's ENV.
+
+ENV is the `env' field of a job spec: a list of pairs to add to the environment
+of the daemon, which is what FROM is.  A name both of them set is the job's.
+
+A locale is named when neither of them names one, because a command has no
+machine of its own: it runs where byggsteg runs, in the environment byggsteg was
+started with, and a daemon started from a service, a container or a system unit
+is usually started without one -- the Shepherd unit in the README names none.  A
+job that runs there builds in the `C' locale, the one locale no build tool is
+tested in: a compiler writes `?' where a source file held an accent, a test
+suite reports a diff of question marks, and the log a reader opens says the build
+printed `?' rather than what it printed.  The daemon reads that log as UTF-8
+already, so what is missing is only for the command itself to have been given a
+locale to write it in.
+
+`C.UTF-8' is named rather than a language: it is what keeps this the deployment's
+business and not the job's.  A deployment that wants another locale -- or none,
+for a command that must be handed the environment as it stands -- names it in
+the environment byggsteg is started in, or in the job's own `env'; either naming
+is left as it stands, and a locale named with a language (`LANG=de_DE.UTF-8') is
+one of them.
+
+FROM is a key so that a reading of this can be taken of an environment of its
+own rather than of the machine it happens to run on."
+  (let* ((job (formatted-job-environment env))
+         (named (append (without-overridden from job) job)))
+    (if (names-a-locale? named)
+        named
+        (append named (list (format #f "LC_ALL=~a" job-locale))))))
+
+(define (formatted-job-environment env)
+  "ENV, the `env' field of a job spec, as the `VARIABLE=value' strings it names."
+  (if (list? env)
+      (map (lambda (e)
+             (format #f "~a=~a"
+                     (car e)
+                     (cdr e))) env)
+      '()))
+
+(define (make-utf-8-readable! port)
+  "Read PORT as UTF-8, whatever locale this process was started in.
+
+A command's output is text, and this deployment's text is UTF-8: the log row
+holds it that way, the page reads it that way and the terminal glass draws it
+that way.  A port read by the locale instead -- which is what a Guile process
+does, and a daemon started from a service, a container or a job has usually been
+started in `C' -- turns every byte outside ASCII into a replacement character,
+so a job's log would lose the accented word, the box-drawing line and the emoji
+the command printed, on a machine whose pages are perfectly able to carry them.
+
+A byte that is not UTF-8 at all is read as such rather than raising: the
+conversion strategy of a port is what says so, and it is the default one."
+  (set-port-encoding! port "UTF-8"))
+
 (define (read-command-output port stream cmd)
   "Read PORT into STREAM a line at a time, and answer with all of it.
 
@@ -104,20 +210,15 @@ back with the newlines the reader took off."
 
 (define* ($ cmd
             #:key (env #f))
-  (let* ((formatted-env (if (list? env)
-                            (map (lambda (e)
-                                   (format #f "~a=~a"
-                                           (car e)
-                                           (cdr e))) env)
-                            '()))
-         (input+output (pipe))
+  (let* ((input+output (pipe))
          (pid (spawn "bash"
                      (list "bash" "-c" cmd)
                      #:output (cdr input+output)
                      #:error (cdr input+output)
-                     #:environment (if (list? env)
-                                       (append (environ) formatted-env)
-                                       (environ))))
+                     ;; The command's environment: the daemon's, the job's own
+                     ;; `env' field, and a locale when neither names one (see
+                     ;; `command-environment').
+                     #:environment (command-environment env)))
          (_ (close-port (cdr input+output)))
          (in (car input+output))
          ;; A job with no log row still streams, into a buffer nobody reads, so
@@ -126,6 +227,7 @@ back with the newlines the reader took off."
                      (make-log-stream (lambda (text)
                                         #t))))
          (_ (make-cooperatively-readable! in))
+         (_ (make-utf-8-readable! in))
          (out (read-command-output in stream cmd))
          (_ (close-port in))
          (ex (waitpid pid))

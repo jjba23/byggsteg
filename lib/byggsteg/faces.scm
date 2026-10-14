@@ -303,6 +303,65 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                                    dark:hover:bg-olive-900))))
 
 ;;
+;; The pair of readings a log is read in
+;;
+;; A job's output is read two ways -- the console the command printed and the
+;; bytes it sent -- and the two tabs that choose between them are buttons: the
+;; size of a thumb rather than the size of the word in them, so that a reader
+;; on a phone does not have to aim at a label.  They wear the console's own
+;; dress because a control a reader has to find is chrome and not text.
+(define log-view-tab-base
+  '(cursor-pointer
+    font-mono
+    text-sm
+    uppercase
+    tracking-widest
+    ;; Room around the word, and a floor under the whole tab: a row of chrome
+    ;; is read with the same eyes as the log beside it, and a tab is where a
+    ;; reader's thumb lands.
+    px-4
+    py-2
+    min-h-12
+    flex
+    items-center
+    border-2
+    border-asparagus-700
+    dark:border-asparagus-900
+    rounded-none
+    shadow-md
+    transition-colors
+    duration-150))
+
+;; The two states are written out whole rather than one layered over the other.
+;; A utility both of them carried would be resolved by the order of the sheet
+;; rather than by which reading is chosen, and every colour they disagree about
+;; -- the ground, the ink, and what the tab does under the hand -- is exactly
+;; that kind of utility.
+;;
+;; The tab a reader is not looking at is paper: it says "this is the other
+;; reading, and pressing it brings that one".  The one they are looking at is
+;; filled with the console's own contrast pair, the one the primary action
+;; wears, so which of the two readings is on screen is not a shade of grey.
+(define-public log-view-tab-face
+  (mk-class (append log-view-tab-base
+                    '(bg-stone-300
+                      dark:bg-onyx-700
+                      text-asparagus-900
+                      dark:text-asparagus-300
+                      hover:bg-stone-500
+                      dark:hover:bg-onyx-900))))
+
+(define-public log-view-tab-chosen-face
+  (mk-class (append log-view-tab-base
+                    '(bg-asparagus-900
+                      dark:bg-asparagus-100
+                      text-stone-100
+                      dark:text-onyx-900
+                      font-bold
+                      hover:bg-asparagus-700
+                      dark:hover:bg-asparagus-300))))
+
+;;
 ;; Forms
 ;;
 ;; The three faces below are the whole look of a field of this console: the

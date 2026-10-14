@@ -833,7 +833,13 @@ acts on is exactly what a screen hides: the escape that begins a sequence, the
 carriage return that painted a line again, the codes that print nothing at all.
 Each is spelled the way `cat -v' spells it -- `^[', `^M', `^I' -- so a page that
 shows this shows the output itself.  The line break is the one control character
-kept as itself, since a pane of `^J' would be a single line."
+kept as itself, since a pane of `^J' would be a single line.
+
+A character outside ASCII is text and is left as itself.  What this reads is a
+log row, which holds characters rather than the bytes they arrived as, so a
+letter with an accent on it is one thing here and not the two it was sent as;
+spelling it the way a byte is spelled would show a reader their own words as a
+run of escapes, which is the opposite of reading what the command sent."
   (let ((length (string-length text)))
     (let loop ((index 0)
                (pieces '()))
@@ -844,8 +850,11 @@ kept as itself, since a pane of `^J' would be a single line."
             (loop (+ index 1)
                   (cons (cond
                           ((char=? char #\newline) "\n")
-                          ((and (>= code #x20)
-                                (< code #x7f))
+                          ;; The printable ASCII, and everything above it: the
+                          ;; characters a reader is meant to read.
+                          ((or (and (>= code #x20)
+                                    (< code #x7f))
+                               (> code #x7f))
                            (string char))
                           (else (control-notation char)))
                         pieces)))))))

@@ -178,9 +178,23 @@ Remove all files in the byggsteg location, ignoring errors."
 The specs live under test/veritas/unit.  That is where the runner looks for
 suites -- given the test root ./test, the module prefix `veritas' and the suite
 name `unit' -- and it is also what their own `(veritas unit ...)' module names
-resolve to on the load path below."
-  (time-machine-manifest-shell (list "guile -L ./lib -L . -L ./test"
-                                "-c '(begin (use-modules (veritas runner)) (run-tests))'")))
+resolve to on the load path below.
+
+The run names the locale it reads in rather than inheriting one, and it names it
+before the runner is asked for: Guile reads a page by the locale in force, and a
+pattern over a page that holds a character outside ASCII reports matches where
+there are none under a locale that names no encoding.  `C.UTF-8' is that name
+for a machine that has never generated a locale -- a service, a container, and
+this project's own continuous integration, where the job that tests byggsteg is
+run by a byggsteg daemon whose Shepherd unit names no locale at all.  The suite
+reads the pages of this console, whose prose, whose marks and whose console
+output are not ASCII; run without a locale it would find elements no browser
+knows and fail for a reason that has nothing to do with the change it was run to
+judge.  Naming it here is part of what the pinned manifest is for: a run of the
+suite reads the same pages wherever the pipeline runs."
+  (time-machine-manifest-shell
+   (list "guile -L ./lib -L . -L ./test"
+         "-c '(begin (setlocale LC_ALL \"C.UTF-8\") (use-modules (veritas runner)) (run-tests))'")))
 
 (define (build-manual)
   "Render the project's manual -- the README -- as a single HTML page."
