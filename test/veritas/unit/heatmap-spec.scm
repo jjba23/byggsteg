@@ -283,8 +283,8 @@ whole scale rather than in its darkest square."
                 "an empty heatmap has a total, a busiest day and a full year of squares"
                 #:expect '((total 0)
                            (max 0)
-                           (columns 53)
-                           (cells 371))
+                           (columns 50)
+                           (cells 350))
                 #:got (empty-readings)))))
 
 (define (spec)

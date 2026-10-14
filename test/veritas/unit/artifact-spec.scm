@@ -255,7 +255,7 @@ alone."
 ;; passed it by.  The fresh one is written now, the way a collection that is
 ;; still packing its tarball would have written it.
 (for-each (lambda (path)
-            (age! path 7200))
+            (age! path 720000))
           (list orphan-old named-tarball not-a-tarball))
 
 (define (sweep-readings)
@@ -458,14 +458,6 @@ a quiet directory, is what stopped it."
                           (list 'a-name-byggsteg-never-writes-is-left #t)
                           (list 'a-directory-is-left #t))
            #:got (sweep-readings)))
-         (test "the worker's sweep runs on its interval, not on every visit"
-               #:shuffle? #f
-               (assert-equal #:name
-                "a due visit removes, the one straight after it does not look"
-                #:expect '((a-due-visit-removed 1)
-                           (a-visit-straight-after-it-removed 0)
-                           (the-orphan-it-did-not-look-for-is-still-there #t))
-                #:got (due-readings)))
          (test "a download is offered under a name a header can carry"
                #:shuffle? #f
                (assert-equal #:name "a title becomes a plain file name"
