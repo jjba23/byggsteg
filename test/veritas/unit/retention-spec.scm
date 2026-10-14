@@ -61,7 +61,7 @@
 (define (migration-path name)
   (let ((here (current-filename)))
     (string-append (if (string? here)
-                       (dirname (dirname (dirname here)))
+                       (dirname (dirname (dirname (dirname here))))
                        ".")
                    "/resources/migrations/sqlite/" name)))
 

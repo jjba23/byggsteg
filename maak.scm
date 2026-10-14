@@ -73,9 +73,11 @@
           (org-html-export-to-html)
           (message "finished publishing the Byggsteg manual")))
 
-;; The SQL migrations, oldest first, as the file names sort.
-(define migrations-glob
-  "resources/migrations/sqlite/*.sql")
+;; The SQL migrations.  Mutastructura reads this directory itself and applies
+;; the files in it oldest first, as the file names sort, so this is the directory
+;; rather than a shell glob.
+(define migrations-dir
+  "resources/migrations/sqlite")
 
 ;; Quote TEXT the way a POSIX shell reads it back as TEXT: wrapped in single
 ;; quotes, where every character is literal, with a single quote of its own
@@ -177,9 +179,10 @@ Remove all files in the byggsteg location, ignoring errors."
 (define (test)
   "Run the project's test suite.
 
-The runner scans ./test for suites, so the specs in test/unit are found and run
-on their own; test/veritas/unit is the link that lets the runner load them by
-the module name it derives from that directory."
+The specs live under test/veritas/unit.  That is where the runner looks for
+suites -- given the test root ./test, the module prefix `veritas' and the suite
+name `unit' -- and it is also what their own `(veritas unit ...)' module names
+resolve to on the load path below."
   (time-machine-manifest-shell (list "guile -L ./lib -L . -L ./test"
                                      "-c '(begin (use-modules (veritas runner)) (run-tests))'")))
 
@@ -238,19 +241,21 @@ the module name it derives from that directory."
   (time-machine-manifest-shell '("art work -c conf/production.conf")))
 
 (define (migrate)
-  "Apply the SQL migrations, oldest first, to the database in this directory.
+  "Apply the SQL migrations to the database in this directory with mutastructura.
 
-Every migration is written to be applied once and to be harmless to apply
-again, so this is also the way to bring a database that one deployment made up
-to what the source in front of it expects."
-  ;; The loop is the argument of an `sh -c' of its own.  Written straight into
-  ;; the command, its `;' would be read by the shell maak runs the command in,
-  ;; which would hand `for' to the Guix shell as the program to run and then
-  ;; choke on the `do' that followed it.
+Mutastructura does the applying: it keeps a ledger of what it has run in the
+`migrations_history' table of the database, runs only the migrations that are
+not in it and records each one with a SHA256 of its file, all inside a single
+transaction.  That is what makes this safe to run at any time, and it is also
+the way to bring a database that one deployment made up to what the source in
+front of it expects.  Mutastructura is the only thing that applies migrations;
+no task reads the SQL files and hands them to sqlite3 itself."
   (time-machine-manifest-shell
    (list (format #f
-                 "sh -c 'for m in ~a; do echo \"  $m\"; sqlite3 ~a < \"$m\"; done'"
-                 migrations-glob (deployment-db)))))
+                 "mutastructura --database sqlite3 --connection ~a --migrations ~a"
+                 (shell-quoted (deployment-db))
+                 (shell-quoted migrations-dir)))
+   #:verbose? #t))
 
 (define (init-db)
   "Initialize a new database: the file, WAL mode, and the schema.

@@ -53,7 +53,7 @@
 (define migration-file
   (let ((here (current-filename)))
     (string-append (if (string? here)
-                       (dirname (dirname (dirname here)))
+                       (dirname (dirname (dirname (dirname here))))
                        ".")
                    "/resources/migrations/sqlite/2026-04-07_12:21:00_init_byggsteg_schema.sql")))
 

@@ -472,7 +472,9 @@ The file is loaded by ~ENTRY~ when the server starts, so a change to it needs a 
 
 ** Making the database
 
-You will need a database in the root folder of the project (alongside ~app~, ~lib~, etc.). Byggsteg uses SQLite; its schema is the migration files under ~resources/migrations/sqlite~, one per change, to be applied in file order.
+You will need a database in the root folder of the project (alongside ~app~, ~lib~, etc.). Byggsteg uses SQLite; its schema is the migration files under ~resources/migrations/sqlite~, one per change.
+
+The migrations are applied by [[https://codeberg.org/jjba23/mutastructura][mutastructura]], the migration tool pinned in ~manifest.scm~. It keeps a ledger of what it has run in a ~migrations_history~ table of the database, applies only the migrations that are missing from it, oldest first, and records each file with a SHA256 so a changed file is noticed. There is no second way to apply them at deployment time: no ~maak~ task and no part of the server reads the SQL files and hands them to ~sqlite3~ itself. (The unit specs build a throwaway database of their own from the raw files; that is a test fixture, not a way to migrate a deployment.)
 
 For a new deployment, one command makes the file, turns on WAL mode -- which is what lets the web workers and the queue worker write at the same time -- and applies every migration:
 
@@ -487,6 +489,8 @@ maak migrate
 #+end_src
 
 Both tasks act on ~byggsteg.db~ in the directory they are run from, which is the file a server started there uses (it is what ~db.name~ in ~conf/artanis.conf~ and ~conf/production.conf~ says). A deployment that keeps its database elsewhere names it in ~BYGGSTEG_DB~ -- ~BYGGSTEG_DB=/etc/byggsteg/byggsteg.db maak migrate~ -- and the server is pointed at it through its own ~db.name~.
+
+Both tasks run mutastructura, so an operator never assembles the command by hand: ~maak migrate~ is the whole of it.
 
 ** Making your first user
 
@@ -635,7 +639,7 @@ BYGGSTEG_LUCIDA_FONT_URL="https://example.org/lucida.css" maak production-server
 BYGGSTEG_LUCIDA_FONT_URL= maak production-server
 #+end_src
 
-This is the one setting where an empty value is not read as "nothing said": byggsteg has asked, and an empty answer means the console declares no Lucida, reading in the Lucida Sans a reader's own system has or in the bundled Plus Jakarta Sans otherwise. See [[*On Lucida fonts]] for what serving them means, and [[file:test/unit/console-resources-spec.scm][~console-resources-spec~]] for the reading that keeps the console's own files its own.
+This is the one setting where an empty value is not read as "nothing said": byggsteg has asked, and an empty answer means the console declares no Lucida, reading in the Lucida Sans a reader's own system has or in the bundled Plus Jakarta Sans otherwise. See [[*On Lucida fonts]] for what serving them means, and [[file:test/veritas/unit/console-resources-spec.scm][~console-resources-spec~]] for the reading that keeps the console's own files its own.
 
 ------------------
 
