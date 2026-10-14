@@ -35,7 +35,8 @@
                                 #:key is-logged-in)
   (let* ((G_ (:i18n rc)))
     (html-template G_
-                   #:title (format #f "byggsteg - ~a" (G_ "run job"))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "run job"))
                    #:path "/jobs/request"
                    ;; A page that answers only to an account is nobody's
                    ;; landing page, and a crawler has no account to sign in

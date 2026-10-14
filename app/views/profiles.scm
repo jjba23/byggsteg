@@ -32,7 +32,8 @@
   #:use-module (ice-9 string-fun)
   #:export (profile-page add-profile-form-page profile-list-page))
 
-(define* (profile-page rc p
+(define* (profile-page rc
+                       p
                        #:key is-logged-in
                        ;; What the reader's session may do.  This page is the
                        ;; saved job itself -- a reading, which is public --
@@ -54,10 +55,11 @@
                                          (enctype
                                           application/x-www-form-urlencoded)
                                          (action "/profiles/manage/submit"))
-                                      ,(terminal-input #:label (G_ "profile name")
-                                              #:name 'profile-name
-                                              #:value profile-name
-                                              #:required #t)
+                                      ,(terminal-input #:label (G_
+                                                                "profile name")
+                                                       #:name 'profile-name
+                                                       #:value profile-name
+                                                       #:required #t)
                                       ,(textarea #:label (G_ "profile code")
                                                  #:name 'job-code
                                                  #:value profile-data
@@ -66,10 +68,13 @@
                                                                   font-mono
                                                                   text-sm
                                                                   md:text-md
-                                                                  border-asparagus-700 dark:border-asparagus-900
-                                                                  text-asparagus-900 dark:text-olive-100
+                                                                  border-asparagus-700
+                                                                  dark:border-asparagus-900
+                                                                  text-asparagus-900
+                                                                  dark:text-olive-100
                                                                   caret-asparagus-300
-                                                                  bg-stone-100 dark:bg-onyx-900
+                                                                  bg-stone-100
+                                                                  dark:bg-onyx-900
                                                                   border-2
                                                                   min-h-72
                                                                   max-w-prose
@@ -90,10 +95,12 @@
 
                       (div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                        gap-4 my-4))))
-                           ,@(if (may? permissions 'byggsteg:job-create)
+                           ,@(if (may? permissions
+                                       'byggsteg:job-create)
                                  `((form (@ (method POST)
                                             (action "/jobs/manage/submit")
-                                            (enctype application/x-www-form-urlencoded)
+                                            (enctype
+                                             application/x-www-form-urlencoded)
                                             (charset utf-8))
 
                                          (textarea (@ (id job-code)
@@ -103,11 +110,13 @@
                                                    ,profile-data)
 
                                          ,(terminal-icon-button #:type 'submit
-                                                       #:icon 'circuitry
-                                                       #:content (G_ "start new job"))))
+                                                                #:icon 'circuitry
+                                                                #:content (G_
+                                                                           "start new job"))))
                                  '())
 
-                           ,@(if (may? permissions 'byggsteg:profile-delete)
+                           ,@(if (may? permissions
+                                       'byggsteg:profile-delete)
                                  `((form (@ (method POST)
                                             (enctype
                                              application/x-www-form-urlencoded)
@@ -118,33 +127,39 @@
                                                    (hidden "")
                                                    (value ,(assq-ref p
                                                                      'id))
-                                                   (class ,(mk-class
-                                                            '(border
-                                                              font-mono p-2
-                                                              rounded-none)))))
+                                                   (class ,(mk-class '(border
+                                                                       font-mono
+                                                                       p-2
+                                                                       rounded-none)))))
                                          ,(terminal-icon-button #:icon 'trash
-                                                       #:content (G_ "delete")
-                                                       #:type 'submit
-                                                       #:color '(text-stone-300)
-                                                       #:icon-css '(text-md
-                                                                    text-stone-300)
-                                                       #:background '(bg-redwood-700)
-                                                       #:hover-background '(hover:bg-olive-900))))
+                                                                #:content (G_
+                                                                           "delete")
+                                                                #:type 'submit
+                                                                #:color '(text-stone-300)
+                                                                #:icon-css '(text-md
+                                                                             text-stone-300)
+                                                                #:background '
+                                                                (bg-redwood-700)
+                                                                #:hover-background '
+                                                                (hover:bg-olive-900))))
                                  '()))
 
-                      ,@(if (may? permissions 'byggsteg:profile-create)
+                      ,@(if (may? permissions
+                                  'byggsteg:profile-create)
                             submit-profile-form
                             '())
 
                       ))))
     (html-template G_
-                   #:title (format #f "byggsteg - ~a" (G_ "profile"))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "profile"))
                    #:description (format #f "~a: ~a"
                                          (G_ "the saved byggsteg job")
                                          (text-from-db (assq-ref p
                                                                  'title)))
-                   #:path (format #f "/profiles/~a" (assq-ref p
-                                                              'id))
+                   #:path (format #f "/profiles/~a"
+                                  (assq-ref p
+                                            'id))
                    #:is-logged-in is-logged-in
                    #:body body)))
 
@@ -152,7 +167,8 @@
                                 #:key is-logged-in)
   (let* ((G_ (:i18n rc)))
     (html-template G_
-                   #:title (format #f "byggsteg - ~a" (G_ "new profile"))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "new profile"))
                    #:path "/profiles/manage/create"
                    ;; Saving a profile takes a permission a crawler does not
                    ;; hold, so the form is nobody's search result.
@@ -168,33 +184,38 @@
   (let* ((profiles-html (map make-profile-link profiles))
          (G_ (:i18n rc)))
     (html-template G_
-                   #:title (format #f "byggsteg - ~a" (G_ "profiles"))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "profiles"))
                    #:description (G_
                                   "The jobs this byggsteg deployment has saved as profiles, each ready to run again")
                    #:path "/profiles"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(page-body-class
-                                            #:extra '(align-center
-                                                      whitespace-break-spaces))))
+                   #:body `((div (@ (class ,(page-body-class #:extra '(align-center
+                                                                       whitespace-break-spaces))))
                                  ,(terminal-heading (G_ "profiles")
                                                     #:tag 'h1
                                                     #:size '(text-2xl))
-                                 (div (@ (class ,(terminal-frame-class
-                                                  #:extra (append panel-body-classes
-                                                                  '(w-full flex
-                                                                    flex-col
-                                                                    gap-4
-                                                                    my-4 sm:my-6
-                                                                    align-center)))))
+                                 (div (@ (class ,(terminal-frame-class #:extra
+                                                                       (append
+                                                                        panel-body-classes
+                                                                        '(w-full
+                                                                          flex
+                                                                          flex-col
+                                                                          gap-4
+                                                                          my-4
+                                                                          sm:my-6
+                                                                          align-center)))))
                                       ,profiles-html)
                                  (a (@ (href "/profiles/manage/create"))
                                     ,(terminal-icon-button #:icon 'plus
-                                                  #:content (G_ "new profile")
-                                                  #:size '(text-xs md:text-sm)
-                                                  #:extra-classes '(py-1
-                                                                    md:py-2
-                                                                    px-2
-                                                                    md:px-3
-                                                                    max-w-prose
-                                                                    cursor-pointer))))))))
+                                                           #:content (G_
+                                                                      "new profile")
+                                                           #:size '(text-xs
+                                                                    md:text-sm)
+                                                           #:extra-classes '(py-1
+                                                                             md:py-2
+                                                                             px-2
+                                                                             md:px-3
+                                                                             max-w-prose
+                                                                             cursor-pointer))))))))
 

@@ -45,61 +45,66 @@
 
 ;;; ====== Jobs in the states a retry is read from ======
 
-(define* (spec-job #:key (failed 0) (success 0) (in-progress 0))
+(define* (spec-job #:key (failed 0)
+                   (success 0)
+                   (in-progress 0))
   "A job row with the flags given, and nothing else a reading needs.
 
 The row is what the repositories hand a view: keys named by the columns, a
 creation time, and the three flags that say how the job went."
-  `((id . "spec-job")
-    (title . "spec job")
-    (job-failed . ,failed)
-    (job-success . ,success)
-    (job-in-progress . ,in-progress)
+  `((id . "spec-job") (title . "spec job")
+    (job-failed unquote failed)
+    (job-success unquote success)
+    (job-in-progress unquote in-progress)
     (created-at . 0)))
 
 ;; The four states a job can be read in.  A job is only ever one of them: the
 ;; flags are exclusive, and a fourth row of no flag at all is a job that has not
 ;; started yet.
 (define states
-  (list (cons 'failed (spec-job #:failed 1))
-        (cons 'succeeded (spec-job #:success 1))
-        (cons 'running (spec-job #:in-progress 1))
-        (cons 'queued (spec-job))))
+  (list (cons 'failed
+              (spec-job #:failed 1))
+        (cons 'succeeded
+              (spec-job #:success 1))
+        (cons 'running
+              (spec-job #:in-progress 1))
+        (cons 'queued
+              (spec-job))))
 
 (define (readings-of read)
   "The result of READ over each state, each labelled with the state it read."
   (map (lambda (pair)
-         (cons (car pair) (read (cdr pair))))
-       states))
+         (cons (car pair)
+               (read (cdr pair)))) states))
 
 (define (readings-for read permissions)
   "The result of READ over each state, for a reader holding PERMISSIONS.
 
 READ is handed the job and the reader's permissions."
   (map (lambda (pair)
-         (cons (car pair) (read (cdr pair) permissions)))
-       states))
+         (cons (car pair)
+               (read (cdr pair) permissions))) states))
 
 ;;; ====== The row a list draws ======
 
-(define* (row-of job #:key (permissions all-permissions))
+(define* (row-of job
+                 #:key (permissions all-permissions))
   "JOB as a row of a list of logs, serialized the way the server serializes it,
 for a reader holding PERMISSIONS."
-  (with-output-to-string
-    (lambda ()
-      (sxml->xml
-       (make-job-link (lambda (s) s)
-                      job
-                      `((id . "spec-log")
-                        (title . "spec job"))
-                      #:permissions permissions)))))
+  (with-output-to-string (lambda ()
+                           (sxml->xml (make-job-link (lambda (s)
+                                                       s) job
+                                                     `((id . "spec-log")
+                                                       (title . "spec job"))
+                                                     #:permissions permissions)))))
 
-(define* (row-offers-retry? job #:key (permissions all-permissions))
+(define* (row-offers-retry? job
+                            #:key (permissions all-permissions))
   "Whether the row drawn for JOB, to a reader holding PERMISSIONS, leads to the
 retry action."
-  (and (string-contains (row-of job #:permissions permissions)
-                        "/jobs/manage/retry")
-       #t))
+  (and (string-contains (row-of job
+                                #:permissions permissions)
+                        "/jobs/manage/retry") #t))
 
 ;;; ====== The suite ======
 
@@ -108,80 +113,77 @@ retry action."
          #:shuffle? #f
          (test "a list offers a retry only for a job that failed"
                #:shuffle? #f
-               (assert-equal
-                #:name "a green or a running row has nothing to retry; the red one does"
-                #:expect '((failed . #t)
-                           (succeeded . #f)
+               (assert-equal #:name
+                "a green or a running row has nothing to retry; the red one does"
+                #:expect '((failed . #t) (succeeded . #f)
                            (running . #f)
                            (queued . #f))
                 #:got (readings-of retry-offered-in-list?))
-               (assert-equal
-                #:name "and the row the rule answers for is the row that carries the button"
-                #:expect '((failed . #t)
-                           (succeeded . #f)
+               (assert-equal #:name
+                "and the row the rule answers for is the row that carries the button"
+                #:expect '((failed . #t) (succeeded . #f)
                            (running . #f)
                            (queued . #f))
                 #:got (readings-of row-offers-retry?)))
          (test "a job's own page offers a retry whatever its status"
                #:shuffle? #f
-               (assert-equal
-                #:name "every job but one still running can be run again from its page"
-                #:expect '((failed . #t)
-                           (succeeded . #t)
+               (assert-equal #:name
+                "every job but one still running can be run again from its page"
+                #:expect '((failed . #t) (succeeded . #t)
                            (running . #f)
                            (queued . #t))
                 #:got (readings-of retry-offered-on-page?)))
          (test "a reader who may not submit a retry is offered none"
                #:shuffle? #f
-               (assert-equal
-                #:name "with no permission at all, neither a row nor a job's own page offers a retry"
-                #:expect '((failed . #f)
-                           (succeeded . #f)
+               (assert-equal #:name
+                "with no permission at all, neither a row nor a job's own page offers a retry"
+                #:expect '((failed . #f) (succeeded . #f)
                            (running . #f)
                            (queued . #f))
                 #:got (readings-for (lambda (job permissions)
-                                      (retry-offered-in-list?
-                                       job #:permissions permissions))
+                                      (retry-offered-in-list? job
+                                                              #:permissions
+                                                              permissions))
                                     '()))
-               (assert-equal
-                #:name "and the page is no more generous than the list: a form a reader cannot send is not drawn"
-                #:expect '((failed . #f)
-                           (succeeded . #f)
+               (assert-equal #:name
+                "and the page is no more generous than the list: a form a reader cannot send is not drawn"
+                #:expect '((failed . #f) (succeeded . #f)
                            (running . #f)
                            (queued . #f))
                 #:got (readings-for (lambda (job permissions)
-                                      (retry-offered-on-page?
-                                       job #:permissions permissions))
+                                      (retry-offered-on-page? job
+                                                              #:permissions
+                                                              permissions))
                                     '()))
-               (assert-equal
-                #:name "holding byggsteg:job-create, the rules read exactly as they do for a super user"
-                #:expect '((failed . #t)
-                           (succeeded . #f)
+               (assert-equal #:name
+                "holding byggsteg:job-create, the rules read exactly as they do for a super user"
+                #:expect '((failed . #t) (succeeded . #f)
                            (running . #f)
                            (queued . #f))
                 #:got (readings-for (lambda (job permissions)
-                                      (retry-offered-in-list?
-                                       job #:permissions permissions))
+                                      (retry-offered-in-list? job
+                                                              #:permissions
+                                                              permissions))
                                     '(byggsteg:job-create)))
-               (assert-equal
-                #:name "and the row that rule answers for is the row that carries the form, for a reader who may send it"
-                #:expect '((failed . #t)
-                           (succeeded . #f)
+               (assert-equal #:name
+                "and the row that rule answers for is the row that carries the form, for a reader who may send it"
+                #:expect '((failed . #t) (succeeded . #f)
                            (running . #f)
                            (queued . #f))
                 #:got (readings-for (lambda (job permissions)
-                                      (row-offers-retry?
-                                       job #:permissions permissions))
+                                      (row-offers-retry? job
+                                                         #:permissions
+                                                         permissions))
                                     '(byggsteg:job-create)))
-               (assert-equal
-                #:name "while a reader who may not send one is drawn no form, however red the row"
-                #:expect '((failed . #f)
-                           (succeeded . #f)
+               (assert-equal #:name
+                "while a reader who may not send one is drawn no form, however red the row"
+                #:expect '((failed . #f) (succeeded . #f)
                            (running . #f)
                            (queued . #f))
                 #:got (readings-for (lambda (job permissions)
-                                      (row-offers-retry?
-                                       job #:permissions permissions))
+                                      (row-offers-retry? job
+                                                         #:permissions
+                                                         permissions))
                                     '())))))
 
 (define (spec)

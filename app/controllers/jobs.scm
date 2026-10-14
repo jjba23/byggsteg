@@ -135,14 +135,14 @@
             (if new-log-id
                 (redirect-to rc
                              (string->uri (format #f "~a/logs/~a"
-                                                  (current-myhost)
-                                                  new-log-id))
+                                                  (current-myhost) new-log-id))
                              #:status 302)
                 ;; Nothing was queued, so there is no new log to follow; the
                 ;; reader is told the job is not there rather than dropped on a
                 ;; page about a job that never ran.
-                (response-emit (error-page 404) #:status 404
-                               #:headers '((content-type . (text/html)))))))
+                (response-emit (error-page 404)
+                               #:status 404
+                               #:headers '((content-type text/html))))))
         (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                            #:needed-permissions '(byggsteg:job-create)
                            #:rc rc

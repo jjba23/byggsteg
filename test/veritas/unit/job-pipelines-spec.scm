@@ -53,7 +53,8 @@
 ;;; ====== The throwaway database ======
 
 (define spec-db
-  (format #f "/tmp/byggsteg-job-pipelines-spec-~a.db" (getpid)))
+  (format #f "/tmp/byggsteg-job-pipelines-spec-~a.db"
+          (getpid)))
 
 ;; Every migration the deployment runs, in the order it runs them: the artifact
 ;; table arrives in the second one, and the collecting job below writes to it.
@@ -64,8 +65,7 @@
 (define (migration-path name)
   (let ((here (current-filename)))
     (string-append (if (string? here)
-                       (dirname (dirname (dirname (dirname here))))
-                       ".")
+                       (dirname (dirname (dirname (dirname here)))) ".")
                    "/resources/migrations/sqlite/" name)))
 
 (define (create-schema! db)
@@ -73,10 +73,9 @@
               (for-each (lambda (statement)
                           (if (string-any char-set:graphic statement)
                               (sqlite-exec db statement)))
-                        (string-split (call-with-input-file (migration-path name)
-                                        get-string-all)
-                                      #\;)))
-            migrations))
+                        (string-split (call-with-input-file (migration-path
+                                                             name)
+                                        get-string-all) #\;))) migrations))
 
 (if (file-exists? spec-db)
     (delete-file spec-db))
@@ -86,21 +85,27 @@
 (job-clone-location (string-append spec-db ".clone/"))
 ;; What a job collects is written outside the database, so the suite points the
 ;; tarballs at a directory of its own rather than at a deployment's.
-(define artifact-root (string-append spec-db ".artifacts/"))
+(define artifact-root
+  (string-append spec-db ".artifacts/"))
 (artifact-location artifact-root)
 (let ((db (sqlite-open spec-db)))
   (create-schema! db)
   (sqlite-close db))
 
-(define artifact-repo (make-sqlite-artifact-repository))
+(define artifact-repo
+  (make-sqlite-artifact-repository))
 
-(define job-repo (make-sqlite-job-repository))
-(define log-repo (make-sqlite-log-repository))
+(define job-repo
+  (make-sqlite-job-repository))
+(define log-repo
+  (make-sqlite-log-repository))
 
 ;;; ====== The pipelines ======
 
-(define first-stage-command "echo BYGGSTEG-STAGE-ONE")
-(define second-stage-command "echo BYGGSTEG-STAGE-TWO")
+(define first-stage-command
+  "echo BYGGSTEG-STAGE-ONE")
+(define second-stage-command
+  "echo BYGGSTEG-STAGE-TWO")
 
 (define (thunk-of jobs)
   "The job data of a request that asks for JOBS, each a list of fields."
@@ -112,48 +117,59 @@
   (list (cons 'task "trivial")
         (cons 'trivial-cmds cmds)))
 
-(define* (enqueue! job-id jobs #:key (with-log? #t)
+(define* (enqueue! job-id jobs
+                   #:key (with-log? #t)
                    (created-at "2026-01-01 00:00:00"))
   (insert-job job-repo
               `((id unquote job-id)
-                (title unquote (string-append "spec " job-id))
-                (job-data unquote (html-escape (thunk-of jobs)))
+                (title unquote
+                       (string-append "spec " job-id))
+                (job-data unquote
+                          (html-escape (thunk-of jobs)))
                 (job-success . 0)
                 (job-in-progress . 1)
                 (job-failed . 0)
                 (created-at unquote created-at)))
   (if with-log?
       (insert-log log-repo
-                  `((id unquote (log-id job-id))
-                    (title unquote (string-append "spec log " job-id))
+                  `((id unquote
+                        (log-id job-id))
+                    (title unquote
+                           (string-append "spec log " job-id))
                     (job-id unquote job-id)
                     (log-data . "")
-                    (created-at unquote created-at)))
-      #t))
+                    (created-at unquote created-at))) #t))
 
 (define (log-id job-id)
   (string-append "log-" job-id))
 
 ;; A pipeline of two jobs, both of which pass.
-(define two-stage-job "spec-two-stage")
-(enqueue! two-stage-job (list (stage (list first-stage-command))
-                              (stage (list second-stage-command))))
+(define two-stage-job
+  "spec-two-stage")
+(enqueue! two-stage-job
+          (list (stage (list first-stage-command))
+                (stage (list second-stage-command))))
 
 ;; A pipeline whose first job fails: the second must not be run at all.
-(define broken-pipeline-job "spec-broken-pipeline")
-(enqueue! broken-pipeline-job (list (stage (list "false"))
-                                    (stage (list second-stage-command)))
-         #:created-at "2026-01-01 00:00:01")
+(define broken-pipeline-job
+  "spec-broken-pipeline")
+(enqueue! broken-pipeline-job
+          (list (stage (list "false"))
+                (stage (list second-stage-command)))
+          #:created-at "2026-01-01 00:00:01")
 
 ;; One job, sent the way a request that asks for a single job sends it.
-(define one-stage-job "spec-one-stage")
-(enqueue! one-stage-job (list (stage (list first-stage-command)))
-         #:created-at "2026-01-01 00:00:02")
+(define one-stage-job
+  "spec-one-stage")
+(enqueue! one-stage-job
+          (list (stage (list first-stage-command)))
+          #:created-at "2026-01-01 00:00:02")
 
 ;; A job that keeps three things apart: a bare path, which shares the tarball
 ;; named after the job's title, and two bundles, each packed into a tarball of
 ;; its own and offered under the name it was given.
-(define collecting-job "spec-collecting")
+(define collecting-job
+  "spec-collecting")
 
 (define collecting-clone
   (string-append (job-clone-location) "spec/trunk/"))
@@ -163,43 +179,52 @@
   (list (cons 'project "spec")
         (cons 'branch-name "trunk")
         (cons 'task "trivial")
-        (cons 'artifacts '("dist"
-                           ("binaries" . ("bin"))
-                           ("docs" . ("docs/manual"))))
+        (cons 'artifacts
+              '("dist" ("binaries" "bin")
+                ("docs" "docs/manual")))
         (cons 'trivial-cmds
               (list (format #f "mkdir -p ~a/dist ~a/bin ~a/docs/manual"
                             collecting-clone collecting-clone collecting-clone)
-                    (format #f "echo KEPT-PATH > ~a/dist/out.txt" collecting-clone)
+                    (format #f "echo KEPT-PATH > ~a/dist/out.txt"
+                            collecting-clone)
                     (format #f "echo KEPT-BIN > ~a/bin/tool" collecting-clone)
                     (format #f "echo KEPT-DOC > ~a/docs/manual/index.org"
                             collecting-clone)))))
 
-(enqueue! collecting-job (list (collecting-stage))
-         #:created-at "2026-01-01 00:00:03")
+(enqueue! collecting-job
+          (list (collecting-stage))
+          #:created-at "2026-01-01 00:00:03")
 
 ;;; ====== Reading a pipeline back ======
 
 (define (log-text job-id)
   "What the job JOB-ID printed, as the reader of its log page reads it."
-  (let ((row (get-log-by-id log-repo (log-id job-id))))
+  (let ((row (get-log-by-id log-repo
+                            (log-id job-id))))
     (if row
-        (html-unescape (assq-ref row 'log-data))
-        "")))
+        (html-unescape (assq-ref row
+                                 'log-data)) "")))
 
 (define (holds? text needle)
-  (if (string-contains text needle)
-      #t
-      #f))
+  (if (string-contains text needle) #t #f))
 
 (define (outcome-flags job-id)
   "The three outcome flags of JOB-ID, as the strings its columns hold."
   (let ((row (get-job-by-id job-repo job-id)))
-    (list (format #f "~a" (assq-ref row 'job-success))
-          (format #f "~a" (assq-ref row 'job-in-progress))
-          (format #f "~a" (assq-ref row 'job-failed)))))
+    (list (format #f "~a"
+                  (assq-ref row
+                            'job-success))
+          (format #f "~a"
+                  (assq-ref row
+                            'job-in-progress))
+          (format #f "~a"
+                  (assq-ref row
+                            'job-failed)))))
 
-(define succeeded-flags '("1" "0" "0"))
-(define failed-flags '("0" "0" "1"))
+(define succeeded-flags
+  '("1" "0" "0"))
+(define failed-flags
+  '("0" "0" "1"))
 
 (define (run! job-id)
   "Run JOB-ID's pipeline the way the sweep runs it: on a scheduler."
@@ -207,33 +232,42 @@
                 (job-pipeline #:job-repo job-repo
                               #:log-repo log-repo
                               #:job (get-job-by-id job-repo job-id)
-                              #:log (get-log-by-id log-repo (log-id job-id))))
+                              #:log (get-log-by-id log-repo
+                                                   (log-id job-id))))
               #:drain? #t))
 
 (define (two-stage-readings)
   "Both jobs of a pipeline of two, and the order their commands appear in."
   (run! two-stage-job)
   (let ((text (log-text two-stage-job)))
-    (list (list 'the-first-job-ran (holds? text first-stage-command))
-          (list 'the-second-job-ran (holds? text second-stage-command))
+    (list (list 'the-first-job-ran
+                (holds? text first-stage-command))
+          (list 'the-second-job-ran
+                (holds? text second-stage-command))
           (list 'in-the-order-they-are-written
                 (let ((first (string-contains text first-stage-command))
                       (second (string-contains text second-stage-command)))
-                  (and first second (< first second))))
-          (list 'outcome (outcome-flags two-stage-job)))))
+                  (and first second
+                       (< first second))))
+          (list 'outcome
+                (outcome-flags two-stage-job)))))
 
 (define (broken-pipeline-readings)
   "The job behind a failed one in a pipeline of two: it must not have run."
   (run! broken-pipeline-job)
   (let ((text (log-text broken-pipeline-job)))
-    (list (list 'the-later-job-ran (holds? text second-stage-command))
-          (list 'outcome (outcome-flags broken-pipeline-job)))))
+    (list (list 'the-later-job-ran
+                (holds? text second-stage-command))
+          (list 'outcome
+                (outcome-flags broken-pipeline-job)))))
 
 (define (one-stage-readings)
   "A request that asks for one job is a pipeline of one."
   (run! one-stage-job)
-  (list (list 'the-job-ran (holds? (log-text one-stage-job) first-stage-command))
-        (list 'outcome (outcome-flags one-stage-job))))
+  (list (list 'the-job-ran
+              (holds? (log-text one-stage-job) first-stage-command))
+        (list 'outcome
+              (outcome-flags one-stage-job))))
 
 ;; The names the collecting job's tarballs are offered under: the bare path's
 ;; tarball under the job's title, then each bundle under its own name, numbered
@@ -243,7 +277,8 @@
 
 (define (artifacts-of job-id)
   "The artifact rows of JOB-ID, as the repository reads them back."
-  (get-artifacts-by-job-ids artifact-repo (list job-id)))
+  (get-artifacts-by-job-ids artifact-repo
+                            (list job-id)))
 
 (define (collecting-readings)
   "What a stage that named several bundles collected.
@@ -254,18 +289,19 @@ them; that the numbering is the one the field asked for is what the names say."
   (run! collecting-job)
   (let* ((artifacts (artifacts-of collecting-job))
          (titles (map (lambda (artifact)
-                        (assq-ref artifact 'title))
-                      artifacts)))
-    (list (list 'how-many (length artifacts))
+                        (assq-ref artifact
+                                  'title)) artifacts)))
+    (list (list 'how-many
+                (length artifacts))
           (list 'named-as-asked
                 (map (lambda (name)
-                       (if (member name titles) name #f))
-                     expected-artifacts))
+                       (if (member name titles) name #f)) expected-artifacts))
           (list 'the-tarballs-are-there
                 (map (lambda (artifact)
-                       (file-exists? (assq-ref artifact 'artifact-path)))
-                     artifacts))
-          (list 'outcome (outcome-flags collecting-job)))))
+                       (file-exists? (assq-ref artifact
+                                               'artifact-path))) artifacts))
+          (list 'outcome
+                (outcome-flags collecting-job)))))
 
 (define (spec-readings)
   "How a job's data is read into the jobs it asks for."
@@ -283,7 +319,8 @@ them; that the numbering is the one the field asked for is what the names say."
                                       (list (cons 'task "trivial")))))
         (list 'a-pipeline-of-bare-commands
               (job-title-prefix (list (cons 'task "trivial")
-                                      (cons 'trivial-cmds (list "echo hi")))))))
+                                      (cons 'trivial-cmds
+                                            (list "echo hi")))))))
 
 (define (deferred read)
   "READ written the way a `comp' assertion takes it.
@@ -296,7 +333,8 @@ it lives in."
   (list 'comp
         (list (list 'module-ref
                     (list 'resolve-module
-                          (list 'quote '(veritas unit job-pipelines-spec)))
+                          (list 'quote
+                                '(veritas unit job-pipelines-spec)))
                     (list 'quote read)))))
 
 (define pipelines-suite
@@ -323,48 +361,49 @@ it lives in."
                                                 "spec-collecting-3.tar.gz")))))
          (test "the jobs a request asks for are read from its data"
                #:shuffle? #f
-               (assert-equal
-                #:name "a list of jobs and a single job are read alike"
-                #:expect '((a-list-of-two 2)
-                           (a-list-of-one 1)
-                           (the-first-project-names-the-job "byggsteg")
-                           (a-pipeline-of-unnamed-jobs "pipeline")
-                           (a-pipeline-of-bare-commands "trivial"))
-                #:got (spec-readings)))
+               (assert-equal #:name
+                             "a list of jobs and a single job are read alike"
+                             #:expect '((a-list-of-two 2)
+                                        (a-list-of-one 1)
+                                        (the-first-project-names-the-job
+                                         "byggsteg")
+                                        (a-pipeline-of-unnamed-jobs "pipeline")
+                                        (a-pipeline-of-bare-commands "trivial"))
+                             #:got (spec-readings)))
          (test "every job of a pipeline is run, in the order it is written"
                #:shuffle? #f
-               (assert-equal
-                #:name "both stages ran, the first before the second"
-                #:expect '((the-first-job-ran #t)
-                           (the-second-job-ran #t)
-                           (in-the-order-they-are-written #t)
-                           (outcome ("1" "0" "0")))
-                #:got (deferred 'two-stage-readings)))
+               (assert-equal #:name
+                             "both stages ran, the first before the second"
+                             #:expect '((the-first-job-ran #t)
+                                        (the-second-job-ran #t)
+                                        (in-the-order-they-are-written #t)
+                                        (outcome ("1" "0" "0")))
+                             #:got (deferred 'two-stage-readings)))
          (test "a job that fails stops the pipeline"
                #:shuffle? #f
-               (assert-equal
-                #:name "the job after the failure did not run, and the pipeline failed"
+               (assert-equal #:name
+                "the job after the failure did not run, and the pipeline failed"
                 #:expect '((the-later-job-ran #f)
                            (outcome ("0" "0" "1")))
                 #:got (deferred 'broken-pipeline-readings)))
          (test "a pipeline of one job is a job"
                #:shuffle? #f
-               (assert-equal
-                #:name "a single job's commands ran and its row says so"
+               (assert-equal #:name
+                "a single job's commands ran and its row says so"
                 #:expect '((the-job-ran #t)
                            (outcome ("1" "0" "0")))
                 #:got (deferred 'one-stage-readings)))
-         (test "a stage that names several bundles collects a tarball for each"
-               #:shuffle? #f
-               (assert-equal
-                #:name "the bare path's tarball keeps the title, and each bundle its name"
-                #:expect '((how-many 3)
-                           (named-as-asked ("spec-spec-collecting.tar.gz"
-                                            "binaries-2.tar.gz"
-                                            "docs-3.tar.gz"))
-                           (the-tarballs-are-there (#t #t #t))
-                           (outcome ("1" "0" "0")))
-                #:got (deferred 'collecting-readings)))))
+         (test
+          "a stage that names several bundles collects a tarball for each"
+          #:shuffle? #f
+          (assert-equal #:name
+           "the bare path's tarball keeps the title, and each bundle its name"
+           #:expect '((how-many 3)
+                      (named-as-asked ("spec-spec-collecting.tar.gz"
+                                       "binaries-2.tar.gz" "docs-3.tar.gz"))
+                      (the-tarballs-are-there (#t #t #t))
+                      (outcome ("1" "0" "0")))
+           #:got (deferred 'collecting-readings)))))
 
 (define (spec)
   (veritas-run pipelines-suite))

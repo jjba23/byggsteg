@@ -64,7 +64,8 @@
         (execute-read "get-artifacts-by-job-ids"
                       (sql-select "artifact"
                                   #:columns columns
-                                  #:where (list (list 'job-id 'in ids))
+                                  #:where (list (list 'job-id
+                                                      'in ids))
                                   #:order-by '((created-at desc))))))
 
   (define (delete-artifact-by-id id)
@@ -81,10 +82,10 @@
                    (sql-update "artifact" attrs
                                #:where (list (cons 'id id)))))
 
-  (mk-artifact-repository
-   #:get-artifacts-proc get-artifacts
-   #:get-artifact-by-id-proc get-artifact-by-id
-   #:get-artifacts-by-job-ids-proc get-artifacts-by-job-ids
-   #:insert-artifact-proc insert-artifact
-   #:update-artifact-by-id-proc update-artifact-by-id
-   #:delete-artifact-by-id-proc delete-artifact-by-id))
+  (mk-artifact-repository #:get-artifacts-proc get-artifacts
+                          #:get-artifact-by-id-proc get-artifact-by-id
+                          #:get-artifacts-by-job-ids-proc
+                          get-artifacts-by-job-ids
+                          #:insert-artifact-proc insert-artifact
+                          #:update-artifact-by-id-proc update-artifact-by-id
+                          #:delete-artifact-by-id-proc delete-artifact-by-id))

@@ -41,7 +41,8 @@
   #:use-module (ice-9 string-fun)
   #:export (search-snippet search-everything))
 
-(define* (search-snippet text query #:key (width 200))
+(define* (search-snippet text query
+                         #:key (width 200))
   "The part of TEXT that carries QUERY, with an ellipsis where it was cut.
 
 A search that answers with a three-hundred-line log and no reading of why it
@@ -52,14 +53,16 @@ The window is flattened to one line: a log is mostly newlines, and an excerpt
 that kept them would be a page inside a page."
   (let* ((text (if (string? text) text ""))
          (query (if (string? query) query ""))
-         (index (if (string-null? query)
-                    #f
+         (index (if (string-null? query) #f
                     (string-contains-ci text query)))
          (total (string-length text))
-         (start (if (and index (> index (quotient width 3)))
-                    (- index (quotient width 3))
-                    0))
-         (end (min total (+ start width)))
+         (start (if (and index
+                         (> index
+                            (quotient width 3)))
+                    (- index
+                       (quotient width 3)) 0))
+         (end (min total
+                   (+ start width)))
          (excerpt (substring text start end)))
     (string-append (if (> start 0) "…" "")
                    (string-join (string-split excerpt #\newline) " ")
@@ -71,13 +74,18 @@ that kept them would be a page inside a page."
 The rows are searched by the `job_id' they carry, rather than looked up by the
 job id as a key: what the repository answers with is a list of log rows, and
 their keys are the names of the columns they hold."
-  (let loop ((logs logs-of-jobs))
+  (let loop
+    ((logs logs-of-jobs))
     (cond
-      ((null? logs) #f)
-      ((equal? (assq-ref (car logs) 'job-id) job-id) (car logs))
+      ((null? logs)
+       #f)
+      ((equal? (assq-ref (car logs)
+                         'job-id) job-id)
+       (car logs))
       (else (loop (cdr logs))))))
 
-(define* (search-everything #:key query (limit (search-result-limit))
+(define* (search-everything #:key query
+                            (limit (search-result-limit))
                             (job-repo (make-sqlite-job-repository))
                             (log-repo (make-sqlite-log-repository))
                             (profile-repo (make-sqlite-profile-repository)))
@@ -88,20 +96,32 @@ The answer is an alist of three lists, under the keys `jobs', `logs' and
 page of the log it printed to; the other two are rows as their own pages list
 them.  An empty or blank query is answered with three empty lists rather than
 with everything, since `LIKE \"%%\"' would be every row in the deployment."
-  (if (or (not query) (string-null? (string-trim-both query)))
-      (list (cons 'jobs '()) (cons 'logs '()) (cons 'profiles '()))
-      (let* ((jobs (search-jobs job-repo #:query query #:limit limit))
-             (logs-of-jobs (get-logs-by-job-ids
-                            log-repo
-                            (map (lambda (job)
-                                   (assq-ref job 'id))
-                                 jobs)))
-             (logs (search-logs log-repo #:query query #:limit limit))
-             (profiles (search-profiles profile-repo #:query query
+  (if (or (not query)
+          (string-null? (string-trim-both query)))
+      (list (cons 'jobs
+                  '())
+            (cons 'logs
+                  '())
+            (cons 'profiles
+                  '()))
+      (let* ((jobs (search-jobs job-repo
+                                #:query query
+                                #:limit limit))
+             (logs-of-jobs (get-logs-by-job-ids log-repo
+                                                (map (lambda (job)
+                                                       (assq-ref job
+                                                                 'id)) jobs)))
+             (logs (search-logs log-repo
+                                #:query query
+                                #:limit limit))
+             (profiles (search-profiles profile-repo
+                                        #:query query
                                         #:limit limit)))
-        (list (cons 'jobs (map (lambda (job)
-                                 (cons job (log-for-job logs-of-jobs
-                                                        (assq-ref job 'id))))
-                               jobs))
+        (list (cons 'jobs
+                    (map (lambda (job)
+                           (cons job
+                                 (log-for-job logs-of-jobs
+                                              (assq-ref job
+                                                        'id)))) jobs))
               (cons 'logs logs)
               (cons 'profiles profiles)))))

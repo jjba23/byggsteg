@@ -43,9 +43,8 @@
 ;; deployment makes is the database it makes users in.
 (define (deployment-db)
   (let ((named (getenv "BYGGSTEG_DB")))
-    (if (and named (positive? (string-length named)))
-        named
-        byggsteg-db)))
+    (if (and named
+             (positive? (string-length named))) named byggsteg-db)))
 
 ;; The main copyright holders of the project.
 (define copyright-holders
@@ -84,15 +83,12 @@
 ;; closed, escaped and reopened.  A password is allowed to hold one, and this
 ;; is what keeps it from ending the argument early.
 (define (shell-quoted text)
-  (string-append
-   "'"
-   (apply string-append
-          (map (lambda (c)
-                 (if (eqv? c #\')
-                     "'\\''"
-                     (string c)))
-               (string->list text)))
-   "'"))
+  (string-append "'"
+                 (apply string-append
+                        (map (lambda (c)
+                               (if (eqv? c #\') "'\\''"
+                                   (string c)))
+                             (string->list text))) "'"))
 
 ;; ====== Maak i18n abstractions ======
 
@@ -184,7 +180,7 @@ suites -- given the test root ./test, the module prefix `veritas' and the suite
 name `unit' -- and it is also what their own `(veritas unit ...)' module names
 resolve to on the load path below."
   (time-machine-manifest-shell (list "guile -L ./lib -L . -L ./test"
-                                     "-c '(begin (use-modules (veritas runner)) (run-tests))'")))
+                                "-c '(begin (use-modules (veritas runner)) (run-tests))'")))
 
 (define (build-manual)
   "Render the project's manual -- the README -- as a single HTML page."
@@ -250,12 +246,11 @@ transaction.  That is what makes this safe to run at any time, and it is also
 the way to bring a database that one deployment made up to what the source in
 front of it expects.  Mutastructura is the only thing that applies migrations;
 no task reads the SQL files and hands them to sqlite3 itself."
-  (time-machine-manifest-shell
-   (list (format #f
-                 "mutastructura --database sqlite3 --connection ~a --migrations ~a"
-                 (shell-quoted (deployment-db))
-                 (shell-quoted migrations-dir)))
-   #:verbose? #t))
+  (time-machine-manifest-shell (list (format #f
+                                      "mutastructura --database sqlite3 --connection ~a --migrations ~a"
+                                      (shell-quoted (deployment-db))
+                                      (shell-quoted migrations-dir)))
+                               #:verbose? #t))
 
 (define (init-db)
   "Initialize a new database: the file, WAL mode, and the schema.
@@ -265,13 +260,16 @@ resources/migrations/sqlite is applied to it in file order -- so this is the
 first command of a new deployment.  It deletes whatever file is already there,
 which is why a deployment that has data runs `maak migrate' instead."
   (delete-file-recursively (deployment-db))
-  (delete-file-recursively (~ "~a-shm" (deployment-db)))
-  (delete-file-recursively (~ "~a-wal" (deployment-db)))
+  (delete-file-recursively (~ "~a-shm"
+                              (deployment-db)))
+  (delete-file-recursively (~ "~a-wal"
+                              (deployment-db)))
   ;; The command list, not the bare string: `time-machine-manifest-shell'
   ;; appends what it is given to the `guix time-machine ... shell' it builds,
   ;; so a string here would make the whole command an improper list.
-  (time-machine-manifest-shell
-   (list (~ "sqlite3 ~a 'PRAGMA journal_mode=WAL;'" (deployment-db))))
+  (time-machine-manifest-shell (list (~
+                                      "sqlite3 ~a 'PRAGMA journal_mode=WAL;'"
+                                      (deployment-db))))
   (migrate))
 
 (define (create-user username email password . permissions)
@@ -300,31 +298,30 @@ Once one super user exists, the rest are made at /users/new with it."
                                (positive? (string-length permission)))
                              (string-split (car permissions) #\,))))
          (expression (format #f
-                             "(begin (use-modules (byggsteg user-bootstrap) (byggsteg sqlite util)) (database-path ~s) ~a)"
-                             (deployment-db)
-                             (format #f
-                                     "(create-user! #:username ~s #:email ~s #:password ~s~a)"
-                                     username email password
-                                     ;; The names go in as strings, turned into
-                                     ;; symbols where they arrive: a bare
-                                     ;; `byggsteg:job-create' in evaluated code
-                                     ;; is a variable, and there is no such
-                                     ;; variable to hold it.
-                                     (cond
-                                       ((not wanted) "")
-                                       ((null? wanted) " #:permissions (list)")
-                                       (else
-                                        (format #f
-                                                " #:permissions (map string->symbol (list ~a))"
-                                                (string-join
-                                                 (map (lambda (permission)
-                                                        (format #f "~s"
-                                                                permission))
-                                                      wanted)
-                                                 " "))))))))
-    (time-machine-manifest-shell
-     (list (format #f "guile -L ./lib -L . -c ~a"
-                   (shell-quoted expression))))))
+                      "(begin (use-modules (byggsteg user-bootstrap) (byggsteg sqlite util)) (database-path ~s) ~a)"
+                      (deployment-db)
+                      (format #f
+                       "(create-user! #:username ~s #:email ~s #:password ~s~a)"
+                       username
+                       email
+                       password
+                       ;; The names go in as strings, turned into
+                       ;; symbols where they arrive: a bare
+                       ;; `byggsteg:job-create' in evaluated code
+                       ;; is a variable, and there is no such
+                       ;; variable to hold it.
+                       (cond
+                         ((not wanted)
+                          "")
+                         ((null? wanted)
+                          " #:permissions (list)")
+                         (else (format #f
+                                " #:permissions (map string->symbol (list ~a))"
+                                (string-join (map (lambda (permission)
+                                                    (format #f "~s" permission))
+                                                  wanted) " "))))))))
+    (time-machine-manifest-shell (list (format #f "guile -L ./lib -L . -c ~a"
+                                               (shell-quoted expression))))))
 
 ;; ====== Maak i18n tasks ======
 
@@ -335,9 +332,8 @@ The queue worker does this on its own once an hour, so this task is for a
 directory that has already collected orphans: tarballs left by a job removed
 before deleting one took them with it, or by a deployment that was stopped
 between writing a tarball and recording it."
-  (time-machine-manifest-shell
-   (list "guile -L ./lib -L ."
-         "-c '(begin (use-modules (byggsteg sqlite artifact) (byggsteg artifacts)) (let ((removed (sweep-orphaned-artifacts! (make-sqlite-artifact-repository)))) (format #t \"~a orphaned artifact(s) removed~%\" (length removed)) (for-each (lambda (path) (format #t \"  ~a~%\" path)) removed)))'")))
+  (time-machine-manifest-shell (list "guile -L ./lib -L ."
+                                "-c '(begin (use-modules (byggsteg sqlite artifact) (byggsteg artifacts)) (let ((removed (sweep-orphaned-artifacts! (make-sqlite-artifact-repository)))) (format #t \"~a orphaned artifact(s) removed~%\" (length removed)) (for-each (lambda (path) (format #t \"  ~a~%\" path)) removed)))'")))
 
 (define (prune-old-runs)
   "Remove the runs that have outlived their retention, with their tarballs.
@@ -345,9 +341,8 @@ between writing a tarball and recording it."
 The queue worker does this on its own once a day, so this task is for a
 deployment that has just been given a shorter retention, or one whose worker has
 not been running."
-  (time-machine-manifest-shell
-   (list "guile -L ./lib -L ."
-         "-c '(begin (use-modules (byggsteg job retention) (byggsteg preferences)) (format #t \"keeping runs for ~a day(s)~%\" (job-retention-days)) (let ((pruned (prune-old-runs!))) (format #t \"~a run(s) pruned~%\" (length pruned)) (for-each (lambda (run) (format #t \"  ~a  ~a~%\" (assq-ref run 'id) (assq-ref run 'title))) pruned)))'")))
+  (time-machine-manifest-shell (list "guile -L ./lib -L ."
+                                "-c '(begin (use-modules (byggsteg job retention) (byggsteg preferences)) (format #t \"keeping runs for ~a day(s)~%\" (job-retention-days)) (let ((pruned (prune-old-runs!))) (format #t \"~a run(s) pruned~%\" (length pruned)) (for-each (lambda (run) (format #t \"  ~a  ~a~%\" (assq-ref run 'id) (assq-ref run 'title))) pruned)))'")))
 
 (define (i18n-compile)
   "Compile the translation files for all locales."
@@ -399,22 +394,27 @@ not been running."
 ;; of the faces -- or a licence of its own for them -- sets.  See "On Lucida
 ;; fonts" in the manual before serving them.
 (define lucida-font-files
-  '("LSANS" "LSANSI" "LSANSD" "LSANSDI"
-    "LTYPE" "LTYPEO" "LTYPEB" "LTYPEBO"
+  '("LSANS" "LSANSI"
+    "LSANSD"
+    "LSANSDI"
+    "LTYPE"
+    "LTYPEO"
+    "LTYPEB"
+    "LTYPEBO"
     "l_10646"))
 
 (define (lucida-font-source)
   (let ((named (getenv "BYGGSTEG_LUCIDA_FONT_SOURCE")))
-    (if (and named (positive? (string-length named)))
-        named
+    (if (and named
+             (positive? (string-length named))) named
         "https://jointhefreeworld.org/static-assets/fonts")))
 
 (define (lucida-fonts)
   "Fetch the Lucida faces the console serves from this deployment's own host."
   ($ (list (format #f
-                   "mkdir -p ./pub/fonts/lucida && for f in ~a; do curl --fail --location --output \"./pub/fonts/lucida/$f.woff\" \"~a/$f.woff\" || exit 1; done"
-                   (string-join lucida-font-files " ")
-                   (lucida-font-source)))))
+            "mkdir -p ./pub/fonts/lucida && for f in ~a; do curl --fail --location --output \"./pub/fonts/lucida/$f.woff\" \"~a/$f.woff\" || exit 1; done"
+            (string-join lucida-font-files " ")
+            (lucida-font-source)))))
 
 (define (import-production-database)
   "Import production env's database to local workspace via SSH/SCP"

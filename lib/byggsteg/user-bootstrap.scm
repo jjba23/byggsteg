@@ -68,5 +68,5 @@ it, so the same password is a different value in every account."
                    ;; is what a sign-in reads back out of it to put in a token,
                    ;; so what is written here is what the user-management form
                    ;; writes: the same value either way.
-                   (permissions unquote (format #f "`~s" permissions))))
-    id))
+                   (permissions unquote
+                                (format #f "`~s" permissions)))) id))

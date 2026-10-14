@@ -44,10 +44,11 @@
 ;; A panel: paper with green ink, or the phosphor screen.
 (define-public terminal-frame
   (mk-class '(bg-stone-300 dark:bg-onyx-700
-              border-2
-              border-asparagus-700 dark:border-asparagus-900
-              rounded-none
-              shadow-md)))
+                           border-2
+                           border-asparagus-700
+                           dark:border-asparagus-900
+                           rounded-none
+                           shadow-md)))
 
 ;; The window-title strip of a panel, in small uppercase chrome.
 ;; Olive has per-side border *widths* but no per-side border *colours*, so the
@@ -55,12 +56,22 @@
 ;; sides -- the sides with no width draw nothing.
 (define-public terminal-chrome
   (mk-class '(bg-stone-500 dark:bg-onyx-900
-              border-b-2
-              border-asparagus-700 dark:border-asparagus-900
-              rounded-none px-3 py-1
-              flex flex-row items-center gap-2
-              text-xs uppercase tracking-widest
-              text-asparagus-900 dark:text-asparagus-300 font-mono)))
+                           border-b-2
+                           border-asparagus-700
+                           dark:border-asparagus-900
+                           rounded-none
+                           px-3
+                           py-1
+                           flex
+                           flex-row
+                           items-center
+                           gap-2
+                           text-xs
+                           uppercase
+                           tracking-widest
+                           text-asparagus-900
+                           dark:text-asparagus-300
+                           font-mono)))
 
 ;; The `$' of a shell prompt.
 (define-public prompt-face
@@ -74,19 +85,28 @@
 ;; Scrolling console output.
 (define-public terminal-log-face
   (mk-class '(bg-stone-100 dark:bg-onyx-900
-              border border-asparagus-700 dark:border-asparagus-900
-              rounded-none
-              p-4 text-asparagus-900 dark:text-olive-100
-              font-mono text-sm leading-6
-              w-full max-w-full min-w-0
-              overflow-x-auto whitespace-pre-wrap)))
+                           border
+                           border-asparagus-700
+                           dark:border-asparagus-900
+                           rounded-none
+                           p-4
+                           text-asparagus-900
+                           dark:text-olive-100
+                           font-mono
+                           text-sm
+                           leading-6
+                           w-full
+                           max-w-full
+                           min-w-0
+                           overflow-x-auto
+                           whitespace-pre-wrap)))
 
 ;; The frame's classes with room to add layout ones, e.g. `p-4' or `max-w-128'.
 ;; Guile has no `define*-public', so the export is explicit.
 (define* (terminal-frame-class #:key (extra '()))
-  (if (null? extra)
-      terminal-frame
-      (string-append terminal-frame " " (mk-class extra))))
+  (if (null? extra) terminal-frame
+      (string-append terminal-frame " "
+                     (mk-class extra))))
 (export terminal-frame-class)
 
 ;;
@@ -104,17 +124,25 @@
 ;; adds those classes beside this one.  `w-full' and `flex flex-col' are part of
 ;; it because a body that is a block of its own is a body the gutter measures.
 (define-public page-body-face
-  (mk-class '(w-full flex flex-col gap-3 py-3 px-3
-              sm:gap-4 sm:py-4 sm:px-4
-              md:gap-6 md:py-6 md:px-6)))
+  (mk-class '(w-full flex
+                     flex-col
+                     gap-3
+                     py-3
+                     px-3
+                     sm:gap-4
+                     sm:py-4
+                     sm:px-4
+                     md:gap-6
+                     md:py-6
+                     md:px-6)))
 
 ;; The gutter with room to add layout classes of a page's own, e.g.
 ;; `align-center' or `whitespace-break-spaces'; the shape of
 ;; `terminal-frame-class' beside it.
 (define* (page-body-class #:key (extra '()))
-  (if (null? extra)
-      page-body-face
-      (string-append page-body-face " " (mk-class extra))))
+  (if (null? extra) page-body-face
+      (string-append page-body-face " "
+                     (mk-class extra))))
 (export page-body-class)
 
 ;; The room inside a framed panel of a page -- a list of runs, a form, a set of
@@ -160,8 +188,7 @@
 ;; disc -- drawn a blur away from where it belongs.  A disc with a child of its
 ;; own is closed by the serializer, and the panel still clips it to the pane's
 ;; corners and keeps the content in a layer above it.
-(define* (terminal-glass-disc #:key
-                              (colour '(bg-asparagus-700/50))
+(define* (terminal-glass-disc #:key (colour '(bg-asparagus-700/50))
                               (size '(w-72 h-72))
                               (place '(left-0 top-0))
                               (delay "-4s")
@@ -181,11 +208,13 @@ descriptor form this page's serializer cannot close."
                     (format #f "animation-delay: ~a; --hg-blob-duration: ~a"
                             delay pace))
               (list 'class
-                    (mk-class (append '(absolute hg-blob blur-3xl opacity-75
+                    (mk-class (append '(absolute hg-blob
+                                                 blur-3xl
+                                                 opacity-75
                                                  pointer-events-none
-                                                 select-none rounded-512)
-                                      colour size place))))
-        ""))
+                                                 select-none
+                                                 rounded-512) colour size
+                                      place)))) ""))
 
 ;; Two phosphor discs thrown across a pane and kept out of phase: the panel
 ;; clips them to its own square corners and blurs them, which is what gives the
@@ -199,8 +228,7 @@ descriptor form this page's serializer cannot close."
                              #:pace "46s")))
 
 (define* (terminal-glass-panel content
-                               #:key
-                               (tag 'div)
+                               #:key (tag 'div)
                                (padding '(p-4))
                                (position '(relative))
                                (washes terminal-glass-washes)
@@ -254,16 +282,24 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; Buttons
 ;;
 (define base-button
-  `(p-2 w-fit text-sm font-mono font-bold uppercase tracking-wide
+  `(p-2 w-fit
+        text-sm
+        font-mono
+        font-bold
+        uppercase
+        tracking-wide
         rounded-none))
 (define-public button-face
   (mk-class (append base-button
                     '(bg-stone-300 dark:bg-onyx-700
-                      text-asparagus-900 dark:text-asparagus-100
-                      border-2
-                      border-asparagus-700 dark:border-asparagus-900
-                      shadow-md
-                      hover:bg-stone-500 dark:hover:bg-olive-900))))
+                                   text-asparagus-900
+                                   dark:text-asparagus-100
+                                   border-2
+                                   border-asparagus-700
+                                   dark:border-asparagus-900
+                                   shadow-md
+                                   hover:bg-stone-500
+                                   dark:hover:bg-olive-900))))
 
 ;;
 ;; Forms
@@ -288,56 +324,67 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; has ever held.
 (define-public input-face
   '(bg-stone-100 dark:bg-onyx-900
-                text-asparagus-900 dark:text-olive-100
-                caret-asparagus-300
-                border-2
-                border-asparagus-700 dark:border-asparagus-900
-                rounded-none
-                p-4
-                text-md
-                shadow-md
-                font-mono
-                max-w-prose min-w-0
-                transition-colors
-                duration-150
-                focus-visible:outline-2
-                focus-visible:outline-offset-2
-                outline-asparagus-700))
+                 text-asparagus-900
+                 dark:text-olive-100
+                 caret-asparagus-300
+                 border-2
+                 border-asparagus-700
+                 dark:border-asparagus-900
+                 rounded-none
+                 p-4
+                 text-md
+                 shadow-md
+                 font-mono
+                 max-w-prose
+                 min-w-0
+                 transition-colors
+                 duration-150
+                 focus-visible:outline-2
+                 focus-visible:outline-offset-2
+                 outline-asparagus-700))
 
 (define-public textarea-face
   '(bg-stone-100 dark:bg-onyx-900
-                text-asparagus-900 dark:text-olive-100
-                caret-asparagus-300
-                border-2
-                border-asparagus-700 dark:border-asparagus-900
-                rounded-none
-                p-3
-                ;; As wide as the room it is given (`w-full'), no wider than a
-                ;; reading line (`max-w-prose'), and as narrow as the screen it
-                ;; is read on when there is no room (`min-w-0').  A maximum is
-                ;; not a floor: the cap is what keeps a code field from running
-                ;; two feet across a wide screen, and `min-w-0' is what keeps it
-                ;; from running off a narrow one.
-                w-full max-w-prose min-w-0
-                text-md
-                leading-6
-                shadow-md
-                font-mono
-                min-h-64
-                transition-colors
-                duration-150
-                focus-visible:outline-2
-                focus-visible:outline-offset-2
-                outline-asparagus-700))
+                 text-asparagus-900
+                 dark:text-olive-100
+                 caret-asparagus-300
+                 border-2
+                 border-asparagus-700
+                 dark:border-asparagus-900
+                 rounded-none
+                 p-3
+                 ;; As wide as the room it is given (`w-full'), no wider than a
+                 ;; reading line (`max-w-prose'), and as narrow as the screen it
+                 ;; is read on when there is no room (`min-w-0').  A maximum is
+                 ;; not a floor: the cap is what keeps a code field from running
+                 ;; two feet across a wide screen, and `min-w-0' is what keeps it
+                 ;; from running off a narrow one.
+                 w-full
+                 max-w-prose
+                 min-w-0
+                 text-md
+                 leading-6
+                 shadow-md
+                 font-mono
+                 min-h-64
+                 transition-colors
+                 duration-150
+                 focus-visible:outline-2
+                 focus-visible:outline-offset-2
+                 outline-asparagus-700))
 
 (define-public label-face
   '(text-asparagus-900 dark:text-asparagus-300
-                       text-sm font-mono
-                       uppercase tracking-widest py-2 md:px-2))
+                       text-sm
+                       font-mono
+                       uppercase
+                       tracking-widest
+                       py-2
+                       md:px-2))
 
 (define-public hr-face
-  (mk-class '(mx-8 my-5 border-t-2
-                       border-asparagus-700 dark:border-asparagus-900)))
+  (mk-class '(mx-8 my-5 border-t-2 border-asparagus-700
+                   dark:border-asparagus-900)))
 
 ;;
 ;; Job status
@@ -366,29 +413,38 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;;
 
 (define-public brand-title-face
-  (mk-class '(text-2xl text-asparagus-900 dark:text-asparagus-100
-                              hover:text-onyx-900 dark:hover:text-olive-100
-                              font-bold font-mono tracking-wide)))
+  (mk-class '(text-2xl text-asparagus-900
+                       dark:text-asparagus-100
+                       hover:text-onyx-900
+                       dark:hover:text-olive-100
+                       font-bold
+                       font-mono
+                       tracking-wide)))
 
 ;;
 ;; Links
 ;;
 (define-public dash-link-face
   (mk-class '(text-asparagus-900 dark:text-olive-100
-                             hover:text-onyx-900 dark:hover:text-asparagus-100
-                             no-underline
-                             font-bold
-                             cursor-pointer
-                             text-md
-                             font-mono)))
+                                 hover:text-onyx-900
+                                 dark:hover:text-asparagus-100
+                                 no-underline
+                                 font-bold
+                                 cursor-pointer
+                                 text-md
+                                 font-mono)))
 
 (define-public link-face
   (mk-class '(text-asparagus-900 dark:text-olive-100
-                              hover:text-onyx-900 dark:hover:text-asparagus-100
-                              underline underline-offset-4
-                              decoration-dotted
-                              font-bold
-                              cursor-pointer text-sm font-mono)))
+                                 hover:text-onyx-900
+                                 dark:hover:text-asparagus-100
+                                 underline
+                                 underline-offset-4
+                                 decoration-dotted
+                                 font-bold
+                                 cursor-pointer
+                                 text-sm
+                                 font-mono)))
 
 ;;
 ;; Controls
@@ -401,20 +457,23 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; left to hygguile, which already pairs them for both themes.
 (define (terminal-icon-button . args)
   (apply icon-button
-         (append args (list #:rounding '(rounded-none)
-                            #:family '(font-mono)))))
+         (append args
+                 (list #:rounding '(rounded-none)
+                       #:family '(font-mono)))))
 (export terminal-icon-button)
 
 (define (terminal-button . args)
   (apply button
-         (append args (list #:rounding '(rounded-none)
-                            #:family '(font-mono)))))
+         (append args
+                 (list #:rounding '(rounded-none)
+                       #:family '(font-mono)))))
 (export terminal-button)
 
 ;; The primary action.  hygguile's `submit-button' takes no knobs, so this
 ;; states the same olive contrast pair it uses -- a filled button whose label
 ;; always clears the background -- in the terminal's square, monospaced shape.
-(define* (terminal-submit-button content #:key (size '(text-md)))
+(define* (terminal-submit-button content
+                                 #:key (size '(text-md)))
   (button content
           #:type 'submit
           #:size size
@@ -438,8 +497,7 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 (define (terminal-input . args)
   (apply input
          (append (list #:input-css input-face
-                       #:label-css label-face)
-                 args)))
+                       #:label-css label-face) args)))
 (export terminal-input)
 
 ;; hygguile's textarea, dressed the same way: the job-code field of the console
@@ -453,10 +511,12 @@ z-10)' is what keeps a bar of glass under the reader's eye."
   (apply textarea
          (append (list #:textarea-css textarea-face
                        #:label-css label-face
-                       #:textarea-flex-css '(my-2 flex flex-col gap-1
-                                                w-full min-w-0
-                                                font-sans))
-                 args)))
+                       #:textarea-flex-css '(my-2 flex
+                                                  flex-col
+                                                  gap-1
+                                                  w-full
+                                                  min-w-0
+                                                  font-sans)) args)))
 (export terminal-textarea)
 
 ;;
@@ -465,23 +525,32 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 
 ;; A command token: hygguile's `code' on the terminal ground with a green
 ;; hairline.
-(define* (terminal-code content #:key (size '(text-sm)))
+(define* (terminal-code content
+                        #:key (size '(text-sm)))
   (code content
         #:color '(text-asparagus-900 dark:text-asparagus-100)
         #:background '(bg-stone-100 dark:bg-onyx-900)
         #:rounding '(rounded-none)
         #:shadow '()
         #:size size
-        #:code-classes '(font-mono
-                         border border-asparagus-700 dark:border-asparagus-900)))
+        #:code-classes '(font-mono border border-asparagus-700
+                                   dark:border-asparagus-900)))
 (export terminal-code)
 
 ;; A phosphor section heading, one of `h1'..`h4'.
-(define* (terminal-heading content #:key (tag 'h4) (size '(text-lg)))
+(define* (terminal-heading content
+                           #:key (tag 'h4)
+                           (size '(text-lg)))
   (let ((render (cond
-                  ((equal? tag 'h1) h1)
-                  ((equal? tag 'h2) h2)
-                  ((equal? tag 'h3) h3)
+                  ((equal? tag
+                           'h1)
+                   h1)
+                  ((equal? tag
+                           'h2)
+                   h2)
+                  ((equal? tag
+                           'h3)
+                   h3)
                   (else h4))))
     (render content
             #:color '(text-asparagus-900 dark:text-asparagus-100)
@@ -499,7 +568,10 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; and a reader following a line of build output means to follow that line -- so
 ;; the side of the pre is where the room comes from rather than the page's, and
 ;; the pane is narrower on either side to hand the output the width it has.
-(define* (terminal-pre content #:key (size '(text-sm)) (extra '()) (wrap? #t))
+(define* (terminal-pre content
+                       #:key (size '(text-sm))
+                       (extra '())
+                       (wrap? #t))
   (pre content
        #:color '(text-asparagus-900 dark:text-olive-100)
        #:background '(bg-stone-100 dark:bg-onyx-900)
@@ -511,12 +583,11 @@ z-10)' is what keeps a bar of glass under the reader's eye."
        #:padding-x '(px-2 sm:px-4)
        #:padding-y '(py-4)
        #:pre-classes (append (if wrap?
-                                '(font-mono whitespace-pre-wrap)
-                                '(font-mono whitespace-pre))
-                             '(overflow-x-auto
-                               caret-asparagus-300
-                               border border-asparagus-700
-                               dark:border-asparagus-900)
+                                 '(font-mono whitespace-pre-wrap)
+                                 '(font-mono whitespace-pre))
+                             '(overflow-x-auto caret-asparagus-300 border
+                                               border-asparagus-700
+                                               dark:border-asparagus-900)
                              extra)))
 (export terminal-pre)
 

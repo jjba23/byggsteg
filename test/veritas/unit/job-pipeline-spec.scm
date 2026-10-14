@@ -48,24 +48,24 @@
 
 ;; One file per process, so a run in worker processes cannot share one.
 (define spec-db
-  (format #f "/tmp/byggsteg-job-pipeline-spec-~a.db" (getpid)))
+  (format #f "/tmp/byggsteg-job-pipeline-spec-~a.db"
+          (getpid)))
 
 ;; The schema comes from the migration the server runs rather than from a copy of
 ;; it kept here: a column that changes has to keep this suite honest.
 (define migration-file
   (let ((here (current-filename)))
     (string-append (if (string? here)
-                       (dirname (dirname (dirname (dirname here))))
-                       ".")
-                   "/resources/migrations/sqlite/2026-04-07_12:21:00_init_byggsteg_schema.sql")))
+                       (dirname (dirname (dirname (dirname here)))) ".")
+     "/resources/migrations/sqlite/2026-04-07_12:21:00_init_byggsteg_schema.sql")))
 
 (define (create-schema! db)
   "Run the server's migration over DB, one statement at a time."
   (for-each (lambda (statement)
               (if (string-any char-set:graphic statement)
                   (sqlite-exec db statement)))
-            (string-split (call-with-input-file migration-file get-string-all)
-                          #\;)))
+            (string-split (call-with-input-file migration-file
+                            get-string-all) #\;)))
 
 ;; The repositories take their connection from `(database-path)' as they are
 ;; built and keep it for the rest of the run, so the file and the parameters are
@@ -79,8 +79,10 @@
   (create-schema! db)
   (sqlite-close db))
 
-(define job-repo (make-sqlite-job-repository))
-(define log-repo (make-sqlite-log-repository))
+(define job-repo
+  (make-sqlite-job-repository))
+(define log-repo
+  (make-sqlite-log-repository))
 
 ;;; ====== The jobs the sweep is given ======
 
@@ -90,8 +92,7 @@
 (define (trivial-thunk)
   "Job data as a request sends it: a thunk whose value is the job's alist, with
 `trivial-cmds' set so the pipeline runs the command instead of cloning a repo."
-  (format #f
-          "(lambda () `((project . \"job-pipeline-spec\")
+  (format #f "(lambda () `((project . \"job-pipeline-spec\")
                          (branch-name . \"trunk\")
                          (task . \"trivial\")
                          (trivial-cmds . ~s)))"
@@ -101,7 +102,8 @@
   "The log row a job called JOB-ID is given."
   (string-append "log-" job-id))
 
-(define* (enqueue! job-id job-data
+(define* (enqueue! job-id
+                   job-data
                    #:key (with-log? #f)
                    (in-progress? #t)
                    (created-at "2026-01-01 00:00:00"))
@@ -113,54 +115,79 @@ otherwise have no defined order.  A job with IN-PROGRESS? #f is a row the sweep
 never claims, which the contract test needs."
   (insert-job job-repo
               `((id unquote job-id)
-                (title unquote (string-append "spec " job-id))
-                (job-data unquote (html-escape job-data))
+                (title unquote
+                       (string-append "spec " job-id))
+                (job-data unquote
+                          (html-escape job-data))
                 (job-success . 0)
-                (job-in-progress unquote (if in-progress? 1 0))
+                (job-in-progress unquote
+                                 (if in-progress? 1 0))
                 (job-failed . 0)
                 (created-at unquote created-at)))
   (if with-log?
       (insert-log log-repo
-                  `((id unquote (log-id job-id))
-                    (title unquote (string-append "spec log " job-id))
+                  `((id unquote
+                        (log-id job-id))
+                    (title unquote
+                           (string-append "spec log " job-id))
                     (job-id unquote job-id)
                     (log-data . "")
-                    (created-at unquote created-at)))
-      #t))
+                    (created-at unquote created-at))) #t))
 
 ;; A job that is not in progress: the sweep never claims it, so only the contract
 ;; test touches this one.
-(define refused-job "spec-not-a-thunk")
-(enqueue! refused-job "42" #:in-progress? #f #:created-at "2026-01-01 00:00:00")
+(define refused-job
+  "spec-not-a-thunk")
+(enqueue! refused-job
+          "42"
+          #:in-progress? #f
+          #:created-at "2026-01-01 00:00:00")
 
 ;; The sweep's jobs, queued oldest first.  The three it cannot run are ahead of
 ;; the jobs that must still finish, so a sweep that gave up at the first broken
 ;; row would leave those last jobs in progress and be caught by them.
-(define unparseable-job "spec-unparseable")
-(enqueue! unparseable-job "(this is (not scheme" #:created-at "2026-01-02 00:00:00")
+(define unparseable-job
+  "spec-unparseable")
+(enqueue! unparseable-job "(this is (not scheme"
+          #:created-at "2026-01-02 00:00:00")
 
-(define empty-data-job "spec-empty-job-data")
-(enqueue! empty-data-job "" #:created-at "2026-01-02 00:00:01")
+(define empty-data-job
+  "spec-empty-job-data")
+(enqueue! empty-data-job ""
+          #:created-at "2026-01-02 00:00:01")
 
-(define not-a-thunk-job "spec-queued-not-a-thunk")
-(enqueue! not-a-thunk-job "42" #:created-at "2026-01-02 00:00:02")
+(define not-a-thunk-job
+  "spec-queued-not-a-thunk")
+(enqueue! not-a-thunk-job "42"
+          #:created-at "2026-01-02 00:00:02")
 
-(define missing-log-job "spec-missing-log")
-(enqueue! missing-log-job (trivial-thunk) #:created-at "2026-01-02 00:00:03")
+(define missing-log-job
+  "spec-missing-log")
+(enqueue! missing-log-job
+          (trivial-thunk)
+          #:created-at "2026-01-02 00:00:03")
 
-(define healthy-job "spec-healthy")
-(enqueue! healthy-job (trivial-thunk)
-         #:created-at "2026-01-02 00:00:04"
-         #:with-log? #t)
+(define healthy-job
+  "spec-healthy")
+(enqueue! healthy-job
+          (trivial-thunk)
+          #:created-at "2026-01-02 00:00:04"
+          #:with-log? #t)
 
 ;;; ====== Reading the sweep back ======
 
 (define (outcome-flags job-id)
   "The three outcome flags of JOB-ID, as the strings its columns hold."
   (let ((row (get-job-by-id job-repo job-id)))
-    (list (format #f "~a" (assq-ref row 'job-success))
-          (format #f "~a" (assq-ref row 'job-in-progress))
-          (format #f "~a" (assq-ref row 'job-failed)))))
+    (list (format #f "~a"
+                  (assq-ref row
+                            'job-success))
+          (format #f "~a"
+                  (assq-ref row
+                            'job-in-progress))
+          (format #f "~a"
+                  (assq-ref row
+                            'job-failed)))))
 
 (define failed-flags
   ;; `job_success' 0, `job_in_progress' 0, `job_failed' 1.
@@ -180,18 +207,22 @@ never claims, which the contract test needs."
 
 (define (outcome-complaints)
   "The jobs whose flags differ from `expected-outcomes', as readings to print."
-  (let loop ((expected expected-outcomes)
-             (complaints '()))
+  (let loop
+    ((expected expected-outcomes)
+     (complaints '()))
     (if (null? expected)
         (reverse complaints)
         (let* ((job-id (car (car expected)))
                (should-be (cdr (car expected)))
                (is (outcome-flags job-id)))
           (loop (cdr expected)
-                (if (equal? should-be is)
-                    complaints
-                    (cons (list 'job job-id 'should-be should-be 'is is)
-                          complaints)))))))
+                (if (equal? should-be is) complaints
+                    (cons (list 'job
+                                job-id
+                                'should-be
+                                should-be
+                                'is
+                                is) complaints)))))))
 
 (define (refused-job-complaints)
   "The ways the job the pipeline refuses to run was touched anyway.
@@ -199,28 +230,43 @@ never claims, which the contract test needs."
 It is not in progress, so nothing but the pipeline itself could have written to
 it, and a refusal that marked the job done would be a job never run."
   (let ((is (outcome-flags refused-job)))
-    (if (equal? is '("0" "0" "0"))
+    (if (equal? is
+                '("0" "0" "0"))
         '()
-        (list (list 'job refused-job 'should-be '("0" "0" "0") 'is is)))))
+        (list (list 'job
+                    refused-job
+                    'should-be
+                    '("0" "0" "0")
+                    'is
+                    is)))))
 
 (define (log-complaints)
   "The ways the logs after a sweep can be wrong, as readings to print.
 
 The job without a log row must not have been given one, and the job that has a
 log row must find its command's output in it."
-  (let* ((missing (get-logs-by-job-ids log-repo (list missing-log-job)))
+  (let* ((missing (get-logs-by-job-ids log-repo
+                                       (list missing-log-job)))
          (unwanted (if (null? missing)
                        '()
-                       (list (list 'job missing-log-job
-                                   'should-have 'no-log-row 'has missing))))
-         (written (assq-ref (get-log-by-id log-repo (log-id healthy-job))
+                       (list (list 'job
+                                   missing-log-job
+                                   'should-have
+                                   'no-log-row
+                                   'has
+                                   missing))))
+         (written (assq-ref (get-log-by-id log-repo
+                                           (log-id healthy-job))
                             'log-data))
          (unwritten (if (and (string? written)
                              (string-contains written trivial-command))
                         '()
-                        (list (list 'log (log-id healthy-job)
-                                    'should-hold trivial-command
-                                    'holds written)))))
+                        (list (list 'log
+                                    (log-id healthy-job)
+                                    'should-hold
+                                    trivial-command
+                                    'holds
+                                    written)))))
     (append unwanted unwritten)))
 
 (define (sweep-complaints)
@@ -237,7 +283,8 @@ what the suite asserts; when it is not empty it prints the readings above."
            (append (outcome-complaints)
                    (log-complaints)))
          (lambda (key . args)
-           (list (list 'the-sweep-raised (format #f "~a: ~s" key args))))))
+           (list (list 'the-sweep-raised
+                       (format #f "~a: ~s" key args))))))
 
 (define (deferred read)
   "READ written the way a `comp' assertion takes it.
@@ -250,7 +297,8 @@ the module it lives in."
   (list 'comp
         (list (list 'module-ref
                     (list 'resolve-module
-                          (list 'quote '(veritas unit job-pipeline-spec)))
+                          (list 'quote
+                                '(veritas unit job-pipeline-spec)))
                     (list 'quote read)))))
 
 ;;; ====== The suite ======
@@ -279,16 +327,19 @@ the module it lives in."
                                 (job-pipeline #:job-repo job-repo
                                               #:log-repo log-repo
                                               #:job (get-job-by-id job-repo
-                                                                   refused-job)
+                                                     refused-job)
                                               #:log #f))
                               #:on 'misc-error
                               #:name "job data that is not a procedure raises")
-               (assert-empty #:name "a refused job is left for the sweep to fail"
+               (assert-empty #:name
+                             "a refused job is left for the sweep to fail"
                              #:got (deferred 'refused-job-complaints)))
-         (test "the sweep fails what it cannot run, and runs a job with no log"
-               #:shuffle? #f
-               (assert-empty #:name "every job ended as it should, and the logs are right"
-                             #:got (deferred 'sweep-complaints)))))
+         (test
+          "the sweep fails what it cannot run, and runs a job with no log"
+          #:shuffle? #f
+          (assert-empty #:name
+           "every job ended as it should, and the logs are right"
+           #:got (deferred 'sweep-complaints)))))
 
 (define (spec)
   (veritas-run pipeline-suite))

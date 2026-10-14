@@ -59,10 +59,12 @@
          (if (not p)
              (response-emit (error-page 404)
                             #:status 404
-                            #:headers '((content-type . (text/html))))
+                            #:headers '((content-type text/html)))
              (response-emit (:mime rc
-                                   (profile-page rc p
-                                                 #:is-logged-in (:cookies-value rc
+                                   (profile-page rc
+                                                 p
+                                                 #:is-logged-in (:cookies-value
+                                                                 rc
                                                                  "x-bewaking-byggsteg")
                                                  ;; The page reads the saved job --
                                                  ;; which is public -- and draws

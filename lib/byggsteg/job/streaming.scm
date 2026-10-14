@@ -40,17 +40,16 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg domain log)
   #:use-module (kracht prelude)
-  #:export (current-log-stream
-            command-banner
-            log-stream?
-            make-log-stream
-            log-stream-write!
-            log-stream-start-command!
-            log-stream-flush!
-            log-stream-text
-            log-stream-line-count
-            log-stream-flush-count
-            stream-to-log-row))
+  #:export (current-log-stream command-banner
+                               log-stream?
+                               make-log-stream
+                               log-stream-write!
+                               log-stream-start-command!
+                               log-stream-flush!
+                               log-stream-text
+                               log-stream-line-count
+                               log-stream-flush-count
+                               stream-to-log-row))
 
 ;; The stream the shell steps of the running job write to, or #f when the job
 ;; has no log row to stream into -- a job without one still runs, it just has
@@ -66,8 +65,13 @@
           (html-unescape cmd)))
 
 (define-record-type <log-stream>
-  (%make-log-stream chunks pending-lines flushed flush-count line-count
-                    line-batch flush-proc)
+  (%make-log-stream chunks
+                    pending-lines
+                    flushed
+                    flush-count
+                    line-count
+                    line-batch
+                    flush-proc)
   log-stream?
   (chunks log-stream-chunks set-log-stream-chunks!)
   (pending-lines log-stream-pending-lines set-log-stream-pending-lines!)
@@ -87,21 +91,29 @@
 FLUSH-PROC is called with the text gathered so far, every time that many lines
 have arrived and once more by whoever ends the stream, so it always sees the
 whole of what a job has printed."
-  (%make-log-stream '() 0 0 0 0 batch-size flush-proc))
+  (%make-log-stream '()
+                    0
+                    0
+                    0
+                    0
+                    batch-size
+                    flush-proc))
 
 (define (count-lines text)
   "How many lines TEXT ends: the newlines it carries."
-  (let loop ((i 0) (n 0))
-    (if (>= i (string-length text))
-        n
+  (let loop
+    ((i 0)
+     (n 0))
+    (if (>= i
+            (string-length text)) n
         (loop (+ i 1)
               (if (char=? (string-ref text i) #\newline)
-                  (+ n 1)
-                  n)))))
+                  (+ n 1) n)))))
 
 (define (log-stream-text stream)
   "Everything written to STREAM so far."
-  (apply string-append (reverse (log-stream-chunks stream))))
+  (apply string-append
+         (reverse (log-stream-chunks stream))))
 
 (define (log-stream-flush! stream)
   "Hand the text written since the last refresh to STREAM's flush procedure.
@@ -111,10 +123,13 @@ nothing does not write to its log row again."
   (let ((text (log-stream-text stream)))
     (when (> (string-length text)
              (log-stream-flushed stream))
-      ((log-stream-flush-proc stream) text)
-      (set-log-stream-flushed! stream (string-length text))
+      ((log-stream-flush-proc stream)
+       text)
+      (set-log-stream-flushed! stream
+                               (string-length text))
       (set-log-stream-flush-count! stream
-                                   (+ 1 (log-stream-flush-count stream)))
+                                   (+ 1
+                                      (log-stream-flush-count stream)))
       (set-log-stream-pending-lines! stream 0))))
 
 (define (log-stream-write! stream text)
@@ -122,19 +137,23 @@ nothing does not write to its log row again."
   (when (and (string? text)
              (not (string-null? text)))
     (set-log-stream-chunks! stream
-                            (cons text (log-stream-chunks stream)))
+                            (cons text
+                                  (log-stream-chunks stream)))
     (let* ((text-lines (count-lines text))
-           (lines (+ text-lines (log-stream-line-count stream)))
-           (pending (+ text-lines (log-stream-pending-lines stream))))
+           (lines (+ text-lines
+                     (log-stream-line-count stream)))
+           (pending (+ text-lines
+                       (log-stream-pending-lines stream))))
       (set-log-stream-line-count! stream lines)
       (set-log-stream-pending-lines! stream pending)
-      (if (>= pending (log-stream-line-batch stream))
-          (log-stream-flush! stream)
-          #t))))
+      (if (>= pending
+              (log-stream-line-batch stream))
+          (log-stream-flush! stream) #t))))
 
 (define (log-stream-start-command! stream cmd)
   "Announce CMD on STREAM the way the finished log announces it."
-  (log-stream-write! stream (command-banner cmd)))
+  (log-stream-write! stream
+                     (command-banner cmd)))
 
 (define* (stream-to-log-row log-repo log-id
                             #:key (batch-size (log-stream-batch-size)))

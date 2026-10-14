@@ -51,19 +51,18 @@
 ;; One reading of the page: the document the server would answer with, with
 ;; every string the page asks to have translated left as it was written.
 (define about-markup
-  (sxml->xml-string (about-document (lambda (string) string))))
+  (sxml->xml-string (about-document (lambda (string)
+                                      string))))
 
 (define (present-in needles)
   "The NEEDLES that the page holds."
   (filter (lambda (needle)
-            (string-contains about-markup needle))
-          needles))
+            (string-contains about-markup needle)) needles))
 
 (define (missing-from needles)
   "The NEEDLES that the page does not hold."
   (filter (lambda (needle)
-            (not (string-contains about-markup needle)))
-          needles))
+            (not (string-contains about-markup needle))) needles))
 
 ;; Everything a reader is given as markup, with the bodies of the page's own
 ;; `style' and `script' elements taken out of it.
@@ -78,15 +77,17 @@
   "HTML with the body of every TAG element removed."
   (let ((open (string-append "<" tag))
         (close (string-append "</" tag ">")))
-    (let loop ((text html))
+    (let loop
+      ((text html))
       (let ((start (string-contains text open)))
         (if start
             (let ((end (string-contains text close start)))
               (loop (string-append (substring text 0 start)
                                    (if end
-                                       (substring text (+ end (string-length close)))
-                                       ""))))
-            text)))))
+                                       (substring text
+                                                  (+ end
+                                                     (string-length close)))
+                                       "")))) text)))))
 
 (define rendered-markup
   (without-inline-code (without-inline-code about-markup "style") "script"))
@@ -102,11 +103,21 @@
 ;; without naming the framework it rests on -- fails here rather than in front
 ;; of a reader.
 (define what-the-account-says
-  '("NalaGinrut" "Mu Lei" "Josep Bigorra" "jjba23"
-    "GNU Artanis" "GNU Guile" "hack-potluck" "RMS"
-    "build step" "infinitely extensible"
-    "a job is data" "a task is a name" "a step is a procedure"
-    "--origin" "the world that Artanis opened" "who made what"))
+  '("NalaGinrut" "Mu Lei"
+    "Josep Bigorra"
+    "jjba23"
+    "GNU Artanis"
+    "GNU Guile"
+    "hack-potluck"
+    "RMS"
+    "build step"
+    "infinitely extensible"
+    "a job is data"
+    "a task is a name"
+    "a step is a procedure"
+    "--origin"
+    "the world that Artanis opened"
+    "who made what"))
 
 ;; And what it must not: the two words a page of this deployment never answers a
 ;; reader with -- the string the framework hands an unfilled template, and the
@@ -123,14 +134,17 @@
 ;; particularly easy to get wrong this way, because it is almost all nested
 ;; lists.
 (define forbidden-in-the-page
-  '("<about-" "about-panel" "about-paragraph" "about-terms" "~a" "~s"
+  '("<about-" "about-panel"
+    "about-paragraph"
+    "about-terms"
+    "~a"
+    "~s"
     "#:"))
 
 (define (component-leaks)
   "The forbidden sequences that reached the markup a browser renders."
   (filter (lambda (needle)
-            (string-contains rendered-markup needle))
-          forbidden-in-the-page))
+            (string-contains rendered-markup needle)) forbidden-in-the-page))
 
 ;; The elements of the web, as far as this deployment's pages use them: HTML,
 ;; the two pieces of SVG the console can draw with, and nothing else.  A tag
@@ -138,32 +152,138 @@
 ;; component call or a keyword argument left in the markup becomes, since
 ;; neither of those is a string the page ever meant to write.
 (define web-elements
-  '("a" "abbr" "area" "article" "aside" "audio" "b" "base" "bdi" "bdo"
-    "blockquote" "body" "br" "button" "canvas" "caption" "circle" "cite"
-    "code" "col" "colgroup" "data" "datalist" "dd" "defs" "del"
-    "details" "dfn" "dialog" "div" "dl" "dt" "em" "embed" "fieldset"
-    "figcaption" "figure" "footer" "form" "g" "h1" "h2" "h3" "h4"
-    "h5" "h6" "head" "header" "hgroup" "hr" "html" "i" "iframe"
-    "img" "input" "ins" "kbd" "label" "legend" "li" "line" "link"
-    "main" "map" "mark" "menu" "meta" "meter" "nav" "noscript" "object"
-    "ol" "optgroup" "option" "output" "p" "param" "path" "picture"
-    "pre" "progress" "q" "rect" "rp" "rt" "ruby" "s" "samp" "script"
-    "section" "select" "slot" "small" "source" "span" "strong" "style"
-    "sub" "summary" "sup" "svg" "table" "tbody" "td" "template" "text"
-    "textarea" "tfoot" "th" "thead" "time" "title" "tr" "track"
-    "tspan" "u" "ul" "var" "video" "wbr"))
+  '("a" "abbr"
+    "area"
+    "article"
+    "aside"
+    "audio"
+    "b"
+    "base"
+    "bdi"
+    "bdo"
+    "blockquote"
+    "body"
+    "br"
+    "button"
+    "canvas"
+    "caption"
+    "circle"
+    "cite"
+    "code"
+    "col"
+    "colgroup"
+    "data"
+    "datalist"
+    "dd"
+    "defs"
+    "del"
+    "details"
+    "dfn"
+    "dialog"
+    "div"
+    "dl"
+    "dt"
+    "em"
+    "embed"
+    "fieldset"
+    "figcaption"
+    "figure"
+    "footer"
+    "form"
+    "g"
+    "h1"
+    "h2"
+    "h3"
+    "h4"
+    "h5"
+    "h6"
+    "head"
+    "header"
+    "hgroup"
+    "hr"
+    "html"
+    "i"
+    "iframe"
+    "img"
+    "input"
+    "ins"
+    "kbd"
+    "label"
+    "legend"
+    "li"
+    "line"
+    "link"
+    "main"
+    "map"
+    "mark"
+    "menu"
+    "meta"
+    "meter"
+    "nav"
+    "noscript"
+    "object"
+    "ol"
+    "optgroup"
+    "option"
+    "output"
+    "p"
+    "param"
+    "path"
+    "picture"
+    "pre"
+    "progress"
+    "q"
+    "rect"
+    "rp"
+    "rt"
+    "ruby"
+    "s"
+    "samp"
+    "script"
+    "section"
+    "select"
+    "slot"
+    "small"
+    "source"
+    "span"
+    "strong"
+    "style"
+    "sub"
+    "summary"
+    "sup"
+    "svg"
+    "table"
+    "tbody"
+    "td"
+    "template"
+    "text"
+    "textarea"
+    "tfoot"
+    "th"
+    "thead"
+    "time"
+    "title"
+    "tr"
+    "track"
+    "tspan"
+    "u"
+    "ul"
+    "var"
+    "video"
+    "wbr"))
 
 (define (unknown-elements)
   "The tags of the page that are not elements of the web, if any."
   (let ((pattern (make-regexp "<([a-zA-Z][a-zA-Z0-9]*)([ >/])")))
-    (let loop ((start 0)
-               (found '()))
-      (let ((match (regexp-exec pattern rendered-markup start)))
+    (let loop
+      ((start 0)
+       (found '()))
+      (let ((match (regexp-exec pattern rendered-markup start)
+              ))
         (if match
             (let ((tag (string-downcase (match:substring match 1))))
               (loop (match:end match 0)
-                    (if (member tag web-elements)
-                        found
+                    (if (member tag web-elements) found
                         (cons tag found))))
             (reverse found))))))
 
@@ -172,10 +292,13 @@
 ;; reading `(veritas unit error-pages-spec)' takes of the status pages, with
 ;; the elements this page is built from.
 (define (self-closed-elements)
-  (let ((pattern (make-regexp "<(div|p|pre|span|a|h1|h2|dl|dt|dd|footer|header|img)[^>]*/>")))
-    (let loop ((start 0)
-               (found '()))
-      (let ((match (regexp-exec pattern about-markup start)))
+  (let ((pattern (make-regexp
+                  "<(div|p|pre|span|a|h1|h2|dl|dt|dd|footer|header|img)[^>]*/>")))
+    (let loop
+      ((start 0)
+       (found '()))
+      (let ((match (regexp-exec pattern about-markup start)
+              ))
         (if match
             (loop (match:end match 0)
                   (cons (match:substring match 0) found))
@@ -199,9 +322,11 @@
 (define (class-names)
   "Every class on the page, as written in its `class' attributes."
   (let ((pattern (make-regexp "class=\"([^\"]*)\"")))
-    (let loop ((start 0)
-               (names '()))
-      (let ((match (regexp-exec pattern about-markup start)))
+    (let loop
+      ((start 0)
+       (names '()))
+      (let ((match (regexp-exec pattern about-markup start)
+              ))
         (if match
             (loop (match:end match 0)
                   (append names
@@ -216,11 +341,12 @@ widths that means \"no wider than my parent\": `min-w-prose', `min-w-64' and
 their kind are floors measured in characters or rems, and a page that uses one
 is a page that scrolls sideways in the hand."
 
-  (let ((forced (delete-duplicates
-                 (filter (lambda (name)
-                           (and (string-prefix? "min-w-" name)
-                                (not (member name shrinking-minimum-widths))))
-                         (class-names)))))
+  (let ((forced (delete-duplicates (filter (lambda (name)
+                                             (and (string-prefix? "min-w-"
+                                                                  name)
+                                                  (not (member name
+                                                        shrinking-minimum-widths))))
+                                           (class-names)))))
     forced))
 
 ;;; ====== The suite ======
@@ -229,48 +355,53 @@ is a page that scrolls sideways in the hand."
   (suite "about page"
          (test "the account is on the page, and it is this deployment's"
                #:shuffle? #f
-               (assert-empty
-                #:name "the story names the people, the framework and the three doors"
+               (assert-empty #:name
+                "the story names the people, the framework and the three doors"
                 #:got (missing-from what-the-account-says))
-               (assert-empty
-                #:name "and it holds nothing the page was never meant to say"
+               (assert-empty #:name
+                "and it holds nothing the page was never meant to say"
                 #:got (present-in what-it-may-not-say))
-               (assert-contains
-                #:name "the page opens under the console's own prompt"
-                #:expect about-markup #:got "$ byggsteg --origin"))
+               (assert-contains #:name
+                "the page opens under the console's own prompt"
+                #:expect about-markup
+                #:got "$ byggsteg --origin"))
          (test "the page a crawler is handed says what it is"
                #:shuffle? #f
-               (assert-contains
-                #:name "it declares itself a document of this deployment"
-                #:expect about-markup #:got "<!DOCTYPE html>")
-               (assert-contains
-                #:name "it is dressed in the same sheet as every other page"
-                #:expect about-markup #:got "/css/byggsteg.olive.min.css")
-               (assert-contains
-                #:name "its canonical address is the page's own"
-                #:expect about-markup #:got "/about")
-               (assert-contains
-                #:name "its title names the deployment and the page"
-                #:expect about-markup #:got "<title>byggsteg - about</title>"))
-         (test "the page is built by the components rather than describing them"
-               #:shuffle? #f
-               (assert-empty
-                #:name "no component call was left un-made in the markup"
-                #:got (component-leaks))
-               (assert-empty
-                #:name "every element of the page is an element a browser knows"
-                #:got (unknown-elements))
-               (assert-empty
-                #:name "no element of the page is closed on itself"
-                #:got (self-closed-elements)))
+               (assert-contains #:name
+                "it declares itself a document of this deployment"
+                #:expect about-markup
+                #:got "<!DOCTYPE html>")
+               (assert-contains #:name
+                "it is dressed in the same sheet as every other page"
+                #:expect about-markup
+                #:got "/css/byggsteg.olive.min.css")
+               (assert-contains #:name
+                                "its canonical address is the page's own"
+                                #:expect about-markup
+                                #:got "/about")
+               (assert-contains #:name
+                                "its title names the deployment and the page"
+                                #:expect about-markup
+                                #:got "<title>byggsteg - about</title>"))
+         (test
+          "the page is built by the components rather than describing them"
+          #:shuffle? #f
+          (assert-empty #:name
+                        "no component call was left un-made in the markup"
+                        #:got (component-leaks))
+          (assert-empty #:name
+           "every element of the page is an element a browser knows"
+           #:got (unknown-elements))
+          (assert-empty #:name "no element of the page is closed on itself"
+                        #:got (self-closed-elements)))
          (test "the page can be read on a phone"
                #:shuffle? #f
-               (assert-empty
-                #:name "no panel of it forces a width wider than the screen"
+               (assert-empty #:name
+                "no panel of it forces a width wider than the screen"
                 #:got (widths-a-phone-cannot-hold))
-               (assert-contains
-                #:name "the panels are told they may shrink"
-                #:expect about-markup #:got "min-w-0"))))
+               (assert-contains #:name "the panels are told they may shrink"
+                                #:expect about-markup
+                                #:got "min-w-0"))))
 
 (define (spec)
   (veritas-run about-page-suite))

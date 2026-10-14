@@ -65,8 +65,7 @@
                                                    'id)
                                          (assoc-ref job-map
                                                     (assq-ref l
-                                                              'job-id))))
-                                 logs)))
+                                                              'job-id)))) logs)))
          
          (response-emit (:mime rc
                                (logs-page #:rc rc
@@ -97,7 +96,7 @@
          (if (not l)
              (response-emit (error-page 404)
                             #:status 404
-                            #:headers '((content-type . (text/html))))
+                            #:headers '((content-type text/html)))
              (let* ((job-id (assoc-ref l
                                        'job-id))
                     (j (get-job-by-id job-repo job-id))
@@ -106,7 +105,8 @@
                                                          (list job-id))))
                (response-emit (:mime rc
                                      (log-page rc
-                                               #:is-logged-in (:cookies-value rc
+                                               #:is-logged-in (:cookies-value
+                                                               rc
                                                                "x-bewaking-byggsteg")
                                                #:job j
                                                #:log l

@@ -71,10 +71,10 @@
             ;; a credential compared against no row at all.
             ((and u
                   (equal? (string->sha-256 (string-append password
-                                                         (assq-ref u
-                                                                   'salt)))
+                                                          (assq-ref u
+                                                                    'salt)))
                           (assoc-ref u
-                                    'password)))
+                                     'password)))
              (begin
                (:cookies-set! rc
                               'x-bewaking-byggsteg "x-bewaking-byggsteg" t)

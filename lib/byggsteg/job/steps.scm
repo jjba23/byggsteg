@@ -81,8 +81,8 @@ they always have -- the test suite runs pipelines that way."
   (let ((scheduler (current-scheduler)))
     (if scheduler
         (let ((fd (port->fdes port)))
-          (fcntl fd F_SETFL (logior (fcntl fd F_GETFL) O_NONBLOCK)))
-        #t)))
+          (fcntl fd F_SETFL
+                 (logior (fcntl fd F_GETFL) O_NONBLOCK))) #t)))
 
 (define (read-command-output port stream cmd)
   "Read PORT into STREAM a line at a time, and answer with all of it.
@@ -92,12 +92,14 @@ what makes a running job's log stream.  What is returned is what the old
 `get-string-all' returned, save for one trailing newline: the lines are joined
 back with the newlines the reader took off."
   (log-stream-start-command! stream cmd)
-  (let loop ((lines '()))
+  (let loop
+    ((lines '()))
     (let ((line (read-line port)))
       (if (eof-object? line)
           (string-join (reverse lines) "\n")
           (begin
-            (log-stream-write! stream (string-append line "\n"))
+            (log-stream-write! stream
+                               (string-append line "\n"))
             (loop (cons line lines)))))))
 
 (define* ($ cmd
@@ -121,7 +123,8 @@ back with the newlines the reader took off."
          ;; A job with no log row still streams, into a buffer nobody reads, so
          ;; that every command reads its output the same cooperative way.
          (stream (or (current-log-stream)
-                     (make-log-stream (lambda (text) #t))))
+                     (make-log-stream (lambda (text)
+                                        #t))))
          (_ (make-cooperatively-readable! in))
          (out (read-command-output in stream cmd))
          (_ (close-port in))
@@ -227,8 +230,15 @@ back with the newlines the reader took off."
                                 clone-dir)))
           ($ pull-cmd)))))
 
-(define* (collect-artifacts-step #:key id title artifact-repo project branch-name
-                                 artifacts (env #f) (number 1) (name #f))
+(define* (collect-artifacts-step #:key id
+                                 title
+                                 artifact-repo
+                                 project
+                                 branch-name
+                                 artifacts
+                                 (env #f)
+                                 (number 1)
+                                 (name #f))
   "Tar up the ARTIFACTS a job asked for, and record the tarball in ARTIFACT-REPO.
 
 ARTIFACTS are paths relative to the job's clone, as `tar' reads them.  NAME is
@@ -244,15 +254,16 @@ the step is where the fact that it exists is still known."
   (let* ((clone-dir (string-append (job-clone-location) project "/"
                                    branch-name))
          (tarball (artifact-path-for-job id number))
-         (cmd (format #f "mkdir -p ~s && tar -czf ~s -C ~s ~a"
+         (cmd (format #f
+                      "mkdir -p ~s && tar -czf ~s -C ~s ~a"
                       (dirname tarball)
                       tarball
                       clone-dir
                       (string-join (map (lambda (path)
-                                          (format #f "~s" path))
-                                        artifacts)
+                                          (format #f "~s" path)) artifacts)
                                    " ")))
-         (result ($ cmd #:env env))
+         (result ($ cmd
+                    #:env env))
          (made? (and (step-result-succeeded? result)
                      (file-exists? tarball))))
     (if made?
@@ -261,25 +272,30 @@ the step is where the fact that it exists is still known."
               ;; not name is offered under the job's title, as before.
               (file-name (artifact-download-name (or name title) number)))
           (insert-artifact artifact-repo
-                           `((id unquote (generate-string-uuid))
+                           `((id unquote
+                                 (generate-string-uuid))
                              (job-id unquote id)
                              (title unquote file-name)
                              (artifact-path unquote tarball)
                              (artifact-size unquote size)
-                             (created-at unquote (current-time))))
+                             (created-at unquote
+                                         (current-time))))
           (make-step-result #t
-                            (string-append
-                             (step-result-stdout result)
-                             (format #f "\n✓ artifact ~a (~a bytes) is ready to download\n"
-                                     file-name size))
-                            cmd))
+                            (string-append (step-result-stdout result)
+                                           (format #f
+                                            "
+✓ artifact ~a (~a bytes) is ready to download
+"
+                                            file-name size)) cmd))
         (make-step-result #t
-                          (string-append
-                           (step-result-stdout result)
-                           (format #f "\n⚠ no artifact was collected: ~a\n"
-                                   (if (step-result-succeeded? result)
-                                       (format #f "tar wrote nothing at ~a" tarball)
-                                       "the tar command failed, see above")))
+                          (string-append (step-result-stdout result)
+                                         (format #f
+                                          "\n⚠ no artifact was collected: ~a\n"
+                                          (if (step-result-succeeded? result)
+                                           (format #f
+                                                   "tar wrote nothing at ~a"
+                                                   tarball)
+                                           "the tar command failed, see above")))
                           cmd))))
 
 (define* (trivial-step #:key project branch-name cmds

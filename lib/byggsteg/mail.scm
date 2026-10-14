@@ -47,8 +47,10 @@
 ;; what asks for a mail, and a handler that sleeps for seconds is a site that
 ;; answers nothing for seconds.  A mail the service is still not taking is
 ;; reported rather than retried for ever, so the reader can ask again.
-(define mail-attempts 3)
-(define mail-retry-delay-seconds 1)
+(define mail-attempts
+  3)
+(define mail-retry-delay-seconds
+  1)
 
 (define (status-of headers)
   "The number in the status line of HEADERS, or #f when there is not one.
@@ -59,52 +61,63 @@ the response's own lines, status line first, as `HTTP/1.1 202 Accepted'."
       (let* ((status-line (car (string-split headers #\newline)))
              (words (string-split status-line #\space)))
         (if (>= (length words) 2)
-            (string->number (cadr words))
-            #f))
-      #f))
+            (string->number (cadr words)) #f)) #f))
 
 (define (answer-says-taken? answer error-code)
   "Whether ANSWER -- and the ERROR-CODE curl left -- says pingwing took the mail."
   (cond
-    ((and (number? error-code) (not (zero? error-code)))
-     (cons #f (curl-error-string)))
+    ((and (number? error-code)
+          (not (zero? error-code)))
+     (cons #f
+           (curl-error-string)))
     ((not (pair? answer))
      (cons #f "the mail service did not answer"))
-    (else
-     (let ((status (status-of (car answer))))
-       (cond
-         ((not status)
-          (cons #f "the mail service answered with no status this could read"))
-         ((and (>= status 200) (< status 300)) (cons #t status))
-         (else (cons #f (format #f "the mail service answered ~a" status))))))))
+    (else (let ((status (status-of (car answer))))
+            (cond
+              ((not status)
+               (cons #f
+                "the mail service answered with no status this could read"))
+              ((and (>= status 200)
+                    (< status 300))
+               (cons #t status))
+              (else (cons #f
+                          (format #f "the mail service answered ~a" status))))))))
 
 (define (one-try body url)
   "Hand BODY to URL once, and answer `(#t . STATUS)' or `(#f . REASON)'."
   (let* ((handle (curl-easy-init))
          (let-go (lambda ()
                    (catch #t
-                          (lambda () (curl-easy-cleanup handle))
-                          (lambda (key . args) #f)))))
+                          (lambda ()
+                            (curl-easy-cleanup handle))
+                          (lambda (key . args)
+                            #f)))))
     (catch #t
            (lambda ()
-             (curl-easy-setopt handle 'post #t)
-             (curl-easy-setopt handle 'url url)
-             (curl-easy-setopt handle 'postfields (string->utf8 (scm->json-string
-                                                                 body)))
-             (curl-easy-setopt handle 'use-ssl 1)
-             (curl-easy-setopt handle 'username pingwing-basic-auth-user)
-             (curl-easy-setopt handle 'password pingwing-basic-auth-password)
+             (curl-easy-setopt handle
+                               'post #t)
+             (curl-easy-setopt handle
+                               'url url)
+             (curl-easy-setopt handle
+                               'postfields
+                               (string->utf8 (scm->json-string body)))
+             (curl-easy-setopt handle
+                               'use-ssl 1)
+             (curl-easy-setopt handle
+                               'username pingwing-basic-auth-user)
+             (curl-easy-setopt handle
+                               'password pingwing-basic-auth-password)
              ;; The answer's headers are asked for along with its body: the
              ;; status line is in them, and it is the only place the service's
              ;; own answer about the mail can be read.
              (let* ((answer (curl-easy-perform handle #t #t))
                     (error-code (curl-error-code))
                     (verdict (answer-says-taken? answer error-code)))
-               (let-go)
-               verdict))
+               (let-go) verdict))
            (lambda (key . args)
              (let-go)
-             (cons #f (format #f "~a ~s" key args))))))
+             (cons #f
+                   (format #f "~a ~s" key args))))))
 
 ;; A mail that is still not taken prints why, on the error port every handler
 ;; shares and the deployment's own log collects: the reader is told what
@@ -122,21 +135,26 @@ Answers #t when the service took the mail, and #f when every try it was given
 failed -- which is the answer a caller has to be able to tell apart, because a
 reset link that was not sent must not be reported as one that was."
 
-  (let loop ((left attempts) (reason #f))
+  (let loop
+    ((left attempts)
+     (reason #f))
     (if (<= left 0)
         (begin
           (format (current-error-port)
-                  "\ncould not send a mail, after ~a tries: ~a\n"
-                  attempts reason)
+                  "
+could not send a mail, after ~a tries: ~a
+" attempts reason)
           #f)
         (let ((verdict (one-try body url)))
-          (if (car verdict)
-              #t
+          (if (car verdict) #t
               (begin
                 ;; The wait is only worth taking when another try follows it.
                 (when (> left 1)
-                  (format (current-error-port)
-                          "\nsending a mail did not work: ~a\nretrying...\n"
+                  (format (current-error-port) "
+sending a mail did not work: ~a
+retrying...
+"
                           (cdr verdict))
                   (sleep delay))
-                (loop (- left 1) (cdr verdict))))))))
+                (loop (- left 1)
+                      (cdr verdict))))))))

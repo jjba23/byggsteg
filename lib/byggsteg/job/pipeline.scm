@@ -31,7 +31,8 @@
   ;; scheduler, where sleeping has to suspend the fiber rather than the thread,
   ;; but the sweep paces itself between schedulers -- so the fiber one is hidden
   ;; and every `sleep' below is the thread's, which is the blocking one.
-  #:use-module ((fibers) #:hide (sleep))
+  #:use-module ((fibers)
+                #:hide (sleep))
   #:use-module (fibers conditions)
   #:use-module (ice-9 atomic)
   #:use-module (kracht prelude)
@@ -44,10 +45,16 @@
   #:use-module (rnrs io ports)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
-  #:export (run-pipeline-task job-pipeline job-specs job-title-prefix
-                              fail-job run-one-job run-jobs-concurrently
-                              run-fallible-pipeline run-infallible-pipeline
-                              request-service-restart! run-requested-restart!))
+  #:export (run-pipeline-task job-pipeline
+                              job-specs
+                              job-title-prefix
+                              fail-job
+                              run-one-job
+                              run-jobs-concurrently
+                              run-fallible-pipeline
+                              run-infallible-pipeline
+                              request-service-restart!
+                              run-requested-restart!))
 
 ;;;
 ;;; What a job asks for
@@ -68,13 +75,13 @@
 ;; The row was then still marked in progress when the daemon came back, so the
 ;; worker found the version update unfinished, ran it again, and restarted
 ;; byggsteg again: a deployment that restarted itself for as long as it was up.
-(define *restart-request* (make-atomic-box #f))
+(define *restart-request*
+  (make-atomic-box #f))
 
 (define (request-service-restart! command)
   "Ask that COMMAND -- a restart of byggsteg's own service -- be run once this
 job has been recorded, and answer whether one was not already asked for."
-  (atomic-box-set! *restart-request* command)
-  #t)
+  (atomic-box-set! *restart-request* command) #t)
 
 (define (run-requested-restart!)
   "Run the restart a job asked for, if one did, and answer the command it ran.
@@ -86,9 +93,7 @@ stopped here comes back to a queue that does not still hold this job."
         (begin
           (atomic-box-set! *restart-request* #f)
           (display (format #f "\nrestarting byggsteg: ~a\n" command))
-          ($ command)
-          command)
-        #f)))
+          ($ command) command) #f)))
 
 (define* (run-pipeline-task #:key project
                             branch-name
@@ -99,12 +104,11 @@ stopped here comes back to a queue that does not still hold this job."
   (cond
     ;; Byggsteg version update
     ((equal? task "byggsteg-version")
-     (request-service-restart!
-      (format #f
-              "cd ~a && sudo herd restart ~a || true"
-              (string-append (job-clone-location) project
-                             "/" branch-name)
-              "byggsteg-daemon"))
+     (request-service-restart! (format #f
+                                "cd ~a && sudo herd restart ~a || true"
+                                (string-append (job-clone-location) project
+                                               "/" branch-name)
+                                "byggsteg-daemon"))
      (byggsteg-version-step #:project project
                             #:branch-name branch-name
                             #:daemon-name daemon-name
@@ -170,8 +174,7 @@ single job whose fields are the jobs it is made of."
        (list? value)
        (every (lambda (field)
                 (and (pair? field)
-                     (symbol? (car field))))
-              value)))
+                     (symbol? (car field)))) value)))
 
 (define (job-specs-of-value value)
   "The jobs VALUE -- the value of a job's thunk -- asks byggsteg to run.
@@ -180,13 +183,15 @@ A job used to be one alist of fields.  A pipeline is a list of those, run in the
 order they are written and stopping at the first one that fails, so both
 readings are one list of specs here and everything below works from that."
   (cond
-    ((job-spec? value) (list value))
+    ((job-spec? value)
+     (list value))
     ((and (pair? value)
           (list? value)
           (every job-spec? value))
      value)
-    (else (error "byggsteg: job data did not evaluate to a job or a list of jobs"
-                 value))))
+    (else (error
+           "byggsteg: job data did not evaluate to a job or a list of jobs"
+           value))))
 
 (define (job-specs job)
   "The jobs the row JOB asks for, read from its `job_data' column.
@@ -195,10 +200,11 @@ The column holds a thunk a request sent; a value that is not one -- an empty or
 malformed `job_data', say -- is a broken job, and saying so beats letting Guile
 report \"Wrong type to apply\" from somewhere further in."
   (let ((thunk (eval-string (html-unescape (assoc-ref-or-empty-str job
-                                                                  'job-data)))))
+                                                                   'job-data)))))
     (unless (procedure? thunk)
       (error "byggsteg: job data did not evaluate to a procedure"
-             (assq-ref job 'id)))
+             (assq-ref job
+                       'id)))
     (job-specs-of-value (thunk))))
 
 (define (job-title-prefix value)
@@ -210,8 +216,13 @@ names one first -- or `trivial' for a job that runs bare commands rather than a
 clone."
   (let ((first (car (job-specs-of-value value))))
     (cond
-      ((assq-ref first 'trivial-cmds) "trivial")
-      ((assq-ref first 'project) (assq-ref first 'project))
+      ((assq-ref first
+                 'trivial-cmds)
+       "trivial")
+      ((assq-ref first
+                 'project)
+       (assq-ref first
+                 'project))
       (else "pipeline"))))
 
 (define* (job-spec-steps spec job artifact-repo)
@@ -220,17 +231,26 @@ clone."
 A spec that names no `trivial-cmds' is cloned and described first; one that does
 is taken to mean its commands run as they are, in whatever directory byggsteg
 was started in."
-  (let* ((project (assq-ref spec 'project))
-         (branch-name (assq-ref spec 'branch-name))
-         (clone-url (assq-ref spec 'clone-url))
-         (daemon-name (assq-ref spec 'daemon-name))
-         (task-or-tasks (assq-ref spec 'task))
-         (env (assq-ref spec 'env))
+  (let* ((project (assq-ref spec
+                            'project))
+         (branch-name (assq-ref spec
+                                'branch-name))
+         (clone-url (assq-ref spec
+                              'clone-url))
+         (daemon-name (assq-ref spec
+                                'daemon-name))
+         (task-or-tasks (assq-ref spec
+                                  'task))
+         (env (assq-ref spec
+                        'env))
          (tasks (cond
-                  ((list? task-or-tasks) task-or-tasks)
-                  ((string? task-or-tasks) (list task-or-tasks))
+                  ((list? task-or-tasks)
+                   task-or-tasks)
+                  ((string? task-or-tasks)
+                   (list task-or-tasks))
                   (else task-or-tasks)))
-         (trivial-cmds (assq-ref spec 'trivial-cmds))
+         (trivial-cmds (assq-ref spec
+                                 'trivial-cmds))
          (cloning? (nil? trivial-cmds))
          (clone-steps (if cloning?
                           (list (lambda ()
@@ -259,8 +279,7 @@ was started in."
                                                        daemon-name
                                                        #:env env
                                                        #:trivial-cmds
-                                                       trivial-cmds))
-                                  tasks)))))
+                                                       trivial-cmds)) tasks)))))
     (append clone-steps sys-steps git-details-steps pipe-steps)))
 
 ;;;
@@ -281,42 +300,65 @@ The tarballs are numbered in the order they are packed, so the first one a job
 asks for is the one that keeps the unnumbered name; a spec that names bundles
 the job has no clone to collect from is reported once rather than once per
 bundle."
-  (let loop ((specs specs) (number 1) (text ""))
-    (if (null? specs)
-        text
+  (let loop
+    ((specs specs)
+     (number 1)
+     (text ""))
+    (if (null? specs) text
         (let* ((spec (car specs))
-               (bundles (artifact-bundles (assq-ref spec 'artifacts)))
-               (project (assq-ref spec 'project))
-               (branch-name (assq-ref spec 'branch-name)))
+               (bundles (artifact-bundles (assq-ref spec
+                                                    'artifacts)))
+               (project (assq-ref spec
+                                  'project))
+               (branch-name (assq-ref spec
+                                      'branch-name)))
           (cond
             ((null? bundles)
              (loop (cdr specs) number text))
-            ((or (not project) (not branch-name))
+            ((or (not project)
+                 (not branch-name))
              (loop (cdr specs)
-                   (+ number (length bundles))
-                   (string-append
-                    text
-                    "\n⚠ no artifact was collected: the job has no clone to collect from\n")))
-            (else
-             (let bundle-loop ((bundles bundles) (number number) (text text))
-               (if (null? bundles)
-                   (loop (cdr specs) number text)
-                   (bundle-loop
-                    (cdr bundles)
-                    (+ number 1)
-                    (string-append
-                     text
-                     (step-result-stdout
-                      (collect-artifacts-step
-                       #:id (assq-ref job 'id)
-                       #:number number
-                       #:name (car (car bundles))
-                       #:title (assq-ref job 'title)
-                       #:artifact-repo artifact-repo
-                       #:project project
-                       #:branch-name branch-name
-                       #:artifacts (cdr (car bundles))
-                       #:env (assq-ref spec 'env)))))))))))))
+                   (+ number
+                      (length bundles))
+                   (string-append text
+                    "
+⚠ no artifact was collected: the job has no clone to collect from
+")))
+            (else (let bundle-loop
+                    ((bundles bundles)
+                     (number number)
+                     (text text))
+                    (if (null? bundles)
+                        (loop (cdr specs) number text)
+                        (bundle-loop (cdr bundles)
+                                     (+ number 1)
+                                     (string-append text
+                                                    (step-result-stdout (collect-artifacts-step
+                                                                         #:id (assq-ref
+                                                                               job
+                                                                               'id)
+                                                                         #:number
+                                                                         number
+                                                                         #:name
+                                                                         (car (car
+                                                                               bundles))
+                                                                         #:title
+                                                                         (assq-ref
+                                                                          job
+                                                                          'title)
+                                                                         #:artifact-repo
+                                                                         artifact-repo
+                                                                         #:project
+                                                                         project
+                                                                         #:branch-name
+                                                                         branch-name
+                                                                         #:artifacts
+                                                                         (cdr (car
+                                                                               bundles))
+                                                                         #:env
+                                                                         (assq-ref
+                                                                          spec
+                                                                          'env)))))))))))))
 
 ;;;
 ;;; One job, from its data to its row
@@ -328,29 +370,38 @@ bundle."
   (update-job-by-id job-repo
                     (assq-ref job
                               'id)
-                    `((job-success . 0)
-                      (job-in-progress . 0)
+                    `((job-success . 0) (job-in-progress . 0)
                       (job-failed . 1)
                       (updated-at unquote
                                   (current-time)))))
 
-(define* (job-pipeline #:key job-repo log-repo (artifact-repo #f) job log)
+(define* (job-pipeline #:key job-repo
+                       log-repo
+                       (artifact-repo #f)
+                       job
+                       log)
   "Run the job row JOB, streaming its output into LOG's row as it is produced."
   (let* ((specs (job-specs job))
-         (log-id (if log (assq-ref log 'id) #f))
+         (log-id (if log
+                     (assq-ref log
+                               'id) #f))
          ;; What the running job reports through.  A job with no log row runs
          ;; without one: there is nowhere to stream to, and the pipeline still
          ;; has to run it rather than crash the worker over the missing row.
-         (stream (if log-id (stream-to-log-row log-repo log-id) #f))
-         (artifact-repo (or artifact-repo (make-sqlite-artifact-repository)))
+         (stream (if log-id
+                     (stream-to-log-row log-repo log-id) #f))
+         (artifact-repo (or artifact-repo
+                            (make-sqlite-artifact-repository)))
          (outcome (parameterize ((current-log-stream stream))
-                    (let* ((result (run-steps
-                                    (append-map (lambda (spec)
-                                                  (job-spec-steps spec job
-                                                                  artifact-repo))
-                                                specs)
-                                    #:outs (list (format #f "\n~a...\n"
-                                                         (gettext "starting new job")))))
+                    (let* ((result (run-steps (append-map (lambda (spec)
+                                                            (job-spec-steps
+                                                             spec job
+                                                             artifact-repo))
+                                                          specs)
+                                              #:outs (list (format #f
+                                                                   "\n~a...\n"
+                                                                   (gettext
+                                                                    "starting new job")))))
                            ;; Artifacts are collected once the job's own steps
                            ;; are over -- whether or not they passed, since a job
                            ;; that broke halfway is when its partial output is
@@ -367,18 +418,23 @@ bundle."
     ;; hand over whatever it was still holding before the last write goes in.
     (if log-id
         (begin
-          (if stream (log-stream-flush! stream) #t)
-          (update-log-by-id log-repo
-                            log-id
-                            `((log_data unquote (html-escape log-text))
-                              (updated_at unquote (current-time))))))
+          (if stream
+              (log-stream-flush! stream) #t)
+          (update-log-by-id log-repo log-id
+                            `((log_data unquote
+                                        (html-escape log-text))
+                              (updated_at unquote
+                                          (current-time))))))
     (update-job-by-id job-repo
                       (assq-ref job
                                 'id)
-                      `((job-success unquote (if succeeded? 1 0))
+                      `((job-success unquote
+                                     (if succeeded? 1 0))
                         (job-in-progress . 0)
-                        (job-failed unquote (if succeeded? 0 1))
-                        (updated-at unquote (current-time))))
+                        (job-failed unquote
+                                    (if succeeded? 0 1))
+                        (updated-at unquote
+                                    (current-time))))
     ;; A job that version updates byggsteg -- and so stops the daemon running it
     ;; -- is only restarted once its row says how it went.  Written after the
     ;; update above: a job that this stops has still been recorded.
@@ -390,11 +446,11 @@ bundle."
 
 (define (note-worker-stopped! stopped workers finished)
   "Count a stopped worker, and wake the sweep once the last one stops."
-  (let ((stopped-count (+ 1 (atomic-box-ref stopped))))
+  (let ((stopped-count (+ 1
+                          (atomic-box-ref stopped))))
     (atomic-box-set! stopped stopped-count)
     (if (>= stopped-count workers)
-        (signal-condition! finished)
-        #t)))
+        (signal-condition! finished) #t)))
 
 (define* (run-jobs-concurrently jobs concurrency run-one)
   "Run RUN-ONE over JOBS with at most CONCURRENCY of them at a time.
@@ -409,40 +465,43 @@ its head and moving it on is not an operation, and this scheduler only switches
 fibers at operations -- a read of a command's output, a sleep -- so no two
 workers can take the same job.  That is the whole of the claim: there is one
 worker process, and it makes one visit to the queue at a time."
-  (if (null? jobs)
-      #t
-      (let* ((workers (min concurrency (length jobs)))
+  (if (null? jobs) #t
+      (let* ((workers (min concurrency
+                           (length jobs)))
              (finished (make-condition))
              (stopped (make-atomic-box 0))
              (queue jobs))
         (define (next-job)
           (let ((job (car queue)))
-            (set! queue (cdr queue))
-            job))
+            (set! queue
+                  (cdr queue)) job))
         (define (work-through-queue)
           "Run jobs until the queue this sweep was given is empty."
-          (if (null? queue)
-              #t
+          (if (null? queue) #t
               (begin
                 (run-one (next-job))
                 (work-through-queue))))
         (for-each (lambda (n)
-                    (spawn-fiber
-                     (lambda ()
-                       ;; A worker has to be counted as stopped even if it
-                       ;; raises, or the sweep below would wait for it for
-                       ;; ever; the jobs behind it wait for the next visit
-                       ;; to the queue.
-                       (catch #t
-                              work-through-queue
-                              (lambda (key . args)
-                                (display (format #f "\n  a worker stopped: ~a ~s\n"
-                                                 key args))))
-                       (note-worker-stopped! stopped workers finished))))
+                    (spawn-fiber (lambda ()
+                                   ;; A worker has to be counted as stopped even if it
+                                   ;; raises, or the sweep below would wait for it for
+                                   ;; ever; the jobs behind it wait for the next visit
+                                   ;; to the queue.
+                                   (catch #t work-through-queue
+                                          (lambda (key . args)
+                                            (display (format #f
+                                                      "\n  a worker stopped: ~a ~s\n"
+                                                      key args))))
+                                   (note-worker-stopped! stopped workers
+                                                         finished))))
                   (iota workers))
         (wait finished))))
 
-(define* (run-one-job #:key job-repo log-repo artifact-repo job log)
+(define* (run-one-job #:key job-repo
+                      log-repo
+                      artifact-repo
+                      job
+                      log)
   "Run JOB, and see to it that its row says how it went whatever happens."
   (catch #t
          (lambda ()
@@ -454,12 +513,12 @@ worker process, and it makes one visit to the queue at a time."
          (lambda (key . args)
            (display (format #f "\n  could not run job ~a: ~a ~s\n"
                             (assq-ref job
-                                      'id) key
-                            args))
+                                      'id) key args))
            (fail-job #:job-repo job-repo
                      #:job job))))
 
-(define* (run-fallible-pipeline #:key job-repo log-repo
+(define* (run-fallible-pipeline #:key job-repo
+                                log-repo
                                 (artifact-repo #f)
                                 (concurrency (job-concurrency))
                                 (limit (job-sweep-limit)))
@@ -479,14 +538,13 @@ claim a database could hand out."
                                 ((nil? jobs-in-progress)
                                  '())
                                 (else (get-logs-by-job-ids log-repo
-                                                           job-ids-in-progress))))
+                                       job-ids-in-progress))))
          ;; Map each in-progress job id to its log row, if one exists.
          ;; A plain `cons' is used rather than a backquoted `unquote', which
          ;; produced a malformed entry and made the lookup below return #f.
          (job-log-map (map (lambda (l)
                              (cons (assq-ref l
-                                             'job-id) l))
-                           logs-of-in-progress))
+                                             'job-id) l)) logs-of-in-progress))
          (artifact-repo (or artifact-repo
                             (make-sqlite-artifact-repository))))
     (if (nil? jobs-in-progress)
@@ -495,19 +553,22 @@ claim a database could hand out."
           ;; The scheduler is made here and drained at the end of the visit, so
           ;; the worker thread that runs sweeps stays an ordinary thread and
           ;; nothing of a finished sweep is left behind.
-          (run-fibers
-           (lambda ()
-             (run-jobs-concurrently
-              jobs-in-progress concurrency
-              (lambda (j)
-                (run-one-job #:job-repo job-repo
-                             #:log-repo log-repo
-                             #:artifact-repo artifact-repo
-                             #:job j
-                             #:log (assoc-ref job-log-map
-                                              (assq-ref j
-                                                        'id))))))
-           #:drain? #t)
+          (run-fibers (lambda ()
+                        (run-jobs-concurrently jobs-in-progress concurrency
+                                               (lambda (j)
+                                                 (run-one-job #:job-repo
+                                                              job-repo
+                                                              #:log-repo
+                                                              log-repo
+                                                              #:artifact-repo
+                                                              artifact-repo
+                                                              #:job j
+                                                              #:log (assoc-ref
+                                                                     job-log-map
+                                                                     (assq-ref
+                                                                      j
+                                                                      'id))))))
+                      #:drain? #t)
           (sleep sleep-seconds)))))
 
 (define* (run-infallible-pipeline #:key job-repo log-repo)

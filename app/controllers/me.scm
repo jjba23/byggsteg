@@ -46,7 +46,7 @@
      (lambda (rc)
        (define (show-my-account)
          (let* ((t (decrypt-token #:token (:cookies-value rc
-                                                         "x-bewaking-byggsteg")
+                                           "x-bewaking-byggsteg")
                                   #:encryption-key encryption-key
                                   #:signing-key signing-key))
                 (user-repo (make-sqlite-user-repository))
@@ -121,8 +121,7 @@
               (u (if live?
                      (get-user-by-id (make-sqlite-user-repository)
                                      (assq-ref tt
-                                               'user-id))
-                     #f)))
+                                               'user-id)) #f)))
          ;; A link that cannot be used is a path that answers nothing -- the
          ;; same answer the pages addressed by a job's or a profile's id give
          ;; -- rather than a form drawn for a reader who cannot send it.
@@ -131,10 +130,10 @@
                                    (reset-password-page (:i18n rc)
                                                         #:token token
                                                         #:email (assq-ref u
-                                                                         'email))))
+                                                                          'email))))
              (response-emit (error-page 404)
                             #:status 404
-                            #:headers '((content-type . (text/html))))))))
+                            #:headers '((content-type text/html)))))))
 
 ;; The sending itself is `byggsteg mail', which retries a failure and answers
 ;; whether the service took the mail.  A flow that asks for one has to read that
@@ -161,8 +160,7 @@ that it could not do it -- on the page it lands the reader on."
                 (G_ "a password needs")
                 (string-join (map (lambda (rule)
                                     (G_ (assq-ref password-rules rule)))
-                                  missing)
-                             ", ")))))
+                                  missing) ", ")))))
 
 (post "/password/reset"
       #:cookies '(names x-bewaking-byggsteg)
@@ -191,25 +189,34 @@ that it could not do it -- on the page it lands the reader on."
           ;; The answer the page carries is the answer the mail service gave:
           ;; a reset link that was not taken is reported as one that was not
           ;; taken, rather than left for the reader to wait on.
-          (let ((taken? (and u (request-password-reset password-reset-repo u))))
+          (let ((taken? (and u
+                             (request-password-reset password-reset-repo u))))
             (redirect-to rc
-                         (string->uri
-                          (format #f "~a/?~a"
-                                  (current-myhost)
-                                  (notification-query
-                                   G_
-                                   (cond
-                                     ((not u) (G_ "Password reset"))
-                                     (taken? (G_ "Password reset link sent"))
-                                     (else (G_ "Could not send the password reset link")))
-                                   (cond
-                                     ((not u)
-                                      (G_ "If that address has an account here, a reset link is on its way."))
-                                     (taken? (format #f "~a ~a"
-                                                     (G_ "Look in the inbox of")
-                                                     (assq-ref u
-                                                               'email)))
-                                     (else (G_ "The mail service did not take it. Please try again in a moment."))))))
+                         (string->uri (format #f "~a/?~a"
+                                              (current-myhost)
+                                              (notification-query G_
+                                                                  (cond
+                                                                    ((not u)
+                                                                     (G_
+                                                                      "Password reset"))
+                                                                    (taken? (G_
+                                                                             "Password reset link sent"))
+                                                                    (else (G_
+                                                                           "Could not send the password reset link")))
+                                                                  (cond
+                                                                    ((not u)
+                                                                     (G_
+                                                                      "If that address has an account here, a reset link is on its way."))
+                                                                    (taken? (format
+                                                                             #f
+                                                                             "~a ~a"
+                                                                             (G_
+                                                                              "Look in the inbox of")
+                                                                             (assq-ref
+                                                                              u
+                                                                              'email)))
+                                                                    (else (G_
+                                                                           "The mail service did not take it. Please try again in a moment."))))))
                          #:status 302)))))
 
 (post "/password/do-reset"
@@ -238,8 +245,7 @@ that it could not do it -- on the page it lands the reader on."
                (u (if live?
                       (get-user-by-id user-repo
                                       (assq-ref tt
-                                                'user-id))
-                      #f)))
+                                                'user-id)) #f)))
           ;; The form again, with what was wrong with the submission said on it,
           ;; is the answer to a submission this deployment will not take: the
           ;; password the reader chose is the one thing they can change, and an
@@ -249,19 +255,19 @@ that it could not do it -- on the page it lands the reader on."
                          (string->uri (format #f
                                               "~a/password/reset/token/~a?~a"
                                               (current-myhost)
-                                              (uri-encode (if (string? reset-token)
-                                                              reset-token
-                                                              ""))
-                                              (notification-query G_
-                                                                  title
+                                              (uri-encode (if (string?
+                                                               reset-token)
+                                                              reset-token ""))
+                                              (notification-query G_ title
                                                                   body)))
                          #:status 302))
           (cond
             ;; A link that cannot be used is the same path that answers
             ;; nothing that the page itself is given.
-            ((not u) (response-emit (error-page 404)
-                                    #:status 404
-                                    #:headers '((content-type . (text/html)))))
+            ((not u)
+             (response-emit (error-page 404)
+                            #:status 404
+                            #:headers '((content-type text/html))))
             ((not (equal? new-password confirm-password))
              (ask-again (G_ "The two passwords did not match")
                         (G_ "Type the same password in both fields.")))
@@ -271,34 +277,36 @@ that it could not do it -- on the page it lands the reader on."
             ((not (password-strong-enough? new-password))
              (ask-again (G_ "That password is not strong enough")
                         (password-advice G_ new-password)))
-            (else
-             (let* ((new-salt (generate-string-uuid))
-                    (h (string->sha-256 (string-append new-password new-salt)))
-                    (_ (update-user-by-id user-repo
-                                          (assq-ref u
-                                                    'id)
-                                          `((salt unquote new-salt)
-                                            (password unquote h))))
-                    (_ (delete-password-reset-by-user-id password-reset-repo
-                                                         (assq-ref u
-                                                                   'id))))
-               (:cookies-set! rc
-                              'x-bewaking-byggsteg "x-bewaking-byggsteg" "")
-               (:cookies-setattr! rc
-                                  'x-bewaking-byggsteg
-                                  #:expires 1
-                                  #:path "/"
-                                  #:secure #t
-                                  #:http-only #t)
-               (redirect-to rc
-                            (string->uri
-                             (format #f "~a/login?~a"
-                                     (current-myhost)
-                                     (notification-query
-                                      G_
-                                      (G_ "Your password has been reset")
-                                      (G_ "Sign in with the password you just chose."))))
-                            #:status 302)))))))
+            (else (let* ((new-salt (generate-string-uuid))
+                         (h (string->sha-256 (string-append new-password
+                                                            new-salt)))
+                         (_ (update-user-by-id user-repo
+                                               (assq-ref u
+                                                         'id)
+                                               `((salt unquote new-salt)
+                                                 (password unquote h))))
+                         (_ (delete-password-reset-by-user-id
+                             password-reset-repo
+                             (assq-ref u
+                                       'id))))
+                    (:cookies-set! rc
+                                   'x-bewaking-byggsteg "x-bewaking-byggsteg"
+                                   "")
+                    (:cookies-setattr! rc
+                                       'x-bewaking-byggsteg
+                                       #:expires 1
+                                       #:path "/"
+                                       #:secure #t
+                                       #:http-only #t)
+                    (redirect-to rc
+                                 (string->uri (format #f "~a/login?~a"
+                                                      (current-myhost)
+                                                      (notification-query G_
+                                                                          (G_
+                                                                           "Your password has been reset")
+                                                                          (G_
+                                                                           "Sign in with the password you just chose."))))
+                                 #:status 302)))))))
 
 (define (request-password-reset password-reset-repo u)
   (let* ((_ (delete-password-reset-by-user-id password-reset-repo
@@ -376,7 +384,7 @@ that it could not do it -- on the page it lands the reader on."
                                      (edit-user-page (:i18n rc) user)))
                (response-emit (error-page 404)
                               #:status 404
-                              #:headers '((content-type . (text/html)))))))
+                              #:headers '((content-type text/html))))))
 
        (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                           #:needed-permissions '(byggsteg:modify-permissions)
@@ -428,17 +436,19 @@ that it could not do it -- on the page it lands the reader on."
                  ;; went -- a reader is told which of the two happened.
                  (taken? (request-password-reset password-reset-repo u)))
             (redirect-to rc
-                         (string->uri
-                          (format #f "~a/users/manage/?~a"
-                                  (current-myhost)
-                                  (notification-query
-                                   G_
-                                   (if taken?
-                                       (G_ "User created")
-                                       (G_ "User created, but the invitation could not be sent"))
-                                   (if taken?
-                                       (G_ "A link to set a password has been sent to them.")
-                                       (G_ "The account has no password yet: use reset password on it to send the invitation again.")))))
+                         (string->uri (format #f "~a/users/manage/?~a"
+                                              (current-myhost)
+                                              (notification-query G_
+                                                                  (if taken?
+                                                                      (G_
+                                                                       "User created")
+                                                                      (G_
+                                                                       "User created, but the invitation could not be sent"))
+                                                                  (if taken?
+                                                                      (G_
+                                                                       "A link to set a password has been sent to them.")
+                                                                      (G_
+                                                                       "The account has no password yet: use reset password on it to send the invitation again.")))))
                          #:status 302)))
         (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                            #:needed-permissions '(byggsteg:modify-permissions)

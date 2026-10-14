@@ -43,7 +43,8 @@
 ;;; ====== The throwaway database ======
 
 (define spec-db
-  (format #f "/tmp/byggsteg-user-bootstrap-spec-~a.db" (getpid)))
+  (format #f "/tmp/byggsteg-user-bootstrap-spec-~a.db"
+          (getpid)))
 
 ;; Every migration the deployment runs, in the order it runs them.
 (define migrations
@@ -53,8 +54,7 @@
 (define (migration-path name)
   (let ((here (current-filename)))
     (string-append (if (string? here)
-                       (dirname (dirname (dirname (dirname here))))
-                       ".")
+                       (dirname (dirname (dirname (dirname here)))) ".")
                    "/resources/migrations/sqlite/" name)))
 
 (define (create-schema! db)
@@ -62,10 +62,9 @@
               (for-each (lambda (statement)
                           (if (string-any char-set:graphic statement)
                               (sqlite-exec db statement)))
-                        (string-split (call-with-input-file (migration-path name)
-                                        get-string-all)
-                                      #\;)))
-            migrations))
+                        (string-split (call-with-input-file (migration-path
+                                                             name)
+                                        get-string-all) #\;))) migrations))
 
 (if (file-exists? spec-db)
     (delete-file spec-db))
@@ -74,13 +73,17 @@
   (create-schema! db)
   (sqlite-close db))
 
-(define user-repo (make-sqlite-user-repository))
+(define user-repo
+  (make-sqlite-user-repository))
 
 ;;; ====== The accounts ======
 
-(define alice "a1a1a1a1-0000-0000-0000-000000000001")
-(define bob "b2b2b2b2-0000-0000-0000-000000000002")
-(define carol "c3c3c3c3-0000-0000-0000-000000000003")
+(define alice
+  "a1a1a1a1-0000-0000-0000-000000000001")
+(define bob
+  "b2b2b2b2-0000-0000-0000-000000000002")
+(define carol
+  "c3c3c3c3-0000-0000-0000-000000000003")
 
 ;; The super user: no permissions named, so every one byggsteg checks.
 (create-user! #:username "alice"
@@ -109,15 +112,18 @@
 
 A sign-in takes the column and hands it to `eval-string', because that is what
 the column holds: the list written as Scheme source."
-  (eval-string (assq-ref (row-of email) 'permissions)))
+  (eval-string (assq-ref (row-of email)
+                         'permissions)))
 
 (define (password-matches? email typed)
   "Whether TYPED is the password of the account with EMAIL, read the way a
 sign-in reads it: the hash of the typed password and the stored salt."
   (let ((row (row-of email)))
     (equal? (string->sha-256 (string-append typed
-                                            (assq-ref row 'salt)))
-            (assq-ref row 'password))))
+                                            (assq-ref row
+                                                      'salt)))
+            (assq-ref row
+                      'password))))
 
 (define (second-account-with email)
   "Whether EMAIL can be given to a second account, which it cannot: the column
@@ -126,25 +132,33 @@ is the one byggsteg looks an account up by, so it holds one account each."
          (lambda ()
            (create-user! #:username "someone-else"
                          #:email email
-                         #:password "whatever")
-           #t)
-         (lambda (key . args) #f)))
+                         #:password "whatever") #t)
+         (lambda (key . args)
+           #f)))
 
 ;;; ====== The readings ======
 
 (define (super-user-readings)
   (let ((row (row-of "alice@example.org")))
-    (list (list 'the-account-is-there (if row #t #f))
-          (list 'with-the-username-given (assq-ref row 'username))
-          (list 'and-the-email-given (assq-ref row 'email))
+    (list (list 'the-account-is-there
+                (if row #t #f))
+          (list 'with-the-username-given
+                (assq-ref row
+                          'username))
+          (list 'and-the-email-given
+                (assq-ref row
+                          'email))
           (list 'the-password-is-not-stored
-                (equal? "alice-password" (assq-ref row 'password)))
-          (list 'but-the-hash-of-it-is (password-matches? "alice@example.org"
-                                                          "alice-password"))
+                (equal? "alice-password"
+                        (assq-ref row
+                                  'password)))
+          (list 'but-the-hash-of-it-is
+                (password-matches? "alice@example.org" "alice-password"))
           (list 'and-another-password-is-not
                 (password-matches? "alice@example.org" "not-alice-password"))
           (list 'it-is-stored-with-a-salt-of-its-own
-                (string? (assq-ref row 'salt)))
+                (string? (assq-ref row
+                                   'salt)))
           (list 'it-holds-every-permission
                 (permissions-of "alice@example.org")))))
 
@@ -178,8 +192,8 @@ is the one byggsteg looks an account up by, so it holds one account each."
                                        (string-append spec-db "-shm"))))
          (test "the first account is a super user a sign-in recognizes"
                #:shuffle? #f
-               (assert-equal
-                #:name "the row holds the username, the email, a hash of the password and every permission"
+               (assert-equal #:name
+                "the row holds the username, the email, a hash of the password and every permission"
                 #:expect (list (list 'the-account-is-there #t)
                                (list 'with-the-username-given "alice")
                                (list 'and-the-email-given "alice@example.org")
@@ -188,8 +202,7 @@ is the one byggsteg looks an account up by, so it holds one account each."
                                (list 'and-another-password-is-not #f)
                                (list 'it-is-stored-with-a-salt-of-its-own #t)
                                (list 'it-holds-every-permission
-                                     '(byggsteg:job-create
-                                       byggsteg:job-delete
+                                     '(byggsteg:job-create byggsteg:job-delete
                                        byggsteg:profile-create
                                        byggsteg:profile-delete
                                        byggsteg:user-create
@@ -198,14 +211,15 @@ is the one byggsteg looks an account up by, so it holds one account each."
                 #:got (super-user-readings)))
          (test "an account named its own permissions, or none"
                #:shuffle? #f
-               (assert-equal
-                #:name "a limited account holds what was asked for, an empty one holds nothing, and an email names one account"
+               (assert-equal #:name
+                "a limited account holds what was asked for, an empty one holds nothing, and an email names one account"
                 #:expect (list (list 'the-limited-account-was-made #t)
                                (list 'with-exactly-the-permissions-named
                                      '(byggsteg:job-create
                                        byggsteg:profile-create))
                                (list 'its-password-works-too #t)
-                               (list 'an-account-can-be-made-with-none '())
+                               (list 'an-account-can-be-made-with-none
+                                     '())
                                (list 'and-it-signs-in-all-the-same #t)
                                (list 'two-accounts-cannot-share-an-email #f))
                 #:got (limited-user-readings)))))

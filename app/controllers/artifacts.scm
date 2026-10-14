@@ -40,16 +40,19 @@
        (let* ((artifact-repo (make-sqlite-artifact-repository))
               (artifact (get-artifact-by-id artifact-repo
                                             (params rc "id")))
-              (path (and artifact (artifact-download-path artifact))))
+              (path (and artifact
+                         (artifact-download-path artifact))))
          (cond
            ((not artifact)
-            (response-emit (error-page 404) #:status 404
-                           #:headers '((content-type . (text/html)))))
+            (response-emit (error-page 404)
+                           #:status 404
+                           #:headers '((content-type text/html))))
            ((not path)
             ;; Recorded, but not servable: the file is gone, or the row points
             ;; outside the directory artifacts are written to.
-            (response-emit (error-page 404) #:status 404
-                           #:headers '((content-type . (text/html)))))
+            (response-emit (error-page 404)
+                           #:status 404
+                           #:headers '((content-type text/html))))
            (else
             ;; The body is a vector of bytes and the two headers are the two
             ;; shapes Guile's response writer validates: a content type as a list
@@ -59,9 +62,9 @@
             ;; header, which is why the filename is a field of the disposition
             ;; rather than something already formatted into one.
             (response-emit (read-artifact-file path)
-                           #:headers `((content-type . (application/gzip))
-                                       (content-disposition
-                                        . (attachment
-                                           (filename
-                                            . ,(assq-ref artifact
-                                                         'title)))))))))))
+                           #:headers `((content-type application/gzip)
+                                       (content-disposition attachment
+                                                            (filename unquote
+                                                                      (assq-ref
+                                                                       artifact
+                                                                       'title))))))))))

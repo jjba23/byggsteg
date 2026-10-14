@@ -102,7 +102,8 @@
                                          #:log-repo log-repo
                                          #:job-id job-id)))
             (if new-log-id
-                (:mime rc `((log-id unquote new-log-id)))
+                (:mime rc
+                       `((log-id unquote new-log-id)))
                 (api-error rc 404 "no job with that id"))))
         (bewaking-api-endpoint #:token-name 'x-bewaking-byggsteg
                                #:needed-permissions '(byggsteg:job-create)
@@ -127,27 +128,27 @@
          (if (not j)
              (api-error rc 404 "no log with that id")
              (:mime rc
-                `((success unquote
-                           (assq-ref j
-                                     'job-success))
-                  (failure unquote
-                           (assq-ref j
-                                     'job-failed))
-                  (in-progress unquote
+                    `((success unquote
                                (assq-ref j
-                                         'job-in-progress))
-                  (log-id unquote
-                          (assq-ref l
-                                    'id))
-                  (title unquote
-                         (assq-ref l
-                                   'title))
-                  (log-data unquote
-                            (base64-encode (html-unescape (assq-ref l
-                                                                    'log-data))))
-                  (job-data unquote
-                            (base64-encode (html-unescape (assq-ref j
-                                                                    'job-data))))))))))
+                                         'job-success))
+                      (failure unquote
+                               (assq-ref j
+                                         'job-failed))
+                      (in-progress unquote
+                                   (assq-ref j
+                                             'job-in-progress))
+                      (log-id unquote
+                              (assq-ref l
+                                        'id))
+                      (title unquote
+                             (assq-ref l
+                                       'title))
+                      (log-data unquote
+                                (base64-encode (html-unescape (assq-ref l
+                                                                        'log-data))))
+                      (job-data unquote
+                                (base64-encode (html-unescape (assq-ref j
+                                                                        'job-data))))))))))
 
 (post "/api/v1/login"
       #:mime 'json
@@ -180,12 +181,13 @@
             ;; column read off nothing.
             ((and u
                   (equal? (string->sha-256 (string-append password
-                                                         (assq-ref u
-                                                                   'salt)))
+                                                          (assq-ref u
+                                                                    'salt)))
                           (assq-ref u
                                     'password)))
              (response-emit ""
                             #:status 204
                             #:headers `((x-bewaking-byggsteg unquote t))))
-            (else (api-error rc 401 "invalid credentials, could not make token"))))))
+            (else (api-error rc 401
+                             "invalid credentials, could not make token"))))))
 

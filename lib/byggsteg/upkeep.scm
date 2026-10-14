@@ -38,12 +38,13 @@ picking up whatever the last process did not get to is what a restart is for."
 
 (define (due? upkeep every)
   "Whether a pass on UPKEEP is due, EVERY seconds after the last one it ran."
-  (>= (- (current-time) (atomic-box-ref upkeep)) every))
+  (>= (- (current-time)
+         (atomic-box-ref upkeep)) every))
 
 (define (mark-done! upkeep)
   "Record that the pass on UPKEEP is running now, and hand UPKEEP back."
-  (atomic-box-set! upkeep (current-time))
-  upkeep)
+  (atomic-box-set! upkeep
+                   (current-time)) upkeep)
 
 (define* (when-due upkeep every thunk)
   "THUNK when a pass on UPKEEP is due, and the empty list when it is not.

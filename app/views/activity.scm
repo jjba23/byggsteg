@@ -48,39 +48,53 @@
 
 ;;; ====== The drawing's own measurements ======
 
-(define cell-size 12)
-(define cell-gap 3)
-(define month-label-height 18)
-(define weekday-label-width 32)
-(define legend-gap 8)
+(define cell-size
+  12)
+(define cell-gap
+  3)
+(define month-label-height
+  18)
+(define weekday-label-width
+  32)
+(define legend-gap
+  8)
 
 (define (column-x column)
-  (+ weekday-label-width (* column (+ cell-size cell-gap))))
+  (+ weekday-label-width
+     (* column
+        (+ cell-size cell-gap))))
 
 (define (row-y row)
-  (+ month-label-height (* row (+ cell-size cell-gap))))
+  (+ month-label-height
+     (* row
+        (+ cell-size cell-gap))))
 
 ;; Three of the seven rows are labelled, so the year reads without a wall of
 ;; names beside it: with the week starting on Sunday, they are Monday,
 ;; Wednesday and Friday.
-(define labelled-rows '(1 3 5))
+(define labelled-rows
+  '(1 3 5))
 
 ;; One colour at four opacities rather than five colours: the prebuilt olive
 ;; sheet carries no `dark:' variants for `fill', and a shade that reads on paper
 ;; is a different shade from one that reads on the phosphor screen -- an opacity
 ;; reads on both.
 (define (level-fill level)
-  (if (or (not level) (zero? level))
-      "fill-stone-500"
-      "fill-asparagus-500"))
+  (if (or (not level)
+          (zero? level)) "fill-stone-500" "fill-asparagus-500"))
 
 (define (level-opacity level)
   (case level
-    ((0) "0.25")
-    ((1) "0.30")
-    ((2) "0.50")
-    ((3) "0.75")
-    ((4) "1")
+    ((0)
+     "0.25")
+    ((1)
+     "0.30")
+    ((2)
+     "0.50")
+    ((3)
+     "0.75")
+    ((4)
+     "1")
     (else "0")))
 
 (define (square-attributes level x y)
@@ -96,17 +110,25 @@
 
 (define (day-title G_ day count)
   "What a square says when a reader points at it: the day, and the jobs it had."
-  (let-values (((year month day-of-month) (day-number->civil day)))
-    (format #f "~a-~2,'0d-~2,'0d: ~a ~a"
-            year month day-of-month count
-            (G_ "job runs"))))
+  (let-values (((year month day-of-month)
+                (day-number->civil day)))
+              (format #f
+                      "~a-~2,'0d-~2,'0d: ~a ~a"
+                      year
+                      month
+                      day-of-month
+                      count
+                      (G_ "job runs"))))
 
 (define (heatmap-square G_ heatmap cell column row)
   "One day of HEATMAP as a square, and the reading a pointer reveals about it."
   (let* ((day (heatmap-cell-day cell))
          (count (heatmap-cell-count cell))
-         (level (heatmap-level count (heatmap-max heatmap)))
-         (attributes (square-attributes level (column-x column) (row-y row))))
+         (level (heatmap-level count
+                               (heatmap-max heatmap)))
+         (attributes (square-attributes level
+                                        (column-x column)
+                                        (row-y row))))
     (if count
         `(rect (@ ,@attributes)
                (title ,(day-title G_ day count)))
@@ -120,7 +142,8 @@
          (map (lambda (column column-index)
                 (map (lambda (cell row)
                        (heatmap-square G_ heatmap cell column-index row))
-                     column (iota 7)))
+                     column
+                     (iota 7)))
               (heatmap-weeks heatmap)
               (iota (length (heatmap-weeks heatmap))))))
 
@@ -131,8 +154,8 @@
   (map (lambda (label)
          `(text (@ (x ,(column-x (car label)))
                    (y ,(- month-label-height 6))
-                   (class ,(mk-class '(fill-stone-500
-                                       text-asparagus-900 dark:text-asparagus-300))))
+                   (class ,(mk-class '(fill-stone-500 text-asparagus-900
+                                                      dark:text-asparagus-300))))
                 ,(cdr label)))
        (heatmap-months heatmap)))
 
@@ -146,8 +169,8 @@
         (map (lambda (row)
                `(text (@ (x 1)
                          (y ,(+ (row-y row) 10))
-                         (class ,(mk-class '(fill-stone-500
-                                             text-asparagus-900 dark:text-asparagus-300))))
+                         (class ,(mk-class '(fill-stone-500 text-asparagus-900
+                                             dark:text-asparagus-300))))
                       ,(day-number-week-day-name (+ first-day row))))
              labelled-rows))))
 
@@ -157,7 +180,8 @@
   "HEATMAP as the figure the page draws: the grid, and its reading under it."
   (let* ((columns (length (heatmap-weeks heatmap)))
          (width (column-x columns))
-         (height (+ (row-y 7) legend-gap (* 2 cell-size))))
+         (height (+ (row-y 7) legend-gap
+                    (* 2 cell-size))))
     `((div (@ (class ,(mk-class '(w-full overflow-x-auto))))
            (svg (@ (viewBox ,(format #f "0 0 ~a ~a" width height))
                    (width ,width)
@@ -168,9 +192,14 @@
                 ,@(heatmap-month-labels G_ heatmap)
                 ,@(heatmap-weekday-labels G_ heatmap)
                 ,@(heatmap-squares G_ heatmap)))
-      (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center gap-2
-                                            pt-3 text-xs
-                                            text-asparagus-900 dark:text-asparagus-300))))
+      (div (@ (class ,(mk-class '(flex flex-row
+                                       flex-wrap
+                                       items-center
+                                       gap-2
+                                       pt-3
+                                       text-xs
+                                       text-asparagus-900
+                                       dark:text-asparagus-300))))
            (span ,(G_ "fewer"))
            ,@(map (lambda (level)
                     `(svg (@ (width ,cell-size)
@@ -192,28 +221,30 @@
                       ,(terminal-heading (G_ "activity")
                                          #:tag 'h1
                                          #:size '(text-2xl))
-                      (p (@ (class ,(mk-class '(text-sm
-                                                text-asparagus-900 dark:text-asparagus-300))))
+                      (p (@ (class ,(mk-class '(text-sm text-asparagus-900
+                                                dark:text-asparagus-300))))
                          ,(if (zero? total)
                               (G_ "no job has run in this deployment yet")
-                              (format #f "~a ~a"
-                                      total
+                              (format #f "~a ~a" total
                                       (G_ "job runs, week by week")))
                          ,@(if (> busiest 0)
-                               (list (format #f " — ~a: ~a (~a ~a)"
+                               (list (format #f
+                                             " — ~a: ~a (~a ~a)"
                                              (G_ "busiest day")
                                              busiest
                                              weeks
                                              (G_ "weeks shown")))
                                '()))
-                      (div (@ (class ,(terminal-frame-class
-                                       #:extra '(p-4 max-w-full))))
+                      (div (@ (class ,(terminal-frame-class #:extra '(p-4
+                                                                      max-w-full))))
                            ,@(heatmap-figure G_ heatmap))
-                      (p (@ (class ,(mk-class '(text-xs
-                                                text-asparagus-900 dark:text-asparagus-300))))
-                         ,(G_ "each square is one day; darker means more jobs were queued that day"))))))
+                      (p (@ (class ,(mk-class '(text-xs text-asparagus-900
+                                                dark:text-asparagus-300))))
+                         ,(G_
+                           "each square is one day; darker means more jobs were queued that day"))))))
     (html-template G_
-                   #:title (format #f "byggsteg - ~a" (G_ "activity"))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "activity"))
                    #:description (G_
                                   "A year of runs this byggsteg deployment has executed, drawn as a heatmap: one square per day, darker where more jobs were queued")
                    #:path "/activity"

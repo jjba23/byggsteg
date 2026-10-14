@@ -31,38 +31,48 @@
 (define* (login-page G_
                      #:key is-logged-in)
   (let* ((login-form `(form (@ (action "/login")
-                               (class ,(terminal-frame-class
-                                         #:extra '(w-full p-4 flex flex-row
-                                                   flex-wrap items-center
-                                                   align-center gap-4)))
+                               (class ,(terminal-frame-class #:extra '(w-full
+                                                                       p-4
+                                                                       flex
+                                                                       flex-row
+                                                                       flex-wrap
+                                                                       items-center
+                                                                       align-center
+                                                                       gap-4)))
                                (method POST))
                             ,(terminal-input #:label (G_ "email")
-                                    #:name "email"
-                                    #:type 'email
-                                    #:value ""
-                                    #:required #t)
+                                             #:name "email"
+                                             #:type 'email
+                                             #:value ""
+                                             #:required #t)
                             ,(terminal-input #:label (G_ "password")
-                                    #:name "password"
-                                    #:type 'password
-                                    #:value ""
-                                    #:required #t)
+                                             #:name "password"
+                                             #:type 'password
+                                             #:value ""
+                                             #:required #t)
                             (div ,(terminal-submit-button (G_ "login")))))
          (reset-form `((form (@ (action "/password/reset")
-                                (class ,(terminal-frame-class
-                                         #:extra '(w-full p-4 flex flex-row
-                                                   flex-wrap items-center
-                                                   align-center gap-4)))
+                                (class ,(terminal-frame-class #:extra '(w-full
+                                                                        p-4
+                                                                        flex
+                                                                        flex-row
+                                                                        flex-wrap
+                                                                        items-center
+                                                                        align-center
+                                                                        gap-4)))
                                 (method POST))
-                             ,(terminal-input #:label (G_ "account to reset (email)")
-                                     #:name "email"
-                                     #:type 'email
-                                     #:value ""
-                                     #:required #t)
+                             ,(terminal-input #:label (G_
+                                                       "account to reset (email)")
+                                              #:name "email"
+                                              #:type 'email
+                                              #:value ""
+                                              #:required #t)
                              (div ,(terminal-icon-button #:icon 'password
-                                                #:type 'submit
-                                                #:content (G_ "reset")))))))
+                                                         #:type 'submit
+                                                         #:content (G_ "reset")))))))
     (html-template G_
-                   #:title (format #f "byggsteg - ~a" (G_ "login"))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "login"))
                    #:description (G_
                                   "Log in to this byggsteg deployment to run jobs and profiles, follow a running job's log, and manage the users and their permissions")
                    #:path "/login"
@@ -74,15 +84,16 @@
                    ;; than the screen it is read on.
                    #:body `((div (@ (class ,(page-body-class)))
                                  (div (@ (class ,(mk-class '(w-full flex
-                                                                    flex-col
-                                                                    gap-6 sm:gap-8
-                                                                    md:flex-row))))
+                                                             flex-col gap-6
+                                                             sm:gap-8
+                                                             md:flex-row))))
                                       (div (@ (class ,(mk-class '(flex
                                                                   flex-col
                                                                   gap-4
                                                                   min-w-0
                                                                   flex-1))))
-                                           ,(terminal-heading (G_ "login to byggsteg")
+                                           ,(terminal-heading (G_
+                                                               "login to byggsteg")
                                                               #:tag 'h2)
                                            (div ,login-form))
                                       (div (@ (class ,(mk-class '(flex
@@ -90,7 +101,8 @@
                                                                   gap-4
                                                                   min-w-0
                                                                   flex-1))))
-                                           ,(terminal-heading (G_ "reset password")
+                                           ,(terminal-heading (G_
+                                                               "reset password")
                                                               #:tag 'h2)
                                            (div ,reset-form))))))))
 

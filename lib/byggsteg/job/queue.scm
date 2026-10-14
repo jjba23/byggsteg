@@ -43,8 +43,7 @@ apart in a list of logs.
 
 #f is the answer when there is no job with that id: there is nothing to queue."
   (let ((job (get-job-by-id job-repo job-id)))
-    (if (not job)
-        #f
+    (if (not job) #f
         (let* ((new-job-id (generate-string-uuid))
                (new-log-id (generate-string-uuid))
                (title (html-escape (format #f "~a (retry ~a)"
@@ -56,16 +55,18 @@ apart in a list of logs.
                         (title unquote title)
                         ;; The job data is copied as the request sent it,
                         ;; escaped and unread; the worker is what reads it.
-                        (job-data unquote (assq-ref job
-                                                    'job-data))
+                        (job-data unquote
+                                  (assq-ref job
+                                            'job-data))
                         (job-success . 0)
                         (job-in-progress . 1)
                         (job-failed . 0)
-                        (created-at unquote (current-time))))
+                        (created-at unquote
+                                    (current-time))))
           (insert-log log-repo
                       `((id unquote new-log-id)
                         (title unquote title)
                         (job-id unquote new-job-id)
                         (log-data . "")
-                        (created-at unquote (current-time))))
-          new-log-id))))
+                        (created-at unquote
+                                    (current-time)))) new-log-id))))

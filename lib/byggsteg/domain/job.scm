@@ -61,15 +61,15 @@
                     "Retrieves jobs in progress from the given REPO.")
 
 (define-repo-method get-jobs-finished-before repo-get-jobs-finished-before
-                    "Retrieves the finished jobs that finished before BEFORE, for the
+ "Retrieves the finished jobs that finished before BEFORE, for the
 retention pass to prune.")
 
 (define-repo-method get-job-created-at repo-get-job-created-at
-                    "Retrieves when every job was queued from the given REPO,
+ "Retrieves when every job was queued from the given REPO,
 for the activity heatmap to count them by day.")
 
 (define-repo-method search-jobs repo-search-jobs
-                    "Retrieves the jobs whose text carries QUERY from the given REPO.")
+ "Retrieves the jobs whose text carries QUERY from the given REPO.")
 
 (define-repo-method insert-job repo-insert-job
                     "Inserts a job with ATTRS in the given REPO.")

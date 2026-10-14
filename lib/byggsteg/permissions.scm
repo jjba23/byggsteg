@@ -34,13 +34,12 @@
 ;; what makes a super user a super user, which is why it is one of them rather
 ;; than a rank above them.
 (define all-permissions
-  '(byggsteg:job-create
-    byggsteg:job-delete
-    byggsteg:profile-create
-    byggsteg:profile-delete
-    byggsteg:user-create
-    byggsteg:user-delete
-    byggsteg:modify-permissions))
+  '(byggsteg:job-create byggsteg:job-delete
+                        byggsteg:profile-create
+                        byggsteg:profile-delete
+                        byggsteg:user-create
+                        byggsteg:user-delete
+                        byggsteg:modify-permissions))
 
 (define (may? permissions permission)
   "Whether a session holding PERMISSIONS may do what PERMISSION allows.

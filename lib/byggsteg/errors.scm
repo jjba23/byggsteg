@@ -79,18 +79,19 @@ A status this table does not name still gets a page -- the code, a plain reading
 of it and an honest hint -- so a status byggsteg never anticipated is answered
 with the console's own page rather than a blank one."
   (case status
-    ((400) '("bad request"
-             "the request arrived in a shape this console cannot read"
-             "send the query or the form the way a browser sends it"))
-    ((401) '("unauthorized"
-             "this console asked for a credential and the request carried none"
-             "sign in, then ask for the page again"))
-    ((404) '("not found"
-             "no route in this deployment answers that path"
-             "go back to the job queue, or to the top of the console"))
-    ((500) '("internal server error"
-             "a step of the server-side pipeline raised"
-             "the trace is in the server's log; ask again once it is read"))
+    ((400)
+     '("bad request" "the request arrived in a shape this console cannot read"
+       "send the query or the form the way a browser sends it"))
+    ((401)
+     '("unauthorized"
+       "this console asked for a credential and the request carried none"
+       "sign in, then ask for the page again"))
+    ((404)
+     '("not found" "no route in this deployment answers that path"
+       "go back to the job queue, or to the top of the console"))
+    ((500)
+     '("internal server error" "a step of the server-side pipeline raised"
+       "the trace is in the server's log; ask again once it is read"))
     (else (list "unexpected status"
                 "the server answered with a status it has no page for"
                 "ask again, and report it if the status keeps coming back"))))
@@ -112,12 +113,11 @@ with the console's own page rather than a blank one."
 ;; then the two places every page of the deployment can reach.
 (define (error-links status)
   "The actions under STATUS: a way out of it, the job queue, and a way home."
-  `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
-                                       items-center gap-3))))
+  `((div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center gap-3))))
          ,@(if (= status 401)
                `((a (@ (href "/login"))
-                     ,(terminal-icon-button #:icon 'sign-in
-                                            #:content "sign in")))
+                    ,(terminal-icon-button #:icon 'sign-in
+                                           #:content "sign in")))
                '())
          (a (@ (href "/logs"))
             ,(terminal-icon-button #:icon 'scroll
@@ -126,8 +126,7 @@ with the console's own page rather than a blank one."
             ,(terminal-icon-button #:icon 'circuitry
                                    #:content "run a job"))
          (a (@ (href "/")
-               (class ,link-face))
-            "back to the top"))))
+               (class ,link-face)) "back to the top"))))
 
 (define (error-body status)
   "STATUS as the body of its page: a pane of glass reporting what went wrong."
@@ -135,27 +134,33 @@ with the console's own page rather than a blank one."
          (name (car account))
          (reading (cadr account))
          (hint (caddr account)))
-    (terminal-glass-panel
-     `(
-       ;; The code and the name, under the same `$' the rest of the terminal
-       ;; prompts with, so the page opens like a command being run.
-       (div (@ (class ,(mk-class '(flex flex-row flex-wrap
-                                           items-baseline gap-2))))
-            (span (@ (class ,prompt-face)) "$")
-            ,(terminal-heading (format #f "~a ~a" status name)
-                               #:tag 'h1
-                               #:size '(text-2xl)))
-       (p ,reading)
-       ;; The trace: the command, the error, the hint, and the prompt returned.
-       ,(terminal-pre (string-append
-                       (format #f "$ byggsteg --status ~a\n" status)
-                       (format #f "[err] HTTP ~a: ~a\n" status name)
-                       (format #f "[hint] ~a\n" hint)
-                       "$ "))
-       ,@(error-links status))
-     #:classes '(max-w-prose w-full)
-     #:content-classes '(flex flex-col gap-4)
-     #:border (error-border status))))
+    (terminal-glass-panel `(;; The code and the name, under the same `$' the rest of the terminal
+                            
+                            ;; prompts with, so the page opens like a command being run.
+                            (div (@ (class ,(mk-class '(flex flex-row
+                                                             flex-wrap
+                                                             items-baseline
+                                                             gap-2))))
+                                 (span (@ (class ,prompt-face)) "$")
+                                 ,(terminal-heading (format #f "~a ~a" status
+                                                            name)
+                                                    #:tag 'h1
+                                                    #:size '(text-2xl)))
+                            (p ,reading)
+                            ;; The trace: the command, the error, the hint, and the prompt returned.
+                            ,(terminal-pre (string-append (format #f
+                                                           "$ byggsteg --status ~a\n"
+                                                           status)
+                                                          (format #f
+                                                           "[err] HTTP ~a: ~a\n"
+                                                           status name)
+                                                          (format #f
+                                                                  "[hint] ~a\n"
+                                                                  hint) "$ "))
+                            ,@(error-links status))
+                          #:classes '(max-w-prose w-full)
+                          #:content-classes '(flex flex-col gap-4)
+                          #:border (error-border status))))
 
 (define (error-page status)
   "STATUS as a whole page: the terminal's chrome around its reading of the code.
@@ -170,24 +175,26 @@ kind of document as the pages around it.
 The chrome is built with the source strings rather than a reader's language: the
 locale is a property of the request that raised the status, and there is no
 request left by the time this runs (see the note at the top of the file)."
-  (sxml->xml-string
-   (html-template (lambda (string) string)
-                  #:title (format #f "byggsteg - ~a ~a" status
-                                  (car (error-account status)))
-                  #:description (let ((account (error-account status)))
-                                 (format #f "~a ~a: ~a"
-                                         status
-                                         (car account)
-                                         (cadr account)))
-                  ;; A page that answers a request by refusing it is not a
-                  ;; reading of this deployment, whatever a crawler did to
-                  ;; arrive at it.
-                  #:robots "noindex, nofollow"
-                  ;; The pane sits in the same gutter as the body of every
-                  ;; other page, so a reader who arrives at a 404 is still
-                  ;; reading the same console.
-                  #:body (list `(div (@ (class ,(page-body-class)))
-                                    ,(error-body status))))))
+  (sxml->xml-string (html-template (lambda (string)
+                                     string)
+                                   #:title (format #f "byggsteg - ~a ~a"
+                                                   status
+                                                   (car (error-account status)))
+                                   #:description (let ((account (error-account
+                                                                 status)))
+                                                   (format #f "~a ~a: ~a"
+                                                           status
+                                                           (car account)
+                                                           (cadr account)))
+                                   ;; A page that answers a request by refusing it is not a
+                                   ;; reading of this deployment, whatever a crawler did to
+                                   ;; arrive at it.
+                                   #:robots "noindex, nofollow"
+                                   ;; The pane sits in the same gutter as the body of every
+                                   ;; other page, so a reader who arrives at a 404 is still
+                                   ;; reading the same console.
+                                   #:body (list `(div (@ (class ,(page-body-class)))
+                                                      ,(error-body status))))))
 
 ;;; ====== Handing the pages to Artanis ======
 
@@ -199,6 +206,7 @@ table it fills lives in the framework rather than here, and a status page is
 looked up in it when a request cannot be answered any other way, so registering
 is all a deployment has to do to answer a 404 with a page of its own."
   (for-each (lambda (status)
-              (http-status status (lambda () (error-page status))))
-            error-statuses)
+              (http-status status
+                           (lambda ()
+                             (error-page status)))) error-statuses)
   *unspecified*)

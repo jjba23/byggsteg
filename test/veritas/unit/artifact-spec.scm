@@ -46,10 +46,12 @@
 ;;; ====== The throwaway database ======
 
 (define spec-db
-  (format #f "/tmp/byggsteg-artifact-spec-~a.db" (getpid)))
+  (format #f "/tmp/byggsteg-artifact-spec-~a.db"
+          (getpid)))
 
 (define artifact-root
-  (format #f "/tmp/byggsteg-artifact-spec-~a/" (getpid)))
+  (format #f "/tmp/byggsteg-artifact-spec-~a/"
+          (getpid)))
 
 ;; Every migration the deployment runs, in the order it runs them: the artifact
 ;; table is made by the second one, and the repository below queries it.
@@ -60,8 +62,7 @@
 (define (migration-path name)
   (let ((here (current-filename)))
     (string-append (if (string? here)
-                       (dirname (dirname (dirname (dirname here))))
-                       ".")
+                       (dirname (dirname (dirname (dirname here)))) ".")
                    "/resources/migrations/sqlite/" name)))
 
 (define (create-schema! db)
@@ -70,23 +71,24 @@
               (for-each (lambda (statement)
                           (if (string-any char-set:graphic statement)
                               (sqlite-exec db statement)))
-                        (string-split (call-with-input-file
-                                          (migration-path name)
-                                        get-string-all)
-                                      #\;)))
-            migrations))
+                        (string-split (call-with-input-file (migration-path
+                                                             name)
+                                        get-string-all) #\;))) migrations))
 
 (define (column-names-of db table)
   "The columns of TABLE, read from the database rather than from the module."
-  (let* ((stmt (sqlite-prepare db (format #f "PRAGMA table_info('~a')" table)))
-         (rows (let loop ((row (sqlite-step stmt)) (acc '()))
+  (let* ((stmt (sqlite-prepare db
+                               (format #f "PRAGMA table_info('~a')" table)))
+         (rows (let loop
+                 ((row (sqlite-step stmt))
+                  (acc '()))
                  (if row
-                     (loop (sqlite-step stmt) (cons row acc))
+                     (loop (sqlite-step stmt)
+                           (cons row acc))
                      (reverse acc)))))
     (sqlite-finalize stmt)
     (map (lambda (row)
-           (vector-ref row 1))
-         rows)))
+           (vector-ref row 1)) rows)))
 
 ;; The repositories take their connection from `(database-path)' as they are
 ;; built, so the file is in place before they are made.
@@ -99,23 +101,26 @@
   (let ((db (sqlite-open spec-db)))
     (create-schema! db)
     (let ((columns (column-names-of db "artifact")))
-      (sqlite-close db)
-      columns)))
+      (sqlite-close db) columns)))
 
-(define artifact-repo (make-sqlite-artifact-repository))
+(define artifact-repo
+  (make-sqlite-artifact-repository))
 
 ;;; ====== A tarball a job collected ======
 
-(define job-id "spec-artifact-job")
+(define job-id
+  "spec-artifact-job")
 
 (insert-artifact artifact-repo
                  `((id unquote "spec-artifact-1")
                    (job-id unquote job-id)
                    (title unquote "byggsteg-job.tar.gz")
-                   (artifact-path unquote (string-append artifact-root job-id
-                                                         ".tar.gz"))
+                   (artifact-path unquote
+                                  (string-append artifact-root job-id
+                                                 ".tar.gz"))
                    (artifact-size unquote 2048)
-                   (created-at unquote (current-time))))
+                   (created-at unquote
+                               (current-time))))
 
 ;; The second collection of the same job: a pipeline stage that builds something
 ;; else writes a numbered tarball, and both are that job's artifacts.
@@ -123,10 +128,12 @@
                  `((id unquote "spec-artifact-2")
                    (job-id unquote job-id)
                    (title unquote "byggsteg-job-2.tar.gz")
-                   (artifact-path unquote (string-append artifact-root job-id
-                                                         "-2.tar.gz"))
+                   (artifact-path unquote
+                                  (string-append artifact-root job-id
+                                                 "-2.tar.gz"))
                    (artifact-size unquote 4096)
-                   (created-at unquote (current-time))))
+                   (created-at unquote
+                               (current-time))))
 
 (define (recorded-row key)
   "The value KEY holds in the recorded tarball, or a reading that says it is gone."
@@ -155,15 +162,15 @@
 (define (refused-but-served)
   "The paths above that a download would nonetheless serve."
   (filter (lambda (pair)
-            (path-served (car pair)))
-          refused-paths))
+            (path-served (car pair))) refused-paths))
 
 ;;; ====== Forgetting a job's artifacts ======
 
 ;; A job of its own, with three rows: two that name tarballs really written into
 ;; the artifact directory, and one that names a file outside it -- a row no
 ;; collection would make, but a row a database can hold all the same.
-(define forget-job-id "spec-forget-job")
+(define forget-job-id
+  "spec-forget-job")
 
 (define inside-tarballs
   (list (string-append artifact-root forget-job-id ".tar.gz")
@@ -171,8 +178,7 @@
 
 (define outside-file
   (string-append "/tmp/byggsteg-artifact-spec-outside-"
-                 (number->string (getpid))
-                 ".tar.gz"))
+                 (number->string (getpid)) ".tar.gz"))
 
 (define (write-file! path)
   "A file at PATH, standing in for a tarball a job wrote."
@@ -187,14 +193,20 @@
     (title unquote "forgotten.tar.gz")
     (artifact-path unquote path)
     (artifact-size unquote 44)
-    (created-at unquote (current-time))))
+    (created-at unquote
+                (current-time))))
 
 (if (not (file-exists? artifact-root))
     (mkdir artifact-root))
-(for-each write-file! (append inside-tarballs (list outside-file)))
-(for-each (lambda (row) (insert-artifact artifact-repo row))
-          (list (artifact-row "spec-forget-1" (car inside-tarballs))
-                (artifact-row "spec-forget-2" (cadr inside-tarballs))
+(for-each write-file!
+          (append inside-tarballs
+                  (list outside-file)))
+(for-each (lambda (row)
+            (insert-artifact artifact-repo row))
+          (list (artifact-row "spec-forget-1"
+                              (car inside-tarballs))
+                (artifact-row "spec-forget-2"
+                              (cadr inside-tarballs))
                 (artifact-row "spec-forget-3" outside-file)))
 
 (define (forgetting-readings)
@@ -211,8 +223,7 @@ alone."
                                                   (list forget-job-id))))
           (list 'tarballs-gone
                 (map (lambda (path)
-                       (file-exists? path))
-                     inside-tarballs))
+                       (file-exists? path)) inside-tarballs))
           (list 'a-file-outside-the-directory-was-left-alone
                 (file-exists? outside-file)))))
 
@@ -221,34 +232,46 @@ alone."
 ;; Five things standing in the artifact directory: two tarballs no row names --
 ;; one written long ago and one written just now -- a tarball a row does name, a
 ;; file byggsteg never writes, and a directory.
-(define orphan-old (string-append artifact-root "orphan-old.tar.gz"))
-(define orphan-fresh (string-append artifact-root "orphan-fresh.tar.gz"))
-(define named-tarball (string-append artifact-root job-id ".tar.gz"))
-(define not-a-tarball (string-append artifact-root "orphan-notes.txt"))
-(define orphan-directory (string-append artifact-root "orphan-dir/"))
+(define orphan-old
+  (string-append artifact-root "orphan-old.tar.gz"))
+(define orphan-fresh
+  (string-append artifact-root "orphan-fresh.tar.gz"))
+(define named-tarball
+  (string-append artifact-root job-id ".tar.gz"))
+(define not-a-tarball
+  (string-append artifact-root "orphan-notes.txt"))
+(define orphan-directory
+  (string-append artifact-root "orphan-dir/"))
 
 (define (age! path seconds)
   "Write PATH's times SECONDS into the past, so a grace period has passed it by."
   (let ((past (- (current-time) seconds)))
     (utime path past past)))
 
-(for-each write-file! (list orphan-old orphan-fresh named-tarball not-a-tarball))
+(for-each write-file!
+          (list orphan-old orphan-fresh named-tarball not-a-tarball))
 (mkdir orphan-directory)
 ;; Everything but the fresh orphan is old enough for the grace period to have
 ;; passed it by.  The fresh one is written now, the way a collection that is
 ;; still packing its tarball would have written it.
-(for-each (lambda (path) (age! path 7200))
+(for-each (lambda (path)
+            (age! path 7200))
           (list orphan-old named-tarball not-a-tarball))
 
 (define (sweep-readings)
   "What the sweep removes, and what it leaves standing."
   (let ((removed (sweep-orphaned-artifacts! artifact-repo)))
     (list (list 'removed removed)
-          (list 'the-old-orphan-is-gone (file-exists? orphan-old))
-          (list 'the-fresh-one-is-kept (file-exists? orphan-fresh))
-          (list 'one-a-row-still-names-is-kept (file-exists? named-tarball))
-          (list 'a-name-byggsteg-never-writes-is-left (file-exists? not-a-tarball))
-          (list 'a-directory-is-left (file-exists? orphan-directory)))))
+          (list 'the-old-orphan-is-gone
+                (file-exists? orphan-old))
+          (list 'the-fresh-one-is-kept
+                (file-exists? orphan-fresh))
+          (list 'one-a-row-still-names-is-kept
+                (file-exists? named-tarball))
+          (list 'a-name-byggsteg-never-writes-is-left
+                (file-exists? not-a-tarball))
+          (list 'a-directory-is-left
+                (file-exists? orphan-directory)))))
 
 (define (due-readings)
   "The worker's own visit: what a due one removes, and what its next one leaves.
@@ -263,7 +286,8 @@ a quiet directory, is what stopped it."
     (let ((first (sweep-orphaned-artifacts-when-due! artifact-repo)))
       (write-file! later-orphan)
       (age! later-orphan 7200)
-      (list (list 'a-due-visit-removed (length first))
+      (list (list 'a-due-visit-removed
+                  (length first))
             (list 'a-visit-straight-after-it-removed
                   (length (sweep-orphaned-artifacts-when-due! artifact-repo)))
             (list 'the-orphan-it-did-not-look-for-is-still-there
@@ -278,22 +302,21 @@ a quiet directory, is what stopped it."
   (list (cons 'paths-in-one-bundle
               (artifact-bundles '("dist/wikimusic-api" "docs/manual")))
         (cons 'bundles-named-apart
-              (artifact-bundles '( ("binaries" . ("dist" "bin"))
-                                   ("docs" . ("docs/manual")))))
+              (artifact-bundles '(("binaries" "dist" "bin")
+                                  ("docs" "docs/manual"))))
         (cons 'bare-paths-and-bundles-together
-              (artifact-bundles '("README.org"
-                                  ("binaries" . ("dist"))
-                                  ("docs" . ("docs/manual")))))
+              (artifact-bundles '("README.org" ("binaries" "dist")
+                                  ("docs" "docs/manual"))))
         (cons 'a-bundle-written-as-one-list
-              (artifact-bundles '( ("binaries" "dist" "bin"))))
+              (artifact-bundles '(("binaries" "dist" "bin"))))
         (cons 'a-name-that-is-a-symbol
-              (artifact-bundles '( (binaries . ("dist")))))
+              (artifact-bundles '((binaries "dist"))))
         (cons 'one-path-rather-than-a-list
               (artifact-bundles "dist/app"))
         (cons 'nothing-at-all
               (artifact-bundles '()))
         (cons 'a-bundle-with-no-path
-              (artifact-bundles '( ("empty" . ()))))))
+              (artifact-bundles '(("empty"))))))
 
 ;;; ====== The readings ======
 
@@ -315,9 +338,9 @@ a quiet directory, is what stopped it."
                                                named-tarball
                                                not-a-tarball
                                                (string-append artifact-root
-                                                              "orphan-due-one.tar.gz")
+                                                "orphan-due-one.tar.gz")
                                                (string-append artifact-root
-                                                              "orphan-due-two.tar.gz"))
+                                                "orphan-due-two.tar.gz"))
                                          inside-tarballs))
                        ;; The directory the sweep kept goes last, once nothing is
                        ;; left in it.
@@ -325,127 +348,144 @@ a quiet directory, is what stopped it."
                            (rmdir orphan-directory))
                        (if (file-exists? artifact-root)
                            (rmdir artifact-root)))
-         (test "the table a collection writes to is the table the migrations make"
-               #:shuffle? #f
-               (assert-equal
-                #:name "the artifact migration adds the artifact table"
-                #:expect '("id" "job_id" "title" "artifact_path" "artifact_size"
-                           "created_at" "updated_at")
-                #:got artifact-columns))
-         (test "a collected tarball is recorded, and the job it was built by finds it"
-               #:shuffle? #f
-               (assert-true
-                (string? (recorded-row 'artifact-path))
-                #:name "an artifact is read back by its id")
-               (assert-equal
-                #:name "the artifact keeps the job that collected it"
-                #:expect job-id
-                #:got (recorded-row 'job-id))
-               (assert-equal
-                #:name "the artifact keeps the size it was written with"
-                #:expect 2048
-                #:got (recorded-row 'artifact-size))
-               (assert-length
-                #:name "both collections of one job are its artifacts"
-                #:expect 2
-                #:got (get-artifacts-by-job-ids artifact-repo (list job-id)))
-               (assert-empty
-                #:name "a job nothing was collected for draws no artifacts"
-                #:got (get-artifacts-by-job-ids artifact-repo '("other-job"))))
+         (test
+          "the table a collection writes to is the table the migrations make"
+          #:shuffle? #f
+          (assert-equal #:name
+                        "the artifact migration adds the artifact table"
+                        #:expect '("id" "job_id"
+                                   "title"
+                                   "artifact_path"
+                                   "artifact_size"
+                                   "created_at"
+                                   "updated_at")
+                        #:got artifact-columns))
+         (test
+          "a collected tarball is recorded, and the job it was built by finds it"
+          #:shuffle? #f
+          (assert-true (string? (recorded-row 'artifact-path))
+                       #:name "an artifact is read back by its id")
+          (assert-equal #:name "the artifact keeps the job that collected it"
+                        #:expect job-id
+                        #:got (recorded-row 'job-id))
+          (assert-equal #:name
+                        "the artifact keeps the size it was written with"
+                        #:expect 2048
+                        #:got (recorded-row 'artifact-size))
+          (assert-length #:name
+                         "both collections of one job are its artifacts"
+                         #:expect 2
+                         #:got (get-artifacts-by-job-ids artifact-repo
+                                                         (list job-id)))
+          (assert-empty #:name
+                        "a job nothing was collected for draws no artifacts"
+                        #:got (get-artifacts-by-job-ids artifact-repo
+                                                        '("other-job"))))
          (test "only a file inside the artifact directory may be downloaded"
                #:shuffle? #f
-               (assert-empty
-                #:name "no row outside the artifact directory is servable"
+               (assert-empty #:name
+                "no row outside the artifact directory is servable"
                 #:got (refused-but-served))
-               (assert-true
-                (string? (path-served (string-append artifact-root "job.tar.gz")))
-                #:name "a recorded tarball inside it is servable")
-               (assert-false
-                (artifact-download-path '())
-                #:name "a row with no path is not servable"))
-         (test "a job asks for one tarball of bare paths, or a bundle per name"
-               #:shuffle? #f
-               (assert-equal
-                #:name "a list of paths is one unnamed bundle, in the order written"
-                #:expect '((#f "dist/wikimusic-api" "docs/manual"))
-                #:got (assq-ref (bundle-readings) 'paths-in-one-bundle))
-               (assert-equal
-                #:name "each named bundle keeps its name and its paths"
-                #:expect '( ("binaries" "dist" "bin") ("docs" "docs/manual"))
-                #:got (assq-ref (bundle-readings) 'bundles-named-apart))
-               (assert-equal
-                #:name "bare paths and bundles mix, and keep the order they were written in"
-                #:expect '( (#f "README.org")
-                            ("binaries" "dist")
-                            ("docs" "docs/manual"))
-                #:got (assq-ref (bundle-readings)
-                                'bare-paths-and-bundles-together))
-               (assert-equal
-                #:name "a bundle written as one list is a name and the paths behind it"
-                #:expect '( ("binaries" "dist" "bin"))
-                #:got (assq-ref (bundle-readings) 'a-bundle-written-as-one-list))
-               (assert-equal
-                #:name "a name written as a symbol is read as the name it spells"
-                #:expect '( ("binaries" "dist"))
-                #:got (assq-ref (bundle-readings) 'a-name-that-is-a-symbol))
-               (assert-equal
-                #:name "one path written without its list is still one path"
-                #:expect '((#f "dist/app"))
-                #:got (assq-ref (bundle-readings) 'one-path-rather-than-a-list))
-               (assert-equal
-                #:name "a field of nothing asks for nothing"
-                #:expect '()
-                #:got (assq-ref (bundle-readings) 'nothing-at-all))
-               (assert-equal
-                #:name "a bundle that names no path is dropped rather than packed empty"
-                #:expect '()
-                #:got (assq-ref (bundle-readings) 'a-bundle-with-no-path)))
+               (assert-true (string? (path-served (string-append artifact-root
+                                                   "job.tar.gz")))
+                            #:name "a recorded tarball inside it is servable")
+               (assert-false (artifact-download-path '())
+                             #:name "a row with no path is not servable"))
+         (test
+          "a job asks for one tarball of bare paths, or a bundle per name"
+          #:shuffle? #f
+          (assert-equal #:name
+           "a list of paths is one unnamed bundle, in the order written"
+           #:expect '((#f "dist/wikimusic-api" "docs/manual"))
+           #:got (assq-ref (bundle-readings)
+                           'paths-in-one-bundle))
+          (assert-equal #:name
+                        "each named bundle keeps its name and its paths"
+                        #:expect '(("binaries" "dist" "bin")
+                                   ("docs" "docs/manual"))
+                        #:got (assq-ref (bundle-readings)
+                                        'bundles-named-apart))
+          (assert-equal #:name
+           "bare paths and bundles mix, and keep the order they were written in"
+           #:expect '((#f "README.org")
+                      ("binaries" "dist")
+                      ("docs" "docs/manual"))
+           #:got (assq-ref (bundle-readings)
+                           'bare-paths-and-bundles-together))
+          (assert-equal #:name
+           "a bundle written as one list is a name and the paths behind it"
+           #:expect '(("binaries" "dist" "bin"))
+           #:got (assq-ref (bundle-readings)
+                           'a-bundle-written-as-one-list))
+          (assert-equal #:name
+           "a name written as a symbol is read as the name it spells"
+           #:expect '(("binaries" "dist"))
+           #:got (assq-ref (bundle-readings)
+                           'a-name-that-is-a-symbol))
+          (assert-equal #:name
+                        "one path written without its list is still one path"
+                        #:expect '((#f "dist/app"))
+                        #:got (assq-ref (bundle-readings)
+                                        'one-path-rather-than-a-list))
+          (assert-equal #:name "a field of nothing asks for nothing"
+                        #:expect '()
+                        #:got (assq-ref (bundle-readings)
+                                        'nothing-at-all))
+          (assert-equal #:name
+           "a bundle that names no path is dropped rather than packed empty"
+           #:expect '()
+           #:got (assq-ref (bundle-readings)
+                           'a-bundle-with-no-path)))
          (test "forgetting a job's artifacts takes the tarballs and the rows"
                #:shuffle? #f
-               (assert-equal
-                #:name "both go, and a row naming a file outside the directory leaves it alone"
+               (assert-equal #:name
+                "both go, and a row naming a file outside the directory leaves it alone"
                 #:expect '((forgotten 3)
                            (rows-left 0)
                            (tarballs-gone (#f #f))
                            (a-file-outside-the-directory-was-left-alone #t))
                 #:got (forgetting-readings)))
-         (test "a sweep removes the tarballs no row points at, and nothing else"
-               #:shuffle? #f
-               (assert-equal
-                #:name "the old orphan goes; the fresh one, the named one, a name byggsteg never writes and a directory stay"
-                #:expect (list (list 'removed (list orphan-old))
-                               (list 'the-old-orphan-is-gone #f)
-                               (list 'the-fresh-one-is-kept #t)
-                               (list 'one-a-row-still-names-is-kept #t)
-                               (list 'a-name-byggsteg-never-writes-is-left #t)
-                               (list 'a-directory-is-left #t))
-                #:got (sweep-readings)))
+         (test
+          "a sweep removes the tarballs no row points at, and nothing else"
+          #:shuffle? #f
+          (assert-equal #:name
+           "the old orphan goes; the fresh one, the named one, a name byggsteg never writes and a directory stay"
+           #:expect (list (list 'removed
+                                (list orphan-old))
+                          (list 'the-old-orphan-is-gone #f)
+                          (list 'the-fresh-one-is-kept #t)
+                          (list 'one-a-row-still-names-is-kept #t)
+                          (list 'a-name-byggsteg-never-writes-is-left #t)
+                          (list 'a-directory-is-left #t))
+           #:got (sweep-readings)))
          (test "the worker's sweep runs on its interval, not on every visit"
                #:shuffle? #f
-               (assert-equal
-                #:name "a due visit removes, the one straight after it does not look"
+               (assert-equal #:name
+                "a due visit removes, the one straight after it does not look"
                 #:expect '((a-due-visit-removed 1)
                            (a-visit-straight-after-it-removed 0)
                            (the-orphan-it-did-not-look-for-is-still-there #t))
                 #:got (due-readings)))
          (test "a download is offered under a name a header can carry"
                #:shuffle? #f
-               (assert-equal
-                #:name "a title becomes a plain file name"
-                #:expect "my-build--trunk-..-x.tar.gz"
-                #:got (artifact-download-name "my build: trunk/../x"))
-               (assert-equal
-                #:name "the second tarball of one job is numbered"
-                #:expect "byggsteg-job-2.tar.gz"
-                #:got (artifact-download-name "byggsteg job" 2))
-               (assert-equal
-                #:name "a named bundle is offered under its own name"
-                #:expect '( "binaries.tar.gz" "binaries-2.tar.gz" "docs-manual.tar.gz")
-                #:got (list (artifact-download-name "binaries" 1)
-                            (artifact-download-name "binaries" 2)
-                            (artifact-download-name "docs/manual" 1)))
-               (assert-equal
-                #:name "a size is read in the unit a reader can hold in mind"
+               (assert-equal #:name "a title becomes a plain file name"
+                             #:expect "my-build--trunk-..-x.tar.gz"
+                             #:got (artifact-download-name
+                                    "my build: trunk/../x"))
+               (assert-equal #:name
+                             "the second tarball of one job is numbered"
+                             #:expect "byggsteg-job-2.tar.gz"
+                             #:got (artifact-download-name "byggsteg job" 2))
+               (assert-equal #:name
+                             "a named bundle is offered under its own name"
+                             #:expect '("binaries.tar.gz" "binaries-2.tar.gz"
+                                        "docs-manual.tar.gz")
+                             #:got (list (artifact-download-name "binaries" 1)
+                                         (artifact-download-name "binaries" 2)
+                                         (artifact-download-name "docs/manual"
+                                          1)))
+               (assert-equal #:name
+                "a size is read in the unit a reader can hold in mind"
                 #:expect "2.0 KiB"
                 #:got (human-bytes 2048)))))
 

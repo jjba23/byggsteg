@@ -20,30 +20,29 @@
   #:use-module (ice-9 time)
   #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
-  #:export (job-clone-location
-            public-url
-            deployment-name
-            deployment-description
-            deployment-logo-url
-            deployment-source-url
-            deployment-manual-url
-            deployment-documentation-url
-            deployment-logo
-            asset-base-url
-            asset-url
-            lucida-font-url
-            artifact-location
-            artifact-sweep-grace-seconds
-            artifact-sweep-interval
-            job-retention-days
-            job-retention-interval
-            job-retention-batch
-            job-concurrency
-            job-sweep-limit
-            log-stream-batch-size
-            worker-pause-seconds
-            search-result-limit
-            activity-weeks))
+  #:export (job-clone-location public-url
+                               deployment-name
+                               deployment-description
+                               deployment-logo-url
+                               deployment-source-url
+                               deployment-manual-url
+                               deployment-documentation-url
+                               deployment-logo
+                               asset-base-url
+                               asset-url
+                               lucida-font-url
+                               artifact-location
+                               artifact-sweep-grace-seconds
+                               artifact-sweep-interval
+                               job-retention-days
+                               job-retention-interval
+                               job-retention-batch
+                               job-concurrency
+                               job-sweep-limit
+                               log-stream-batch-size
+                               worker-pause-seconds
+                               search-result-limit
+                               activity-weeks))
 
 ;;; Where a deployment keeps what is not in its database
 ;;;
@@ -60,9 +59,8 @@ A path, an address or a name: what the variable holds is handed on as it is.
 An empty value is read as no value at all -- `BYGGSTEG_NAME=' in a unit file
 means the deployment did not say, not that it wants to be called nothing."
   (let ((set (getenv variable)))
-    (if (and (string? set) (positive? (string-length set)))
-        set
-        default)))
+    (if (and (string? set)
+             (positive? (string-length set))) set default)))
 
 (define job-clone-location
   (make-parameter (deployment-setting "BYGGSTEG_JOB_CLONE"
@@ -90,13 +88,11 @@ means the deployment did not say, not that it wants to be called nothing."
 
 ;; The sentence a page with no description of its own is announced with.
 (define deployment-description
-  (make-parameter
-   (deployment-setting
-    "BYGGSTEG_DESCRIPTION"
-    (string-append
-     "byggsteg is a hackable and extensible CI/CD orchestrator written in Guile Scheme: "
-     "a pipeline is Lisp code, a running job's log is read while it is written, "
-     "and the runner, the logs, the artifacts and the users are all yours to host."))))
+  (make-parameter (deployment-setting "BYGGSTEG_DESCRIPTION"
+                                      (string-append
+                                       "byggsteg is a hackable and extensible CI/CD orchestrator written in Guile Scheme: "
+                                       "a pipeline is Lisp code, a running job's log is read while it is written, "
+                                       "and the runner, the logs, the artifacts and the users are all yours to host."))))
 
 ;; The image a shared link is drawn with and the logo the landing page shows.
 ;; A deployment with a mark of its own names it here -- absolutely, since the
@@ -114,8 +110,8 @@ deployment serves itself, like every other resource of its console (see
 `asset-url') -- so a page that shows a logo shows a logo rather than an empty
 frame, and a console that is nobody's in particular is still this project's."
   (let ((named (deployment-logo-url)))
-    (if (and (string? named) (positive? (string-length named)))
-        named
+    (if (and (string? named)
+             (positive? (string-length named))) named
         (asset-url "/img/byggsteg-logo.png"))))
 
 ;; Where the software is read, and where its manual and its documentation are:
@@ -125,13 +121,11 @@ frame, and a console that is nobody's in particular is still this project's."
                                       "https://codeberg.org/jjba23/byggsteg")))
 
 (define deployment-manual-url
-  (make-parameter (deployment-setting
-                   "BYGGSTEG_MANUAL_URL"
+  (make-parameter (deployment-setting "BYGGSTEG_MANUAL_URL"
                    "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org")))
 
 (define deployment-documentation-url
-  (make-parameter (deployment-setting
-                   "BYGGSTEG_DOCUMENTATION_URL"
+  (make-parameter (deployment-setting "BYGGSTEG_DOCUMENTATION_URL"
                    "https://jointhefreeworld.org/manuals/byggsteg/")))
 
 ;;; Where the console's own resources are served from
@@ -154,9 +148,9 @@ frame, and a console that is nobody's in particular is still this project's."
 (define (asset-url path)
   "PATH as this deployment serves it: its asset host, or its own address."
   (let ((base (asset-base-url)))
-    (if (and (string? base) (positive? (string-length base)))
-        (string-append (string-trim-right base #\/) path)
-        path)))
+    (if (and (string? base)
+             (positive? (string-length base)))
+        (string-append (string-trim-right base #\/) path) path)))
 
 ;;; The Lucida faces of the console, and whether it asks for them at all
 ;;;
@@ -180,11 +174,8 @@ frame, and a console that is nobody's in particular is still this project's."
 ;;; takes an empty value for a deployment that did not say -- but this one has
 ;;; been asked, and an answer of nothing is an answer.
 (define lucida-font-url
-  (make-parameter
-   (let ((set (getenv "BYGGSTEG_LUCIDA_FONT_URL")))
-     (if (string? set)
-         set
-         "/css/lucida.css"))))
+  (make-parameter (let ((set (getenv "BYGGSTEG_LUCIDA_FONT_URL")))
+                    (if (string? set) set "/css/lucida.css"))))
 
 ;;; The address a deployment is reached at, as the pages it serves write links
 ;;;

@@ -32,30 +32,32 @@
   #:declarative? #t
   #:use-module (ice-9 format)
   #:use-module (srfi srfi-1)
-  #:export (minimum-password-length
-            minimum-password-kinds
-            passphrase-length
-            password-strength
-            password-strong-enough?
-            password-missing-rules
-            password-label
-            password-rules))
+  #:export (minimum-password-length minimum-password-kinds
+                                    passphrase-length
+                                    password-strength
+                                    password-strong-enough?
+                                    password-missing-rules
+                                    password-label
+                                    password-rules))
 
 ;; Long enough that guessing it is a project rather than a moment; short enough
 ;; that a phrase a person can remember fits.
-(define minimum-password-length 12)
+(define minimum-password-length
+  12)
 
 ;; How many of the four kinds of character -- lower case, upper case, digit,
 ;; other -- a password has to use.  Three rather than four: a long password of
 ;; words with a number in it is a good password, and demanding a symbol of it
 ;; would only push a reader towards `Password1!' and its kind.
-(define minimum-password-kinds 3)
+(define minimum-password-kinds
+  3)
 
 ;; And how long a password has to be to stand without using that many kinds.  A
 ;; passphrase is long and dull on purpose -- `correct horse battery staple' uses
 ;; two of the four -- and a rule that turned the passwords people can actually
 ;; remember away would be a rule that makes a deployment less safe.
-(define passphrase-length 20)
+(define passphrase-length
+  20)
 
 ;; The rules a password is read against, in the order a page lists them, named by
 ;; a symbol and said in prose by the one that draws them.
@@ -67,9 +69,12 @@
 (define (kind-of character)
   "Which kind of character CHARACTER is: lower, upper, digit or other."
   (cond
-    ((char-numeric? character) 'digit)
-    ((char-upper-case? character) 'upper)
-    ((char-lower-case? character) 'lower)
+    ((char-numeric? character)
+     'digit)
+    ((char-upper-case? character)
+     'upper)
+    ((char-lower-case? character)
+     'lower)
     (else 'other)))
 
 (define (repeated? password)
@@ -79,12 +84,14 @@ A single character is not a password whatever its length, and it is worth
 telling apart from a password that is merely weak: it misses a rule of its own."
   (and (> (string-length password) 1)
        (let ((first (string-ref password 0)))
-         (every (lambda (character) (char=? character first))
+         (every (lambda (character)
+                  (char=? character first))
                 (string->list password)))))
 
 (define (kinds-in password)
   "The kinds of character PASSWORD is made of, each named once."
-  (delete-duplicates (map kind-of (string->list password))))
+  (delete-duplicates (map kind-of
+                          (string->list password))))
 
 (define (enough-kinds? password)
   "Whether PASSWORD uses the kinds it is asked for -- or is long instead."
@@ -97,22 +104,30 @@ telling apart from a password that is merely weak: it misses a rule of its own."
 
 A submission that carries no password at all misses nothing: it is not a weak
 password, it is no password, and the form it came from has already refused it."
-  (if (or (not (string? password)) (string=? password ""))
+  (if (or (not (string? password))
+          (string=? password ""))
       '()
       ;; `characters' rather than `length': the second is the procedure the list
       ;; of kinds is counted with, and a local binding of that name is a local
       ;; binding of the counter.
       (let ((characters (string-length password)))
-        (append (if (< characters minimum-password-length) (list 'length) '())
-                (if (enough-kinds? password) '() (list 'variety))
-                (if (repeated? password) (list 'repetition) '())))))
+        (append (if (< characters minimum-password-length)
+                    (list 'length)
+                    '())
+                (if (enough-kinds? password)
+                    '()
+                    (list 'variety))
+                (if (repeated? password)
+                    (list 'repetition)
+                    '())))))
 
 (define (password-label password)
   "What to call PASSWORD: empty, weak, fair, good or strong.
 
 The weakest rule a password misses is what it is called: a password that is
 short is weak however many kinds of character are in it."
-  (if (or (not (string? password)) (string=? password ""))
+  (if (or (not (string? password))
+          (string=? password ""))
       'empty
       (let* ((characters (string-length password))
              (count (length (kinds-in password))))
@@ -121,8 +136,10 @@ short is weak however many kinds of character are in it."
                (< count 2)
                (repeated? password))
            'weak)
-          ((not (enough-kinds? password)) 'fair)
-          ((>= count 4) 'strong)
+          ((not (enough-kinds? password))
+           'fair)
+          ((>= count 4)
+           'strong)
           (else 'good)))))
 
 (define (password-strong-enough? password)
@@ -142,14 +159,25 @@ and `strong-enough?' the answer the endpoint will give it."
   (let* ((password (if (string? password) password ""))
          (label (password-label password))
          (score (cond
-                  ((eq? label 'empty) 0)
-                  ((eq? label 'weak) 1)
-                  ((eq? label 'fair) 2)
-                  ((eq? label 'good) 3)
+                  ((eq? label
+                        'empty)
+                   0)
+                  ((eq? label
+                        'weak)
+                   1)
+                  ((eq? label
+                        'fair)
+                   2)
+                  ((eq? label
+                        'good)
+                   3)
                   (else 4))))
-    `((score . ,score)
-      (label . ,label)
-      (length . ,(string-length password))
-      (missing . ,(password-missing-rules password))
-      (strong-enough? . ,(password-strong-enough? password)))))
+    `((score unquote score)
+      (label unquote label)
+      (length unquote
+              (string-length password))
+      (missing unquote
+               (password-missing-rules password))
+      (strong-enough? unquote
+                      (password-strong-enough? password)))))
 

@@ -35,13 +35,12 @@
 ;; `terminal-pre' (byggsteg faces) is hygguile's `pre' tuned by its own olive
 ;; knobs, so no stylesheet has to correct it afterwards.
 (define (terminal-hero)
-  (terminal-pre
-   (string-append "$ byggsteg --watch ./maak.scm\n"
-                  "[ok] queue worker online\n"
-                  "[ok] clone wikimusic/trunk\n"
-                  "[ok] maak test\n"
-                  "[ok] maak deploy\n"
-                  "$ ")))
+  (terminal-pre (string-append "$ byggsteg --watch ./maak.scm\n"
+                               "[ok] queue worker online\n"
+                               "[ok] clone wikimusic/trunk\n"
+                               "[ok] maak test\n"
+                               "[ok] maak deploy\n"
+                               "$ ")))
 
 ;; The job-code DSL as a reader would write it.  Job data is sent as a thunk
 ;; whose value is that alist, so the sample is one too; showing the bare alist
@@ -49,59 +48,68 @@
 ;; handed to hygguile's `pretty-code', which hangs a thunk's body deeply under
 ;; the head and spells `quasiquote' in full.
 (define (pipeline-sample)
-  (terminal-pre
-   (string-append "(lambda ()\n"
-                  "  `((project . \"wikimusic\")\n"
-                  "    (branch-name . \"trunk\")\n"
-                  "    (daemon-name . \"wikimusic-daemon\")\n"
-                  "    (clone-url . \"https://codeberg.org/jjba23/wikimusic.git\")\n"
-                  "    (task . (\"maak-test\" \"maak-deploy\"))))")))
+  (terminal-pre (string-append "(lambda ()\n"
+                 "  `((project . \"wikimusic\")\n"
+                 "    (branch-name . \"trunk\")\n"
+                 "    (daemon-name . \"wikimusic-daemon\")\n"
+                 "    (clone-url . \"https://codeberg.org/jjba23/wikimusic.git\")
+"
+                 "    (task . (\"maak-test\" \"maak-deploy\"))))")))
 
 (define (job-type-expl G_)
   (let* ((dl-classes '(flex flex-col gap-1 py-2))
-         (dd-classes '(py-3 px-2 text-asparagus-900 dark:text-asparagus-300 font-mono)))
-    (terminal-glass-panel
-     (list (terminal-heading (G_ "job types"))
-           (dl (list (dt (list (terminal-code "maak-test") " | "
-                               (terminal-code "make-test")))
-                     (dd (G_ "Run test suite with Maak or Make")
-                         #:dd-classes dd-classes
-                         #:size '(text-md))
-                     (dt (terminal-code "pull-and-restart"))
-                     (dd (G_
-                          "Git pull and restart wanted GNU Shepherd service")
-                         #:dd-classes dd-classes
-                         #:size '(text-md))
-                     (dt (list (terminal-code "maak-deploy") " | "
-                               (terminal-code "pull-and-deploy")))
-                     (dd (G_ "Run a deploy with Maak or Make")
-                         #:dd-classes dd-classes
-                         #:size '(text-md))
-                     (dt (list (terminal-code "maak-build") " | "
-                               (terminal-code "make-build")))
-                     (dd (G_
-                          "Run a build with Maak or Make (make-build is the fallback task)")
-                         #:dd-classes dd-classes
-                         #:size '(text-md))
-                     (dt (terminal-code "byggsteg-version"))
-                     (dd (G_
-                          "Byggsteg pull and restart GNU Shepherd daemon itself")
-                         #:dd-classes dd-classes
-                         #:size '(text-md))
-                     (dt (terminal-code "trivial"))
-                     (dd (G_
-                          "Allow passing arbitrary list of commands (via trivial-cmds field)")
-                         #:dd-classes dd-classes
-                         #:size '(text-md)))
-               #:dl-classes dl-classes))
-     #:classes '(max-w-prose)
-     #:content-classes '(flex flex-col gap-2))))
+         (dd-classes '(py-3 px-2 text-asparagus-900 dark:text-asparagus-300
+                            font-mono)))
+    (terminal-glass-panel (list (terminal-heading (G_ "job types"))
+                                (dl (list (dt (list (terminal-code "maak-test")
+                                                    " | "
+                                                    (terminal-code "make-test")))
+                                          (dd (G_
+                                               "Run test suite with Maak or Make")
+                                              #:dd-classes dd-classes
+                                              #:size '(text-md))
+                                          (dt (terminal-code
+                                               "pull-and-restart"))
+                                          (dd (G_
+                                               "Git pull and restart wanted GNU Shepherd service")
+                                              #:dd-classes dd-classes
+                                              #:size '(text-md))
+                                          (dt (list (terminal-code
+                                                     "maak-deploy") " | "
+                                                    (terminal-code
+                                                     "pull-and-deploy")))
+                                          (dd (G_
+                                               "Run a deploy with Maak or Make")
+                                              #:dd-classes dd-classes
+                                              #:size '(text-md))
+                                          (dt (list (terminal-code
+                                                     "maak-build") " | "
+                                                    (terminal-code
+                                                     "make-build")))
+                                          (dd (G_
+                                               "Run a build with Maak or Make (make-build is the fallback task)")
+                                              #:dd-classes dd-classes
+                                              #:size '(text-md))
+                                          (dt (terminal-code
+                                               "byggsteg-version"))
+                                          (dd (G_
+                                               "Byggsteg pull and restart GNU Shepherd daemon itself")
+                                              #:dd-classes dd-classes
+                                              #:size '(text-md))
+                                          (dt (terminal-code "trivial"))
+                                          (dd (G_
+                                               "Allow passing arbitrary list of commands (via trivial-cmds field)")
+                                              #:dd-classes dd-classes
+                                              #:size '(text-md)))
+                                    #:dl-classes dl-classes))
+                          #:classes '(max-w-prose)
+                          #:content-classes '(flex flex-col gap-2))))
 
 (define* (welcome-page rc
                        #:key is-logged-in selected-locale)
   (let* ((G_ (:i18n rc))
-         (welcome-html `((div (@ (class ,(page-body-class
-                                          #:extra '(gap-2 sm:gap-3))))
+         (welcome-html `((div (@ (class ,(page-body-class #:extra '(gap-2
+                                                                    sm:gap-3))))
 
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                gap-4
@@ -116,20 +124,25 @@
                                                                             selected-locale)
                                                                            'en_US))
                                    (div (@ (class ,(terminal-frame-class
-                                                    #:extra '(p-4 max-w-128))))
+                                                                         #:extra '
+                                                                         (p-4
+                                                                          max-w-128))))
                                         ,(em (G_
                                               "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction"))))
 
-                              (div (@ (class ,(terminal-frame-class
-                                               #:extra '(my-6 overflow-hidden))))
+                              (div (@ (class ,(terminal-frame-class #:extra '(my-6
+                                                                              overflow-hidden))))
                                    (div (@ (class ,terminal-chrome))
-                                        (div (@ (class ,(mk-class '(text-asparagus-900 dark:text-asparagus-100
+                                        (div (@ (class ,(mk-class '(text-asparagus-900
+                                                                    dark:text-asparagus-100
                                                                     animate-pulse))))
                                              "●")
                                         (div (G_ "byggsteg") "@localhost: ~"))
                                    ,(terminal-hero))
 
-                              (div (@ (class ,(mk-class '(my-4 py-4 sm:my-6 sm:py-6
+                              (div (@ (class ,(mk-class '(my-4 py-4
+                                                               sm:my-6
+                                                               sm:py-6
 
                                                                flex
                                                                flex-row
@@ -150,14 +163,16 @@
 
                                    (div (@ (class ,(mk-class '(min-w-0
                                                                max-w-full))))
-                                        ,(terminal-glass-panel
-                                          (list (terminal-heading (G_ "a pipeline"))
-                                                (pipeline-sample))
-                                          #:content-classes '(flex flex-col gap-2)))
+                                        ,(terminal-glass-panel (list (terminal-heading
+                                                                      (G_
+                                                                       "a pipeline"))
+                                                                     (pipeline-sample))
+                                                               #:content-classes '
+                                                               (flex flex-col
+                                                                     gap-2)))
 
                                    (div (@ (class ,(mk-class '(flex flex-col
-                                                               gap-4
-                                                               min-w-0
+                                                               gap-4 min-w-0
                                                                max-w-full
                                                                items-center))))
 

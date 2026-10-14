@@ -57,9 +57,11 @@
 ;; asking their own question in their own words is what let them disagree: a
 ;; page drawn for a link the submission would refuse is a form a reader cannot
 ;; send, and the row a token names is the one thing either of them has to go on.
-(define password-reset-lives-for (* 24 7 3600))
+(define password-reset-lives-for
+  (* 24 7 3600))
 
-(define* (password-reset-live? reset #:key (now (current-time)))
+(define* (password-reset-live? reset
+                               #:key (now (current-time)))
   "Whether RESET -- the row a reset token named, or #f -- can still set a password.
 
 A link is worth following for a week after it was made, so an old one answers
@@ -67,7 +69,10 @@ what a token that names no row at all answers: there is nothing left to send the
 form to.  A row that carries no readable `created-at' is read the same way
 rather than raising: a link whose age cannot be measured is one this deployment
 will not follow."
-  (let ((created-at (and reset (assq-ref reset 'created-at))))
-    (if (and created-at (number? created-at))
-        (< now (+ password-reset-lives-for created-at))
-        #f)))
+  (let ((created-at (and reset
+                         (assq-ref reset
+                                   'created-at))))
+    (if (and created-at
+             (number? created-at))
+        (< now
+           (+ password-reset-lives-for created-at)) #f)))

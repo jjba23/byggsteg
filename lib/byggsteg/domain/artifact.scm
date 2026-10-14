@@ -46,7 +46,7 @@
                     "Retrieves an artifact by its ID from the given REPO.")
 
 (define-repo-method get-artifacts-by-job-ids repo-get-artifacts-by-job-ids
-                    "Retrieves the artifacts of the jobs JOB-IDS from the given REPO.")
+ "Retrieves the artifacts of the jobs JOB-IDS from the given REPO.")
 
 (define-repo-method insert-artifact repo-insert-artifact
                     "Inserts an artifact with ATTRS in the given REPO.")

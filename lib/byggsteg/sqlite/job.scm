@@ -61,7 +61,8 @@
     (execute-read "get-jobs-by-ids"
                   (sql-select "job"
                               #:columns columns
-                              #:where (list (list 'id 'in ids)))))
+                              #:where (list (list 'id
+                                                  'in ids)))))
 
   (define* (get-jobs-in-progress #:key limit)
     (execute-read "get-jobs-in-progress"
@@ -71,7 +72,8 @@
                               #:order-by '((created-at asc))
                               #:limit limit)))
 
-  (define* (get-jobs-finished-before #:key before (limit #f))
+  (define* (get-jobs-finished-before #:key before
+                                     (limit #f))
     ;; A run is kept for its retention counted from when it finished, which is
     ;; the moment `updated_at' records: a run still going has no `updated_at' at
     ;; all, and a comparison against NULL matches nothing, so the flag above is
@@ -80,7 +82,8 @@
                   (sql-select "job"
                               #:columns columns
                               #:where (list (cons 'job-in-progress 0)
-                                            (list 'updated-at '< before))
+                                            (list 'updated-at
+                                                  '< before))
                               #:order-by '((updated-at asc))
                               #:limit limit)))
 
@@ -95,14 +98,15 @@
   ;; A search reads two columns for the text and matches either, which an
   ;; AND-joined condition cannot say; the statement is composed here with the
   ;; same escape meant for LIKE, so a query cannot be read as a pattern.
-  (define* (search-jobs #:key query (limit (search-result-limit)))
+  (define* (search-jobs #:key query
+                        (limit (search-result-limit)))
     (let ((pattern (like-pattern query)))
       (execute-read "search-jobs"
-                    (make-sql-query
-                     (format #f
-                             "SELECT ~a FROM \"job\" WHERE \"title\" LIKE ? ESCAPE '\\' OR \"job_data\" LIKE ? ESCAPE '\\' ORDER BY \"created_at\" DESC LIMIT ?"
-                             (string-join (map symbol->sql-column columns) ", "))
-                     (list pattern pattern limit)))))
+                    (make-sql-query (format #f
+                                     "SELECT ~a FROM \"job\" WHERE \"title\" LIKE ? ESCAPE '\\' OR \"job_data\" LIKE ? ESCAPE '\\' ORDER BY \"created_at\" DESC LIMIT ?"
+                                     (string-join (map symbol->sql-column
+                                                       columns) ", "))
+                                    (list pattern pattern limit)))))
 
   (define (delete-job-by-id id)
     (execute-write "delete-job-by-id"

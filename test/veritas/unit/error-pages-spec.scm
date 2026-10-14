@@ -45,7 +45,8 @@
 ;; below is taken from the page itself rather than rendered again.
 (define pages
   (map (lambda (status)
-         (cons status (error-page status)))
+         (cons status
+               (error-page status)))
        '(400 401 404 500)))
 
 (define (page status)
@@ -55,18 +56,17 @@
 (define (present-in page needles)
   "The NEEDLES that PAGE holds."
   (filter (lambda (needle)
-            (string-contains page needle))
-          needles))
+            (string-contains page needle)) needles))
 
 (define (missing-from page needles)
   "The NEEDLES that PAGE does not hold."
   (filter (lambda (needle)
-            (not (string-contains page needle)))
-          needles))
+            (not (string-contains page needle))) needles))
 
 ;; A status the module's table does not name: the fallback reading, rendered the
 ;; same way as the four above.
-(define unnamed-status-page (error-page 418))
+(define unnamed-status-page
+  (error-page 418))
 
 (define (self-closed-elements page)
   "The elements of PAGE that are closed on themselves, if any.
@@ -76,9 +76,11 @@ opening one, so the element swallows everything that follows it; a page of this
 console may not contain one.  The offenders come back whole, so a failure prints
 the element that did it rather than the page it hides in."
   (let ((pattern (make-regexp "<(div|p|pre|span|a|h1|header|footer)[^>]*/>")))
-    (let loop ((start 0)
-               (found '()))
-      (let ((match (regexp-exec pattern page start)))
+    (let loop
+      ((start 0)
+       (found '()))
+      (let ((match (regexp-exec pattern page start)
+              ))
         (if match
             (loop (match:end match 0)
                   (cons (match:substring match 0) found))
@@ -93,7 +95,8 @@ the code, the reading of it, and the hint that says what to do about it."
   (let ((account (error-account status)))
     (list "<!DOCTYPE html>"
           "/css/byggsteg.olive.min.css"
-          (format #f "~a ~a" status (car account))
+          (format #f "~a ~a" status
+                  (car account))
           (format #f "HTTP ~a" status)
           (car account)
           (cadr account)
@@ -105,10 +108,11 @@ the code, the reading of it, and the hint that says what to do about it."
 (define (trace-readings status)
   "What a page of STATUS has to be built of, beyond the words it carries."
   (let ((account (error-account status)))
-    (list "<h1"
-          "<pre"
-          (format #f "[err] HTTP ~a: ~a~%" status (car account))
-          (format #f "[hint] ~a~%" (caddr account)))))
+    (list "<h1" "<pre"
+          (format #f "[err] HTTP ~a: ~a~%" status
+                  (car account))
+          (format #f "[hint] ~a~%"
+                  (caddr account)))))
 
 ;; What no status page may carry, whichever status it is about.
 ;;
@@ -127,8 +131,7 @@ the code, the reading of it, and the hint that says what to do about it."
   "The un-made component calls the four pages leaked into their markup."
   (apply append
          (map (lambda (pair)
-                (present-in (cdr pair) forbidden-in-a-page))
-              pages)))
+                (present-in (cdr pair) forbidden-in-a-page)) pages)))
 
 ;;; ====== Handing the pages to Artanis ======
 
@@ -142,7 +145,8 @@ with the blank page this module exists to replace."
   (apply append
          (map (lambda (status)
                 (let ((handler (get-syspage-handler status)))
-                  (if (and handler (string? (handler)))
+                  (if (and handler
+                           (string? (handler)))
                       '()
                       (list status))))
               '(400 401 404 500))))
@@ -153,60 +157,68 @@ with the blank page this module exists to replace."
   (suite "error pages"
          (test "each status answers with a page of this deployment's console"
                #:shuffle? #f
-               (assert-empty
-                #:name "the 400 page carries the chrome, the code and its words"
-                #:got (missing-from (page 400) (status-readings 400)))
-               (assert-empty
-                #:name "the 401 page carries the chrome, the code and its words"
-                #:got (missing-from (page 401) (status-readings 401)))
-               (assert-empty
-                #:name "the 404 page carries the chrome, the code and its words"
-                #:got (missing-from (page 404) (status-readings 404)))
-               (assert-empty
-                #:name "the 500 page carries the chrome, the code and its words"
-                #:got (missing-from (page 500) (status-readings 500))))
+               (assert-empty #:name
+                "the 400 page carries the chrome, the code and its words"
+                #:got (missing-from (page 400)
+                                    (status-readings 400)))
+               (assert-empty #:name
+                "the 401 page carries the chrome, the code and its words"
+                #:got (missing-from (page 401)
+                                    (status-readings 401)))
+               (assert-empty #:name
+                "the 404 page carries the chrome, the code and its words"
+                #:got (missing-from (page 404)
+                                    (status-readings 404)))
+               (assert-empty #:name
+                "the 500 page carries the chrome, the code and its words"
+                #:got (missing-from (page 500)
+                                    (status-readings 500))))
          (test "a page is built by the components rather than describing them"
-               #:shuffle? #f
-               (assert-empty
-                #:name "no page carries a component call instead of its element"
-                #:got (component-leaks))
-               (assert-empty
-                #:name "the 404 page heads with the code and traces it in a pre"
-                #:got (missing-from (page 404) (trace-readings 404))))
+          #:shuffle? #f
+          (assert-empty #:name
+           "no page carries a component call instead of its element"
+           #:got (component-leaks))
+          (assert-empty #:name
+           "the 404 page heads with the code and traces it in a pre"
+           #:got (missing-from (page 404)
+                               (trace-readings 404))))
          (test "a page a reader can act on"
                #:shuffle? #f
-               (assert-contains
-                #:name "a missing credential is answered with the way to sign in"
-                #:expect (page 401) #:got "/login")
-               (assert-contains
-                #:name "a path that answers nothing still leads to the job queue"
-                #:expect (page 404) #:got "/logs")
-               (assert-contains
-                #:name "a server-side failure wears the red hairline"
-                #:expect (page 500) #:got "border-redwood-700")
-               (assert-not-contains
-                #:name "a client error keeps the phosphor hairline"
-                #:expect (page 404) #:got "border-redwood-700"))
+               (assert-contains #:name
+                "a missing credential is answered with the way to sign in"
+                #:expect (page 401)
+                #:got "/login")
+               (assert-contains #:name
+                "a path that answers nothing still leads to the job queue"
+                #:expect (page 404)
+                #:got "/logs")
+               (assert-contains #:name
+                "a server-side failure wears the red hairline"
+                #:expect (page 500)
+                #:got "border-redwood-700")
+               (assert-not-contains #:name
+                "a client error keeps the phosphor hairline"
+                #:expect (page 404)
+                #:got "border-redwood-700"))
          (test "no page closes an element on itself"
                #:shuffle? #f
-               (assert-empty
-                #:name "no element of a status page swallows what follows it"
+               (assert-empty #:name
+                "no element of a status page swallows what follows it"
                 #:got (apply append
                              (map (lambda (pair)
-                                    (self-closed-elements (cdr pair)))
-                                  pages))))
+                                    (self-closed-elements (cdr pair))) pages))))
          (test "Artanis is handed a page for each status"
                #:shuffle? #f
-               (assert-empty
-                #:name "every status has a handler that answers with a string"
+               (assert-empty #:name
+                "every status has a handler that answers with a string"
                 #:got (unanswered-statuses))
-               (assert-true
-                (and (string? unnamed-status-page)
-                     (positive? (string-length unnamed-status-page)))
+               (assert-true (and (string? unnamed-status-page)
+                                 (positive? (string-length unnamed-status-page)))
                 #:name "a status the table does not name still gets a page")
-               (assert-contains
-                #:name "and it names the status it was asked for"
-                #:expect unnamed-status-page #:got "418 unexpected status"))))
+               (assert-contains #:name
+                                "and it names the status it was asked for"
+                                #:expect unnamed-status-page
+                                #:got "418 unexpected status"))))
 
 (define (spec)
   (veritas-run error-pages-suite))

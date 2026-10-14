@@ -44,14 +44,13 @@
   #:use-module (ice-9 threads)
   #:use-module (scriba scriba)
   #:use-module (scriba auto)
-  #:export (database-path
-            sqlite-database-path
-            open-database
-            database
-            close-databases!
-            db-read
-            db-write
-            like-pattern))
+  #:export (database-path sqlite-database-path
+                          open-database
+                          database
+                          close-databases!
+                          db-read
+                          db-write
+                          like-pattern))
 
 ;; NOTE: `sql-row->scheme-alist' comes from `(kracht sql)' and is used below.
 ;; It is deliberately not listed in `#:export': this is a declarative module,
@@ -72,15 +71,18 @@
   (catch #t
          (lambda ()
            (let ((name (get-conf '(db name))))
-             (and name (format #f "~a" name))))
-         (lambda (key . args) #f)))
+             (and name
+                  (format #f "~a" name))))
+         (lambda (key . args)
+           #f)))
 
 (define (sqlite-database-path)
   "Path of the byggsteg SQLite file: `db.name' from the Artanis configuration,
 with the `.db' suffix that Artanis' own sqlite3 connector appends."
   (or (database-path)
       (let ((name (configured-database-name)))
-        (if (and name (not (string-null? name)))
+        (if (and name
+                 (not (string-null? name)))
             (string-append name ".db")
             ;; Artanis serves its defaults before its configuration is read, so
             ;; an unreadable setting falls back to the file byggsteg ships with.
@@ -91,7 +93,8 @@ with the `.db' suffix that Artanis' own sqlite3 connector appends."
 ;; one mid-statement, so a single handle serves both the web workers and the
 ;; queue worker -- as long as they take turns, which is what the lock below is
 ;; for.
-(define *connections* (make-hash-table))
+(define *connections*
+  (make-hash-table))
 
 ;; guile-sqlite3 keeps a *cache of prepared statements per connection*, and that
 ;; cache is a plain Guile hash table: two threads making statements on one
@@ -103,37 +106,34 @@ with the `.db' suffix that Artanis' own sqlite3 connector appends."
 ;; every statement this module runs holds one lock, so a connection is only ever
 ;; used by one caller at a time.  Statements are short; the shell commands a job
 ;; spends its time in are not run under this lock.
-(define *database-lock* (make-mutex))
+(define *database-lock*
+  (make-mutex))
 
 (define (with-database-lock thunk)
   "Run THUNK holding the connection lock, releasing it even if THUNK raises."
-  (with-mutex *database-lock* (thunk)))
+  (with-mutex *database-lock*
+              (thunk)))
 
 (define* (open-database #:key (path (sqlite-database-path)))
   "Open PATH as a new SQLite connection and hand it back."
   (let ((db (sqlite-open path)))
     ;; A sweep and a request can meet at the same file; wait for the lock
     ;; instead of failing the statement.
-    (sqlite-busy-timeout db 5000)
-    db))
+    (sqlite-busy-timeout db 5000) db))
 
 (define* (database #:key (path (sqlite-database-path)))
   "The connection for PATH, opening it on first use."
-  (with-database-lock
-   (lambda ()
-     (or (hash-ref *connections* path)
-         (let ((db (open-database #:path path)))
-           (hash-set! *connections* path db)
-           db)))))
+  (with-database-lock (lambda ()
+                        (or (hash-ref *connections* path)
+                            (let ((db (open-database #:path path)))
+                              (hash-set! *connections* path db) db)))))
 
 (define (close-databases!)
   "Close every connection this process opened.  For shutdown and for tests."
-  (with-database-lock
-   (lambda ()
-     (hash-for-each (lambda (path db)
-                      (sqlite-close db))
-                    *connections*)
-     (hash-clear! *connections*))))
+  (with-database-lock (lambda ()
+                        (hash-for-each (lambda (path db)
+                                         (sqlite-close db)) *connections*)
+                        (hash-clear! *connections*))))
 
 ;;;
 ;;; Running a query
@@ -146,12 +146,15 @@ with the `.db' suffix that Artanis' own sqlite3 connector appends."
   "SQLite has no boolean type and `sqlite-bind' rejects a Scheme boolean, so
 #t and #f travel as the 1 and 0 the columns hold."
   (cond
-    ((eq? value #t) 1)
-    ((eq? value #f) 0)
+    ((eq? value #t)
+     1)
+    ((eq? value #f)
+     0)
     (else value)))
 
 (define (bind-parameters! stmt params)
-  (apply sqlite-bind-arguments stmt (map bindable-value params)))
+  (apply sqlite-bind-arguments stmt
+         (map bindable-value params)))
 
 (define (like-pattern query)
   "QUERY as the LIKE pattern that finds it anywhere in a column.
@@ -162,15 +165,14 @@ something if the statement using it says `ESCAPE '\\'' as the search queries
 below do.  A query that is not a string searches for nothing rather than for
 everything."
   (let ((query (if (string? query) query "")))
-    (string-append
-     "%"
-     (apply string-append
-            (map (lambda (c)
-                   (if (memv c '(#\\ #\% #\_))
-                       (string #\\ c)
-                       (string c)))
-                 (string->list query)))
-     "%")))
+    (string-append "%"
+                   (apply string-append
+                          (map (lambda (c)
+                                 (if (memv c
+                                           '(#\\ #\% #\_))
+                                     (string #\\ c)
+                                     (string c)))
+                               (string->list query))) "%")))
 
 (define (row->alist column-names row)
   "Name the values of ROW (a vector, in COLUMN-NAMES order) and hand the result
@@ -181,51 +183,64 @@ to kracht, which hyphenates the column names the way the domain records expect."
 
 (define (step-until-done stmt on-row)
   "Step STMT to the end, calling ON-ROW with every row vector."
-  (let loop ()
+  (let loop
+    ()
     (let ((row (sqlite-step stmt)))
       (if row
           (begin
             (on-row row)
-            (loop))
-          #t))))
+            (loop)) #t))))
 
 (define (db-read db)
   "Curry DB into a reader: `(execute-read \"name\" query)' where QUERY is a
 <sql-query>.  Rows come back as alists keyed by hyphenated column symbols."
   (lambda (name query)
-    (log-debug s "~a query:\n\t~a\n" name (sql-query-sql query))
-    (with-database-lock
-     (lambda ()
-       (let ((stmt (sqlite-prepare db (sql-query-sql query))))
-         (dynamic-wind
-          (lambda () #t)
-          (lambda ()
-            (bind-parameters! stmt (sql-query-params query))
-            (let* ((column-names (sqlite-column-names stmt))
-                   (rows '()))
-              (step-until-done stmt
-                               (lambda (row)
-                                 (set! rows (cons (row->alist column-names row)
-                                                  rows))))
-              (log-debug s "~a rows: ~a\n" name
-                         (length rows))
-              (reverse rows)))
-          (lambda ()
-            (sqlite-finalize stmt))))))))
+    (log-debug s "~a query:\n\t~a\n" name
+               (sql-query-sql query))
+    (with-database-lock (lambda ()
+                          (let ((stmt (sqlite-prepare db
+                                                      (sql-query-sql query))))
+                            (dynamic-wind (lambda ()
+                                            #t)
+                                          (lambda ()
+                                            (bind-parameters! stmt
+                                                              (sql-query-params
+                                                               query))
+                                            (let* ((column-names (sqlite-column-names
+                                                                  stmt))
+                                                   (rows '()))
+                                              (step-until-done stmt
+                                                               (lambda (row)
+                                                                 (set! rows
+                                                                       (cons (row->alist
+                                                                              column-names
+                                                                              row)
+                                                                        rows))))
+                                              (log-debug s "~a rows: ~a\n"
+                                                         name
+                                                         (length rows))
+                                              (reverse rows)))
+                                          (lambda ()
+                                            (sqlite-finalize stmt))))))))
 
 (define (db-write db)
   "Curry DB into a writer: `(execute-write \"name\" query)' where QUERY is a
 <sql-query>.  The statement runs to completion and its rows, if it returns any,
 are dropped."
   (lambda (name query)
-    (log-debug s "~a query:\n\t~a\n" name (sql-query-sql query))
-    (with-database-lock
-     (lambda ()
-       (let ((stmt (sqlite-prepare db (sql-query-sql query))))
-         (dynamic-wind
-          (lambda () #t)
-          (lambda ()
-            (bind-parameters! stmt (sql-query-params query))
-            (step-until-done stmt (lambda (row) row)))
-          (lambda ()
-            (sqlite-finalize stmt))))))))
+    (log-debug s "~a query:\n\t~a\n" name
+               (sql-query-sql query))
+    (with-database-lock (lambda ()
+                          (let ((stmt (sqlite-prepare db
+                                                      (sql-query-sql query))))
+                            (dynamic-wind (lambda ()
+                                            #t)
+                                          (lambda ()
+                                            (bind-parameters! stmt
+                                                              (sql-query-params
+                                                               query))
+                                            (step-until-done stmt
+                                                             (lambda (row)
+                                                               row)))
+                                          (lambda ()
+                                            (sqlite-finalize stmt))))))))

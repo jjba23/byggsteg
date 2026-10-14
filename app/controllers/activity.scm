@@ -40,5 +40,6 @@
          (response-emit (:mime rc
                                (activity-page rc
                                               #:heatmap (heatmap-of timestamps)
-                                              #:is-logged-in (:cookies-value rc
+                                              #:is-logged-in (:cookies-value
+                                                              rc
                                                               "x-bewaking-byggsteg")))))))

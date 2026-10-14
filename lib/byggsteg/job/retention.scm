@@ -53,8 +53,7 @@
   (* days 24 60 60))
 
 (define* (runs-to-prune job-repo
-                        #:key
-                        (days (job-retention-days))
+                        #:key (days (job-retention-days))
                         (now (current-time))
                         (limit (job-retention-batch)))
   "The finished runs JOB-REPO holds that have outlived DAYS, oldest first.
@@ -70,10 +69,13 @@ list before the database is read at all."
   (if (<= days 0)
       '()
       (get-jobs-finished-before job-repo
-                                #:before (- now (days-in-seconds days))
+                                #:before (- now
+                                            (days-in-seconds days))
                                 #:limit limit)))
 
-(define* (prune-old-runs! #:key (job-repo #f) (log-repo #f) (artifact-repo #f)
+(define* (prune-old-runs! #:key (job-repo #f)
+                          (log-repo #f)
+                          (artifact-repo #f)
                           (days (job-retention-days))
                           (now (current-time))
                           (limit (job-retention-batch)))
@@ -84,25 +86,35 @@ Each run is removed in the order it will not be missed in: its tarballs first
 answer is the job rows that were removed, so a caller can say what it did; a
 deployment keeping everything, or one with nothing old enough, answers the empty
 list."
-  (let* ((job-repo (or job-repo (make-sqlite-job-repository)))
-         (log-repo (or log-repo (make-sqlite-log-repository)))
-         (artifact-repo (or artifact-repo (make-sqlite-artifact-repository)))
-         (runs (runs-to-prune job-repo #:days days #:now now #:limit limit)))
+  (let* ((job-repo (or job-repo
+                       (make-sqlite-job-repository)))
+         (log-repo (or log-repo
+                       (make-sqlite-log-repository)))
+         (artifact-repo (or artifact-repo
+                            (make-sqlite-artifact-repository)))
+         (runs (runs-to-prune job-repo
+                              #:days days
+                              #:now now
+                              #:limit limit)))
     (for-each (lambda (run)
-                (let ((job-id (assq-ref run 'id)))
+                (let ((job-id (assq-ref run
+                                        'id)))
                   (forget-job-artifacts! artifact-repo job-id)
                   (for-each (lambda (log)
-                              (delete-log-by-id log-repo (assq-ref log 'id)))
-                            (get-logs-by-job-ids log-repo (list job-id)))
-                  (delete-job-by-id job-repo job-id)))
-              runs)
-    runs))
+                              (delete-log-by-id log-repo
+                                                (assq-ref log
+                                                          'id)))
+                            (get-logs-by-job-ids log-repo
+                                                 (list job-id)))
+                  (delete-job-by-id job-repo job-id))) runs) runs))
 
 ;; When the last prune was made, so that a worker visiting this on every trip
 ;; round its loop prunes on the clock rather than on the trip.
-(define *retention-clock* (make-upkeep))
+(define *retention-clock*
+  (make-upkeep))
 
-(define* (prune-old-runs-when-due! #:key (job-repo #f) (log-repo #f)
+(define* (prune-old-runs-when-due! #:key (job-repo #f)
+                                   (log-repo #f)
                                    (artifact-repo #f)
                                    (every (job-retention-interval))
                                    (days (job-retention-days))

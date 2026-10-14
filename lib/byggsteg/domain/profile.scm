@@ -20,9 +20,12 @@
   #:declarative? #t
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
-  #:export (get-profile-by-id get-profile-by-title get-profiles
-                              search-profiles insert-profile
-                              update-profile-by-title delete-profile-by-id))
+  #:export (get-profile-by-id get-profile-by-title
+                              get-profiles
+                              search-profiles
+                              insert-profile
+                              update-profile-by-title
+                              delete-profile-by-id))
 
 ;; -- Record definition ---
 
@@ -50,7 +53,7 @@
  "Retrieves a list of all active profiles from the given REPO.")
 
 (define-repo-method search-profiles repo-search-profiles
-                    "Retrieves the profiles whose text carries QUERY from the given REPO.")
+ "Retrieves the profiles whose text carries QUERY from the given REPO.")
 
 (define-repo-method insert-profile repo-insert-profile
                     "Inserts a profile with ATTRS in the given REPO.")

@@ -20,8 +20,12 @@
   #:declarative? #t
   #:use-module (byggsteg domain repo)
   #:use-module (srfi srfi-9)
-  #:export (get-log-by-id get-logs get-logs-by-job-ids search-logs insert-log
-                          delete-log-by-id update-log-by-id))
+  #:export (get-log-by-id get-logs
+                          get-logs-by-job-ids
+                          search-logs
+                          insert-log
+                          delete-log-by-id
+                          update-log-by-id))
 
 ;; -- Record definition ---
 
@@ -47,7 +51,7 @@
                     "Retrieves a list of logs by IDS from given REPO.")
 
 (define-repo-method search-logs repo-search-logs
-                    "Retrieves the logs whose text carries QUERY from the given REPO.")
+ "Retrieves the logs whose text carries QUERY from the given REPO.")
 
 (define-repo-method insert-log repo-insert-log
                     "Inserts a log with ATTRS in the given REPO.")

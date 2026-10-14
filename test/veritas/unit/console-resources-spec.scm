@@ -49,27 +49,28 @@
 
 ;;; ====== Reading a page the way a browser does ======
 
-(define (G_ string) string)
+(define (G_ string)
+  string)
 
 ;; A page of the console with the chrome on it: the head, where every resource
 ;; of the console is named, and the landing page's own mark.
 (define (a-page)
-  (sxml->xml-string
-   (html-template G_
-                  #:title "console resources spec"
-                  #:body (list (project-logo)))))
+  (sxml->xml-string (html-template G_
+                                   #:title "console resources spec"
+                                   #:body (list (project-logo)))))
 
 ;; Every stylesheet a page asks for, in the order it asks for them: the sheets
 ;; it links, and the icon sheet it preloads and styles with when it arrives.
 ;; Both kinds are read, since either one is a sheet the browser then fetches.
 (define (stylesheets-of page)
-  (delete-duplicates
-   (map (lambda (match)
-          (match:substring match 1))
-        (append (list-matches "rel=\"stylesheet\"[^>]*href=\"([^\"]+)\"" page)
-                (list-matches "rel=\"preload\"[^>]*as=\"style\"[^>]*href=\"([^\"]+)\""
-                              page)))
-   string=?))
+  (delete-duplicates (map (lambda (match )
+                            (match:substring match 1))
+                          (append (list-matches
+                                   "rel=\"stylesheet\"[^>]*href=\"([^\"]+)\""
+                                   page)
+                                  (list-matches
+                                   "rel=\"preload\"[^>]*as=\"style\"[^>]*href=\"([^\"]+)\""
+                                   page))) string=?))
 
 ;; The sheets this console serves itself: the two families byggsteg bundles, the
 ;; Lucida in front of them, the icon font, and the utility sheet the terminal is
@@ -81,10 +82,12 @@
 ;; Where a deployment serves `pub/' from: the directory a deployed byggsteg runs
 ;; from is the clone it was updated in, and this is the public directory of it.
 (define (served-file address)
-  (string-append "pub/" (string-join (cdr (string-split address #\/)) "/")))
+  (string-append "pub/"
+                 (string-join (cdr (string-split address #\/)) "/")))
 
 (define (read-file path)
-  (call-with-input-file path get-string-all))
+  (call-with-input-file path
+    get-string-all))
 
 ;;; ====== The suite ======
 
@@ -93,12 +96,12 @@
          (test "no page of the console asks anybody else for it"
                #:shuffle? #f
                (for-each (lambda (host)
-                           (assert-not-contains
-                            #:name (format #f "the page asks nobody at ~a" host)
-                            #:expect (a-page)
-                            #:got host))
-                         '("fonts.googleapis.com"
-                           "fonts.gstatic.com"
+                           (assert-not-contains #:name (format #f
+                                                        "the page asks nobody at ~a"
+                                                        host)
+                                                #:expect (a-page)
+                                                #:got host))
+                         '("fonts.googleapis.com" "fonts.gstatic.com"
                            "cdn.jsdelivr.net"
                            "unpkg.com"
                            "cdnjs.cloudflare.com"
@@ -107,81 +110,82 @@
                            "/static-assets/")))
          (test "and serves every sheet it names itself"
                #:shuffle? #f
-               (assert-equal
-                #:name "the page names the console's own sheets, and no others"
+               (assert-equal #:name
+                "the page names the console's own sheets, and no others"
                 #:expect console-stylesheets
                 #:got (stylesheets-of (a-page)))
                (for-each (lambda (address)
-                           (assert-true
-                            (file-exists? (served-file address))
-                            #:name (format #f "and serves ~a, which it has"
-                                           address)))
+                           (assert-true (file-exists? (served-file address))
+                                        #:name (format #f
+                                                "and serves ~a, which it has"
+                                                address)))
                          (append console-stylesheets
                                  '("/img/byggsteg-logo.png"))))
          (test "a deployment that keeps its assets elsewhere names that host"
                #:shuffle? #f
-               (let ((at-an-asset-host
-                      (lambda (thunk)
-                        (parameterize ((asset-base-url "https://assets.example.org"))
-                          (thunk)))))
-                 (assert-equal
-                  #:name "every sheet moves to the asset host, together"
+               (let ((at-an-asset-host (lambda (thunk)
+                                         (parameterize ((asset-base-url
+                                                         "https://assets.example.org"))
+                                           (thunk)))))
+                 (assert-equal #:name
+                  "every sheet moves to the asset host, together"
                   #:expect (map (lambda (address)
                                   (string-append "https://assets.example.org"
-                                                 address))
-                                console-stylesheets)
-                  #:got (at-an-asset-host (lambda () (stylesheets-of (a-page)))))
-                 (assert-not-matches
-                  #:name "and none of them is left at the deployment's own path"
+                                                 address)) console-stylesheets)
+                  #:got (at-an-asset-host (lambda ()
+                                            (stylesheets-of (a-page)))))
+                 (assert-not-matches #:name
+                  "and none of them is left at the deployment's own path"
                   #:pattern "href=\"/css/"
                   #:got (at-an-asset-host a-page))
-                 (assert-matches
-                  #:name "the mark the landing page shows moves with them"
-                  #:pattern "src=\"https://assets.example.org/img/byggsteg-logo.png\""
+                 (assert-matches #:name
+                  "the mark the landing page shows moves with them"
+                  #:pattern
+                  "src=\"https://assets.example.org/img/byggsteg-logo.png\""
                   #:got (at-an-asset-host a-page))))
          (test "the Lucida in front of the stack is the deployment's to serve"
-               #:shuffle? #f
-               (assert-contains
-                #:name "a page asks for the Lucida sheet by default"
-                #:expect (a-page)
-                #:got "/css/lucida.css")
-               (assert-not-contains
-                #:name "a deployment that may not serve those faces asks for none"
-                #:expect (parameterize ((lucida-font-url ""))
-                           (a-page))
-                #:got "/css/lucida.css")
-               (assert-contains
-                #:name "and one with a sheet of its own is asked for that"
-                #:expect (parameterize ((lucida-font-url
-                                        "https://example.org/lucida.css"))
-                           (a-page))
-                #:got "https://example.org/lucida.css")
-               (assert-not-contains
-                #:name "which is asked for as it stands and not moved to an asset host"
-                #:expect (parameterize ((asset-base-url "https://assets.example.org")
-                                        (lucida-font-url
-                                         "https://example.org/lucida.css"))
-                           (a-page))
-                #:got "https://assets.example.org/https://example.org"))
+          #:shuffle? #f
+          (assert-contains #:name
+                           "a page asks for the Lucida sheet by default"
+                           #:expect (a-page)
+                           #:got "/css/lucida.css")
+          (assert-not-contains #:name
+           "a deployment that may not serve those faces asks for none"
+           #:expect (parameterize ((lucida-font-url ""))
+                      (a-page))
+           #:got "/css/lucida.css")
+          (assert-contains #:name
+           "and one with a sheet of its own is asked for that"
+           #:expect (parameterize ((lucida-font-url
+                                    "https://example.org/lucida.css"))
+                      (a-page))
+           #:got "https://example.org/lucida.css")
+          (assert-not-contains #:name
+           "which is asked for as it stands and not moved to an asset host"
+           #:expect (parameterize ((asset-base-url
+                                    "https://assets.example.org")
+                                   (lucida-font-url
+                                    "https://example.org/lucida.css"))
+                      (a-page))
+           #:got "https://assets.example.org/https://example.org"))
          (test "and the Lucida sheet names faces the deployment has"
                #:shuffle? #f
                (let ((sheet (read-file (served-file "/css/lucida.css"))))
-                 (let ((faces (delete-duplicates
-                               (map (lambda (match)
-                                      (match:substring match 1))
-                                    (list-matches "url\\('\\.\\./fonts/lucida/([^']+)\\)'"
-                                                  sheet))
-                               string=?)))
-                   (assert-true
-                    (positive? (length faces))
-                    #:name "the sheet declares the Lucida faces")
+                 (let ((faces (delete-duplicates (map (lambda (match )
+                                                        (match:substring match
+                                                         1))
+                                                      (list-matches
+                                                       "url\\('\\.\\./fonts/lucida/([^']+)\\)'"
+                                                       sheet)) string=?)))
+                   (assert-true (positive? (length faces))
+                                #:name "the sheet declares the Lucida faces")
                    (for-each (lambda (face)
-                               (assert-true
-                                (file-exists? (string-append "pub/fonts/lucida/"
-                                                             face))
-                                #:name (format #f "and the deployment has ~a to serve"
-                                               face)))
-                             faces))))))
+                               (assert-true (file-exists? (string-append
+                                                           "pub/fonts/lucida/"
+                                                           face))
+                                            #:name (format #f
+                                                    "and the deployment has ~a to serve"
+                                                    face))) faces))))))
 
 (define (spec)
   (veritas-run console-resources-suite))

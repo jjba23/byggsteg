@@ -59,16 +59,18 @@
     (execute-read "get-logs-by-job-ids"
                   (sql-select "log"
                               #:columns columns
-                              #:where (list (list 'job-id 'in ids)))))
+                              #:where (list (list 'job-id
+                                                  'in ids)))))
 
-  (define* (search-logs #:key query (limit (search-result-limit)))
+  (define* (search-logs #:key query
+                        (limit (search-result-limit)))
     (let ((pattern (like-pattern query)))
       (execute-read "search-logs"
-                    (make-sql-query
-                     (format #f
-                             "SELECT ~a FROM \"log\" WHERE \"title\" LIKE ? ESCAPE '\\' OR \"log_data\" LIKE ? ESCAPE '\\' ORDER BY \"created_at\" DESC LIMIT ?"
-                             (string-join (map symbol->sql-column columns) ", "))
-                     (list pattern pattern limit)))))
+                    (make-sql-query (format #f
+                                     "SELECT ~a FROM \"log\" WHERE \"title\" LIKE ? ESCAPE '\\' OR \"log_data\" LIKE ? ESCAPE '\\' ORDER BY \"created_at\" DESC LIMIT ?"
+                                     (string-join (map symbol->sql-column
+                                                       columns) ", "))
+                                    (list pattern pattern limit)))))
 
   (define (delete-log-by-id id)
     (execute-write "delete-log-by-id"

@@ -35,7 +35,10 @@
   #:export (log-page logs-page))
 
 (define* (log-page rc
-                   #:key job log artifacts is-logged-in
+                   #:key job
+                   log
+                   artifacts
+                   is-logged-in
                    ;; What the reader's session may do, so that the forms this
                    ;; page carries -- a retry and a delete -- are drawn only
                    ;; for a reader who can send them.  A caller that does not
@@ -63,14 +66,20 @@
                                 'job-in-progress))
          (G_ (:i18n rc))
          (dl-class (mk-class '(py-3 gap-2)))
-         (dt-class (mk-class '(font-mono text-xs uppercase tracking-widest
-                                         text-asparagus-900 dark:text-asparagus-300 font-bold pt-2)))
-         (dd-class (mk-class '(pl-3 font-mono text-sm text-asparagus-900 dark:text-olive-100
- font-medium)))
+         (dt-class (mk-class '(font-mono text-xs
+                                         uppercase
+                                         tracking-widest
+                                         text-asparagus-900
+                                         dark:text-asparagus-300
+                                         font-bold
+                                         pt-2)))
+         (dd-class (mk-class '(pl-3 font-mono text-sm text-asparagus-900
+                                    dark:text-olive-100 font-medium)))
          ;; The status is the one reading of a job both this page and the list
          ;; of logs draw, so the two cannot come to different colours for it.
          (job-status (job-status-label G_ job
-                                       #:size '(text-base sm:text-lg md:text-xl)))
+                                       #:size '(text-base sm:text-lg
+                                                          md:text-xl)))
          (delete-button `(form (@ (method POST)
                                   (enctype application/x-www-form-urlencoded)
                                   (action "/jobs/manage/delete"))
@@ -85,13 +94,13 @@
                                          (hidden true)
                                          (value ,job-id)))
                                ,(terminal-icon-button #:icon 'trash
-                                             #:content (G_ "delete")
-                                             #:type 'submit
-                                             #:color '(text-stone-300)
-                                             #:icon-css '(text-md
-                                                          text-stone-300)
-                                             #:background '(bg-redwood-700)
-                                             #:hover-background '(hover:bg-olive-900))))
+                                                      #:content (G_ "delete")
+                                                      #:type 'submit
+                                                      #:color '(text-stone-300)
+                                                      #:icon-css '(text-md
+                                                                   text-stone-300)
+                                                      #:background '(bg-redwood-700)
+                                                      #:hover-background '(hover:bg-olive-900))))
          (log-html `((div (@ (class ,(mk-class '(flex flex-row
                                                       flex-wrap
                                                       items-center
@@ -125,17 +134,20 @@
                                                                              job
                                                                              'updated-at))))))
                             ,(dt (G_ "log uuid"))
-                            ,(dd (terminal-code log-id #:size '(text-md)))))
+                            ,(dd (terminal-code log-id
+                                                #:size '(text-md)))))
 
-                     (div (@ (class ,(mk-class '(flex flex-row flex-wrap
-                                                        gap-3 py-2))))
+                     (div (@ (class ,(mk-class '(flex flex-row flex-wrap gap-3
+                                                      py-2))))
                           ;; A job's own page offers a retry whatever its status
                           ;; -- except while it is still running, when the same
                           ;; data would be running twice -- to a reader whose
                           ;; session may submit one.
-                          ,(if (retry-offered-on-page? job #:permissions
-                                                      permissions)
-                               (retry-button G_ job #:content "retry")
+                          ,(if (retry-offered-on-page? job
+                                                       #:permissions
+                                                       permissions)
+                               (retry-button G_ job
+                                             #:content "retry")
                                '())
                           ,(if (delete-offered-on-page? permissions)
                                delete-button
@@ -149,9 +161,11 @@
                      (details (@ (class ,(mk-class '(my-4)))
                                  (open ""))
                               (summary (@ (class ,(mk-class '(cursor-pointer
-                                                              text-asparagus-900 dark:text-asparagus-300
+                                                              text-asparagus-900
+                                                              dark:text-asparagus-300
 
-                                                              hover:text-onyx-900 dark:hover:text-olive-100
+                                                              hover:text-onyx-900
+                                                              dark:hover:text-olive-100
                                                               block))))
                                        (div (@ (class ,(mk-class '(flex
                                                                    flex-row
@@ -180,15 +194,15 @@
                                     #:wrap? #f))))
     
     (html-template G_
-                   #:title (format #f "byggsteg - ~a" (G_ "job log"))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "job log"))
                    #:path (format #f "/logs/~a" log-id)
                    ;; A page that asks for itself every few seconds is a crawl
                    ;; nobody wants, and the job it describes is on the list of
                    ;; runs a crawler can read instead.
                    #:robots "noindex, nofollow"
                    #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(page-body-class
-                                            #:extra '(align-center))))
+                   #:body `((div (@ (class ,(page-body-class #:extra '(align-center))))
                                  ,log-html))
                    ;; A job that is still going is followed closely: the worker
                    ;; streams its output into the log row in batches, and this is
@@ -212,8 +226,7 @@
                                           (assoc-ref jobs-of-logs
                                                      (assq-ref l
                                                                'id)) l
-                                          #:permissions permissions))
-                         logs))
+                                          #:permissions permissions)) logs))
          (page-buttons `((div (@ (class ,(mk-class '(flex flex-row flex-wrap
                                                           gap-3 my-4))))
                               ,(if (> offset 0)
@@ -221,29 +234,32 @@
                                                    "/logs?offset=~a&limit=~a"
                                                    (- offset limit) limit)))
                                         ,(terminal-icon-button #:icon 'arrow-left
-                                                      #:content (G_ "previous"))))
+                                                               #:content (G_
+                                                                          "previous"))))
                                    '())
                               ,(if (= (length logs) limit)
                                    `((a (@ (href ,(format #f
                                                    "/logs?offset=~a&limit=~a"
                                                    (+ offset limit) limit)))
                                         ,(terminal-icon-button #:icon 'arrow-right
-                                                      #:content (G_ "next"))))
+                                                               #:content (G_
+                                                                          "next"))))
                                    '()))))
-         (logs-html `((div (@ (class ,(page-body-class
-                                       #:extra '(align-center
-                                                 whitespace-break-spaces))))
+         (logs-html `((div (@ (class ,(page-body-class #:extra '(align-center
+                                                                 whitespace-break-spaces))))
                            ,(terminal-heading (G_ "logs")
                                               #:tag 'h1
                                               #:size '(text-2xl))
-                           (div (@ (class ,(terminal-frame-class
-                                            #:extra (append panel-body-classes
-                                                            '(flex flex-col
-                                                               gap-4)))))
+                           (div (@ (class ,(terminal-frame-class #:extra (append
+                                                                          panel-body-classes
+                                                                          '(flex
+                                                                            flex-col
+                                                                            gap-4)))))
                                 ,jobs-html)
                            ,page-buttons))))
     (html-template G_
-                   #:title (format #f "byggsteg - ~a" (G_ "logs"))
+                   #:title (format #f "byggsteg - ~a"
+                                   (G_ "logs"))
                    #:description (G_
                                   "The runs this byggsteg deployment has executed, newest first, each with its status and the artifacts it collected")
                    #:path "/logs"

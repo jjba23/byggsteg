@@ -24,8 +24,8 @@
   #:use-module (byggsteg env)
   #:use-module (json)
   #:export (back-to-login unauthorized-api-message api-error
-                          session-permissions
-                          bewaking-endpoint bewaking-api-endpoint))
+                          session-permissions bewaking-endpoint
+                          bewaking-api-endpoint))
 
 (define* (bewaking-endpoint #:key token-name
                             needed-permissions
@@ -96,9 +96,11 @@ This is the question a page asks when it decides which controls to draw.  The
 question a guard asks is a different one -- whether a request may reach an
 endpoint at all -- and that is `bewaking-endpoint', which turns a reader away
 rather than drawing a smaller page for them."
-  (let ((token (or (get-header rc 'x-bewaking-byggsteg)
+  (let ((token (or (get-header rc
+                               'x-bewaking-byggsteg)
                    (:cookies-value rc "x-bewaking-byggsteg"))))
-    (if (or (not token) (equal? "" token))
+    (if (or (not token)
+            (equal? "" token))
         '()
         (catch #t
                (lambda ()
@@ -106,9 +108,12 @@ rather than drawing a smaller page for them."
                                          #:encryption-key encryption-key
                                          #:signing-key signing-key)))
                    (if (token-valid? #:token t)
-                       (or (assoc-ref t 'owner-permissions) '())
+                       (or (assoc-ref t
+                                      'owner-permissions)
+                           '())
                        '())))
-               (lambda (key . args) '())))))
+               (lambda (key . args)
+                 '())))))
 
 (define (api-error rc status message)
   "Answer an API request with MESSAGE as a JSON error and the given STATUS.
@@ -119,9 +124,9 @@ it would answer 200, and a client would have to read the body to tell a missing
 row from a broken deployment.  Only a string (or a bytevector, or a port) has a
 content-length, so an alist handed straight to `response-emit' is a response
 the server cannot measure and answers 500 instead."
-  (response-emit (scm->json-string `((error . ,message)))
+  (response-emit (scm->json-string `((error unquote message)))
                  #:status status
-                 #:headers '((content-type . (application/json)))))
+                 #:headers '((content-type application/json))))
 
 (define (unauthorized-api-message rc)
   (api-error rc 401 "You must be authenticated to use this API endpoint"))

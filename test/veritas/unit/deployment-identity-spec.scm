@@ -49,17 +49,18 @@
 
 ;; The identity translation: a page is read here for what it names, not for the
 ;; language it names it in.
-(define (G_ string) string)
+(define (G_ string)
+  string)
 
 ;; A page of the console with the chrome on it, which is where the wordmark, the
 ;; card a link is shared as, the footer's links and the job form's guide all are.
 (define (page-as-a-landing-page)
-  (sxml->xml-string
-   (html-template G_
-                  #:title "identity spec"
-                  #:body (list `(div (@ (class "spec")))
-                               (project-logo)
-                               (job-form G_ "/jobs/manage/submit" #f)))))
+  (sxml->xml-string (html-template G_
+                                   #:title "identity spec"
+                                   #:body (list `(div (@ (class "spec")))
+                                                (project-logo)
+                                                (job-form G_
+                                                 "/jobs/manage/submit" #f)))))
 
 ;; The account of where the software came from, which ends at the same places
 ;; every page's footer does.
@@ -87,16 +88,16 @@
   (suite "what a deployment calls itself"
          (test "an unnamed deployment is this project's own"
                #:shuffle? #f
-               (assert-equal
-                #:expect "byggsteg"
-                #:got (deployment-name)
-                #:name "the project's name is the name by default")
-               (assert-true
-                (and (string? (deployment-description))
-                     (positive? (string-length (deployment-description))))
-                #:name "and its sentence of description is there to be announced")
-               (assert-contains
-                #:name "the footer leads to the project's own source"
+               (assert-equal #:expect "byggsteg"
+                             #:got (deployment-name)
+                             #:name
+                             "the project's name is the name by default")
+               (assert-true (and (string? (deployment-description))
+                                 (positive? (string-length (deployment-description))))
+                #:name
+                "and its sentence of description is there to be announced")
+               (assert-contains #:name
+                "the footer leads to the project's own source"
                 #:expect (page-as-a-landing-page)
                 #:got "https://codeberg.org/jjba23/byggsteg")
                ;; The mark byggsteg ships, which the deployment serves itself:
@@ -105,70 +106,72 @@
                ;; below).  The source of the page is read for where the image
                ;; comes from, and it is this deployment's own `/img/', not a
                ;; second host beside it.
-               (assert-contains
-                #:name "and the landing page shows the project's own mark"
+               (assert-contains #:name
+                "and the landing page shows the project's own mark"
                 #:expect (page-as-a-landing-page)
                 #:got "src=\"/img/byggsteg-logo.png\""))
          (test "the name a deployment chose is the name it is read by"
                #:shuffle? #f
-               (assert-contains
-                #:name "the wordmark says it"
-                #:expect (a-renamed-console) #:got ">buildbot")
-               (assert-contains
-                #:name "the card a shared link is drawn as says it"
-                #:expect (a-renamed-console)
-                #:got "og:site_name\" content=\"buildbot\"")
-               (assert-contains
-                #:name "and the JSON-LD a crawler reads says it"
-                #:expect (a-renamed-console)
-                #:got "\"name\":\"buildbot\"")
-               (assert-not-contains
-                #:name "with no byggsteg left in the card of a renamed console"
+               (assert-contains #:name "the wordmark says it"
+                                #:expect (a-renamed-console)
+                                #:got ">buildbot")
+               (assert-contains #:name
+                                "the card a shared link is drawn as says it"
+                                #:expect (a-renamed-console)
+                                #:got "og:site_name\" content=\"buildbot\"")
+               (assert-contains #:name
+                                "and the JSON-LD a crawler reads says it"
+                                #:expect (a-renamed-console)
+                                #:got "\"name\":\"buildbot\"")
+               (assert-not-contains #:name
+                "with no byggsteg left in the card of a renamed console"
                 #:expect (a-renamed-console)
                 #:got "og:site_name\" content=\"byggsteg\"")
-               (assert-not-contains
-                #:name "nor in the crawler's reading of it"
-                #:expect (a-renamed-console)
-                #:got "\"name\":\"byggsteg\""))
+               (assert-not-contains #:name
+                                    "nor in the crawler's reading of it"
+                                    #:expect (a-renamed-console)
+                                    #:got "\"name\":\"byggsteg\""))
          (test "the places a page sends a reader are the deployment's own"
                #:shuffle? #f
-               (assert-contains
-                #:name "the footer's source link follows the deployment"
-                #:expect (a-renamed-console) #:got "https://example.org/src")
-               (assert-contains
-                #:name "the job form's guide follows it too"
-                #:expect (a-renamed-console) #:got "https://example.org/src")
-               (assert-contains
-                #:name "the footer's manual link follows it"
-                #:expect (a-renamed-console) #:got "https://example.org/src/manual")
-               (assert-contains
-                #:name "and so do the links the account of it ends with"
-                #:expect (speaking-as "buildbot" "https://example.org/src"
-                                     page-of-the-account)
+               (assert-contains #:name
+                "the footer's source link follows the deployment"
+                #:expect (a-renamed-console)
                 #:got "https://example.org/src")
-               (assert-not-contains
-                #:name "and a renamed console sends nobody to codeberg"
-                #:expect (a-renamed-console) #:got "codeberg.org")
-               (assert-not-contains
-                #:name "nor in the crawler's reading of where to get it"
+               (assert-contains #:name "the job form's guide follows it too"
+                                #:expect (a-renamed-console)
+                                #:got "https://example.org/src")
+               (assert-contains #:name "the footer's manual link follows it"
+                                #:expect (a-renamed-console)
+                                #:got "https://example.org/src/manual")
+               (assert-contains #:name
+                "and so do the links the account of it ends with"
+                #:expect (speaking-as "buildbot" "https://example.org/src"
+                                      page-of-the-account)
+                #:got "https://example.org/src")
+               (assert-not-contains #:name
+                "and a renamed console sends nobody to codeberg"
+                #:expect (a-renamed-console)
+                #:got "codeberg.org")
+               (assert-not-contains #:name
+                "nor in the crawler's reading of where to get it"
                 #:expect (a-renamed-console)
                 #:got "codeRepository\":\"https://codeberg.org"))
          (test "the mark and the sentence are the deployment's own as well"
                #:shuffle? #f
-               (assert-contains
-                #:name "another deployment shows another mark"
-                #:expect (parameterize ((deployment-logo-url
-                                         "https://example.org/mark.png"))
-                           (page-as-a-landing-page))
-                #:got "https://example.org/mark.png")
-               (assert-contains
-                #:name "and is announced with its own sentence"
-                #:expect (parameterize ((deployment-description
-                                         "a build server of our own"))
-                           (sxml->xml-string (html-template G_
-                                                            #:title "identity spec"
-                                                            #:body '())))
-                #:got "a build server of our own"))))
+               (assert-contains #:name "another deployment shows another mark"
+                                #:expect (parameterize ((deployment-logo-url
+                                                         "https://example.org/mark.png"))
+                                           (page-as-a-landing-page))
+                                #:got "https://example.org/mark.png")
+               (assert-contains #:name
+                                "and is announced with its own sentence"
+                                #:expect (parameterize ((deployment-description
+                                                         "a build server of our own"))
+                                           (sxml->xml-string (html-template G_
+                                                              #:title
+                                                              "identity spec"
+                                                              #:body '())))
+                                #:got "a build server of our own"))))
 
 (define (spec)
   (veritas-run deployment-identity-suite))
