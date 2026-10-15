@@ -128,8 +128,10 @@ thread of the same program.  See [[*Concurrency and the queue]].
 - *Retention that keeps a deployment honest.*  Finished runs are pruned after
   30 days by default (set ~job-retention-days~ to 0 and none are), log, tarballs
   and row going together.
-- *A REST API.*  Submit a job, poll its status, retry one, sign in -- ~/api/v1~
-  hands your scripts the same permissions the web interface uses.
+- *A REST API.*  Submit a job, poll its status, retry one, sign in -- ~/api/v2~
+  hands your scripts the same permissions the web interface uses, and is
+  described by a document it serves itself.  The four calls of ~/api/v1~ are
+  still there for scripts written against them.
 - *Four languages.*  English, Dutch, Spanish and Japanese, with GNU gettext.
 - *A console that reads well.*  Dark and light, keyboard-friendly, and one
   colour doing the work of a status: green for a run that finished well, blue
@@ -279,11 +281,13 @@ A running job's output reaches its log as it is produced, in batches of twenty l
 
 What a job prints is announced command by command, each with the line ~→ running command: <cmd>~, so a long log reads as the list of commands that produced it.
 
-The REST API answers with what the log holds at the moment it is read, and the job's status with it, so a client can poll for both:
+The REST API answers with what the log holds at the moment it is read, and the run it belongs to with it, so a client can poll for both:
 
 #+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/v1/logs/<log-id>'
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/logs/<log-id>'
 #+end_src
+
+The answer says how long that output is, so a client that already has some of it sends that much back as ~have~ and is told whether there is more, rather than being sent the same text again: see [[*Reading runs, logs and tarballs]].
 
 ------------------
 
@@ -298,17 +302,20 @@ Every list of jobs gives each of them a colour: green for one that finished well
 A job can be run again from the UI. Its own page offers a ~retry~ button whatever the job's status -- a reader is there about that one job -- while the list of logs offers one only for a job that failed, since a list is read for what needs attention and a green row already says it does not. A job that is still running is the one case with no retry anywhere: the same data would then be running twice.
 
 #+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/retry' \
-    -X POST -H 'content-type: application/x-www-form-urlencoded' \
-    -H 'x-bewaking-byggsteg: <your token here>' \
-    --data-urlencode 'job-id=<job-id>'
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/jobs/<job-id>/retry' \
+    -X POST -H 'x-bewaking-byggsteg: <your token here>'
 
 #  {
-#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326"
+#    "run": {"id": "3f2c9b41", "title": "wikimusic-api", "status": "queued",
+#            "created-at": 1791922811, "updated-at": null,
+#            "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326"},
+#    "log": {"id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
+#            "title": "wikimusic-api", "run-id": "3f2c9b41",
+#            "created-at": 1791922811, "updated-at": null, "length": 0}
 #  }
 #+end_src
 
-A retry is a job of its own rather than the old row set going again: its output is its own to log, its title marks it as a retry, and the job it retries goes on saying what it said. The answer is the new job's log id, which is the log to follow for how the retry goes. Retrying takes the ~byggsteg:job-create~ permission, since that is what it does.
+A retry is a job of its own rather than the old row set going again: its output is its own to log, its title marks it as a retry, and the job it retries goes on saying what it said. The answer is the run it made and the log that run will write to, which is the log to follow for how the retry goes. Retrying takes the ~byggsteg:job-create~ permission, since that is what it does.
 
 A call that cannot be answered says so in the answer: a job or a log that is not there, a token that is missing or expired, or credentials that do not match all come back as a JSON object with an ~error~ field and the status that goes with it (~404~, ~401~), rather than a page to render or a status a client has to read the body to interpret.
 
@@ -401,34 +408,43 @@ maak prune-old-runs
 
 * Starting a job
 
-Byggsteg provides HTTP endpoints. After logging in -- with an account that holds ~byggsteg:job-create~, which the form page itself asks for -- you can use the UI and visit ~/jobs/request~, or you can also invoke this via the REST API by first calling ~/api/v1/login~ with the right credentials and then calling ~/api/v1/jobs/manage/submit~.
+Byggsteg provides HTTP endpoints. After logging in -- with an account that holds ~byggsteg:job-create~, which the form page itself asks for -- you can use the UI and visit ~/jobs/request~, or you can also invoke this via the REST API by first calling ~POST /api/v2/login~ with the right credentials and then calling ~POST /api/v2/jobs~.
 
 You could also do this for example from your favourite programming language, or system, or via cURL, etc:
 
 #+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
-    -X POST -H 'content-type: application/x-www-form-urlencoded' \
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/jobs' \
+    -X POST -H 'content-type: application/json' \
     -H 'x-bewaking-byggsteg: <your token here>' \
-    --data-urlencode 'job-code=(lambda() `((project . "kracht")(branch-name . "trunk")(task . "maak-test")(clone-url . "https://codeberg.org/jjba23/kracht")))'
+    -d '{"job-code": "(lambda() `((project . \"kracht\")(branch-name . \"trunk\")(task . \"maak-test\")(clone-url . \"https://codeberg.org/jjba23/kracht\")))"}'
 
 #  {
-#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
-#    "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
+#    "run": {"id": "3f2c9b41", "title": "kracht", "status": "queued",
+#            "created-at": 1791922811, "updated-at": null,
+#            "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326"},
+#    "log": {"id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
+#            "title": "kracht", "run-id": "3f2c9b41",
+#            "created-at": 1791922811, "updated-at": null, "length": 0}
 #  }
 #+end_src
 
-You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until success or failure is true.
+The answer names the run it made and the log that run will write to: the log is what a reader follows for the output, and the run is what says how it went. A job is a thunk whose value is the alist of fields the work is described by -- or a list of those, which is a pipeline, its stages run in the order they are written.
+
+You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying until the run's ~status~ is ~succeeded~ or ~failed~.
 
 #+begin_src  shell
-  curl 'http://localhost:50002/api/v1/logs/ce24da08-1833-4821-b7e3-e2bacaa79326'
+  curl 'http://localhost:50002/api/v2/logs/ce24da08-1833-4821-b7e3-e2bacaa79326'
   #
   # {
-  #   "success": 1,
-  #   "failure": 0,
-  #   "in-progress": 0,
-  #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
-  #   "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
-  #   "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
+  #   "log": {"id": "ce24da08-1833-4821-b7e3-e2bacaa79326", "title": "kracht",
+  #           "run-id": "3f2c9b41", "created-at": 1791922811,
+  #           "updated-at": null, "length": 1284},
+  #   "run": {"id": "3f2c9b41", "title": "kracht", "status": "succeeded",
+  #           "created-at": 1791922811, "updated-at": 1791922902,
+  #           "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326"},
+  #   "artifacts": [],
+  #   "output": {"length": 1284, "in-progress": false, "view": "rendered",
+  #              "changed": true, "text": "→ running command: maak test\n..."}
   # }
 #+end_src
 
@@ -514,17 +530,17 @@ The last command's empty word is an empty list of permissions, so carol's accoun
 
 ** Signing in from a script
 
-Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles. For web browsers you can simply use the login page, for scripts and headless usage, use the ~/api/v1/login~ endpoint and take the ~x-bewaking-byggsteg~ response header:
+Byggsteg requires an authenticated session for performing administrative tasks such as creating/deleting jobs and profiles. For web browsers you can simply use the login page; for scripts and headless usage, sign in with ~POST /api/v2/login~ and take the token out of the answer, or off the ~x-bewaking-byggsteg~ response header it also travels in:
 
 #+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/v1/login' \
-    -X POST -H 'content-type: application/x-www-form-urlencoded' \
-    --data-urlencode 'email=you@example.org' \
-    --data-urlencode 'password=your-password' \
-    -i
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/login' \
+    -X POST -H 'content-type: application/json' \
+    -d '{"email": "you@example.org", "password": "your-password"}'
 #+end_src
 
-The response carries the token in a ~x-bewaking-byggsteg~ header and in a cookie; a script sends the header back with every request that needs a permission. The token is good for 31 days, and it holds the permissions the account had at the moment it was made.
+The answer is the token, the account it was minted for and the session it belongs to -- which permissions this token holds, and when it stops being read (~expires-at~). A script sends the token in the ~x-bewaking-byggsteg~ header with every request that needs a permission, as the examples in this manual do. The token is minted with a lifetime of its own (bewaking's default is a week), and it holds the permissions the account had at the moment it was signed in rather than the ones the account holds now.
+
+The console's own sign-in page leaves the token in a cookie for the browser; a script reads it from the answer instead, since a program that held a cookie would still have to be told the cookie's name. The call is under ~/api/v1~ too, as ~POST /api/v1/login~, and the two differ in what they answer rather than in what they do: see [[*What /api/v1 is kept for]].
 
 If running locally, it's recommended to use ~localhost~ instead of ~127.0.0.1~ as this will work better with the authentication/authorization and other cookies.
 
@@ -533,6 +549,223 @@ If running locally, it's recommended to use ~localhost~ instead of ~127.0.0.1~ a
 Pingwing is a mail and notification solution written in Guile Scheme and also part of the jointhefreeworld project. Byggsteg uses it for password resets, among other notifications. Find more about it here: https://codeberg.org/jjba23/pingwing
 
 It is configured in ~env.scm~ (see [[*Writing env.scm]]): a deployment without it can still run jobs, and its users are made from the command line.
+
+------------------
+
+* The JSON API under /api/v2
+
+Everything the console does by hand, a program can ask for over HTTP instead: the
+runs a deployment has and the runs it may be asked for, the output of a run while
+it is still being written, the tarballs it kept, the profiles a job may be
+submitted from, the accounts and what each of them may do, one search over the
+runs, the logs and the profiles, a year of activity, and the upkeep the queue
+worker does on its own clock.  The whole of it is mounted at ~/api/v2~, and every
+answer is JSON.
+
+It is not a second console, and it has no dialect of its own: an endpoint and a
+page read the same rows through the same module, so the two cannot come to say
+different things about the same run.  A job is Lisp here as it is everywhere else
+-- ~POST /api/v2/jobs~ takes the job code the console's own form posts, and there
+is deliberately no second way of writing one beside it.
+
+** What /api/v1 is kept for
+
+~byggsteg-woodpecker~ is still using it.
+is four calls -- ~POST /api/v1/login~, ~POST /api/v1/jobs/manage/submit~,
+~POST /api/v1/jobs/manage/retry~ and ~GET /api/v1/logs/<log-id>~ -- which is what
+a script written before this API existed makes: it signs in with a form body,
+takes the token off the ~x-bewaking-byggsteg~ response header, and reads a log as
+one object carrying the run's three flags and both texts base64-encoded in it.
+
+They are kept as they are rather than rewritten, because a script that works is
+not something an upgrade should break.  Everything new is under ~/api/v2~, whose
+paths say what a call is (~/jobs/<id>/retry~ rather than ~/jobs/manage/retry~),
+whose answers are one shape rather than four, and which is described by the
+document it serves.  The examples in this manual are written against it.
+
+** The document that describes it
+
+The API is described by an OpenAPI 3.1 document, [[file:pub/openapi.yaml][pub/openapi.yaml]], which is part
+of this source and served by the deployment as one of its own files:
+~https://<your deployment>/openapi.yaml~.  Everything under ~pub/~ is served as it
+is, so the document needs no endpoint of its own, and the ~api.spec~ field of
+~GET /api/v2/deployment~ names that address -- which is how a client that knows
+only where a deployment is finds the document that describes it.
+
+The document carries every route, the shape of each answer and which calls need a
+token, so a client can be generated from it, or read by a person.  Which
+*permission* a call takes is not a field in it: the answer names the permission
+that is missing when a call is refused for wanting one, and the whole vocabulary
+is listed by ~GET /api/v2/permissions~ -- which is also where a token reads what
+it holds.
+
+** The token, and the header it travels in
+
+Signing in is one call, ~POST /api/v2/login~, with the ~email~ and the ~password~
+of an account as a JSON object or as a URL-encoded form body -- what a program
+sends and what a form sends are one request to this endpoint:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/login' \
+    -X POST -H 'content-type: application/json' \
+    -d '{"email": "you@example.org", "password": "your-password"}'
+#+end_src
+
+The answer holds the token, the account it was minted for and what the session is
+worth, and the token also travels as the ~x-bewaking-byggsteg~ response header --
+the header the API under ~/api/v1~ has always used, so a script written against
+that one reads this one the same way.  An address this deployment does not know
+and a password that does not match are one answer rather than two: nothing in it
+says which addresses are accounts.
+
+Every call that needs a token sends it in that header:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/me' \
+    -H 'x-bewaking-byggsteg: <your token here>'
+#+end_src
+
+A call whose token this deployment cannot read is answered ~401~, which signing in
+again fixes.  A call whose token is readable but does not hold what the endpoint
+takes is answered ~403~, and the answer names the permission that is missing:
+signing in again as the same account changes nothing about that one.
+
+** The permissions a token carries
+
+A token carries the seven permissions of the console's own ACL -- one vocabulary,
+asked about by every page and every endpoint, so an account that may submit a job
+from a page may submit one from a script:
+
+- ~byggsteg:job-create~ -- to ask for a run, and to run one again.
+- ~byggsteg:job-delete~ -- to remove a run, and to ask the worker for one of its
+  own passes now.
+- ~byggsteg:profile-create~, ~byggsteg:profile-delete~ -- to save a job as a
+  profile, and to remove one.
+- ~byggsteg:user-create~, ~byggsteg:user-delete~ -- the vocabulary of accounts.
+  The calls that list, make, read, change and remove them ask for
+  ~byggsteg:modify-permissions~, as the console's own account pages do.
+- ~byggsteg:modify-permissions~ -- to hand out the others, which is what makes a
+  super user a super user.
+
+A token is read by opening it rather than by looking it up, and that has one
+consequence worth knowing: it holds the permissions its account had when it was
+minted, so an account whose permissions are changed keeps the ones it signed in
+with until it signs in again.  That is what the ~session~ in a sign-in answer --
+and in ~GET /api/v2/me~ -- is for: it says which permissions this token holds, and
+when it stops being read.
+
+** The two verbs the console does not send
+
+The console's own forms send ~GET~ and ~POST~ and nothing else.  This API adds the
+two verbs that say what a call is: a removal is ~DELETE~, and a change is ~PATCH~.
+
+#+begin_src sh
+# remove a run: needs byggsteg:job-delete
+curl -X DELETE 'https://byggsteg.jointhefreeworld.org/api/v2/jobs/<job-id>' \
+    -H 'x-bewaking-byggsteg: <your token here>'
+
+# change one account: needs byggsteg:modify-permissions
+curl -X PATCH 'https://byggsteg.jointhefreeworld.org/api/v2/users/<user-id>' \
+    -H 'x-bewaking-byggsteg: <your token here>' \
+    -H 'content-type: application/json' \
+    -d '{"permissions": ["byggsteg:job-create"]}'
+#+end_src
+
+A removal is answered ~204 No Content~ rather than with an object describing what
+is gone.  A change sends only the fields it changes -- a username, an email, a
+list of permissions -- and a request that sends none of them is refused rather
+than answered as a change that changed nothing.
+
+GNU Artanis refuses a method it was not told to route before it looks any route
+up, so a deployment whose ~conf/artanis.conf~ does not name these two in
+~server.allowedmethods~ answers every ~DELETE~ and every ~PATCH~ with ~405 Method
+Not Allowed~, whatever the route is.  That line is part of what running this API
+takes: a deployment that kept an older configuration still answers every reading
+and every ~POST~, and refuses the two verbs that say what a call is.
+
+** Reading runs, logs and tarballs
+
+A reading takes no token: a call that only looks at a deployment is answered the
+way the console's own pages are.
+
+#+begin_src sh
+# the runs, newest first
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/jobs?limit=24&offset=0'
+
+# the ones the worker has taken and not finished
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/jobs?running=true'
+
+# one run's output, as a terminal would have left it
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/logs/<log-id>'
+#+end_src
+
+A list answers with the rows, the ~limit~ and ~offset~ it read them with, and how
+many it is carrying.  ~limit~ is 24 unless the request says otherwise and is capped
+at 200, and a limit that is mistyped or out of bounds is answered with the bound
+rather than with a refusal: what was asked for is a page, and a page of nothing
+because a parameter was mistyped is not one.
+
+A log is read while the run that writes it is still writing.  ~have~ is the
+~length~ a client was last sent, and the answer says ~changed~: a client that
+already has that much sends it and is told whether there is more, rather than
+being handed the same output again to say so.  ~view~ chooses which of the two
+readings of that output is sent -- ~rendered~, the default, is the text a terminal
+would have left, with the line a program painted over itself arriving as the
+reading it ended on, and ~raw~ is what the command actually wrote, with its control
+characters spelled out.
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/logs/<log-id>?have=4096'
+#+end_src
+
+** Asking for a run
+
+~POST /api/v2/jobs~ takes one field, ~job-code~, which is the Lisp a job is
+written as -- the same text the console's form posts:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v2/jobs' \
+    -X POST -H 'content-type: application/json' \
+    -H 'x-bewaking-byggsteg: <your token here>' \
+    -d '{"job-code": "(lambda() `((task . \"trivial\") (trivial-cmds . (\"echo hello\"))))"}'
+#+end_src
+
+The answer is ~201 Created~, and it carries the run it made and the log that run
+will write to, so a client has the id to follow.  Asking for a run takes
+~byggsteg:job-create~, and so does ~POST /api/v2/jobs/<id>/retry~: a retry is a run
+asked for again, with a log of its own.
+
+** What each call takes
+
+- *Nothing at all.*  The readings: ~/deployment~, ~/tasks~, ~/jobs~ and one run,
+  ~/logs~ and one log, the tarballs (~/artifacts~, one of them, and its
+  ~/download~), the saved profiles and one of them, ~/search~ and ~/activity~.
+  The four calls about a password as well -- asking for a reset link, reading what
+  a link is worth, setting a password with it, and what a password is worth --
+  since the pages that draw those forms are public too.  So is
+  ~POST /preferences/locale~, which sets the reader's language as a cookie.
+- *A token this deployment can read, and none of the seven.*  ~/me~,
+  ~/permissions~ and ~/logout~.  A token is read by opening it, so signing out is
+  something the client does; the call says so rather than pretending to take one
+  back.
+- *~byggsteg:job-create~.*  Asking for a run, and running one again.
+- *~byggsteg:job-delete~.*  Removing a run, and the worker's own passes asked for
+  by hand: ~/maintenance/sweep-artifacts~, ~/maintenance/prune-runs~ and
+  ~/maintenance/sweep-logs~.
+- *~byggsteg:profile-create~, ~byggsteg:profile-delete~.*  Saving a job as a
+  profile, and removing one.
+- *~byggsteg:modify-permissions~.*  The five calls about accounts: listing them,
+  making one, reading one, changing one (~PATCH~) and removing one (~DELETE~).
+
+** A call that cannot be answered
+
+Every failure of this API is a JSON object with an ~error~ in it, and sometimes a
+~details~ beside it -- the same shape the API under ~/api/v1~ answers with, so a
+script written against one reads the other.  A run, a log, a tarball or an account
+that is not there is ~404~; a field the request is missing is ~400~, with the field
+named; a token that is missing or unreadable is ~401~; a permission that is not
+held is ~403~; a method this deployment does not route is ~405~; and a deployment
+that could not answer at all is ~500~ -- its own log says why.
 
 ------------------
 
