@@ -42,41 +42,15 @@
       (lambda (rc)
         (define (do-submit)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
-                 ;; TODO add sandbox eval and validation here
                  (job-code (assoc-ref body "job-code"))
-                 (user-provided-thunk (eval-string job-code))
-                 (kvv (user-provided-thunk))
-                 (new-job-uuid (generate-string-uuid))
-                 (new-log-uuid (generate-string-uuid))
-                 (job-repo (make-sqlite-job-repository))
-                 (log-repo (make-sqlite-log-repository))
-                 ;; The title names the project a job is about; a pipeline of
-                 ;; jobs is titled after its first, and one that runs bare
-                 ;; commands `trivial'.
-                 (title (html-escape (format #f "~a-~a"
-                                             (html-escape (job-title-prefix
-                                                           kvv))
-                                             (string-take new-log-uuid 13)))))
-            
-            (insert-job job-repo
-                        `((id unquote new-job-uuid)
-                          (title unquote title)
-                          (job-data unquote
-                                    (html-escape job-code))
-                          (job-success . 0)
-                          (job-in-progress . 1)
-                          (job-failed . 0)
-                          (created-at unquote
-                                      (current-time))))
-
-            (insert-log log-repo
-                        `((id unquote new-log-uuid)
-                          (title unquote title)
-                          (job-id unquote new-job-uuid)
-                          (log-data . "")
-                          (created-at unquote
-                                      (current-time))))
-
+                 ;; The run and the log it streams into are queued by
+                 ;; `(byggsteg job queue)', which is where the console's own form
+                 ;; and the API under /api/v2 queue them too: one place mints a
+                 ;; run, so the three cannot come to disagree about the fields
+                 ;; the worker reads.
+                 (queued (submit-job! #:job-code job-code))
+                 (new-log-uuid (assq-ref queued 'log-id))
+                 (title (assq-ref queued 'title)))
             (:mime rc
                    `((log-id unquote new-log-uuid)
                      (title unquote title)))))

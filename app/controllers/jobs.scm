@@ -62,15 +62,15 @@
       (lambda (rc)
         (define (do-submit)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
-                 ;; TODO add sandbox eval and validation here
                  (job-code (assoc-ref body "job-code"))
-                 (user-provided-thunk (eval-string job-code))
-                 (kvv (user-provided-thunk))
-                 (new-job-uuid (generate-string-uuid))
-                 (new-log-uuid (generate-string-uuid))
+                 ;; The run and the log its output streams into are queued in
+                 ;; one place, which is what the API under /api/v1 and the one
+                 ;; under /api/v2 call too (`(byggsteg job queue)'): a job is
+                 ;; read by the worker from the fields those two rows carry, so
+                 ;; a page and an endpoint may not queue different ones.
+                 (queued (submit-job! #:job-code job-code))
+                 (new-log-uuid (assq-ref queued 'log-id))
                  (G_ (:i18n rc))
-                 (job-repo (make-sqlite-job-repository))
-                 (log-repo (make-sqlite-log-repository))
                  (logs-link (format #f
                              "~a/logs/~a?notify-title=~a&notify-body=~a"
 
@@ -80,34 +80,7 @@
                              (uri-encode (format #f "~a: ~a"
                                                  (G_
                                                   "A new job has been started at byggsteg with id")
-                                                 new-log-uuid))))
-                 ;; A job's title names the project it is about; a pipeline of
-                 ;; jobs -- whose value is a list of them -- is titled after
-                 ;; its first, and one that runs bare commands `trivial'.
-                 (title (html-escape (format #f "~a-~a"
-                                             (html-escape (job-title-prefix
-                                                           kvv))
-                                             (string-take new-log-uuid 13)))))
-            
-            (insert-job job-repo
-                        `((id unquote new-job-uuid)
-                          (title unquote title)
-                          (job-data unquote
-                                    (html-escape job-code))
-                          (job-success . 0)
-                          (job-in-progress . 1)
-                          (job-failed . 0)
-                          (created-at unquote
-                                      (current-time))))
-
-            (insert-log log-repo
-                        `((id unquote new-log-uuid)
-                          (title unquote title)
-                          (job-id unquote new-job-uuid)
-                          (log-data . "")
-                          (created-at unquote
-                                      (current-time))))
-
+                                                 new-log-uuid)))))
             (redirect-to rc
                          (string->uri logs-link)
                          #:status 302)))

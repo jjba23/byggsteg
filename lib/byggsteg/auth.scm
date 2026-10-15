@@ -24,7 +24,7 @@
   #:use-module (byggsteg env)
   #:use-module (json)
   #:export (back-to-login unauthorized-api-message api-error
-                          session-permissions bewaking-endpoint
+                          session-permissions api-session bewaking-endpoint
                           bewaking-api-endpoint))
 
 (define* (bewaking-endpoint #:key token-name
@@ -114,6 +114,38 @@ rather than drawing a smaller page for them."
                        '())))
                (lambda (key . args)
                  '())))))
+
+(define (api-session rc)
+  "The token payload the request RC carries in its header, or #f.
+
+Only the header is read, which is where a script sends a token (see
+`bewaking-api-endpoint'): a JSON client of this deployment is a program, and a
+program that held a cookie would still have to be told the cookie's name.  The
+cookie `session-permissions' reads beside it is the browser's, for the pages.
+
+#f is the answer to every way a token can be unusable -- no header at all, a
+value that is not a token this deployment can read (one signed with a key that
+has since been changed, say), and one whose `token-expires-at' has passed --
+because the three are one answer to the caller that asks: this request is not
+authenticated.  An API endpoint turns that into a 401, which is what a client
+does something about."
+  (let ((token (catch #t
+                     (lambda ()
+                       (get-header rc
+                                   'x-bewaking-byggsteg))
+                     (lambda (key . args)
+                       #f))))
+    (if (or (not token)
+            (equal? "" token))
+        #f
+        (catch #t
+               (lambda ()
+                 (let ((t (decrypt-token #:token token
+                                         #:encryption-key encryption-key
+                                         #:signing-key signing-key)))
+                   (if (token-valid? #:token t) t #f)))
+               (lambda (key . args)
+                 #f)))))
 
 (define (api-error rc status message)
   "Answer an API request with MESSAGE as a JSON error and the given STATUS.

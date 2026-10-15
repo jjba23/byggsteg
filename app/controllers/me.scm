@@ -28,6 +28,11 @@
         (byggsteg permissions)
         (byggsteg auth)
         (byggsteg mail)
+        ;; The link that sets a password is made in one place (`(byggsteg
+        ;; password-reset)'), which is where the JSON API under /api/v2 asks for
+        ;; one too: a reset asked for from a page and one asked for from a
+        ;; script have to be the same link.
+        (byggsteg password-reset)
         (byggsteg domain password)
         (app views me)
         (kracht prelude)
@@ -189,8 +194,11 @@ that it could not do it -- on the page it lands the reader on."
           ;; The answer the page carries is the answer the mail service gave:
           ;; a reset link that was not taken is reported as one that was not
           ;; taken, rather than left for the reader to wait on.
-          (let ((taken? (and u
-                             (request-password-reset password-reset-repo u))))
+          (let (               (taken? (and u
+                             (request-password-reset
+                              #:user u
+                              #:password-reset-repo
+                              password-reset-repo))))
             (redirect-to rc
                          (string->uri (format #f "~a/?~a"
                                               (current-myhost)
@@ -308,40 +316,6 @@ that it could not do it -- on the page it lands the reader on."
                                                                            "Sign in with the password you just chose."))))
                                  #:status 302)))))))
 
-(define (request-password-reset password-reset-repo u)
-  (let* ((_ (delete-password-reset-by-user-id password-reset-repo
-                                              (assq-ref u
-                                                        'id)))
-         (reset-token (base16-encode (format #f "~a-~a-~a"
-                                             (generate-string-uuid)
-                                             (generate-string-uuid)
-                                             (generate-string-uuid))))
-         (_ (insert-password-reset password-reset-repo
-                                   `((user-id unquote
-                                              (assq-ref u
-                                                        'id))
-                                     (reset-token unquote reset-token)
-                                     (created-at unquote
-                                                 (current-time)))))
-         (pr (get-password-reset-by-token password-reset-repo reset-token))
-         (mail-payload `((task-type . send-email) (template . password-reset)
-                         (template-vars (system-name . Byggsteg)
-                                        (user unquote
-                                              (assq-ref u
-                                                        'email))
-                                        (reset-link unquote
-                                                    (format #f
-                                                     "~a/password/reset/token/~a"
-                                                     (current-myhost)
-                                                     reset-token)))
-                         (sender-name . "No Reply - Byggsteg")
-                         (sender-address . "noreply@mail.jointhefreeworld.org")
-                         (subject . "Byggsteg - Password Reset")
-                         (recipients . #(((name unquote (assq-ref u (quote username))) (address unquote (assq-ref u (quote email)))))))))
-    ;; #t when the mail service took the mail, #f when it did not: what the
-    ;; caller reports to the reader, rather than what it hoped for.
-    (send-mail! #:body mail-payload)))
-
 (get "/users/new"
      #:mime 'xml
      #:i18n '(cookie "lang")
@@ -434,7 +408,10 @@ that it could not do it -- on the page it lands the reader on."
                  ;; new account needs to sign in is the reset link this sends,
                  ;; so whether that link went out is part of how the creation
                  ;; went -- a reader is told which of the two happened.
-                 (taken? (request-password-reset password-reset-repo u)))
+                 (taken? (request-password-reset
+                          #:user u
+                          #:password-reset-repo
+                          password-reset-repo)))
             (redirect-to rc
                          (string->uri (format #f "~a/users/manage/?~a"
                                               (current-myhost)

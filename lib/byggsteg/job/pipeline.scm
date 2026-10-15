@@ -45,7 +45,7 @@
   #:use-module (rnrs io ports)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
-  #:export (run-pipeline-task job-pipeline
+  #:export (run-pipeline-task pipeline-tasks job-pipeline
                               job-specs
                               job-title-prefix
                               fail-job
@@ -162,6 +162,32 @@ stopped here comes back to a queue that does not still hold this job."
     (else (make-build-step #:project project
                            #:branch-name branch-name
                            #:env env))))
+
+;;; ====== The tasks a job may ask for ======
+;;;
+;;; The names `run-pipeline-task' dispatches on, in the order the landing page
+;;; lists them, each with the reading of it a client is handed: the JSON API
+;;; answers with this list (`GET /api/v2/tasks'), because a job is Lisp that
+;;; names one of these, and a client writing that Lisp has to be told which
+;;; names exist.  They are kept beside the dispatch for the reason the dispatch
+;;; is one `cond' rather than two: a task that is dispatched and not listed is a
+;;; task nobody can find, and one that is listed and not dispatched is a job
+;;; that runs `make build' whatever the file said.
+;;;
+;;; A description is written here in the language of this source, and the page
+;;; writes its own in the reader's -- four of them, with GNU gettext -- so a
+;;; name added to the dispatch above is added here, and translating the reading
+;;; of it is a page's own business.
+(define pipeline-tasks
+  '(("maak-test" . "Run the test suite with Maak")
+    ("make-test" . "Run the test suite with Make")
+    ("pull-and-restart" . "Git pull, and restart the wanted GNU Shepherd service")
+    ("pull-and-deploy" . "Git pull, and run the deploy task")
+    ("maak-deploy" . "Run a deploy with Maak")
+    ("maak-build" . "Run a build with Maak")
+    ("make-build" . "Run a build with Make (the task a job that names none falls back to)")
+    ("byggsteg-version" . "Update byggsteg's own clone, and restart its GNU Shepherd daemon")
+    ("trivial" . "Run the commands the job's `trivial-cmds' field lists, as they are")))
 
 (define (job-spec? value)
   "Is VALUE one job: the alist of fields a job describes itself with?

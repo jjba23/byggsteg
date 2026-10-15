@@ -1,0 +1,2143 @@
+openapi: "3.1.0"
+info:
+  title: byggsteg
+  version: 2.0.0
+  summary: The JSON API of a byggsteg deployment.
+  description: >-
+    A running byggsteg deployment read from a program: the runs it has and the
+    runs it may be asked for, the output of a run while it is still being
+    written, the tarballs it kept, the profiles a job may be submitted from, the
+    accounts and their permissions, the search over the three tables, the year
+    of activity, and the upkeep the queue worker does on its own clock.
+
+
+    Every one of these is a reading of rows the console reads too, so an
+    endpoint and a page cannot come to say different things about the same run.
+    A token travels in the `x-bewaking-byggsteg` header -- the header the API
+    under `/api/v1` reads, and the one a script already sends -- and what it
+    holds is the same seven permissions the console checks, so an account that
+    may submit a job from a page may submit one from a script, and one that may
+    not cannot.
+
+  license:
+    name: GNU Affero General Public License v3.0 or later
+    identifier: AGPL-3.0-or-later
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+servers:
+  - url: /
+    description:
+      "The deployment the request is made to: every path below is served
+      under the address it was reached at, so a client needs no address of its
+      own."
+security:
+  - token: []
+tags:
+  - name: session
+    description: Signing in, and what the token that comes back is worth.
+  - name: deployment
+    description:
+      What this deployment is, what it may be asked for, and the document
+      that describes it.
+  - name: runs
+    description: A job asked for, watched, retried and removed.
+  - name: logs
+    description: The output a run wrote, read while it is still being written.
+  - name: artifacts
+    description: The tarballs a run kept.
+  - name: profiles
+    description: The jobs a reader saved, to submit them again.
+  - name: accounts
+    description: The accounts of this deployment, and what each of them may do.
+  - name: passwords
+    description: Asking for a reset link, following it, and what a password is worth.
+  - name: search
+    description: One question over the runs, the logs and the profiles.
+  - name: activity
+    description: A year of runs, as the console's activity grid draws it.
+  - name: maintenance
+    description: The passes the queue worker makes on its own clock, asked for now.
+  - name: preferences
+    description: "The one setting of the console that belongs to the client: the
+      language its pages are read in."
+paths:
+  /api/v2/login:
+    post:
+      operationId: signIn
+      tags:
+        - session
+      summary: Sign in, and be answered with a token.
+      description: >-
+        The email and the password of an account of this deployment, as the
+        console's own sign-in form sends them. What is answered is the token,
+        the account it was minted for, and what the token is worth -- the
+        permissions it carries and when it stops being read.
+
+
+        The token also travels as the `x-bewaking-byggsteg` response header,
+        which is where the API under `/api/v1` has always put it: a script
+        written against that one reads this one the same way. Every other
+        endpoint below takes it in that header as a request header.
+
+
+        An address this deployment does not know, and a password that does not
+        match, are one answer rather than two: nothing here says which addresses
+        are accounts.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignIn"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SignIn"
+      responses:
+        "200":
+          description:
+            "Signed in: the token, the account it was minted for, and the
+            session it carries."
+          headers:
+            x-bewaking-byggsteg:
+              description:
+                The token, so that a client that reads headers rather than bodies
+                has it.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                  - account
+                  - session
+                properties:
+                  token:
+                    type: string
+                  account:
+                    $ref: "#/components/schemas/Account"
+                  session:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/MissingField"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+  /api/v2/logout:
+    post:
+      operationId: signOut
+      tags:
+        - session
+      summary: Sign out of the session the token carries.
+      description:
+        "A token is self-contained -- it is read by decrypting it -- so a
+        deployment cannot take one back, and saying so is the honest answer:
+        what a client does is drop it. The console's own sign-out clears the
+        cookie it kept one in, which is the same act on the other carrier."
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+  /api/v2/me:
+    get:
+      operationId: readMe
+      tags:
+        - session
+      summary: The account the token belongs to, and what the token is worth.
+      description:
+        "A token outlives the account it was minted for: an account deleted
+        while it was signed in leaves a session that authenticates as nobody,
+        and what it is told is to sign in again."
+      responses:
+        "200":
+          description: The account, and the session.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - account
+                  - session
+                properties:
+                  account:
+                    $ref: "#/components/schemas/Account"
+                  session:
+                    $ref: "#/components/schemas/Session"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+  /api/v2/permissions:
+    get:
+      operationId: readPermissions
+      tags:
+        - accounts
+      summary: The permissions this deployment has, and the ones the token holds.
+      description:
+        "The ACL, read out rather than guessed at: a client that has to
+        send a permission -- to make an account, to change what one holds --
+        reads the names here. The session's own permissions are in the same
+        answer, which is how a client tells what it may do without being refused
+        to find out."
+      responses:
+        "200":
+          description: The vocabulary of the ACL, and what this token holds.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ACL"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+  /api/v2/deployment:
+    get:
+      operationId: readDeployment
+      tags:
+        - deployment
+      summary: What this deployment is, and how it is run.
+      description: >-
+        The names and the addresses every page is built from, so a client that
+        reads them reads the same deployment a reader does. The settings are the
+        ones an operator reading the API from a script wants to see before
+        asking for work: how long runs are kept, how many run at once, how long
+        a running job's output takes to arrive in its log.
+
+
+        No token is needed: a deployment's own name, its manual and the shape of
+        its API are what a client reads before it has an account.
+      security: []
+      responses:
+        "200":
+          description: The deployment.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+  /api/v2/tasks:
+    get:
+      operationId: readTasks
+      tags:
+        - deployment
+      summary: The job types a pipeline may ask for.
+      description:
+        A job is Lisp that names one of these, so a client writing that
+        Lisp has to be told which names exist. A description is written in the
+        language of the source rather than in the reader's -- a page translates,
+        and a document a script reads has one reading of it.
+      security: []
+      responses:
+        "200":
+          description: The tasks.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - tasks
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+  /api/v2/openapi.json:
+    get:
+      operationId: readOpenApiDocument
+      tags:
+        - deployment
+      summary: This document.
+      description:
+        The document a deployment serves is the document in its own clone,
+        so the two cannot come apart. A deployment that kept the server and not
+        its documentation answers 404 rather than with a document about an API
+        it may no longer be running.
+      security: []
+      responses:
+        "200":
+          description: The OpenAPI document, as JSON.
+          content:
+            application/json:
+              schema:
+                type: object
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/jobs:
+    get:
+      operationId: listRuns
+      tags:
+        - runs
+      summary: The runs of this deployment, newest first.
+      description:
+        "`running=true` is the other reading of the same resource: the runs
+        the queue worker has taken and not finished, oldest first, which is the
+        query the worker itself works from. That list is bounded by `limit` and
+        nothing else, since the worker re-reads it rather than paging through
+        it, so `offset` means nothing there; the answer says which of the two
+        readings it is rather than leaving a client to work it out from the
+        absence of rows."
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - name: running
+          in: query
+          required: false
+          description:
+            Ask for the runs that are still going rather than for the newest
+            runs. `true`, `1` and `yes` ask for it; anything else, or nothing at
+            all, asks for the newest runs.
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: A page of runs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunsPage"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+    post:
+      operationId: submitRun
+      tags:
+        - runs
+      summary: Ask for a run.
+      description: >-
+        The body carries one field, `job-code`: the Lisp a job is written as,
+        which is exactly what the console's form posts and what the API under
+        `/api/v1` takes. There is deliberately no JSON dialect of a job beside
+        it -- a pipeline is Lisp in this deployment, and a second way of saying
+        one would be a second thing to keep in step with the worker.
+
+
+        What is answered is the run and the log its output will arrive in: the
+        id a client polls.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobSubmission"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/JobSubmission"
+      responses:
+        "201":
+          description: The run was queued.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunAndLog"
+        "400":
+          $ref: "#/components/responses/MissingField"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v2/jobs/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+    get:
+      operationId: readRun
+      tags:
+        - runs
+      summary: One run, whole.
+      description:
+        The row itself, the Lisp it was asked to run, the logs its output
+        went into, and the tarballs it collected.
+      responses:
+        "200":
+          description: The run.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunDetail"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: removeRun
+      tags:
+        - runs
+      summary: Remove a run.
+      description:
+        "A run is removed whole: its tarballs' rows, its logs and the job
+        row in one transaction, and the tarballs themselves once it has
+        committed. What is answered is that the run is gone rather than an
+        object describing what went."
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/jobs/{id}/retry:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+    post:
+      operationId: retryRun
+      tags:
+        - runs
+      summary: Ask for a run again.
+      description:
+        A retry is a run of its own rather than the old row going again, so
+        what is answered is the new run and the log its output will arrive in --
+        the id a client polls. The job it retries goes on saying what it said.
+      responses:
+        "201":
+          description: The new run was queued.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunAndLog"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/logs:
+    get:
+      operationId: listLogs
+      tags:
+        - logs
+      summary: The output of a deployment's runs, newest first.
+      description:
+        The list is read from the logs, because a run is read on the page
+        of the log it wrote. A log whose job is gone -- the half of a run a
+        removal that did not go whole can leave, and which the worker sweeps --
+        is answered with `null` for the run rather than dropped.
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: A page of logs, each with the run behind it.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogsPage"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+  /api/v2/logs/{id}:
+    get:
+      operationId: readLog
+      tags:
+        - logs
+      summary: One run's output, and the polling reading of it.
+      description: >-
+        `have` is the `length` of the log the client was last sent, which is the
+        same number the console's own pane polls with: a client that already has
+        it is told that nothing has changed -- `changed` is `false` and no text
+        is sent -- rather than handed the output again to say so.
+
+
+        `view` chooses which of the two readings of it is sent: `rendered` (the
+        default) is the output read the way a terminal would have left it, and
+        `raw` is what the command actually wrote, with the control characters
+        spelled out.
+      parameters:
+        - $ref: "#/components/parameters/LogId"
+        - $ref: "#/components/parameters/Have"
+        - $ref: "#/components/parameters/View"
+      responses:
+        "200":
+          description:
+            The log, the run behind it, what the run kept, and the reading of
+            its output.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogDetail"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/artifacts:
+    get:
+      operationId: listArtifacts
+      tags:
+        - artifacts
+      summary: The tarballs this deployment kept, newest first.
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: A page of tarballs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtifactsPage"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+  /api/v2/artifacts/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ArtifactId"
+    get:
+      operationId: readArtifact
+      tags:
+        - artifacts
+      summary: One tarball a run kept.
+      responses:
+        "200":
+          description: The tarball.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - artifact
+                properties:
+                  artifact:
+                    $ref: "#/components/schemas/Artifact"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/artifacts/{id}/download:
+    parameters:
+      - $ref: "#/components/parameters/ArtifactId"
+    get:
+      operationId: downloadArtifact
+      tags:
+        - artifacts
+      summary: The bytes of one tarball.
+      description:
+        "The bytes, answered as bytes rather than as a document. Nothing is
+        asked of the caller, which is the reading the console's own download is
+        given: the log and the job data a tarball was built from are public
+        pages of this deployment. What is checked is the one thing a row must
+        not be able to do -- name a file outside the directory artifacts are
+        written to."
+      security: []
+      responses:
+        "200":
+          description:
+            The tarball, as a gzip stream, offered as a download under the name
+            it is titled with.
+          headers:
+            content-disposition:
+              description: "`attachment`, with the tarball's title as the file name."
+              schema:
+                type: string
+          content:
+            application/gzip:
+              schema:
+                type: string
+                contentEncoding: base64
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/profiles:
+    get:
+      operationId: listProfiles
+      tags:
+        - profiles
+      summary: The jobs this deployment has saved.
+      responses:
+        "200":
+          description: The profiles.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - profiles
+                  - count
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Profile"
+                  count:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+    post:
+      operationId: saveProfile
+      tags:
+        - profiles
+      summary: Save a profile, or replace the one that name holds.
+      description:
+        "Saving a profile is the submission the console's own form makes,
+        field for field: a name, and the job's Lisp. A name that is already
+        saved is the profile that name, and what arrives replaces what it held
+        -- which is why the answer says whether this was a new profile or an
+        edit of an old one rather than leaving a client to guess from the status
+        alone."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileSubmission"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ProfileSubmission"
+      responses:
+        "200":
+          description: The profile that name held was replaced.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedProfile"
+        "201":
+          description: A new profile was saved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedProfile"
+        "400":
+          $ref: "#/components/responses/MissingField"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v2/profiles/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    get:
+      operationId: readProfile
+      tags:
+        - profiles
+      summary: One saved profile.
+      responses:
+        "200":
+          description: The profile.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - profile
+                properties:
+                  profile:
+                    $ref: "#/components/schemas/Profile"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: removeProfile
+      tags:
+        - profiles
+      summary: Remove a saved profile.
+      description:
+        The row is read before it is removed, so that an id which names no
+        profile is answered as a path that names none rather than as a removal
+        that happened to remove nothing.
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/users:
+    get:
+      operationId: listAccounts
+      tags:
+        - accounts
+      summary: The accounts of this deployment.
+      description:
+        The two columns that make an account sign-in-able -- the hash of
+        its password and the salt that hash was taken with -- are not read here
+        at all, and no answer of this API carries them.
+      responses:
+        "200":
+          description: The accounts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - users
+                  - count
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Account"
+                  count:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createAccount
+      tags:
+        - accounts
+      summary: Make an account, and mail it a link to set its password.
+      description: >-
+        The account is put in without a password, and what its holder needs to
+        sign in is the link this mails them -- so whether the mail service took
+        it is part of the answer, and is reported rather than assumed.
+
+
+        `permissions` left out means every permission, which is what the
+        console's own boxes are drawn pre-checked with. A permission this
+        deployment does not have is refused by name rather than stored, since a
+        stored name nothing asks about is a permission its holder does not have
+        and cannot see why.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountSubmission"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/AccountSubmission"
+      responses:
+        "201":
+          description:
+            The account was made. `invitation-sent` says whether the link to
+            set its password was mailed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - user
+                  - invitation-sent
+                properties:
+                  user:
+                    $ref: "#/components/schemas/Account"
+                  invitation-sent:
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/MissingField"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v2/users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AccountId"
+    get:
+      operationId: readAccount
+      tags:
+        - accounts
+      summary: One account.
+      responses:
+        "200":
+          description: The account.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - user
+                properties:
+                  user:
+                    $ref: "#/components/schemas/Account"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: changeAccount
+      tags:
+        - accounts
+      summary: Change an account.
+      description: "Every field is optional, and only the ones that arrive are
+        written: a client that changes a username is not also asked to send the
+        permissions it does not want to touch. A request that sends none of the
+        three is refused rather than answered as a change that changed nothing."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountChange"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/AccountChange"
+      responses:
+        "200":
+          description: The account, as it now is.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - user
+                properties:
+                  user:
+                    $ref: "#/components/schemas/Account"
+        "400":
+          $ref: "#/components/responses/MissingField"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: removeAccount
+      tags:
+        - accounts
+      summary: Remove an account.
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/password/resets:
+    post:
+      operationId: requestPasswordReset
+      tags:
+        - passwords
+      summary: Ask for a link that sets a password.
+      description: >-
+        The console's own reset button and its sign-in page's form in one
+        endpoint: an address in the body, or -- for a session already signed in
+        -- the account that session belongs to.
+
+
+        The answer is the same whether or not that address has an account here,
+        which is not what the page answers: the page tells a reader that a link
+        is on its way and names the box it is going to, and this does not,
+        because an endpoint that told a script which addresses are accounts of
+        this deployment would be a way of listing its users that takes no
+        permission at all.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ResetRequest"
+      responses:
+        "202":
+          description:
+            "The ask was accepted. Whether a link was sent is not said: an
+            answer that told a client which addresses are accounts of this
+            deployment would be a way of listing its users that takes no
+            permission at all."
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    const: accepted
+  /api/v2/password/resets/{token}:
+    parameters:
+      - $ref: "#/components/parameters/ResetToken"
+    get:
+      operationId: readPasswordReset
+      tags:
+        - passwords
+      summary:
+        "What a reset link is: whose password it sets, and how long it is worth
+        following."
+      description:
+        The row a token names is the only thing either the page that opens
+        the link or the submission behind it goes on, and this is the same
+        reading. A link older than the week a reset is worth is answered as one
+        that names no reset this deployment can still use.
+      security: []
+      responses:
+        "200":
+          description: The link.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResetLink"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      operationId: setPasswordFromReset
+      tags:
+        - passwords
+      summary: Set the password a reset link is for.
+      description: >-
+        The rules are the ones the console's form lists and its own submission
+        enforces, read from one place, so a password a script is refused for is
+        one the page would refuse too. What a refusal says is the rules that
+        were missed, by name, because that is what a client has to act on.
+
+
+        One link sets one password: every reset that account had is removed with
+        it, so the address cannot be followed a second time.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewPassword"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/NewPassword"
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "400":
+          $ref: "#/components/responses/MissingField"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v2/password/strength:
+    post:
+      operationId: readPasswordStrength
+      tags:
+        - passwords
+      summary: What a password is worth.
+      description:
+        "As the console's own form reads it while it is typed -- the same
+        function the page's live check and the submission that sets a password
+        both work from. It is public because the form that draws it is: it is a
+        reading of the password it was sent, and nothing of this deployment."
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        "200":
+          description: The reading.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasswordStrength"
+  /api/v2/search:
+    get:
+      operationId: search
+      tags:
+        - search
+      summary: One question over the runs, the logs and the profiles.
+      description:
+        "The three groups are the three tables, in the shape their own
+        pages list them: the runs, each with the log it wrote and the windows of
+        text the word was found in; the logs; and the profiles. An empty query
+        is answered with three empty groups rather than with the whole
+        deployment, which is what the search page answers too."
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description:
+            The word to look for. Nothing at all is an empty query, and is
+            answered with three empty groups rather than with the whole
+            deployment.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description:
+            How many rows of each group to read. The deployment's own search
+            limit is the default, and the ceiling is the most a page may be.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: What this deployment has to say about the query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchAnswer"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+  /api/v2/activity:
+    get:
+      operationId: readActivity
+      tags:
+        - activity
+      summary: A year of runs.
+      description:
+        "The grid the activity page draws, handed on as it is: the columns
+        of the year, each with its seven days, and for every day that has
+        happened the date, how many runs were queued on it and how dark its
+        square is. A day that has not happened yet is `null` rather than a day
+        with nothing on it, which is the distinction the drawing makes and a
+        client has to keep: a day in the future is not a day with no runs."
+      responses:
+        "200":
+          description: The grid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+  /api/v2/maintenance/sweep-artifacts:
+    post:
+      operationId: sweepArtifacts
+      tags:
+        - maintenance
+      summary: Remove the tarballs no row names.
+      description:
+        "The pass the worker makes on its own clock, asked for now: an
+        operator who has just shortened a retention, or whose worker has not
+        been running, does not have to wait for the day the worker would have
+        got to it."
+      responses:
+        "200":
+          description: The paths that were removed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - removed
+                  - count
+                properties:
+                  removed:
+                    type: array
+                    items:
+                      type: string
+                  count:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v2/maintenance/prune-runs:
+    post:
+      operationId: pruneRuns
+      tags:
+        - maintenance
+      summary: Remove the runs that have outlived the retention.
+      description:
+        "The runs are gone by the time they are answered, so each is the
+        row it was: what a client is told is the run that was removed, and its
+        log went with it."
+      responses:
+        "200":
+          description: The runs that were pruned, and the retention they were read against.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - pruned
+                  - count
+                  - retention-days
+                properties:
+                  pruned:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Run"
+                  count:
+                    type: integer
+                  retention-days:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v2/maintenance/sweep-logs:
+    post:
+      operationId: sweepLogs
+      tags:
+        - maintenance
+      summary: Remove the logs whose job is gone.
+      description:
+        "A log with no job is not a run waiting for its half to arrive: it
+        is what a removal that did not go whole left behind. This is the pass
+        that heals such a deployment."
+      responses:
+        "200":
+          description: The logs that were removed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - removed
+                  - count
+                properties:
+                  removed:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Log"
+                  count:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v2/preferences/locale:
+    post:
+      operationId: chooseLocale
+      tags:
+        - preferences
+      summary: Choose the language the console's pages are read in.
+      description:
+        "The one setting of the console that is a setting of the client's
+        rather than of the deployment: a language, kept in the cookie the pages
+        read. It is here because a client that drives a deployment through this
+        API may also be showing a reader its pages, and one way of saying which
+        language is better than two."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - locale
+              properties:
+                locale:
+                  type: string
+                  description:
+                    One of the codes this deployment answers with (`GET
+                    /api/v2/deployment`).
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - locale
+              properties:
+                locale:
+                  type: string
+      responses:
+        "200":
+          description: The language that was chosen, and the ones this console speaks.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - locale
+                  - locales
+                properties:
+                  locale:
+                    type: string
+                  locales:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Locale"
+        "400":
+          $ref: "#/components/responses/MissingField"
+        "401":
+          $ref: "#/components/responses/NotSignedIn"
+components:
+  securitySchemes:
+    token:
+      type: apiKey
+      in: header
+      name: x-bewaking-byggsteg
+      description:
+        The token a sign-in answers with, sent back on every request that
+        needs one. It is the header the API under `/api/v1` reads, so a script
+        written against that one sends this one the same way.
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description:
+        "How many rows to read. The page's own size is the default. A limit
+        that is not a number, or one outside the bounds, is answered with the
+        bound rather than with an error: what a client asked for is a page, and
+        a page of nothing because a parameter was mistyped is not one."
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 24
+    Offset:
+      name: offset
+      in: query
+      required: false
+      description: How many rows to pass over before the page starts.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Have:
+      name: have
+      in: query
+      required: false
+      description:
+        The `length` of the log the client was last sent. A client that
+        already has it is told that nothing has changed rather than handed the
+        output again.
+      schema:
+        type: integer
+        minimum: 0
+    View:
+      name: view
+      in: query
+      required: false
+      description:
+        "Which reading of the output to send: `rendered` is the output read
+        the way a terminal would have left it, and `raw` is what the command
+        actually wrote."
+      schema:
+        type: string
+        enum:
+          - rendered
+          - raw
+        default: rendered
+    RunId:
+      name: id
+      in: path
+      required: true
+      description: The id of a run, as `/api/v2/jobs` and `/api/v2/logs` answer with it.
+      schema:
+        type: string
+    LogId:
+      name: id
+      in: path
+      required: true
+      description: The id of a log, as `/api/v2/logs` answers with it.
+      schema:
+        type: string
+    ArtifactId:
+      name: id
+      in: path
+      required: true
+      description: The id of a tarball, as `/api/v2/artifacts` answers with it.
+      schema:
+        type: string
+    ProfileId:
+      name: id
+      in: path
+      required: true
+      description: The id of a saved profile.
+      schema:
+        type: string
+    AccountId:
+      name: id
+      in: path
+      required: true
+      description: The id of an account, as `/api/v2/users` answers with it.
+      schema:
+        type: string
+    ResetToken:
+      name: token
+      in: path
+      required: true
+      description: The token of a password reset, as the link that was mailed carries it.
+      schema:
+        type: string
+  responses:
+    NoContent:
+      description:
+        "The request did its work and has nothing to say. A removal answers
+        this rather than an object describing what is gone: the thing the client
+        named is not there any more, which is the whole of the answer."
+      content: {}
+    NotSignedIn:
+      description:
+        "No token, or one this deployment cannot read. A client that reads
+        this signs in again: `POST /api/v2/login` answers with a token, which
+        travels in the `x-bewaking-byggsteg` header."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description:
+        "A readable token that holds none of what the endpoint takes, with
+        the permission it is missing named in the answer. Signing in again as
+        the same account changes nothing: a permission is what the account's
+        holder has to be given."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: The path names nothing this deployment has, or names one it cannot serve.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    MissingField:
+      description:
+        "The request is wrong: a field it needs is missing, a name this
+        deployment has no permission for was sent, or the reading it asked for
+        is not one this deployment answers. The answer names what was wrong,
+        because that is what a caller can act on."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ServerError:
+      description:
+        This deployment could not answer. A body that raised is answered as
+        this rather than as the console's HTML status page, because a client
+        parsing JSON has to be handed something it can act on; the deployment's
+        own log says what raised.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    SignIn:
+      type: object
+      description: The email and the password of an account of this deployment.
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    Error:
+      type: object
+      description:
+        The shape every refusal is answered with -- the one the API under
+        `/api/v1` answers with too, so a script written against one reads the
+        other.
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: What went wrong, in a sentence a client can show or act on.
+        details:
+          type: object
+          description:
+            The extra reading a refusal a client has to act on carries -- the
+            rules a password missed, say -- and is left out of the answer when
+            there is nothing to say.
+    Run:
+      type: object
+      description: "A run, as a page lists it and as this API reads it: the row
+        itself, with the status its own page labels it with and the log its
+        output is read in."
+      required:
+        - id
+        - title
+        - status
+        - created-at
+        - updated-at
+        - log-id
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+          description:
+            "The name the run was queued under: the project it is about, or
+            `pipeline`, or `trivial` for one that runs bare commands."
+        status:
+          type: string
+          description:
+            "One word, read from the three flags a run carries in the order a
+            page reads them: a run that finished well, one that failed, one that
+            is still going, and -- for a row the worker has taken and not
+            started -- one that is queued."
+          enum:
+            - succeeded
+            - failed
+            - running
+            - queued
+        created-at:
+          type:
+            - integer
+            - "null"
+          description:
+            When the run was queued, in seconds since 1970-01-01, or `null` for
+            a row that carries no date.
+        updated-at:
+          type:
+            - integer
+            - "null"
+          description: When the run was last written, or `null` while it is still going.
+        log-id:
+          type:
+            - string
+            - "null"
+          description:
+            "The log the run wrote, or `null` for a run whose log row is gone:
+            a client that finds the field is told the run has no page to read,
+            and one that found nothing would have to guess."
+    Log:
+      type: object
+      description: The output one run wrote.
+      required:
+        - id
+        - title
+        - run-id
+        - created-at
+        - updated-at
+        - length
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        run-id:
+          type: string
+          description:
+            "The run this log belongs to. The relationship is held the other
+            way round in the database: a log row names the job it belongs to,
+            and a job row names nothing."
+        created-at:
+          type:
+            - integer
+            - "null"
+        updated-at:
+          type:
+            - integer
+            - "null"
+        length:
+          type: integer
+          description:
+            "The size of the stored output, in characters, which is the number
+            the page's own pane polls with: a client that sends it back as
+            `have` is told whether anything has been written since."
+    RunLogPair:
+      type: object
+      description:
+        A log, with the run behind it. The run is `null` for a log whose
+        job is gone.
+      required:
+        - log
+        - run
+      properties:
+        log:
+          $ref: "#/components/schemas/Log"
+        run:
+          oneOf:
+            - $ref: "#/components/schemas/Run"
+            - type: "null"
+    Output:
+      type: object
+      description:
+        The reading of a run's output, and whether it has changed since the
+        client last read it.
+      required:
+        - length
+        - in-progress
+        - view
+        - changed
+      properties:
+        length:
+          type: integer
+        in-progress:
+          type: boolean
+          description: Whether the run is still writing. A client polls while it is.
+        view:
+          type: string
+          enum:
+            - rendered
+            - raw
+        changed:
+          type: boolean
+          description:
+            "`false` when the client sent a `have` that is this log's length,
+            which is when `text` is left out of the answer."
+        text:
+          type: string
+          description:
+            The output, in the reading `view` asked for. Left out, rather than
+            empty, when nothing has changed.
+    Artifact:
+      type: object
+      description: A tarball a run kept.
+      required:
+        - id
+        - run-id
+        - title
+        - size
+        - created-at
+        - download-url
+      properties:
+        id:
+          type: string
+        run-id:
+          type: string
+        title:
+          type: string
+          description:
+            "The name the tarball is offered under: the name the bundle was
+            given, or the run's own title for the bundle that was not named."
+        size:
+          type: integer
+          description: How many bytes the tarball is.
+        created-at:
+          type:
+            - integer
+            - "null"
+        download-url:
+          type: string
+          description:
+            A path on this deployment rather than an absolute address, so that
+            it is right for the host the client reached, whatever a deployment
+            named as its public address.
+    Profile:
+      type: object
+      description: A job a reader saved, to submit it again.
+      required:
+        - id
+        - title
+        - data
+        - created-at
+        - updated-at
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        data:
+          type: string
+          description: The job's Lisp.
+        created-at:
+          type:
+            - integer
+            - "null"
+        updated-at:
+          type:
+            - integer
+            - "null"
+    Account:
+      type: object
+      description: An account of this deployment. The two columns that make it
+        sign-in-able -- the hash of its password and the salt that hash was
+        taken with -- are not read here at all, and no answer of this API
+        carries them.
+      required:
+        - id
+        - username
+        - email
+        - permissions
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        permissions:
+          type: array
+          description:
+            "The permissions the account holds, read against the vocabulary of
+            the ACL: a row that carries a name this deployment has no permission
+            for is read as the permissions it really names and no others."
+          items:
+            type: string
+    Session:
+      type: object
+      description: What the token behind a request is worth.
+      required:
+        - permissions
+        - expires-at
+      properties:
+        permissions:
+          type: array
+          description:
+            "The permissions the token was minted with, which is what every
+            guard in this deployment asks of it: an account whose permissions
+            were changed keeps the ones it signed in with until it signs in
+            again."
+          items:
+            type: string
+        expires-at:
+          type:
+            - integer
+            - "null"
+          description:
+            "When the token stops being read, in seconds since 1970-01-01: the
+            instant a client has to sign in again by."
+    ACL:
+      type: object
+      description: The permission model of this deployment.
+      required:
+        - permissions
+        - held
+      properties:
+        permissions:
+          type: array
+          items:
+            type: string
+        held:
+          type: array
+          items:
+            type: string
+    Locale:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+    Task:
+      type: object
+      description: A job type a pipeline may ask for.
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Deployment:
+      type: object
+      description: What this deployment is, and how it is run.
+      required:
+        - name
+        - description
+        - logo-url
+        - source-url
+        - manual-url
+        - documentation-url
+        - public-url
+        - asset-base-url
+        - locales
+        - capabilities
+        - api
+        - retention
+        - jobs
+        - artifacts
+        - search
+        - activity
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        logo-url:
+          type: string
+        source-url:
+          type: string
+        manual-url:
+          type: string
+        documentation-url:
+          type: string
+        public-url:
+          type: string
+          description:
+            "The address this deployment calls itself by, without a trailing
+            slash: its own name for itself where it named one, and the host the
+            request arrived on otherwise."
+        asset-base-url:
+          type: string
+        locales:
+          type: array
+          items:
+            $ref: "#/components/schemas/Locale"
+        capabilities:
+          type: array
+          description:
+            The readings this deployment has. A client that finds the list
+            different from the one it was written against knows which of its
+            calls are worth making.
+          items:
+            type: string
+        api:
+          type: object
+          required:
+            - version
+            - base
+            - spec
+            - documentation
+          properties:
+            version:
+              type: string
+              const: "2"
+            base:
+              type: string
+              const: /api/v2
+            spec:
+              type: string
+            documentation:
+              type: string
+        retention:
+          type: object
+          required:
+            - days
+            - interval-seconds
+            - batch
+          properties:
+            days:
+              type: integer
+            interval-seconds:
+              type: integer
+            batch:
+              type: integer
+        jobs:
+          type: object
+          required:
+            - concurrency
+            - sweep-limit
+            - log-stream-batch-size
+            - worker-pause-seconds
+          properties:
+            concurrency:
+              type: integer
+            sweep-limit:
+              type: integer
+            log-stream-batch-size:
+              type: integer
+            worker-pause-seconds:
+              type: number
+        artifacts:
+          type: object
+          required:
+            - sweep-interval-seconds
+            - sweep-grace-seconds
+          properties:
+            sweep-interval-seconds:
+              type: integer
+            sweep-grace-seconds:
+              type: integer
+        search:
+          type: object
+          required:
+            - result-limit
+          properties:
+            result-limit:
+              type: integer
+        activity:
+          type: object
+          required:
+            - weeks
+          properties:
+            weeks:
+              type: integer
+    RunsPage:
+      type: object
+      description:
+        A page of runs. `running` says which of the two readings of the
+        resource this is, rather than leaving a client to work it out from the
+        absence of rows.
+      required:
+        - runs
+        - running
+        - limit
+        - offset
+        - count
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Run"
+        running:
+          type: boolean
+        limit:
+          type: integer
+        offset:
+          type: integer
+        count:
+          type: integer
+          description: How many rows this page carries.
+    RunDetail:
+      type: object
+      description: One run, whole.
+      required:
+        - run
+        - job-code
+        - logs
+        - artifacts
+      properties:
+        run:
+          $ref: "#/components/schemas/Run"
+        job-code:
+          type: string
+          description: The Lisp the run was asked to run, as it was sent.
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Log"
+        artifacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Artifact"
+    RunAndLog:
+      type: object
+      description: A run that was just queued, and the log its output will arrive in.
+      required:
+        - run
+        - log
+      properties:
+        run:
+          $ref: "#/components/schemas/Run"
+        log:
+          oneOf:
+            - $ref: "#/components/schemas/Log"
+            - type: "null"
+    LogsPage:
+      type: object
+      required:
+        - logs
+        - limit
+        - offset
+        - count
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RunLogPair"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        count:
+          type: integer
+    LogDetail:
+      type: object
+      required:
+        - log
+        - run
+        - artifacts
+        - output
+      properties:
+        log:
+          $ref: "#/components/schemas/Log"
+        run:
+          $ref: "#/components/schemas/Run"
+        artifacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Artifact"
+        output:
+          $ref: "#/components/schemas/Output"
+    ArtifactsPage:
+      type: object
+      required:
+        - artifacts
+        - limit
+        - offset
+        - count
+      properties:
+        artifacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Artifact"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        count:
+          type: integer
+    JobSubmission:
+      type: object
+      description:
+        "A job, written as it is always written in this deployment: Lisp
+        that evaluates to a thunk, whose value is the alist of fields the work
+        is described by."
+      required:
+        - job-code
+      properties:
+        job-code:
+          type: string
+    ProfileSubmission:
+      type: object
+      required:
+        - title
+        - data
+      properties:
+        title:
+          type: string
+        data:
+          type: string
+          description: The job's Lisp.
+    SavedProfile:
+      type: object
+      description:
+        "The profile that was saved, and whether it is a new one: a name
+        that was already saved is the profile that name, and what arrived
+        replaced what it held."
+      required:
+        - profile
+        - created
+      properties:
+        profile:
+          $ref: "#/components/schemas/Profile"
+        created:
+          type: boolean
+    AccountSubmission:
+      type: object
+      description:
+        An account to make. The account is put in without a password, and
+        what its holder needs to sign in is the link this mails them.
+      required:
+        - username
+        - email
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        permissions:
+          type: array
+          description:
+            Left out means every permission this deployment has, which is what
+            the console's own boxes are drawn pre-checked with.
+          items:
+            type: string
+    AccountChange:
+      type: object
+      description:
+        A change to an account. Every field is optional, and only the ones
+        that arrive are written; a request that sends none of the three is
+        refused.
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        permissions:
+          type: array
+          items:
+            type: string
+    ResetRequest:
+      type: object
+      description:
+        "An address to send a reset link to. A session already signed in
+        needs no field at all: the account that session belongs to is the one
+        the link is for."
+      properties:
+        email:
+          type: string
+          format: email
+    ResetLink:
+      type: object
+      description:
+        "A reset link, read before it is used: whose password it sets, and
+        how long it is worth following."
+      required:
+        - token
+        - account-id
+        - email
+        - created-at
+        - expires-at
+      properties:
+        token:
+          type: string
+        account-id:
+          type: string
+        email:
+          type: string
+          format: email
+        created-at:
+          type:
+            - integer
+            - "null"
+        expires-at:
+          type:
+            - integer
+            - "null"
+          description:
+            The instant the link stops working, worked out from the row and the
+            week a reset is worth.
+    NewPassword:
+      type: object
+      required:
+        - new-password
+      properties:
+        new-password:
+          type: string
+        confirm-password:
+          type: string
+          description:
+            "Optional, and the console's own two-field check when it is sent:
+            it has to match `new-password`."
+    PasswordStrength:
+      type: object
+      description:
+        What a password is worth, as the console's own form reads it while
+        it is typed.
+      required:
+        - score
+        - label
+        - length
+        - missing
+        - strong-enough
+      properties:
+        score:
+          type: integer
+        label:
+          type: string
+          description: One word for the score, as the form labels it.
+        length:
+          type: integer
+        missing:
+          type: array
+          description:
+            The rules the password does not yet meet, by name, which is what a
+            client has to act on.
+          items:
+            type: string
+        strong-enough:
+          type: boolean
+    Excerpt:
+      type: object
+      description: The window of text a search found its word in.
+      required:
+        - field
+        - text
+      properties:
+        field:
+          type: string
+          description: "The column it was read from: `job-code`, `output` or `data`."
+        text:
+          type: string
+    SearchRun:
+      type: object
+      required:
+        - run
+        - log
+        - excerpts
+      properties:
+        run:
+          $ref: "#/components/schemas/Run"
+        log:
+          oneOf:
+            - $ref: "#/components/schemas/Log"
+            - type: "null"
+        excerpts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Excerpt"
+    SearchLog:
+      type: object
+      required:
+        - log
+        - excerpts
+      properties:
+        log:
+          $ref: "#/components/schemas/Log"
+        excerpts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Excerpt"
+    SearchProfile:
+      type: object
+      required:
+        - profile
+        - excerpts
+      properties:
+        profile:
+          $ref: "#/components/schemas/Profile"
+        excerpts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Excerpt"
+    SearchAnswer:
+      type: object
+      description: What this deployment has to say about one question.
+      required:
+        - query
+        - limit
+        - jobs
+        - logs
+        - profiles
+      properties:
+        query:
+          type: string
+        limit:
+          type: integer
+        jobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchRun"
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchLog"
+        profiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchProfile"
+    ActivityCell:
+      type: object
+      description:
+        "One day of the year, or `null` for a day that has not happened
+        yet: a day in the future is not a day with no runs."
+      required:
+        - day
+        - count
+        - level
+      properties:
+        day:
+          type: string
+          description: The date, as `YYYY-MM-DD`.
+        count:
+          type: integer
+          description: How many runs were queued on it.
+        level:
+          type: integer
+          description: How dark its square is drawn, against the busiest day of the year.
+    ActivityColumn:
+      type: object
+      description: "One week of the year: seven days, oldest first."
+      required:
+        - days
+      properties:
+        days:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/ActivityCell"
+              - type: "null"
+    Activity:
+      type: object
+      description: The grid the activity page draws.
+      required:
+        - weeks
+        - months
+        - total
+        - max
+        - columns
+      properties:
+        weeks:
+          type: integer
+          description: How many weeks of the year the grid covers.
+        months:
+          type: array
+          description: The month each stretch of columns begins, as `(column, name)`.
+          items:
+            type: object
+            required:
+              - column
+              - name
+            properties:
+              column:
+                type: integer
+              name:
+                type: string
+        total:
+          type: integer
+          description: How many runs the year holds.
+        max:
+          type: integer
+          description: The busiest day of the year, which every square is drawn against.
+        columns:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityColumn"
