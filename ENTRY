@@ -45,6 +45,8 @@
                              js
                              json
                              csv
+                             yaml
+                             yml
                              xml
                              css
                              woff
