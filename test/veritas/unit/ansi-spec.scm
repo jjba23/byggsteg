@@ -149,6 +149,50 @@
                                  "deco"))
                 #:got (ansi->sxml "\x1b[4;3;9mdeco\x1b[0m")))
 
+         ;; The two colours a command can ask for that the palette has no ramp
+         ;; for: a terminal's white is a reading of the stone ramp here, and
+         ;; neither white nor black is ever the browser's own -- the console is
+         ;; built out of Olive's utilities and nothing else, and `white' and
+         ;; `black' are the two the sheet carries as themselves.  A reader of a
+         ;; dark page is the one this matters to: a `\x1b[97m' drawn at
+         ;; `dark:text-stone-100' is 0.99 of lightness, brighter than anything
+         ;; else the console says, and is exactly the near-white this palette
+         ;; answers with the *step below* it instead.
+         (test "the light end of the palette is the palette's own"
+               #:shuffle? #f
+               (assert-equal #:name
+                "white ink is the pale end of the stone ramp"
+                #:expect '((span (@ (class "dark:text-stone-500 text-onyx-500"))
+                                 "white"))
+                #:got (ansi->sxml "\x1b[37mwhite\x1b[0m"))
+               (assert-equal #:name
+                "and its bright half the step above it, not the sheet's white"
+                #:expect '((span (@ (class "dark:text-stone-300 text-onyx-300"))
+                                 "bright"))
+                #:got (ansi->sxml "\x1b[97mbright\x1b[0m"))
+               (assert-equal #:name
+                "a white ground is the console's panel paint, its bright half the paper"
+                #:expect '((span (@ (class "bg-stone-300")) "white")
+                           (span (@ (class "bg-stone-100")) "bright"))
+                #:got (append (ansi->sxml "\x1b[47mwhite\x1b[0m")
+                              (ansi->sxml "\x1b[107mbright\x1b[0m")))
+               (assert-not-contains #:name
+                "and no colour of the sixteen is the browser's white or black"
+                #:expect (render "\x1b[30;40;37;47;90;100;97;107mx\x1b[0m")
+                #:got "bg-white")
+               (assert-not-contains #:name
+                "nor the ink it draws its own text in"
+                #:expect (render "\x1b[30;40;37;47;90;100;97;107mx\x1b[0m")
+                #:got "text-white")
+               (assert-not-contains #:name
+                "and nothing at all is grounded in the sheet's black"
+                #:expect (render "\x1b[30;40;37;47;90;100;97;107mx\x1b[0m")
+                #:got "bg-black")
+               (assert-not-contains #:name
+                "nor drawn in it"
+                #:expect (render "\x1b[30;40;37;47;90;100;97;107mx\x1b[0m")
+                #:got "text-black"))
+
          (test "a colour a class cannot name is written where it is exact"
                #:shuffle? #f
                (assert-equal #:name

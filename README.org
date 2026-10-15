@@ -1,56 +1,160 @@
-#+title: byggsteg - manual & documentation
+#+title: byggsteg
+#+subtitle: the CI/CD orchestrator you can read, run and replace
 #+author: Josep Bigorra
 #+email: jjbigorra@gmail.com
 #+language: en
-#+options: html-style:nil
+#+options: toc:nil num:nil html-style:nil
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://jointhefreeworld.org/static/css/jointhefreeworld.css" />
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" />
 
 [[https://jointhefreeworld.org/ggg/dist/scheme-guile.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-guix.svg]]
-[[https://jointhefreeworld.org/ggg/dist/license-agpl3+.svg]]    [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/maak.svg]]  [[https://jointhefreeworld.org/ggg/dist/gnu-artanis.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]]
+[[https://jointhefreeworld.org/ggg/dist/license-agpl3+.svg]] [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/maak.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-artanis.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]] [[https://img.shields.io/badge/CI-Byggsteg%20%7C%20Woodpecker-2ea44f.svg]]
 
-This is the byggsteg manual, and it is also the project's README: one document, so that a reader has one place to look and the two cannot come to say different things.
+/a build step, in Lisp: describe your pipeline as a list, and byggsteg runs it/
 
-byggsteg is a CI/CD orchestrator written in Lisp (Guile Scheme). It leverages SXML, SQLite3, some POSIX / UNIX utilities, and the mighty GNU Artanis web-framework.
+byggsteg is a continuous integration and delivery system written in Scheme (GNU
+Guile).  You hand it Lisp, it clones a repository, runs the steps that Lisp asks
+for, streams what they print while they are printing it, keeps what they built,
+and tells you how it went.  It is small enough to read in an afternoon and yours
+to hack -- on your own machine, under your own licence, with no account anywhere
+else.
+
+#+name: byggsteg-showcase
+#+caption: The landing page, the jobs a pipeline can ask for, a search across jobs, logs and profiles, the saved profiles, a year of runs in both themes, and a list of runs with the console's retry offered on one of them.
+[[https://codeberg.org/jjba23/byggsteg/raw/branch/trunk/docs/byggsteg-showcase.gif]]
+
+- 🌍 *Watch it run:* [[https://byggsteg.jointhefreeworld.org][byggsteg.jointhefreeworld.org]]
+- 📖 *Read this document rendered as HTML:* [[https://jointhefreeworld.org/manuals/byggsteg/][the byggsteg manual]]
+- 💾 *Read the source (and send patches):* [[https://codeberg.org/jjba23/byggsteg][codeberg.org/jjba23/byggsteg]]
+- 🗺️ *Follow what is next:* [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][the byggsteg board]]
 
 If you like my work, please support me by [[https://bmc.link/jjbigorra][buying me a cup of coffee ☕]] so I can continue with a lot of motivation.
 
-* What is byggsteg ?
+#+TOC: headlines 2
 
-byggsteg is a free software project with the aim of developing a suite of functionalities to allow engineers to deliver software quicker and with less friction.
-
-View my live instance of byggsteg here: https://byggsteg.jointhefreeworld.org
-
-The aim of byggsteg is to release you from your dependency on proprietary systems like GitHub actions.
-This allows you to create continuous integration and continuous delivery (CI & CD) pipelines in an easy way that are tailored to your needs and which you fully control.
-
-Easily deploy stuff, for example to your private VPS, self-hosting or to cloud.
-/byggsteg/ means "build step" in the Norwegian language.
-
-I don't mind having the software building and testing happening in the same machine as where I run the production workloads, since I am looking for supreme cost-efficiency, but it's highly recommended that you do separate these things, if you can afford it.
-
-Byggsteg enhances the use of Agile work methodologies in teams due to its fast-paced no nonsense workflows and its customizability, also thanks to being written in Lisp (GNU Guile Scheme).
-
-- *Fully Customizable:* Hack the behavior and content of each UI element with Scheme code.
-- *Cross-platform:* Runs anywhere that Guile Scheme can run, and exposes web endpoints, and is thus accessible from computers, phones, etc.
-- *Free Software:* Contribute to its development or extend it with your own custom features.
-
-[[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
-
-Byggsteg is powered by: Guile Scheme, GNU Artanis, SQLite, Olive CSS, Maak, Emacs
+This is both the project's README and its manual: one document, so that a reader
+has one place to look and the two cannot come to say different things.
+/byggsteg/ is the Norwegian word for a *build step*.
 
 ------------------
 
-* Where this manual lives
+* What byggsteg is
 
-The manual is this README, which is rendered as a single HTML page:
+byggsteg is a free software project with the aim of developing a suite of
+functionalities to allow engineers to deliver software quicker and with less
+friction.
 
-- Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
-- The source of that page: [[file:README.org]] (this file), rendered by ~maak build-manual~ and published by ~maak deploy~
+Its aim is to release you from your dependency on proprietary systems like
+GitHub Actions.  This allows you to create continuous integration and continuous
+delivery (CI & CD) pipelines in an easy way that are tailored to your needs and
+which you fully control -- easily deployed to your private VPS, to your own
+self-hosting, or to a cloud of your choosing.
 
---------------
+[[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
 
-* Jobs and profiles
+View a live instance of byggsteg here: https://byggsteg.jointhefreeworld.org
+
+I don't mind having the software building and testing happening in the same
+machine as where I run the production workloads, since I am looking for supreme
+cost-efficiency, but it's highly recommended that you do separate these things,
+if you can afford it.
+
+byggsteg enhances the use of Agile work methodologies in teams due to its
+fast-paced no nonsense workflows and its customizability, also thanks to being
+written in Lisp (GNU Guile Scheme).
+
+** Who it is for
+
+- *Small teams that want their own CI.*  One machine, one process, one database,
+  and pipelines that are a page of Scheme instead of a page of someone else's
+  YAML dialect.
+- *One-person projects and hobby deployments.*  Supreme cost-efficiency: the
+  same box can build the software and run it, and six months of runs cost one
+  SQLite file and a directory of tarballs.
+- *Lisp people.*  The whole pipeline is data.  Add a field, change a step, write
+  a task that does something no CI has a name for -- it is a ~lambda~ and a few
+  conses away.
+- *Self-hosters and freedom-lovers.*  Your jobs run on your hardware, your logs
+  stay in your SQLite file, and the console asks no search engine, font API or
+  icon CDN for anything it needs to be read.
+
+** What it is built with
+
+byggsteg is powered by: [[https://www.gnu.org/software/guile/][Guile Scheme]], [[https://artanis.dev/][GNU Artanis]], [[https://sqlite.org/][SQLite]], [[https://codeberg.org/jjba23/olive-css][Olive CSS]], [[https://codeberg.org/jjba23/maak][Maak]], the [[https://codeberg.org/jjba23/kracht][kracht]] prelude, [[https://codeberg.org/jjba23/hygguile][hygguile]] for its pages, [[https://codeberg.org/jjba23/bewaking][bewaking]] for its sessions, [[https://codeberg.org/jjba23/veritas][veritas]] for its tests and Emacs for its manual.
+
+There is no message broker and no job server beside it: the queue is a table in
+the database the console already reads, and the one thing that works it is a
+thread of the same program.  See [[*Concurrency and the queue]].
+
+** Two ways to start
+
+|----------------------------------+-------------------------------------------------------------------|
+| *Just want to look around?*      | Browse [[https://byggsteg.jointhefreeworld.org][the public instance]] -- reading needs no account.   |
+| *Want your own instance?*        | [[*Quick start (the impatient path)][Quick start]], then [[*Running it][Running it]].                            |
+|----------------------------------+-------------------------------------------------------------------|
+
+------------------
+
+* Features
+
+- *A pipeline is a list of Lisp.*  A job is a ~lambda~: it returns an alist
+  naming the project, the branch, the clone URL and the tasks to run, and
+  byggsteg does the rest.  Nothing is hidden in a configuration dialect, and
+  nothing needs a plugin.
+- *Pipelines, not just jobs.*  A thunk that answers with a list of jobs gets the
+  stages run in the order they are written, one log, one status, and the first
+  failure stops the rest -- so a deploy that was going to ship a build the test
+  stage never produced does not run.
+- *Run anything.*  Named tasks for the usual moves -- ~maak-test~,
+  ~make-build~, ~pull-and-restart~, ~maak-deploy~, ~byggsteg-version~ and the
+  rest -- and a ~trivial~ task that takes the shell commands you write
+  yourself.
+- *Logs that arrive while the job runs.*  Every command is read line by line as
+  it prints (~→ running command: <cmd>~), written into the job's log in batches
+  of twenty, and readable on the job's own page -- while it is still running.
+- *Artifacts.*  List what a build should keep, as paths or as named bundles, and
+  each is packed into a tarball and offered for download, whether the job passed
+  or failed; orphaned tarballs are swept from the directory that owns them.
+- *Retries with a history.*  A retry is a job of its own: its own log, its own
+  output, its own title, while the run it retries goes on saying what it said.
+- *A real permission model.*  Seven permissions in an ACL -- submit, delete,
+  save a profile, start one, make a user, delete one, change permissions -- with
+  every guarded page and endpoint asking for the permission its submission takes.
+- *Users, sessions and password resets.*  Secure tokens in cookies for browsers
+  and in a header for scripts, optional mail through
+  [[https://codeberg.org/jjba23/pingwing][Pingwing]] for invitations and resets, and accounts that can hold no
+  permissions at all and still be a signed-in reader.
+- *Activity and search.*  A year of runs drawn the way a code host draws a year
+  of commits, and one search box over the jobs, the logs and the profiles.
+- *Retention that keeps a deployment honest.*  Finished runs are pruned after
+  30 days by default (set ~job-retention-days~ to 0 and none are), log, tarballs
+  and row going together.
+- *A REST API.*  Submit a job, poll its status, retry one, sign in -- ~/api/v1~
+  hands your scripts the same permissions the web interface uses.
+- *Four languages.*  English, Dutch, Spanish and Japanese, with GNU gettext.
+- *A console that reads well.*  Dark and light, keyboard-friendly, and one
+  colour doing the work of a status: green for a run that finished well, blue
+  for one still going, red for one that failed.
+- *Everything about an instance is configuration.*  Its name, its mark, its
+  sentence, its source, its manual and its documentation come from its
+  environment; the behaviour of everything else is a few lines of Scheme away.
+- *Cross-platform.*  Runs anywhere Guile Scheme can run, and exposes web
+  endpoints -- so it is accessible from a laptop, a phone, or a script.
+- *Free software.*  Licensed under the GNU AGPL v3 or newer, documentation under
+  the GNU FDL v1.3 or newer.  Contribute to it, or extend it with features of
+  your own.
+- *Reproducible.*  Everything the project is run with is pinned in a GNU Guix
+  manifest, from the Guile that runs the server to the Emacs that renders this
+  manual.
+
+------------------
+
+* Jobs, profiles and pipelines
+
+A job is a piece of Lisp that returns a plan: what to clone, which branch, and
+which steps to run on it.  A profile is a job that was saved, so it can be run
+again from the console with one button.
+
+** Jobs and profiles
 
 Jobs are simple Lisp (Guile Scheme) code. Profiles are just saved jobs.
 
@@ -78,9 +182,9 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
     (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
-----------------
+------------------
 
-* Types of jobs
+** Types of jobs
 
 When defining a pipeline alist, the task field can be either a single step, or multiple.
 You should either pass a string or a list of strings of job names.
@@ -97,9 +201,9 @@ You should either pass a string or a list of strings of job names.
 
 ~trivial~ - Allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.
 
-------------
+------------------
 
-* Fields of a job
+** Fields of a job
 
 ~project~ is a string indicating the project's Git repository name
 
@@ -117,7 +221,7 @@ You should either pass a string or a list of strings of job names.
 
 ~artifacts~ is a list of what to keep once the job's commands are over: a path, relative to the job's clone, or a bundle written as ~(name . (path ...))~ that is packed into a tarball of its own and offered under that name. See [[*Artifacts]].
 
-** Example jobs
+*** Example jobs
 
 An example showing a herd daemon restart after the git pull:
 #+begin_src scheme
@@ -138,7 +242,7 @@ An example showing the "trivial" approach where you are free to run what shell c
 
 ------------------
 
-* Pipelines of jobs
+** Pipelines of jobs
 
 A job usually asks for one thing. When it asks for several, its thunk answers with a *list* of those alists instead of one, and byggsteg runs them in the order they are written:
 
@@ -163,7 +267,54 @@ The title of a pipeline names its first job's project, and ~trivial~ when it run
 
 ------------------
 
-* Artifacts
+* Watching your work
+
+The console is built to answer one question quickly -- how did it go, and what
+did it say -- for a run that is over, one that is still going, and one that
+needs running again.
+
+** Watching a job run
+
+A running job's output reaches its log as it is produced, in batches of twenty lines (~log-stream-batch-size~), so the log page a reader has open fills up while the job is still running rather than all at once when it ends.
+
+What a job prints is announced command by command, each with the line ~→ running command: <cmd>~, so a long log reads as the list of commands that produced it.
+
+The REST API answers with what the log holds at the moment it is read, and the job's status with it, so a client can poll for both:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/logs/<log-id>'
+#+end_src
+
+------------------
+
+** Reading a job's status
+
+Every list of jobs gives each of them a colour: green for one that finished well, blue for one still in progress, red for one that failed. The same three colours label the status on the job's log page, so a pipeline's stage is found by its colour rather than by reading its flags.
+
+------------------
+
+** Retrying a job
+
+A job can be run again from the UI. Its own page offers a ~retry~ button whatever the job's status -- a reader is there about that one job -- while the list of logs offers one only for a job that failed, since a list is read for what needs attention and a green row already says it does not. A job that is still running is the one case with no retry anywhere: the same data would then be running twice.
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/retry' \
+    -X POST -H 'content-type: application/x-www-form-urlencoded' \
+    -H 'x-bewaking-byggsteg: <your token here>' \
+    --data-urlencode 'job-id=<job-id>'
+
+#  {
+#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326"
+#  }
+#+end_src
+
+A retry is a job of its own rather than the old row set going again: its output is its own to log, its title marks it as a retry, and the job it retries goes on saying what it said. The answer is the new job's log id, which is the log to follow for how the retry goes. Retrying takes the ~byggsteg:job-create~ permission, since that is what it does.
+
+A call that cannot be answered says so in the answer: a job or a log that is not there, a token that is missing or expired, or credentials that do not match all come back as a JSON object with an ~error~ field and the status that goes with it (~404~, ~401~), rather than a page to render or a status a client has to read the body to interpret.
+
+------------------
+
+** Artifacts
 
 A job can keep what it built. Add an ~artifacts~ field to a job, and list what to keep as it is relative to that job's clone:
 
@@ -210,44 +361,7 @@ A tarball that no row points at belongs to nothing -- one left by a deployment s
 
 ------------------
 
-* Watching a job run
-
-A running job's output reaches its log as it is produced, in batches of twenty lines (~log-stream-batch-size~), so the log page a reader has open fills up while the job is still running rather than all at once when it ends.
-
-What a job prints is announced command by command, each with the line ~→ running command: <cmd>~, so a long log reads as the list of commands that produced it.
-
-The REST API answers with what the log holds at the moment it is read, and the job's status with it, so a client can poll for both:
-
-#+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/v1/logs/<log-id>'
-#+end_src
-
-* Reading a job's status
-
-Every list of jobs gives each of them a colour: green for one that finished well, blue for one still in progress, red for one that failed. The same three colours label the status on the job's log page, so a pipeline's stage is found by its colour rather than by reading its flags.
-
-* Retrying a job
-
-A job can be run again from the UI. Its own page offers a ~retry~ button whatever the job's status -- a reader is there about that one job -- while the list of logs offers one only for a job that failed, since a list is read for what needs attention and a green row already says it does not. A job that is still running is the one case with no retry anywhere: the same data would then be running twice.
-
-#+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/retry' \
-    -X POST -H 'content-type: application/x-www-form-urlencoded' \
-    -H 'x-bewaking-byggsteg: <your token here>' \
-    --data-urlencode 'job-id=<job-id>'
-
-#  {
-#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326"
-#  }
-#+end_src
-
-A retry is a job of its own rather than the old row set going again: its output is its own to log, its title marks it as a retry, and the job it retries goes on saying what it said. The answer is the new job's log id, which is the log to follow for how the retry goes. Retrying takes the ~byggsteg:job-create~ permission, since that is what it does.
-
-A call that cannot be answered says so in the answer: a job or a log that is not there, a token that is missing or expired, or credentials that do not match all come back as a JSON object with an ~error~ field and the status that goes with it (~404~, ~401~), rather than a page to render or a status a client has to read the body to interpret.
-
-------------------
-
-* Activity and search
+** Activity and search
 
 Two pages read a deployment as a whole.
 
@@ -257,7 +371,7 @@ Two pages read a deployment as a whole.
 
 ------------------
 
-* Retention
+** Retention
 
 A deployment that runs jobs every day fills up with runs nobody will read again, so a finished run is kept for a while and then removed: its tarballs, its log and the job itself. Half of a run would be worse than all of it -- a log whose job is gone is a page about nothing, and a job whose log is gone has no page at all -- so the three go together.
 
@@ -282,6 +396,53 @@ maak prune-old-runs
 #  2 run(s) pruned
 #    e2e-retained  e2e-retained-job
 #+end_src
+
+------------------
+
+* Starting a job
+
+Byggsteg provides HTTP endpoints. After logging in -- with an account that holds ~byggsteg:job-create~, which the form page itself asks for -- you can use the UI and visit ~/jobs/request~, or you can also invoke this via the REST API by first calling ~/api/v1/login~ with the right credentials and then calling ~/api/v1/jobs/manage/submit~.
+
+You could also do this for example from your favourite programming language, or system, or via cURL, etc:
+
+#+begin_src sh
+curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
+    -X POST -H 'content-type: application/x-www-form-urlencoded' \
+    -H 'x-bewaking-byggsteg: <your token here>' \
+    --data-urlencode 'job-code=(lambda() `((project . "kracht")(branch-name . "trunk")(task . "maak-test")(clone-url . "https://codeberg.org/jjba23/kracht")))'
+
+#  {
+#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
+#    "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
+#  }
+#+end_src
+
+You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until success or failure is true.
+
+#+begin_src  shell
+  curl 'http://localhost:50002/api/v1/logs/ce24da08-1833-4821-b7e3-e2bacaa79326'
+  #
+  # {
+  #   "success": 1,
+  #   "failure": 0,
+  #   "in-progress": 0,
+  #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
+  #   "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
+  #   "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
+  # }
+#+end_src
+
+------------------
+
+* Integration with CIs
+
+Find a nice integration with Woodpecker here, complete with retries on submit and configurable polling for status:
+
+https://codeberg.org/jjba23/byggsteg-woodpecker
+
+These pipeline steps act as a bridge, allowing the Woodpecker CI system to leverage Byggsteg for its powerful Lisp-based CI/CD orchestration, especially when working with source code hosted on platforms like Codeberg.
+
+The pipeline steps are written in shell script, and use Alpine Linux images achieving a great performance, simplicity and minimalism.
 
 ------------------
 
@@ -375,62 +536,62 @@ It is configured in ~env.scm~ (see [[*Writing env.scm]]): a deployment without i
 
 ------------------
 
-* Starting a job
-
-Byggsteg provides HTTP endpoints. After logging in -- with an account that holds ~byggsteg:job-create~, which the form page itself asks for -- you can use the UI and visit ~/jobs/request~, or you can also invoke this via the REST API by first calling ~/api/v1/login~ with the right credentials and then calling ~/api/v1/jobs/manage/submit~.
-
-You could also do this for example from your favourite programming language, or system, or via cURL, etc:
-
-#+begin_src sh
-curl 'https://byggsteg.jointhefreeworld.org/api/v1/jobs/manage/submit' \
-    -X POST -H 'content-type: application/x-www-form-urlencoded' \
-    -H 'x-bewaking-byggsteg: <your token here>' \
-    --data-urlencode 'job-code=(lambda() `((project . "kracht")(branch-name . "trunk")(task . "maak-test")(clone-url . "https://codeberg.org/jjba23/kracht")))'
-
-#  {
-#    "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
-#    "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n"
-#  }
-#+end_src
-
-You can query for the job status via the UI or also via the REST API. You could implement a check to keep querying for job status until success or failure is true.
-
-#+begin_src  shell
-  curl 'http://localhost:50002/api/v1/logs/ce24da08-1833-4821-b7e3-e2bacaa79326'
-  #
-  # {
-  #   "success": 1,
-  #   "failure": 0,
-  #   "in-progress": 0,
-  #   "log-id": "ce24da08-1833-4821-b7e3-e2bacaa79326",
-  #   "title": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n",
-  #   "log-data": "ZnJlZS1hbGFjYXJ0ZV9fMTQ6NTM6NTdfXzMwLTEyLTIwMjQuYnlnZ3N0ZWcubG9n.........."
-  # }
-#+end_src
-
--------------
-
-* Integration with CIs
-
-Find a nice integration with Woodpecker here, complete with retries on submit and configurable polling for status:
-
-https://codeberg.org/jjba23/byggsteg-woodpecker
-
-These pipeline steps act as a bridge, allowing the Woodpecker CI system to leverage Byggsteg for its powerful Lisp-based CI/CD orchestration, especially when working with source code hosted on platforms like Codeberg.
-
-The pipeline steps are written in shell script, and use Alpine Linux images achieving a great performance, simplicity and minimalism.
-
-------------------
-
 * Running byggsteg yourself
 
-Everything below is what a self-hosted deployment does, in the order it does it. It is not long: a clone, one file of secrets, a database, one user, and a server.
+Everything below is what a self-hosted deployment does, in the order it does it.
+It is not long: a clone, one file of secrets, a database, one user, and a
+server.
+
+** Quick start (the impatient path)
+
+A clone, four commands and a browser.  Every command below is a
+[[https://codeberg.org/jjba23/maak][maak]] task -- Maak is this project's task runner, and its tasks are written in
+Scheme like the rest of it -- and each task runs itself inside the project's
+Guix shell, so a machine with [[https://guix.gnu.org/][GNU Guix]], Git and Maak needs nothing else
+installed.  ~maak --list~ shows every task there is.
+
+#+begin_src sh
+# 1. a clone
+git clone https://codeberg.org/jjba23/byggsteg
+cd byggsteg
+
+# 2. the keys byggsteg signs and encrypts its sessions with.  Change them:
+#    anyone who knows them can mint a token.  Pingwing is optional and can wait
+#    (see "Writing env.scm" and "Sending mail (Pingwing)").
+cat > env.scm <<'EOF'
+(define-module (byggsteg env))
+(define-public encryption-key "change-me-a2ebe4c5-4a78-4490-af83-cfb05a285bf9")
+(define-public signing-key "change-me-8d3a5bcc-973e-4f80-aa3d-33be33d6631c")
+(define-public pingwing-url "my-pingwing-host")
+(define-public pingwing-basic-auth-user "my-user")
+(define-public pingwing-basic-auth-password "my-password")
+EOF
+
+# 3. a database, with every migration applied
+maak init-db
+
+# 4. the first account, which holds every permission
+maak create-user alice alice@example.org 'a-strong-password'
+
+# 5. the server -- and, three seconds later, its queue worker
+maak dev
+#+end_src
+
+Then open [[http://localhost:50002]] and sign in at ~/login~ as ~alice~.
+~maak dev~ runs the server under ~watchexec~ and restarts it when a Scheme, CSS
+or JavaScript file changes, which is what you want while hacking.  For a
+deployment, use ~maak production-server~ -- see [[*Running it]].  [[*Making the
+database]] explains the database, and ~maak --list~ shows every task there is.
+
+------------------
 
 ** Installing GNU Guix
 
 First make sure you use the Guix package manager, whether as a standalone distro (Guix System) or on top of any other GNU/Linux distribution: https://guix.gnu.org/
 
 I include a ~manifest.scm~ in the repo so that it's easy to run the project if you use the Guix package manager. If you want to run without Guix you should check that ~manifest.scm~ anyway, since it will give you exactly the packages that you need: Guile, GNU Artanis, SQLite, Maak, Emacs and the rest.
+
+------------------
 
 ** Getting the source
 
@@ -440,6 +601,8 @@ cd byggsteg
 #+end_src
 
 Every command below is a ~maak~ task, run from the root of that clone. ~maak --list~ shows them all.
+
+------------------
 
 ** Writing env.scm
 
@@ -470,6 +633,8 @@ For running byggsteg yourself, you'll need to define and load a module called ~(
 
 The file is loaded by ~ENTRY~ when the server starts, so a change to it needs a restart.
 
+------------------
+
 ** Making the database
 
 You will need a database in the root folder of the project (alongside ~app~, ~lib~, etc.). Byggsteg uses SQLite; its schema is the migration files under ~resources/migrations/sqlite~, one per change.
@@ -492,6 +657,8 @@ Both tasks act on ~byggsteg.db~ in the directory they are run from, which is the
 
 Both tasks run mutastructura, so an operator never assembles the command by hand: ~maak migrate~ is the whole of it.
 
+------------------
+
 ** Making your first user
 
 A deployment with no users cannot be given one from the web interface -- see [[*Making the first user (the super user)]] -- so make it here:
@@ -501,6 +668,8 @@ maak create-user alice alice@example.org 'a-strong-password'
 #+end_src
 
 That account holds every permission; sign in with it at ~/login~ and make the rest at ~/users/new~.
+
+------------------
 
 ** Running it
 
@@ -522,6 +691,8 @@ which is ~art work -c conf/production.conf~ inside the project's Guix shell. Eit
 
 If you are hosting this for production, run Byggsteg as a Shepherd service so that it is restarted when it stops and started when the machine boots.
 
+------------------
+
 ** Where byggsteg writes
 
 Beside its database, byggsteg writes two things to the filesystem: the clones its jobs run in, under ~/etc/byggsteg/job-clone/~, and the tarballs they collect, under ~/etc/byggsteg/artifacts/~. ~maak dir-install~ creates the first of those and changes the ownership of ~/etc/byggsteg~ to the current user, which is what a first deployment needs before its jobs can clone anything.
@@ -537,6 +708,8 @@ maak production-server
 Both are read once, when byggsteg starts, and an empty value is read as no value at all: ~BYGGSTEG_JOB_CLONE=~ leaves the default in place rather than naming a directory called nothing.
 
 The artifact directory belongs to byggsteg: its queue worker removes what the database no longer records (see [[*Artifacts]]). The same worker prunes the runs themselves once they have outlived their retention, which is 30 days by default; see [[*Retention]] before starting a deployment that has runs older than that.
+
+------------------
 
 ** Keeping it running: a Shepherd service
 
@@ -579,6 +752,8 @@ Here follows an example of a Guix Shepherd service:
 
 The service's working directory is the clone it runs from, which is also where its ~byggsteg.db~ and its ~env.scm~ are; ~maak production-server~ starts the server with the production configuration, and byggsteg needs the same Guile environment variables a ~guix shell~ would have given it, which is what the list above is. Note that ~pull-and-restart~ and ~byggsteg-version~ jobs restart the service by name: the ~provision~ above names it ~byggsteg~.
 
+------------------
+
 ** On being found: what the pages say about themselves
 
 Every page byggsteg serves carries a sentence about itself for the readers that never open the terminal: a ~description~, the Open Graph and Twitter Card tags a shared link is drawn from, a canonical address, and a ~SoftwareApplication~ block of JSON-LD saying what the software is, that it is free, and where its source is.
@@ -593,7 +768,18 @@ The pages that answer only to an account -- ~/me~, ~/users/*~, ~/password/*~, an
 
 ------------------
 
-* Preferences
+
+------------------
+
+* Configuring a deployment
+
+Two kinds of knob: numbers the worker and the pages are tuned with, which are
+parameters in the source, and words that say who a deployment is, which are read
+from the environment it is started in.  Neither needs a config file, and an
+empty value is read as no value at all everywhere except where it says
+otherwise.
+
+** Preferences
 
 The knobs byggsteg's worker and pages are tuned with are parameters in ~lib/byggsteg/preferences.scm~, each with a comment saying what it does: how many jobs run at once (~job-concurrency~), how long a run is kept (~job-retention-days~), how much a page of search results holds (~search-result-limit~), how many weeks the activity page draws (~activity-weeks~), and the rest. A deployment that wants different numbers changes them there, or sets them from its own code before the server starts.
 
@@ -615,7 +801,7 @@ maak production-server
 
 Each has byggsteg's own value until a deployment names another, so a deployment that says nothing is this project's deployment; an empty value is read as no value at all. They are read once, when the server starts, so a rename is a restart rather than a page.
 
-** The console's own resources
+*** The console's own resources
 
 The console is served by the deployment that runs it: its typography (`pub/css/fonts.css'), the Lucida faces in front of it (`pub/css/lucida.css'), its icons (`pub/css/phosphor.css'), the utility sheet the terminal is dressed in, the mark its landing page shows (`pub/img/'), and the framework's own scripts. No page of it asks a search engine, a font API, an icon CDN or any other website for anything, so a console behind a firewall, on an intranet or on a machine that is simply offline looks the way it was designed to -- and a reader of a private build server does not announce themselves to two third parties by opening it.
 
@@ -752,6 +938,46 @@ Everything above shares one SQLite file, in WAL mode: WAL is what lets a reader 
 
 ------------------
 
+* Developing byggsteg
+
+The whole of the project is readable: ~app/controllers~ and ~app/views~ for the
+console, ~lib/byggsteg~ for the domain (jobs, logs, permissions, artifacts,
+retention, preferences), ~lib/byggsteg/sqlite~ for the repositories, and
+~test/veritas~ for the suite.  A development server with hot reload is ~maak
+dev~; a REPL into the running system is ~maak repl~.
+
+** Running the test suite
+
+It is one command:
+
+#+begin_src sh
+maak test
+#+end_src
+
+The specs live in ~test/veritas/unit~ and are written with
+[[https://codeberg.org/jjba23/veritas][veritas]], a readable specification framework for Guile.  They are not only
+tests of pure functions: they render the console's own pages and read them, so
+what a reader is offered, which status a page answers with, what a search finds,
+how a failing pipeline stops, and what a job does with a locale are all questions
+the suite asks and answers.  The run names the locale it reads in (~C.UTF-8~)
+rather than inheriting one and runs inside the pinned manifest, so a run on your
+machine is a run in CI.
+
+------------------
+
+** Translation effort
+
+byggsteg is a community driven effort and as such, can use your help in translating to several different languages.
+
+- English language (en_US) :: 100% translated
+- Dutch language (nl_NL) :: 100% translated
+- Spanish language (es_ES) :: 100% translated
+- Japanese language (ja_JP) :: 100% translated
+
+The strings live in ~sys/i18n/locale~, one ~.po~ file per language, and ~maak i18n-update-template~ collects the ones a change added.
+
+------------------
+
 * On accessibility
 
 We believe creating accessible websites for everyone, including people with disabilities, is crucial for equality, helps provide a good user experience.
@@ -760,41 +986,57 @@ Byggsteg chooses lots of its UI to appeal to hackers, and computer aficionados b
 
 ------------------
 
-* Licensing
+* Contributing
 
-byggsteg and all of its source code are free software, licensed under the GNU Affero General Public License v3 (or newer at your convenience).
+Contributing to free software (as in freedom) is a uniquely beautiful act
+because it embodies principles of generosity, collaboration, and empowerment.
 
-https://www.gnu.org/licenses/agpl-3.0.html
+We welcome everyone, and we encourage active contribution in all forms: improve
+something, suggest an improvement, report an issue, brainstorm with us, make the
+project more modular or flexible, translate a page, or tell us where the manual
+told you something that was not true.
 
-The documentation and examples, including this document, which are provided with byggsteg, are all licensed under the GNU Free Documentation License v1.3 (or newer at your convenience).
+Feel free to open an issue on the [[https://codeberg.org/jjba23/byggsteg][repository's homepage]], or mail
+<mailto:jjbigorra@gmail.com> to chat, discuss or report feedback.  See the
+[[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][backlog and kanban]] for what is planned and what is next.
 
-https://www.gnu.org/licenses/fdl-1.3.html
+Adding a language, fixing a sentence, sending a screenshot of a page that reads
+badly on your screen: all of it is welcome, and none of it needs permission.
 
-----------------
+** Reporting a bug or an idea
 
-* AI Policy
+A good report says what you ran, what you expected, and what happened instead --
+the job's code if it is about a job, the page's address if it is about a page,
+and the output of the run if it is about a run.  If it is about a page, a
+screenshot helps; if it is about the server, the lines it printed when it
+started help more.
 
-This project adheres to the [[https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-ai-policy/index.html][jointhefreeworld AI (Artificial Intelligence) policy]].
+Ideas are just as welcome as defects: an idea that the manual cannot answer is
+usually a sentence the manual is missing.
 
-Our core principle is simple: *AI should assist human creativity and problem-solving, never replace human reasoning.*
+------------------
 
-While tools like Large Language Models (LLMs) and interactive chatbots can be beneficial for reviewing, refactoring small functions, or acting as a sounding board, they should be used with moderation.
+** Sending a patch or a pull request
 
-We require a human in the loop for all contributions. The use of autonomous AI agents to automatically generate and submit pull requests to this project is strictly prohibited.
+The main branch is ~trunk~, and the way to it is a fork and a pull request (or a
+patch by mail, if that is how you work -- ~git format-patch~ output applies
+cleanly).  Before you send it:
 
----------
+1. Run ~maak test~ and make sure it passes.  If a spec fails, say so in the pull
+   request and say why -- a failing spec that is part of the change is a
+   conversation, and a spec that was weakened to pass is not.
+2. Run ~maak fmt~ if you touched Scheme, which formats it the way the rest of
+   the source is formatted.
+3. Write a commit message that says why the change is there, not only what it
+   changes.
 
-* Code of conduct
+A change that adds a page, a permission, a task or a field should say so in this
+manual in the same pull request: the two are one document, and a feature nobody
+can read about is a feature nobody has.
 
-This project adheres to the jointhefreeworld code of conduct. Find it here:
+------------------
 
-https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-code-of-conduct/index.html
-
-In summary, we foster an inclusive, respectful, and cooperative environment for all contributors and users of this free software project. Inspired by the ideals of the GNU Project, we strive to uphold freedom, equality, and community as guiding principles. We believe that collaboration in a community of mutual respect is essential to creating excellent free software.
-
----------
-
-* Code owners
+** Code owners
 
 The project's main branch is ~trunk~. Find a list of roles and people involved in the project.
 
@@ -810,38 +1052,61 @@ The MFL has write permissions to all branches (except trunk) and can open PRs.
 Other contributors must fork byggsteg and create a pull request to contribute back.
 After productive collaboration other kinds of roles can be added and assigned.
 
--------
+------------------
 
-* Translation effort
+** Code of conduct
 
-byggsteg is a community driven effort and as such, can use your help in translating to several different languages.
+This project adheres to the jointhefreeworld code of conduct. Find it here:
 
-- English language (en_US) :: 100% translated
-- Dutch language (nl_NL) :: 100% translated
-- Spanish language (es_ES) :: 100% translated
-- Japanese language (ja_JP) :: 100% translated
+https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-code-of-conduct/index.html
 
-The strings live in ~sys/i18n/locale~, one ~.po~ file per language, and ~maak i18n-update-template~ collects the ones a change added.
+In summary, we foster an inclusive, respectful, and cooperative environment for all contributors and users of this free software project. Inspired by the ideals of the GNU Project, we strive to uphold freedom, equality, and community as guiding principles. We believe that collaboration in a community of mutual respect is essential to creating excellent free software.
 
----------
+------------------
 
-* About this Project and Contributing
+** AI Policy
 
-Contributing to free software (as in freedom) is a uniquely beautiful act because it embodies principles of generosity, collaboration, and empowerment.
+This project adheres to the [[https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-ai-policy/index.html][jointhefreeworld AI (Artificial Intelligence) policy]].
 
-Feel free to open an issue on this [[https://codeberg.org/jjba23/byggsteg][repository's homepage]] or in LucidPlan
+Our core principle is simple: *AI should assist human creativity and problem-solving, never replace human reasoning.*
 
-We welcome everyone to feel invited to the LucidPlan Project.
+While tools like Large Language Models (LLMs) and interactive chatbots can be beneficial for reviewing, refactoring small functions, or acting as a sounding board, they should be used with moderation.
 
-We encourage active contribution in all forms, to improve it and/or suggest improvements, report issues, brainstorm with me, make it more modular/flexible, etc,
+We require a human in the loop for all contributions. The use of autonomous AI agents to automatically generate and submit pull requests to this project is strictly prohibited.
 
-Feel free to open issue on tracker, on Git / Codeberg repository, or mail me <jjbigorra@gmail.com> to chat, discuss or report feedback.
+------------------
 
-See here the [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][Backlog and Kanban]] for this project.
+* Licensing
 
-Running the test suite is one command: ~maak test~.
+byggsteg and all of its source code are free software, licensed under the GNU Affero General Public License v3 (or newer at your convenience).
 
--------
+https://www.gnu.org/licenses/agpl-3.0.html
+
+The documentation and examples, including this document, which are provided with byggsteg, are all licensed under the GNU Free Documentation License v1.3 (or newer at your convenience).
+
+https://www.gnu.org/licenses/fdl-1.3.html
+
+------------------
+
+* About this project
+
+byggsteg began as the question "why not the web in Guile?" and has been a build
+step at a time ever since.  It is developed in the open on Codeberg, deployed
+from its own pipelines, and documented by the file you are reading.
+
+** Where this manual lives
+
+The manual is this README, rendered as a single HTML page:
+
+- Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
+- The source of that page: [[file:README.org]] (this file), rendered by
+  ~maak build-manual~ and published by ~maak deploy~
+- The demo above is [[file:docs/byggsteg-showcase.gif]]: a tour of the pages of
+  a local deployment of this console, cut from a screen recording and assembled
+  with ~ffmpeg~.  Record the same tour again after a page changes, and the
+  manual shows the console as it is rather than as it was.
+
+------------------
 
 ** On Lucida fonts
 
@@ -853,9 +1118,9 @@ Because of that, byggsteg ships no Lucida files and asks nobody else for them. W
 
 The other faces are not a question of permission: Intel One Mono and Plus Jakarta Sans, the two families byggsteg bundles for its terminal, are under the SIL Open Font License; the Phosphor icon font is MIT.
 
---------
+------------------
 
-* On Reproducibility: Why GNU Guix?
+** On Reproducibility: Why GNU Guix?
 
 A build should never fail because "it worked on my machine." Reliable software development requires explicit, bit-for-bit reproducibility and a functional approach to package management and system deployment.
 
@@ -871,9 +1136,9 @@ A build should never fail because "it worked on my machine." Reliable software d
 - *Atomic Operations:* Instantly upgrade or roll back environments without leaving orphaned dependencies or broken states.
 - *Unified Tooling:* One tool manages development shells, isolated containers, package builds, and full system configurations.
 
--------
+------------------
 
-* On GNU Artanis
+** On GNU Artanis
 
 Find the documentation for Artanis here: https://www.gnu.org/software/artanis/manual/
 

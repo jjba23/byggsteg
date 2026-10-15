@@ -39,6 +39,62 @@
   #:use-module (ice-9 futures))
 
 ;;
+;; The inks a page is read in
+;;
+;; A face is a set of utilities, but prose is what most of a page is, so the
+;; three inks below come first and every face after them is built on one.  They
+;; are stated here rather than at the call sites for the reason the rest of this
+;; file exists: a console whose every page picks its own grey is a console whose
+;; pages are three different greys.
+;;
+;; The palette has no pure white and no pure black in it.  The paper theme's
+;; neutral (`stone') runs from 0.99 of lightness at its lightest step to 0.81 at
+;; its darkest, and the phosphor screen's (`onyx') from 0.46 to 0.26, so what a
+;; reader meets at either end of the scale is a near-white and a near-black
+;; rather than the ends themselves -- and a page whose prose is read in those two
+;; is a page that glares at one end of the day and disappears at the other.  What
+;; the inks name instead is the middle of what each theme has, in each theme's
+;; own neutral:
+;;
+;;   `prose-ink'   body text, a log's output, the value beside a term.  The
+;;                 reading most of a page is read at, so it is the one that has
+;;                 to hold up for a thousand lines: 0.46 of lightness on paper,
+;;                 0.86 on the phosphor screen -- a soft grey either way, and
+;;                 never the 0.99 of the framework's own dark prose or the
+;;                 0.26 of its ground.
+;;   `strong-ink'  what is read before the prose around it: a title, a command
+;;                 token, a value that has to stand out from its own row.
+;;   `muted-ink'   what is read second if at all: a field's label, a timestamp,
+;;                 the small print of a panel's strip.
+;;
+;; Green is not one of the three, and that is the point of them: green is this
+;; terminal's signal rather than its text -- the prompt, a heading, a link, the
+;; fill of a control, the colour a job's status is read in -- and a page whose
+;; whole body was green was a page with nowhere left to say anything with it.
+;; A green heading still leads a section, and a green link stands out of the
+;; grey around it, which is only true while the grey is what the page is mostly
+;; made of (see the note at the head of this file).
+;;
+;; They are lists of class names rather than the string `mk-class' makes of them,
+;; because a face handed to a hygguile component is handed on as a list (see
+;; "Job status" below for the same note).
+(define-public prose-ink
+  '(text-onyx-100 dark:text-stone-700))
+
+(define-public strong-ink
+  '(text-onyx-500 dark:text-stone-500))
+
+(define-public muted-ink
+  '(text-onyx-300 dark:text-stone-900))
+
+;; The console's own green, as ink: the phosphor a heading, a link and a badge
+;; are written in.  Both steps are the middle of the green ramps rather than
+;; their ends -- a green at 0.70 on the phosphor screen is a signal, and the
+;; 0.85 of the ramp's own light end was the brightest text on a dark page.
+(define-public accent-ink
+  '(text-asparagus-900 dark:text-asparagus-100))
+
+;;
 ;; Terminal surface
 ;;
 
@@ -84,23 +140,27 @@
                             font-mono)))
 
 ;; Scrolling console output.
+;;
+;; The output is read in `prose-ink' rather than in green, which is what leaves
+;; the escapes a command prints as the only colour in a log: a `git log' drawn
+;; over a field of green says nothing with its own colours, and the reading a
+;; reader spends the longest on is the one that should be the calmest.
 (define-public terminal-log-face
-  (mk-class '(bg-stone-100 dark:bg-onyx-900
-                           border
-                           border-asparagus-700
-                           dark:border-asparagus-900
-                           rounded-none
-                           p-4
-                           text-asparagus-900
-                           dark:text-olive-100
-                           font-mono
-                           text-sm
-                           leading-6
-                           w-full
-                           max-w-full
-                           min-w-0
-                           overflow-x-auto
-                           whitespace-pre-wrap)))
+  (mk-class (append '(bg-stone-100 dark:bg-onyx-900
+                                   border
+                                   border-asparagus-700
+                                   dark:border-asparagus-900
+                                   rounded-none
+                                   p-4
+                                   font-mono
+                                   text-sm
+                                   leading-6
+                                   w-full
+                                   max-w-full
+                                   min-w-0
+                                   overflow-x-auto
+                                   whitespace-pre-wrap)
+                       prose-ink)))
 
 ;; The frame's classes with room to add layout ones, e.g. `p-4' or `max-w-128'.
 ;; Guile has no `define*-public', so the export is explicit.
@@ -154,6 +214,25 @@
 ;; reason).
 (define-public panel-body-classes
   '(p-4 sm:py-6 sm:px-6))
+
+;; A panel of a page: the frame, the room inside it, and the step between what
+;; it holds -- the three things every panel of this console is, stated once.
+;;
+;; GAP is that step, and it is a knob because a panel holds two different kinds
+;; of thing: a column of terms is read as one block and wants its lines tight
+;; (`gap-1'), while a panel of actions and a panel of downloads are separate
+;; things each and want the room of a list (`gap-3', `gap-4').  The panel's own
+;; class list is CLASSES, for the layout a caller lays out around the panel
+;; rather than inside it.
+(define* (terminal-panel content
+                         #:key (gap '(gap-3)) (classes '()))
+  (list `(div (@ (class ,(terminal-frame-class #:extra
+                                               (append panel-body-classes
+                                                       '(flex flex-col)
+                                                       gap
+                                                       classes))))
+              ,@content)))
+(export terminal-panel)
 
 ;;
 ;; Frosted terminal glass
@@ -280,6 +359,23 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 (export terminal-glass-panel)
 
 ;;
+;; Why prose states its own ink
+;;
+;; hygguile's own typography is drawn in the framework's grey ramp: its `dt' is
+;; `dark:text-stone-100', its `em' and its sub-headings `dark:text-stone-500',
+;; its `p', `mono' and `dd' `dark:text-stone-300'.  On the phosphor screen every
+;; one of those is a near-white -- 0.99, 0.91, 0.95 of lightness -- so a page
+;; that leaves them alone is a page whose prose is the brightest thing on it.
+;;
+;; The console's inks (see the head of this file) are therefore stated at the
+;; call site for the prose a page sets, rather than corrected afterwards, because
+;; a stylesheet of the console's own to correct it with is exactly what this
+;; deployment does not have.  Where a page can reach the ink through a component
+;; it owns -- `terminal-pre', `terminal-textarea', the two wrappers below -- the
+;; component states it, so the call site only says it where it builds the element
+;; itself.
+
+;;
 ;; Buttons
 ;;
 (define base-button
@@ -293,14 +389,13 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 (define-public button-face
   (mk-class (append base-button
                     '(bg-stone-300 dark:bg-onyx-700
-                                   text-asparagus-900
-                                   dark:text-asparagus-100
                                    border-2
                                    border-asparagus-700
                                    dark:border-asparagus-900
                                    shadow-md
                                    hover:bg-stone-500
-                                   dark:hover:bg-olive-900))))
+                                   dark:hover:bg-onyx-900)
+                    prose-ink)))
 
 ;;
 ;; The pair of readings a log is read in
@@ -346,10 +441,9 @@ z-10)' is what keeps a bar of glass under the reader's eye."
   (mk-class (append log-view-tab-base
                     '(bg-stone-300
                       dark:bg-onyx-700
-                      text-asparagus-900
-                      dark:text-asparagus-300
                       hover:bg-stone-500
-                      dark:hover:bg-onyx-900))))
+                      dark:hover:bg-onyx-900)
+                    prose-ink)))
 
 (define-public log-view-tab-chosen-face
   (mk-class (append log-view-tab-base
@@ -383,64 +477,67 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; face said so: `min-w-prose' is 84 characters, some 820 pixels, which no phone
 ;; has ever held.
 (define-public input-face
-  '(bg-stone-100 dark:bg-onyx-900
-                 text-asparagus-900
-                 dark:text-olive-100
-                 caret-asparagus-300
-                 border-2
-                 border-asparagus-700
-                 dark:border-asparagus-900
-                 rounded-none
-                 p-4
-                 text-md
-                 shadow-md
-                 font-mono
-                 max-w-prose
-                 min-w-0
-                 transition-colors
-                 duration-150
-                 focus-visible:outline-2
-                 focus-visible:outline-offset-2
-                 outline-asparagus-700))
+  (append '(bg-stone-100 dark:bg-onyx-900
+                         caret-asparagus-300
+                         border-2
+                         border-asparagus-700
+                         dark:border-asparagus-900
+                         rounded-none
+                         p-4
+                         text-md
+                         shadow-md
+                         font-mono
+                         max-w-prose
+                         min-w-0
+                         transition-colors
+                         duration-150
+                         focus-visible:outline-2
+                         focus-visible:outline-offset-2
+                         outline-asparagus-700)
+          prose-ink))
 
 (define-public textarea-face
-  '(bg-stone-100 dark:bg-onyx-900
-                 text-asparagus-900
-                 dark:text-olive-100
-                 caret-asparagus-300
-                 border-2
-                 border-asparagus-700
-                 dark:border-asparagus-900
-                 rounded-none
-                 p-3
-                 ;; As wide as the room it is given (`w-full'), no wider than a
-                 ;; reading line (`max-w-prose'), and as narrow as the screen it
-                 ;; is read on when there is no room (`min-w-0').  A maximum is
-                 ;; not a floor: the cap is what keeps a code field from running
-                 ;; two feet across a wide screen, and `min-w-0' is what keeps it
-                 ;; from running off a narrow one.
-                 w-full
-                 max-w-prose
-                 min-w-0
-                 text-md
-                 leading-6
-                 shadow-md
-                 font-mono
-                 min-h-64
-                 transition-colors
-                 duration-150
-                 focus-visible:outline-2
-                 focus-visible:outline-offset-2
-                 outline-asparagus-700))
+  (append '(bg-stone-100 dark:bg-onyx-900
+                         caret-asparagus-300
+                         border-2
+                         border-asparagus-700
+                         dark:border-asparagus-900
+                         rounded-none
+                         p-3
+                         ;; As wide as the room it is given (`w-full'), no wider
+                         ;; than a reading line (`max-w-prose'), and as narrow as
+                         ;; the screen it is read on when there is no room
+                         ;; (`min-w-0').  A maximum is not a floor: the cap is
+                         ;; what keeps a code field from running two feet across
+                         ;; a wide screen, and `min-w-0' is what keeps it from
+                         ;; running off a narrow one.
+                         w-full
+                         max-w-prose
+                         min-w-0
+                         text-md
+                         leading-6
+                         shadow-md
+                         font-mono
+                         min-h-64
+                         transition-colors
+                         duration-150
+                         focus-visible:outline-2
+                         focus-visible:outline-offset-2
+                         outline-asparagus-700)
+          prose-ink))
 
+;; A label is read before the field it names and is not the field: it is the
+;; console's small print, so it takes `muted-ink' -- a step below the value in
+;; both themes rather than the green of a heading, which on a form of six fields
+;; was six green words shouting over what was written in them.
 (define-public label-face
-  '(text-asparagus-900 dark:text-asparagus-300
-                       text-sm
-                       font-mono
-                       uppercase
-                       tracking-widest
-                       py-2
-                       md:px-2))
+  (append '(text-sm
+            font-mono
+            uppercase
+            tracking-widest
+            py-2
+            md:px-2)
+          muted-ink))
 
 (define-public hr-face
   (mk-class '(mx-8 my-5 border-t-2 border-asparagus-700
@@ -472,39 +569,49 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; Headers
 ;;
 
+;; The deployment's name is the console's own mark, so it stays in the phosphor
+;; both themes of it and brightens under the hand rather than darkening.
 (define-public brand-title-face
-  (mk-class '(text-2xl text-asparagus-900
-                       dark:text-asparagus-100
-                       hover:text-onyx-900
-                       dark:hover:text-olive-100
-                       font-bold
-                       font-mono
-                       tracking-wide)))
+  (mk-class (append '(text-2xl
+                      font-bold
+                      font-mono
+                      tracking-wide
+                      hover:text-asparagus-700
+                      dark:hover:text-olive-300)
+                    accent-ink)))
 
-;;
-;; Links
-;;
+;; `dash-link-face' is the title of a row in a list -- a job on the queue, a
+;; saved profile -- and a list of runs is read by scanning its titles, so they
+;; are `strong-ink' with the green kept for what a reader does with them: the
+;; row turns green under the hand.  A row that was green at rest was a list of
+;; green titles and green statuses with the eye given nowhere to land.
 (define-public dash-link-face
-  (mk-class '(text-asparagus-900 dark:text-olive-100
-                                 hover:text-onyx-900
-                                 dark:hover:text-asparagus-100
-                                 no-underline
-                                 font-bold
-                                 cursor-pointer
-                                 text-md
-                                 font-mono)))
+  (mk-class (append '(hover:text-asparagus-900
+                      dark:hover:text-asparagus-100
+                      no-underline
+                      font-bold
+                      cursor-pointer
+                      text-md
+                      font-mono)
+                    strong-ink)))
 
+;; A link inside prose, which is the one place green is doing real work: the
+;; sentence around it is grey, so the green word is where the reading goes next.
+;; It was `dark:text-olive-100', the 0.85 light end of the neighbouring green
+;; ramp, which read as the brightest text on a dark page rather than as a word
+;; in it; both steps below are the middle of the ramp instead, and the hand
+;; pushes the light theme's greener and the dark theme's lighter.
 (define-public link-face
-  (mk-class '(text-asparagus-900 dark:text-olive-100
-                                 hover:text-onyx-900
-                                 dark:hover:text-asparagus-100
-                                 underline
-                                 underline-offset-4
-                                 decoration-dotted
-                                 font-bold
-                                 cursor-pointer
-                                 text-sm
-                                 font-mono)))
+  (mk-class (append '(hover:text-asparagus-700
+                      dark:hover:text-olive-300
+                      underline
+                      underline-offset-4
+                      decoration-dotted
+                      font-bold
+                      cursor-pointer
+                      text-sm
+                      font-mono)
+                    accent-ink)))
 
 ;;
 ;; Controls
@@ -513,21 +620,68 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; hygguile's buttons, squared off and monospaced.  The wrappers exist so the
 ;; terminal idiom is stated once here rather than repeated at every call site;
 ;; they forward their arguments and append the two keys they own, which win
-;; because a later keyword in Guile overrides an earlier one.  Their colours are
-;; left to hygguile, which already pairs them for both themes.
+;; because a later keyword in Guile overrides an earlier one.
+;;
+;; Their ink is not left to hygguile.  The framework draws a control of its own
+;; in the grey ramp -- `text-onyx-300' on paper and `dark:text-stone-300' on the
+;; phosphor screen, which is 0.95 of lightness, and an icon at
+;; `dark:text-stone-100', which is 0.99 -- so a control nobody painted is the
+;; whitest thing on a dark page.  The console's ink is therefore stated as the
+;; default the wrappers hand on, *before* the caller's own arguments: a call
+;; site that names a colour of its own is obeyed, since a later keyword wins in
+;; Guile, and one that names none is read in the terminal's ink rather than in
+;; the framework's.
+(define control-ink
+  prose-ink)
+
+;; An icon is the green beside the word: the word is the reading and the icon is
+;; the mark that leads the eye to it, so it is the console's phosphor -- one step
+;; brighter than a heading -- while the word stays in the neutral the rest of the
+;; page is read in.
+(define control-icon-ink
+  accent-ink)
+
 (define (terminal-icon-button . args)
   (apply icon-button
-         (append args
+         (append (list #:color control-ink
+                       #:icon-css control-icon-ink)
+                 args
                  (list #:rounding '(rounded-none)
                        #:family '(font-mono)))))
 (export terminal-icon-button)
 
 (define (terminal-button . args)
   (apply button
-         (append args
+         (append (list #:color control-ink)
+                 args
                  (list #:rounding '(rounded-none)
                        #:family '(font-mono)))))
 (export terminal-button)
+
+;; The primary action, when it is an icon and a word: the same fill the submit
+;; button above wears -- `bg-asparagus-900 dark:bg-asparagus-100' with the label
+;; that clears it -- on a control that also carries the icon the rest of this
+;; console's actions carry.
+;;
+;; It is stated here rather than at the two call sites that were the first to
+;; need it (a retry, on the log page and in a list of runs; and starting a saved
+;; profile) because the pair of colours a filled control wears is a pair: a call
+;; site that picked its own dark half is what left this console with a retry
+;; whose label was a near-white on the phosphor screen (see `prose-ink').
+(define* (terminal-primary-icon-button #:key icon content (type 'submit))
+  (terminal-icon-button #:icon icon
+                        #:content content
+                        #:type type
+                        #:size '(text-md)
+                        #:color '(text-stone-100 dark:text-onyx-900)
+                        #:icon-css '(text-md
+                                     text-stone-100
+                                     dark:text-onyx-900)
+                        #:background '(bg-asparagus-900
+                                       dark:bg-asparagus-100)
+                        #:hover-background '(hover:bg-asparagus-700
+                                             dark:hover:bg-asparagus-300)))
+(export terminal-primary-icon-button)
 
 ;; The primary action.  hygguile's `submit-button' takes no knobs, so this
 ;; states the same olive contrast pair it uses -- a filled button whose label
@@ -584,11 +738,14 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;;
 
 ;; A command token: hygguile's `code' on the terminal ground with a green
-;; hairline.
+;; hairline.  What is written inside it is a reading -- a log's UUID, a
+;; command -- so the token is read in `strong-ink' and the hairline around it is
+;; what says it is a token; a token drawn in green is one more green thing in a
+;; page of them.
 (define* (terminal-code content
                         #:key (size '(text-sm)))
   (code content
-        #:color '(text-asparagus-900 dark:text-asparagus-100)
+        #:color strong-ink
         #:background '(bg-stone-100 dark:bg-onyx-900)
         #:rounding '(rounded-none)
         #:shadow '()
@@ -613,7 +770,7 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                    h3)
                   (else h4))))
     (render content
-            #:color '(text-asparagus-900 dark:text-asparagus-100)
+            #:color accent-ink
             #:family '(font-mono)
             #:size size)))
 (export terminal-heading)
@@ -631,6 +788,15 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 (define* (terminal-pre content
                        #:key (size '(text-sm))
                        (extra '())
+                       ;; Whether the pane draws its own frame -- the ground, the
+                       ;; phosphor hairline and the shadow.  A `pre' read inside
+                       ;; a box of the page's own (`log-pane-face') is a `pre'
+                       ;; inside a frame already, and a second border drawn
+                       ;; inside the first is a hairline the reader sees twice;
+                       ;; the box is also what scrolls, so a frame drawn by the
+                       ;; output would scroll away with it, leaving a border
+                       ;; with three sides.
+                       (framed? #t)
                        (wrap? #t)
                        ;; A job's console output is not plain text: it carries the
                        ;; escapes a terminal reads -- colours, and a carriage
@@ -647,22 +813,97 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                        (frames-label "frames"))
   (pre (if ansi? (ansi->sxml content #:frames? #t #:frames-label frames-label)
            content)
-       #:color '(text-asparagus-900 dark:text-olive-100)
-       #:background '(bg-stone-100 dark:bg-onyx-900)
+       #:color prose-ink
+       #:background (if framed? '(bg-stone-100 dark:bg-onyx-900) '())
        #:rounding '(rounded-none)
        #:shadow '()
        #:size size
        #:leading '(leading-6)
-       #:width '(w-full max-w-full min-w-0)
+       ;; A framed output is as wide as the page and scrolls itself sideways.
+       ;; An unframed one is as wide as what the command wrote, and it is the
+       ;; pane around it that scrolls -- because a `pre' squeezed to the pane's
+       ;; own width would scroll its long lines in a bar along its own bottom
+       ;; edge, which on a log of a thousand lines is a bar nobody can reach
+       ;; without scrolling to the end of the build first.
+       #:width (if framed?
+                   '(w-full max-w-full min-w-0)
+                   '(w-max max-w-none min-w-0))
        #:padding-x '(px-2 sm:px-4)
        #:padding-y '(py-4)
        #:pre-classes (append (if wrap?
                                  '(font-mono whitespace-pre-wrap)
                                  '(font-mono whitespace-pre))
-                             '(overflow-x-auto caret-asparagus-300 border
-                                               border-asparagus-700
-                                               dark:border-asparagus-900)
+                             (if framed?
+                                 '(overflow-x-auto caret-asparagus-300 border
+                                                   border-asparagus-700
+                                                   dark:border-asparagus-900)
+                                 '())
                              extra)))
+
+;;
+;; The box a job's output is read in
+;;
+;; A log is not prose that happens to be long: it is a hundred screens of it,
+;; and the reader wants the end of it.  So the box the output is read in has a
+;; height of its own and scrolls, rather than making the page a scroll of the
+;; whole build -- with the page a scroll of the log, the terms of the job, the
+;; run's own actions and the pane the reader is following are all somewhere off
+;; the screen in a document whose height is decided by a build's verbosity.
+;;
+;; The height steps with the screen for the reason every other room in this
+;; console does: a phone is read in the hand and shows a dozen lines, and a wide
+;; screen has the room to show a build's own shape.
+;;
+;; The edge is the console's own green hairline, the ground the same as the
+;; `pre' inside it, so the box and its output read as one pane -- and it is the
+;; box that carries them, because a border drawn on the scrolling thing itself
+;; scrolls away with it.
+(define-public log-pane-face
+  (mk-class '(bg-stone-100 dark:bg-onyx-900
+                           border-2
+                           border-asparagus-700
+                           dark:border-asparagus-900
+                           rounded-none
+                           shadow-md
+                           w-full
+                           max-w-full
+                           min-w-0
+                           h-96
+                           sm:h-128
+                           lg:h-196
+                           overflow-auto)))
+
+;;
+;; Work in progress
+;;
+
+;; What a page shows when something is going on that it cannot show yet: a job
+;; still writing its output, a log being followed, a form that has been sent.
+;;
+;; There is exactly one of these, and it is the framework's: hygguile's own
+;; `spinner' is a ring drawn in CSS, turned by Olive's `animate-spin', with the
+;; word it stands for in a layer a screen reader reads and the page does not.  A
+;; second spinner written here would be a second set of ring colours to keep in
+;; step with the palette, and the framework's is already the two neutral steps
+;; this console reads its text in.
+;;
+;; `size' is one of hygguile's own steps; `spacing' is what the mark needs
+;; beside a word -- the size classes are a box, and a box sitting in a line of
+;; text has to be told not to sit on the words: `inline-block' and a step of
+;; room, which is the whole of the difference between the two wrappers below.
+(define* (pending-mark #:key (size 'sm) (label "Loading…"))
+  "The mark a page shows for work that is still going on."
+  (spinner #:size size
+           #:label label
+           #:classes '(inline-block align-middle)))
+(export pending-mark)
+
+(define* (pending-mark-beside #:key (size 'sm) (label "Loading…"))
+  "The same mark, with the room the one in a row of words needs."
+  (spinner #:size size
+           #:label label
+           #:classes '(inline-block align-middle mr-2)))
+(export pending-mark-beside)
 (export terminal-pre)
 
 ;;

@@ -67,7 +67,11 @@
      #:weight '(font-normal)
      #:size size
      #:leading leading
-     #:color '(text-asparagus-900 dark:text-olive-100)))
+     ;; The prose of a block is read in the console's own ink rather than in the
+     ;; phosphor: a page whose every paragraph is green is a page with nothing
+     ;; left to say a heading or a link with (see the head of `(byggsteg
+     ;; faces)').
+     #:color prose-ink))
 
 ;; A block of the account: a heading and what it says, in the same frame the
 ;; rest of the deployment uses for a list of runs or a form.
@@ -108,13 +112,19 @@
 A term written as a string is shown as a command token; a term already made
 of elements -- a word linked to where it is documented, say -- is used as it
 stands."
+  ;; Both halves of the pair are read in the console's ink.  hygguile hands
+  ;; `dt' its own `dark:text-stone-100' and `dd' its `dark:text-stone-300'
+  ;; unless the page says otherwise -- the two near-whites the phosphor screen
+  ;; has no room for -- so the page says so (`prose-ink', `(byggsteg faces)').
   (let ((word (car term)))
     (list (if (string? word)
-              (dt (terminal-code word))
-              (dt word))
+              (dt (terminal-code word)
+                  #:color prose-ink)
+              (dt word
+                  #:color prose-ink))
           (dd (cdr term)
-              #:dd-classes '(py-3 px-2 text-asparagus-900
-                                  dark:text-asparagus-300 font-mono)
+              #:dd-classes '(py-3 px-2 font-mono)
+              #:color prose-ink
               #:size '(text-md)))))
 
 (define (about-terms terms)
@@ -134,17 +144,17 @@ stands."
              #:href (deployment-source-url)
              #:family '(font-mono)
              #:size '(text-sm)
-             #:color '(text-asparagus-900 dark:text-olive-300))
+             #:color accent-ink)
          ,(a (G_ "read the manual")
              #:href (deployment-manual-url)
              #:family '(font-mono)
              #:size '(text-sm)
-             #:color '(text-asparagus-900 dark:text-olive-300))
+             #:color accent-ink)
          ,(a (G_ "read the documentation")
              #:href (deployment-documentation-url)
              #:family '(font-mono)
              #:size '(text-sm)
-             #:color '(text-asparagus-900 dark:text-olive-300)))))
+             #:color accent-ink))))
 
 ;;; ====== The opening pane ======
 

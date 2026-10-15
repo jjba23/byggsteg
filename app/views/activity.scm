@@ -152,10 +152,16 @@
 (define (heatmap-month-labels G_ heatmap)
   "The month names along the top of HEATMAP, each over its first column."
   (map (lambda (label)
+         ;; The label is painted with `fill-current' rather than with a fill of
+         ;; its own, and that is what makes it legible in both themes: an SVG
+         ;; label is coloured by `fill', the palette has no `dark:fill-…' step,
+         ;; and one grey that is readable on paper is invisible on the phosphor
+         ;; screen (and the other way round).  `fill-current' takes the colour of
+         ;; the text it is, so the label is read in the console's own ink
+         ;; whichever theme the reader is in.
          `(text (@ (x ,(column-x (car label)))
                    (y ,(- month-label-height 6))
-                   (class ,(mk-class '(fill-stone-500 text-asparagus-900
-                                                      dark:text-asparagus-300))))
+                   (class ,(mk-class (append '(fill-current) muted-ink))))
                 ,(cdr label)))
        (heatmap-months heatmap)))
 
@@ -169,8 +175,8 @@
         (map (lambda (row)
                `(text (@ (x 1)
                          (y ,(+ (row-y row) 10))
-                         (class ,(mk-class '(fill-stone-500 text-asparagus-900
-                                             dark:text-asparagus-300))))
+                         (class ,(mk-class (append '(fill-current)
+                                                   muted-ink))))
                       ,(day-number-week-day-name (+ first-day row))))
              labelled-rows))))
 
@@ -192,14 +198,13 @@
                 ,@(heatmap-month-labels G_ heatmap)
                 ,@(heatmap-weekday-labels G_ heatmap)
                 ,@(heatmap-squares G_ heatmap)))
-      (div (@ (class ,(mk-class '(flex flex-row
-                                       flex-wrap
-                                       items-center
-                                       gap-2
-                                       pt-3
-                                       text-xs
-                                       text-asparagus-900
-                                       dark:text-asparagus-300))))
+      (div (@ (class ,(mk-class (append '(flex flex-row
+                                          flex-wrap
+                                          items-center
+                                          gap-2
+                                          pt-3
+                                          text-xs)
+                                        muted-ink))))
            (span ,(G_ "fewer"))
            ,@(map (lambda (level)
                     `(svg (@ (width ,cell-size)
@@ -221,8 +226,7 @@
                       ,(terminal-heading (G_ "activity")
                                          #:tag 'h1
                                          #:size '(text-2xl))
-                      (p (@ (class ,(mk-class '(text-sm text-asparagus-900
-                                                dark:text-asparagus-300))))
+                      (p (@ (class ,(mk-class (append '(text-sm) prose-ink))))
                          ,(if (zero? total)
                               (G_ "no job has run in this deployment yet")
                               (format #f "~a ~a" total
@@ -238,8 +242,7 @@
                       (div (@ (class ,(terminal-frame-class #:extra '(p-4
                                                                       max-w-full))))
                            ,@(heatmap-figure G_ heatmap))
-                      (p (@ (class ,(mk-class '(text-xs text-asparagus-900
-                                                dark:text-asparagus-300))))
+                      (p (@ (class ,(mk-class (append '(text-xs) muted-ink))))
                          ,(G_
                            "each square is one day; darker means more jobs were queued that day"))))))
     (html-template G_

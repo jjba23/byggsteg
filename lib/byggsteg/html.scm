@@ -229,7 +229,31 @@ built from, each served by this deployment itself."
         `(noscript ,@(no-js-css))
         (toggle-dark-theme-js)
         (copy-pre-inner-text-js)
-        (show-notifications-from-url-js)
+        ;; The card a notification arrives in is hygguile's, and so is the
+        ;; script that puts one there; its title, its dismiss mark and the card
+        ;; itself are what this console gets to say about it, and all three are
+        ;; drawn in the framework's grey unless it says otherwise -- the card's
+        ;; own ink is `dark:text-stone-300', a near-white on the phosphor
+        ;; screen.  The card's extra classes are what the body inherits, so
+        ;; naming `prose-ink' there is what a notification's text is read in.
+        (show-notifications-from-url-js
+         #:header-classes (mk-class (append '(text-xl) accent-ink))
+         #:close-icon-classes (mk-class (append '(ph
+                                                   ph-x
+                                                   cursor-pointer
+                                                   text-xl)
+                                                 accent-ink))
+         #:card-classes prose-ink)
+        ;; The mark a control wears while the form it is in is being sent, which
+        ;; is the console's own: the framework's scripts are the framework's,
+        ;; and this is the one behaviour byggsteg itself brings to every page.
+        ;; It is a file rather than a block of script because it is the whole of
+        ;; what this console says about a form in flight, and because the pages
+        ;; that need it most -- a list of runs that offers seven retries -- are
+        ;; not the pages that change.
+        `(script (@ (type "text/javascript")
+                    (defer "")
+                    (src ,(asset-url "/js/byggsteg-busy.js"))) "")
         (carousel-button-js)
         (remember-dark-theme-js)
         (color-show-js)
@@ -292,12 +316,36 @@ its own -- is asked for as it stands."
                              (data-theme "dark"))
                           (head (title ,title)
                                 ,maybe-auto-refresh
+                                ;; The theme is set before the first paint, and
+                                ;; so is the colour scheme the browser draws its
+                                ;; own furniture in: a scrollbar, the plate a
+                                ;; `<select>' unfolds, a checkbox, the field an
+                                ;; autofill paints.  Olive's sheet says nothing
+                                ;; about it -- `color-scheme' is not one of its
+                                ;; utilities, and there would be no class to put
+                                ;; it on anyway -- and a document that says
+                                ;; nothing is read as light, whatever theme the
+                                ;; markup is wearing.  On the phosphor screen
+                                ;; that is a white scrollbar and a white
+                                ;; dropdown, which is the opposite of what the
+                                ;; theme asks for; naming the scheme is what
+                                ;; puts them in it.  The choice is watched as
+                                ;; well as read, because the moon/sun button
+                                ;; hygguile draws flips `data-theme' on its own.
                                 (script (@ (type "text/javascript"))
                                  "
 (function () {
+  var root = document.documentElement
   var choice = null
   try { choice = localStorage.getItem('data-theme') } catch (error) { choice = null }
-  document.documentElement.setAttribute('data-theme', choice === 'light' ? 'light' : 'dark')
+  var scheme = function () {
+    root.style.colorScheme = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark'
+  }
+  root.setAttribute('data-theme', choice === 'light' ? 'light' : 'dark')
+  scheme()
+  if (typeof MutationObserver !== 'undefined') {
+    new MutationObserver(scheme).observe(root, {attributes: true, attributeFilter: ['data-theme']})
+  }
 })()
 ")
                                 ,(hygguile-recommended-meta)
@@ -329,19 +377,40 @@ its own -- is asked for as it stands."
                           ;; The whole terminal is olive utilities: the dark
                           ;; `onyx' neutral, phosphor `olive' prose,
                           ;; monospaced and square.
-                          (body (@ (class ,(mk-class '(bg-stone-100
+                          (body (@ (class ,(mk-class (append
+                                                     '(bg-stone-100
                                                        dark:bg-onyx-900
-                                                       text-asparagus-900
-                                                       dark:text-olive-100
-                                                       rounded-none font-mono))))
+                                                       rounded-none font-mono)
+                                                     prose-ink))))
                                 ,notification-tray
                                 ;; `min-h-screen' rather than `h-screen': the
                                 ;; footer still sits at the bottom of a short
                                 ;; page, and a tall one is free to scroll past
                                 ;; the sticky bar of glass above it.
-                                (div (@ (class ,(mk-class '(flex flex-col
-                                                            min-h-screen
-                                                            justify-between))))
+                                ;;
+                                ;; The ink is named here as well as on the
+                                ;; body, and that is not a repetition to be
+                                ;; tidied away: hygguile's own stylesheet
+                                ;; carries `[data-theme="dark"] body { color:
+                                ;; #ededee }' to give text no page decorates a
+                                ;; colour the framework's sheets do not, and
+                                ;; that rule -- an attribute and an element --
+                                ;; outbids a `text-…' utility on `body' however
+                                ;; much later the class is written.  And it names
+                                ;; a colour of the framework's own rather than
+                                ;; one of Olive's -- 0.93 of lightness -- so no
+                                ;; utility can be written that outbids it.  The
+                                ;; dark theme's body was therefore read in a
+                                ;; near-white grey, and every line without an
+                                ;; ink of its own inherited it.  A declaration on
+                                ;; this element beats inheritance from the body
+                                ;; outright, which is what puts the console's
+                                ;; ink back in front of the page's own text.
+                                (div (@ (class ,(mk-class (append
+                                                           '(flex flex-col
+                                                             min-h-screen
+                                                             justify-between)
+                                                           prose-ink))))
                                      (div ,(page-top G_
                                                      #:is-logged-in
                                                      is-logged-in)
@@ -368,8 +437,11 @@ its own -- is asked for as it stands."
 ;; instead of squeezing the words in it.
 (define nav-button-size
   '(text-sm md:text-md))
+;; An icon is the phosphor beside the word (see `control-icon-ink'), and the
+;; word is the phosphor too: the bar is where this console says what it can do,
+;; and it says it in the one colour the console has ever said anything in.
 (define nav-button-icon-css
-  '(text-asparagus-300 dark:text-asparagus-100 hidden sm:inline text-sm md:text-md))
+  (append '(hidden sm:inline text-sm md:text-md) accent-ink))
 (define nav-button-classes
   '(py-1 px-1
          sm:px-2
@@ -385,8 +457,17 @@ its own -- is asked for as it stands."
          focus-visible:outline-2
          focus-visible:outline-offset-2
          outline-asparagus-500
-         text-asparagus-900
-         dark:text-asparagus-300))
+         ;; The bar's words are green at rest -- the same phosphor a heading and
+         ;; a link are written in -- so the hand has to say something else: the
+         ;; word a reader is about to press goes one step brighter, the move a
+         ;; link inside prose and the deployment's own name both make (see
+         ;; `link-face' and `brand-title-face').  Green on green would be a bar
+         ;; that answered a press with nothing at all.
+         hover:text-asparagus-700
+         dark:hover:text-olive-300))
+
+(define nav-button-ink
+  accent-ink)
 
 (define (nav-link-button G_ href icon-type label)
   "One button of the bar: an icon, a word, and where it goes."
@@ -394,6 +475,7 @@ its own -- is asked for as it stands."
        ,(terminal-icon-button #:icon icon-type
                               #:size nav-button-size
                               #:icon-css nav-button-icon-css
+                              #:color nav-button-ink
                               #:extra-classes nav-button-classes
                               #:content label))))
 
@@ -435,20 +517,27 @@ its own -- is asked for as it stands."
 ;; bar's other buttons.  They are the bar's size all the same, so that the two
 ;; of them stand no taller than the row beside them, and they are written once
 ;; because a login and an account are the same button with another word on it.
+;;
+;; The word is read in the console's own ink, which is the phosphor the rest of
+;; the bar is written in -- two buttons of the same row read in two colours
+;; would be one of them telling a reader it is not part of the row.  It was
+;; `text-onyx-900' on paper and `dark:text-white' on the phosphor screen: the
+;; two ends of the scale, and the one place in the console that named a colour
+;; outside its ramps.
 (define (account-button G_ href icon-type label)
-  `((a (@ (class ,(mk-class '(lowercase no-underline
-                                        text-onyx-900
-                                        dark:text-white
+  `((a (@ (class ,(mk-class (append '(lowercase no-underline
                                         font-sans
                                         font-medium
                                         flex
                                         flex-row
                                         items-center
-                                        gap-2)))
+                                        gap-2)
+                                      nav-button-ink)))
           (href ,href))
        ,(terminal-icon-button #:icon icon-type
                               #:size nav-button-size
                               #:icon-css nav-button-icon-css
+                              #:color nav-button-ink
                               #:extra-classes nav-button-classes
                               #:content (G_ label)))))
 
@@ -472,19 +561,28 @@ its own -- is asked for as it stands."
                                             ;; An icon-only button: what it is
                                             ;; is the two icons, so they are
                                             ;; the one pair the bar does not
-                                            ;; put away on a phone.
+                                            ;; put away on a phone.  They are
+                                            ;; read in the bar's own ink, the
+                                            ;; phosphor every word of this bar is
+                                            ;; written in -- and not in the
+                                            ;; framework's:
+                                            ;; `dark:text-stone-300' here was a
+                                            ;; near-white on the phosphor
+                                            ;; screen, and a colour of the
+                                            ;; framework's rather than the
+                                            ;; console's.
                                             #:content `((div ,(icon #:type 'sun
                                                                     #:icon-css '
                                                                     (text-sm
                                                                      md:text-md
                                                                      text-asparagus-900
-                                                                     dark:text-stone-300))
+                                                                     dark:text-asparagus-100))
                                                              ,(icon #:type 'moon
                                                                     #:icon-css '
                                                                     (text-sm
                                                                      md:text-md
                                                                      text-asparagus-900
-                                                                     dark:text-stone-300))))
+                                                                     dark:text-asparagus-100))))
                                             #:color '(text-asparagus-900
                                                       dark:text-asparagus-300)
                                             #:weight '(font-light)
@@ -512,10 +610,9 @@ its own -- is asked for as it stands."
                                                                 no-underline))))
                                     (span (@ (class ,prompt-face)) "$")
                                     ,(h3 (list (deployment-name))
-                                         #:color '(text-asparagus-900
-                                                   dark:text-asparagus-100
-                                                   hover:text-onyx-900
-                                                   dark:hover:text-olive-100)
+                                         #:color (append accent-ink
+                                                         '(hover:text-asparagus-700
+                                                           dark:hover:text-olive-300))
                                          #:size '(text-md sm:text-lg
                                                           lg:text-xl))
                                     (span (@ (class ,caret-face)) "▮")))
@@ -580,30 +677,29 @@ its own -- is asked for as it stands."
                               #:href (deployment-source-url)
                               #:family '(font-mono)
                               #:size '(text-sm)
-                              #:color '(text-asparagus-900 dark:text-olive-300))
+                              #:color accent-ink)
                           ,(a (G_ "manual")
                               #:href (deployment-manual-url)
                               #:family '(font-mono)
                               #:size '(text-sm)
-                              #:color '(text-asparagus-900 dark:text-olive-300))
+                              #:color accent-ink)
                           ,(a (G_ "documentation")
                               #:href (deployment-documentation-url)
                               #:family '(font-mono)
                               #:size '(text-sm)
-                              #:color '(text-asparagus-900 dark:text-olive-300))
+                              #:color accent-ink)
                           ,(a (G_ "about")
                               #:href "/about"
                               #:family '(font-mono)
                               #:size '(text-sm)
-                              #:color '(text-asparagus-900 dark:text-olive-300))
-                          (a (@ (href "javascript:void(0)")
-                                (class ,(mk-class '(no-underline
-                                                    cursor-pointer
-                                                    font-mono
-                                                    font-medium
-                                                    text-sm
-                                                    text-asparagus-900
-                                                    dark:text-asparagus-300)))
+                              #:color accent-ink)                                (a (@ (href "javascript:void(0)")
+                                (class ,(mk-class (append
+                                                   '(no-underline
+                                                     cursor-pointer
+                                                     font-mono
+                                                     font-medium
+                                                     text-sm)
+                                                   accent-ink)))
                                 (onclick
                                  "window.scrollTo({ top: 0, behavior: 'smooth' })"))
                              ,(G_ "back to the top")))
@@ -617,27 +713,28 @@ its own -- is asked for as it stands."
                                                       gap-y-1
                                                       align-center
                                                       items-center))))
+                          ;; The licence line is small print and is read as such:
+                          ;; it was in the phosphor, which made the two lines
+                          ;; under the links the brightest thing in the footer.
                           ,(em (G_
                                 "© Josep Bigorra & NalaGinrut -- AGPL-3.0-or-later")
                                #:family '(font-mono)
                                #:size '(text-sm)
                                #:leading '(leading-5)
-                               #:color '(text-asparagus-900
-                                         dark:text-asparagus-300))
+                               #:color muted-ink)
                           ,(em (format #f "~a ~a"
                                        (G_ "version:")
                                        (get-short-commit-sha))
                                #:family '(font-mono)
                                #:size '(text-sm)
                                #:leading '(leading-5)
-                               #:color '(text-asparagus-900
-                                         dark:text-asparagus-300))))))
+                               #:color muted-ink)))))
     (footer fragments
             #:background '(bg-stone-300 dark:bg-onyx-900)
             #:shadow '()
             #:footer-classes '(bg-stone-300 dark:bg-onyx-900
-                                            text-asparagus-900
-                                            dark:text-asparagus-300
+                                            text-onyx-100
+                                            dark:text-stone-700
                                             font-mono
                                             border-t-2
                                             border-asparagus-700
@@ -744,8 +841,7 @@ its own -- is asked for as it stands."
                                         items-center
                                         gap-4
                                         py-4))))
-            (span (@ (class ,(mk-class '(text-asparagus-900
-                                         dark:text-asparagus-300 text-sm))))
+            (span (@ (class ,(mk-class (append '(text-sm) muted-ink))))
                   ,(G_ "learn writing a byggsteg pipeline"))
             (span (@ (class ,(mk-class '(min-w-0 wrap-break-word))))
                   ,(a (deployment-source-url)
@@ -767,31 +863,48 @@ its own -- is asked for as it stands."
 (define* (job-status-label G_ job
                            #:key (size '(text-md)))
   "The status of JOB as the heading a reader reads it in: green for a job that
-went well, blue for one still going, red for one that did not."
+went well, blue for one still going, red for one that did not.
+
+A job that is still going is the one status that is not a finished reading, so
+it is the one that carries the mark work in progress carries (`pending-mark',
+`(byggsteg faces)'): a spinner beside the two words, both of them in the blue a
+running job is read in.  Without it a reader looking at a queue of rows has two
+words to tell a job that is going from one that has stopped, and a page that
+refreshes itself every twelve seconds to say nothing more than that.
+
+The mark is the framework's own, and it is a live region: a reader who cannot
+see the spinner is told that the job is in progress by the words beside it, and
+the label under them says so again in the box the mark hides."
   (let ((success (assoc-ref job
                             'job-success))
         (failure (assoc-ref job
                             'job-failed))
         (in-progress (assoc-ref job
                                 'job-in-progress)))
+    (define (status-row face mark? label)
+      "FACE's two words, with the mark of work in progress when MARK? asks for
+it."
+      `((span (@ (class ,(mk-class '(flex flex-row
+                                            items-center
+                                            gap-2)))))
+              ,@(if mark?
+                    (pending-mark #:size 'sm #:label label)
+                    '())
+              ,(sub-h4 label
+                       #:color face
+                       #:size size)))
     (cond
       ((equal? success 1)
-       (sub-h4 (G_ "job succeeded")
-               #:color job-succeeded-face
-               #:size size))
+       (status-row job-succeeded-face #f (G_ "job succeeded")))
       ((equal? failure 1)
-       (sub-h4 (G_ "job failed")
-               #:color job-failed-face
-               #:size size))
+       (status-row job-failed-face #f (G_ "job failed")))
       ((equal? in-progress 1)
-       (sub-h4 (G_ "job in progress")
-               #:color job-running-face
-               #:size size))
+       (status-row job-running-face #t (G_ "job in progress")))
       ;; A job that is neither running nor finished is one whose flags say
-      ;; nothing yet; it is still worth a colour rather than a blank.
-      (else (sub-h4 (G_ "job queued")
-                    #:color job-running-face
-                    #:size size)))))
+      ;; nothing yet; it is still worth a colour rather than a blank -- and the
+      ;; mark with it, since a job whose own row has not been written yet is a
+      ;; job the deployment has taken and not yet started.
+      (else (status-row job-running-face #t (G_ "job queued"))))))
 
 ;; Both rules below answer for a reader as well as for a job, because a retry is
 ;; a form: what is offered is what the reader can send, and a form drawn for
@@ -846,27 +959,25 @@ its own to log, and the job it retries keeps saying what it said."
             (input (@ (type hidden)
                       (name "job-id")
                       (value ,job-id)))
-            ,(terminal-icon-button #:icon 'arrow-clockwise
-                                   #:content (if content
-                                                 (G_ content) "")
-                                   #:type 'submit
-                                   #:size '(text-md)
-                                   #:color '(text-stone-100)
-                                   #:icon-css '(text-md text-stone-100)
-                                   #:background '(bg-asparagus-900)
-                                   #:hover-background '(hover:bg-olive-900))))))
+            ;; A retry is an action rather than a tool, so it wears the fill the
+            ;; console's primary action wears (`terminal-primary-icon-button'),
+            ;; both themes of it.  It carried the light theme's half alone -- a
+            ;; near-white label on the dark end of the green ramp -- which on
+            ;; the phosphor screen was the brightest word on the page.
+            ,(terminal-primary-icon-button #:icon 'arrow-clockwise
+                                           #:content (if content
+                                                         (G_ content) "")
+                                           #:type 'submit)))))
 
 (define (artifact-download G_ artifact)
   "One tarball a job built, as a row of the page."
   `((div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center gap-3))))
          (span ,(icon #:type 'archive-box
-                      #:icon-css '(text-lg text-asparagus-900
-                                           dark:text-asparagus-300)))
-         (span (@ (class ,(mk-class '(font-mono text-sm))))
+                      #:icon-css (append '(text-lg) accent-ink)))
+         (span (@ (class ,(mk-class (append '(font-mono text-sm) prose-ink))))
                ,(text-from-db (assq-ref artifact
                                         'title)))
-         (span (@ (class ,(mk-class '(text-xs text-asparagus-900
-                                              dark:text-asparagus-300))))
+         (span (@ (class ,(mk-class (append '(text-xs) muted-ink))))
                ,(human-bytes (assq-ref artifact
                                        'artifact-size)))
          ,(a (G_ "download")
@@ -874,7 +985,7 @@ its own to log, and the job it retries keeps saying what it said."
                             (assq-ref artifact
                                       'id))
              #:size '(text-md)
-             #:color '(text-asparagus-900 dark:text-olive-300)))))
+             #:color accent-ink))))
 
 (define* (artifact-downloads G_ artifacts)
   "The tarballs a job built, each one a download."
@@ -914,26 +1025,26 @@ it answers with."
            (a (@ (class ,dash-link-face)
                  (href ,logs-link))
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
-                                               align-center break-words))))
+                                               align-center wrap-break-word))))
+                   ;; The row's own mark is the green beside its title: a list of
+                   ;; runs is read by its titles (`dash-link-face'), and the
+                   ;; icons down the left edge are what a reader follows to the
+                   ;; one they want.
                    (span ,(icon #:type 'scroll
-                                #:icon-css '(text-xl text-asparagus-900
-                                                     dark:text-asparagus-300
-
-                                                     no-underline)))
+                                #:icon-css (append '(text-xl no-underline)
+                                                   accent-ink)))
                    ,(h4 log-filename
                         #:size '(text-lg)
-                        #:color '(text-asparagus-900 dark:text-asparagus-300
-                                  hover:text-onyx-900
-                                  dark:hover:text-olive-100
-
-                                  hover:text-onyx-900
-                                  dark:hover:text-olive-100))))
+                        #:color (append strong-ink
+                                        '(hover:text-asparagus-900
+                                          dark:hover:text-asparagus-100)))))
            (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                             gap-3 ml-6))))
                 ,(em (strftime "%c"
                                (localtime (assoc-ref job
                                                      'created-at)))
-                     #:size '(text-sm))
+                     #:size '(text-sm)
+                     #:color muted-ink)
                 ,(job-status-label G_ job)
                 ,(if retry?
                      (retry-button G_ job
@@ -949,15 +1060,12 @@ it answers with."
                  (href ,profiles-link))
               (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center))))
                    (span ,(icon #:type 'code
-                                #:icon-css '(text-xl text-asparagus-900
-                                                     dark:text-asparagus-300)))
+                                #:icon-css (append '(text-xl) accent-ink)))
                    ,(h4 (text-from-db (assq-ref profile
                                                 'title))
-                        #:color '(text-asparagus-900 dark:text-asparagus-300
-                                  hover:text-onyx-900
-                                  dark:hover:text-olive-100
-                                  hover:text-onyx-900
-                                  dark:hover:text-olive-100))))))))
+                        #:color (append strong-ink
+                                        '(hover:text-asparagus-900
+                                          dark:hover:text-asparagus-100)))))))))
 
 (define-syntax-rule (if-job-was-updated-html job html)
   "Render HTML conditionally for jobs that contain updated_at field"

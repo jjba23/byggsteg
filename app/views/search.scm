@@ -58,10 +58,12 @@ profile's name -- is text with nothing to read, and comes through unchanged."
   (html-escape (search-snippet (ansi->text (html-unescape (if (string? text) text "")))
                                query)))
 
+;; The excerpt is the reading the search matched on, so it is read in the
+;; console's ink (`prose-ink') and one step down in size from the row's title:
+;; it is what the answer says rather than the answer itself.
 (define (snippet-block text query)
   "TEXT's matching excerpt, as a block of the page."
-  `((div (@ (class ,(mk-class '(text-xs text-asparagus-900
-                                        dark:text-asparagus-300))))
+  `((div (@ (class ,(mk-class (append '(text-xs) prose-ink))))
          ,(snippet-of text query))))
 
 (define* (search-group G_ heading rows)
@@ -78,6 +80,7 @@ profile's name -- is text with nothing to read, and comes through unchanged."
                        (format #f "~a ~a"
                                (length rows)
                                (G_ "matches")))
+                   #:color prose-ink
                    #:size '(text-sm)))
          (div (@ (class ,(mk-class '(flex flex-col gap-4))))
               ,@rows))))
@@ -95,7 +98,7 @@ profile's name -- is text with nothing to read, and comes through unchanged."
                   ,(h4 (text-from-db (assq-ref job
                                                'title))
                        #:size '(text-lg)
-                       #:color '(text-asparagus-900 dark:text-asparagus-300))
+                       #:color strong-ink)
                   ,(job-status-label G_ job)
                   ,@(snippet-block (assq-ref job
                                              'job-data) query)))))
@@ -115,7 +118,9 @@ profile's name -- is text with nothing to read, and comes through unchanged."
                 ,(h4 (text-from-db (assq-ref log
                                              'title))
                      #:size '(text-lg)
-                     #:color '(text-asparagus-900 dark:text-asparagus-300))))
+                     ;; A row is read by its title (`dash-link-face'), and the
+                     ;; icon beside it is the one green thing in the row.
+                     #:color strong-ink)))
         ,@(snippet-block (assq-ref log
                                    'log-data) query)))
 
@@ -151,8 +156,7 @@ profile's name -- is text with nothing to read, and comes through unchanged."
                                                                       max-w-full))))
                            ,(search-form G_
                                          (if (string? query) query "")))
-                      (div (@ (class ,(mk-class '(text-sm text-asparagus-900
-                                                  dark:text-asparagus-300))))
+                      (div (@ (class ,(mk-class (append '(text-sm) muted-ink))))
                            ,(cond
                               ((not searched?)
                                (G_

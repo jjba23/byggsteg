@@ -49,9 +49,11 @@
                                                                items-center
                                                                justify-start
                                                                my-4))))
-                                   ,(em (G_ "my unique id:"))
+                                   ,(em (G_ "my unique id:")
+                                        #:color prose-ink)
                                    ,(mono (assq-ref user
                                                     'id)
+                                          #:color prose-ink
                                           #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(flex flex-row
                                                                flex-wrap
@@ -59,7 +61,8 @@
                                                                items-center
                                                                justify-start
                                                                my-4))))
-                                   ,(em (G_ "my permissions (in database):"))
+                                   ,(em (G_ "my permissions (in database):")
+                                        #:color prose-ink)
                                    ,(terminal-pre (assq-ref user
                                                             'permissions)
                                                   #:size '(text-sm)))
@@ -70,14 +73,23 @@
                                                                justify-start
                                                                my-4))))
                                    ,(em (G_
-                                         "current session permissions (in token):"))
+                                         "current session permissions (in token):")
+                                        #:color prose-ink)
                                    ,(terminal-pre (format #f "~s"
                                                           (assq-ref token
                                                                     'owner-permissions))
                                                   #:size '(text-sm)))
                               (div (@ (class ,(mk-class '(max-w-prose))))
+                                   ;; Every line of this page that hygguile's own
+                                   ;; typography would draw in its grey -- its
+                                   ;; `em' is `dark:text-stone-500' and its `p'
+                                   ;; `dark:text-stone-300', near-whites beside
+                                   ;; the phosphor screen -- is read in the
+                                   ;; console's ink instead (`prose-ink',
+                                   ;; `(byggsteg faces)').
                                    ,(em (G_
-                                         "tip: if your session permissions don't match the DB consider logging out and logging in again"))))))
+                                         "tip: if your session permissions don't match the DB consider logging out and logging in again")
+                                        #:color prose-ink)))))
          (has-modify-permissions (member 'byggsteg:modify-permissions
                                          (assq-ref token
                                                    'owner-permissions)))
@@ -87,7 +99,8 @@
                                                (strftime "%c"
                                                          (localtime (assq-ref
                                                                      token
-                                                                     'token-expires-at)))))))))
+                                                                     'token-expires-at))))
+                                      #:color prose-ink)))))
     (html-template G_
                    #:title (format #f "byggsteg - ~a"
                                    (G_ "me"))
@@ -138,26 +151,34 @@
 (define* (render-user G_ u)
   `((div (@ (class ,(mk-class '(flex flex-col gap-4))))
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
-              ,(em (G_ "username"))
+              ,(em (G_ "username")
+                   #:color prose-ink)
               ,(p (assq-ref u
                             'username)
+                  #:color prose-ink
                   #:size '(text-md)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
-              ,(em (G_ "email"))
+              ,(em (G_ "email")
+                   #:color prose-ink)
               ,(p (assq-ref u
                             'email)
+                  #:color prose-ink
                   #:size '(text-md)))
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
-              ,(em (G_ "id"))
+              ,(em (G_ "id")
+                   #:color prose-ink)
               ,(mono (assq-ref u
                                'id)
+                     #:color prose-ink
                      #:size '(text-sm)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
-              ,(em (G_ "permissions"))
+              ,(em (G_ "permissions")
+                   #:color prose-ink)
               ,(mono (assq-ref u
                                'permissions)
+                     #:color prose-ink
                      #:size '(text-sm)))
          (div (@ (class ,(mk-class '(flex flex-row gap-3))))
               (div (@ (class ,(mk-class '(flex flex-row gap-3 flex-wrap))))
@@ -174,9 +195,21 @@
                                                        (G_
                                                         "are you sure you want to delete this user?"))
                                            #:type 'submit
-                                           #:background '(bg-redwood-700)
-                                           #:color '(text-stone-300)
-                                           #:hover-background '(hover:bg-olive-900)))
+                                           ;; The red end of the palette, both
+                                           ;; themes of it: a filled button
+                                           ;; whose label clears the fill,
+                                           ;; which is the pair the primary
+                                           ;; action wears on the green ramp
+                                           ;; (`terminal-submit-button').  It
+                                           ;; hovered to the dark end of the
+                                           ;; *green* ramp before, which is not
+                                           ;; a red button's hover at all.
+                                           #:background '(bg-redwood-700
+                                                          dark:bg-redwood-300)
+                                           #:color '(text-stone-100
+                                                     dark:text-onyx-900)
+                                           #:hover-background '(hover:bg-redwood-900
+                                                                dark:hover:bg-redwood-100)))
                    (a (@ (href ,(format #f "/users/edit/~a"
                                         (assq-ref u
                                                   'id))))
@@ -363,7 +396,8 @@
                                ,(sub-h3 (format #f "~a: ~a"
                                                 (G_
                                                  "perform a password reset for")
-                                                email))
+                                                email)
+                                        #:color prose-ink)
                                (form (@ (method POST)
                                         (action "/password/do-reset"))
                                      (div (@ (class ,(terminal-frame-class
@@ -398,8 +432,13 @@
                                                                          "reset")))))))))
 
 (define (make-permission-checkbox p)
+  ;; The label a permission is read under is the console's own field label
+  ;; (`label-face'), which hygguile's own would otherwise draw in the
+  ;; framework's grey -- `dark:text-stone-300', a near-white on the phosphor
+  ;; screen.
   `((div ,(input #:type 'checkbox
                  #:input-flex-css '(my-2 flex flex-row gap-1)
+                 #:label-css label-face
                  #:label (format #f "~a" p)
                  #:name (format #f "~a" p)))))
 
@@ -440,7 +479,8 @@
                                                ,(G_
                                                  "the account is created without a password, and a link to set one is sent to the address above"))
                                           (div (@ (class ,(mk-class '(my-6))))
-                                               ,(sub-h4 (G_ "user permissions"))
+                                               ,(sub-h4 (G_ "user permissions")
+                                                        #:color prose-ink)
                                                (div (@ (class ,(mk-class '(flex
                                                                            flex-col
                                                                            gap-1))))
@@ -456,20 +496,18 @@
                                         name
                                         (type 'checkbox)
                                         (checked #f)
-                                        (input-css '(p-3 max-w-prose
-                                                     rounded-none
-                                                     border-asparagus-700
-                                                     dark:border-asparagus-900
-                                                     text-asparagus-900
-                                                     dark:text-stone-300
-                                                     bg-stone-100
-                                                     dark:bg-onyx-700
-                                                     border-2
-                                                     font-mono
-                                                     shadow-md))
-                                        (label-css '(text-md font-bold
-                                                     text-asparagus-900
-                                                     dark:text-stone-300))
+                                        (input-css (append '(p-3 max-w-prose
+                                                                rounded-none
+                                                                border-asparagus-700
+                                                                dark:border-asparagus-900
+                                                                bg-stone-100
+                                                                dark:bg-onyx-700
+                                                                border-2
+                                                                font-mono
+                                                                shadow-md)
+                                                           prose-ink))
+                                        (label-css (append '(text-md font-bold)
+                                                           prose-ink))
                                         (input-flex-css '(my-2 flex flex-row
                                                                gap-1)))
   
@@ -528,7 +566,8 @@
                                                                 #:type 'email
                                                                 #:required #t))
                                           (div (@ (class ,(mk-class '(my-6))))
-                                               ,(sub-h4 (G_ "user permissions"))
+                                               ,(sub-h4 (G_ "user permissions")
+                                                        #:color prose-ink)
                                                (div (@ (class ,(mk-class '(flex
                                                                            flex-col
                                                                            gap-1))))

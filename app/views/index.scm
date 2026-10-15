@@ -58,48 +58,65 @@
 
 (define (job-type-expl G_)
   (let* ((dl-classes '(flex flex-col gap-1 py-2))
-         (dd-classes '(py-3 px-2 text-asparagus-900 dark:text-asparagus-300
-                            font-mono)))
+         ;; The terms and the readings under them are read in the console's own
+         ;; ink rather than in hygguile's: `dt' is drawn at
+         ;; `dark:text-stone-100' and `dd' at `dark:text-stone-300', two
+         ;; near-whites the phosphor screen has no room for, so both are handed
+         ;; `prose-ink' (`(byggsteg faces)') and the readings keep only their
+         ;; layout.
+         (dd-classes '(py-3 px-2 font-mono)))
     (terminal-glass-panel (list (terminal-heading (G_ "job types"))
                                 (dl (list (dt (list (terminal-code "maak-test")
                                                     " | "
-                                                    (terminal-code "make-test")))
+                                                    (terminal-code "make-test"))
+                                               #:color prose-ink)
                                           (dd (G_
                                                "Run test suite with Maak or Make")
                                               #:dd-classes dd-classes
+                                              #:color prose-ink
                                               #:size '(text-md))
                                           (dt (terminal-code
-                                               "pull-and-restart"))
+                                               "pull-and-restart")
+                                              #:color prose-ink)
                                           (dd (G_
                                                "Git pull and restart wanted GNU Shepherd service")
                                               #:dd-classes dd-classes
+                                              #:color prose-ink
                                               #:size '(text-md))
                                           (dt (list (terminal-code
                                                      "maak-deploy") " | "
                                                     (terminal-code
-                                                     "pull-and-deploy")))
+                                                     "pull-and-deploy"))
+                                              #:color prose-ink)
                                           (dd (G_
                                                "Run a deploy with Maak or Make")
                                               #:dd-classes dd-classes
+                                              #:color prose-ink
                                               #:size '(text-md))
                                           (dt (list (terminal-code
                                                      "maak-build") " | "
                                                     (terminal-code
-                                                     "make-build")))
+                                                     "make-build"))
+                                              #:color prose-ink)
                                           (dd (G_
                                                "Run a build with Maak or Make (make-build is the fallback task)")
                                               #:dd-classes dd-classes
+                                              #:color prose-ink
                                               #:size '(text-md))
                                           (dt (terminal-code
-                                               "byggsteg-version"))
+                                               "byggsteg-version")
+                                              #:color prose-ink)
                                           (dd (G_
                                                "Byggsteg pull and restart GNU Shepherd daemon itself")
                                               #:dd-classes dd-classes
+                                              #:color prose-ink
                                               #:size '(text-md))
-                                          (dt (terminal-code "trivial"))
+                                          (dt (terminal-code "trivial")
+                                              #:color prose-ink)
                                           (dd (G_
                                                "Allow passing arbitrary list of commands (via trivial-cmds field)")
                                               #:dd-classes dd-classes
+                                              #:color prose-ink
                                               #:size '(text-md)))
                                     #:dl-classes dl-classes))
                           #:classes '(max-w-prose)
@@ -128,7 +145,8 @@
                                                                          (p-4
                                                                           max-w-128))))
                                         ,(em (G_
-                                              "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction"))))
+                                              "byggsteg aims to be the hackable continuous integration and delivery system, allowing engineers to deliver software quicker and with less friction")
+                                             #:color prose-ink)))
 
                               (div (@ (class ,(terminal-frame-class #:extra '(my-6
                                                                               overflow-hidden))))

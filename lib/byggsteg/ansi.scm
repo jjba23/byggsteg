@@ -44,6 +44,17 @@
 ;;; are written as an inline colour and come out exact.  The map from the one to
 ;;; the other is `ansi-foreground-classes' and `ansi-background-classes' below.
 ;;;
+;;; "A step that reads on the current theme" is most of the work for the two
+;;; colours that have no ramp to sit on.  On paper, a command's white arrives as
+;;; `onyx-500' -- a mid grey, since white ink on white paper reads as nothing --
+;;; and its bright white a step lighter than that; on the phosphor screen the
+;;; same two are the pale end of the `stone' ramp, one step apart, and neither is
+;;; pushed as bright as the palette goes: `stone-500' for white and `stone-300'
+;;; for bright white, where the framework's own grey would have them at 0.95 and
+;;; 0.99 of lightness and the screen's phosphor ink is 0.85.  White is the
+;;; brightest thing a log can say, but it is said in this console's paint, not in
+;;; the browser's default.
+;;;
 ;;; The line a program paints rather than prints is the third reading.  A
 ;;; progress bar does not print a hundred lines: it prints one and sends the
 ;;; cursor home a hundred times, so what a terminal leaves is the last of them
@@ -88,7 +99,7 @@
    '(text-jeans-blue-700 dark:text-jeans-blue-300) ; blue
    '(text-tawny-700 dark:text-tawny-300)         ; magenta (Olive's nearest warm ramp)
    '(text-olive-700 dark:text-olive-300)         ; cyan (Olive's nearest cool ramp)
-   '(text-onyx-500 dark:text-stone-300)          ; white
+   '(text-onyx-500 dark:text-stone-500)          ; white
    ;; 8 .. 15, the bright half: one step lighter in either theme.
    '(text-onyx-700 dark:text-onyx-300)          ; bright black
    '(text-redwood-500 dark:text-redwood-100)     ; bright red
@@ -97,11 +108,18 @@
    '(text-jeans-blue-500 dark:text-jeans-blue-100) ; bright blue
    '(text-tawny-500 dark:text-tawny-100)         ; bright magenta
    '(text-olive-500 dark:text-olive-100)         ; bright cyan
-   '(text-onyx-300 dark:text-stone-100)))        ; bright white
+   '(text-onyx-300 dark:text-stone-300)))        ; bright white
 
 ;; A background is the colour itself rather than a reading of it, so it takes no
 ;; `dark:' step: a red background is red wherever it is painted.  This is the
 ;; ground each of the sixteen ANSI colours is painted in.
+;;
+;; The two whites are the one pair that needs saying twice: the palette keeps no
+;; pure white at all, so a white ground is the console's own panel paint
+;; (`stone-300') and a bright white one the paper it sits on (`stone-100') --
+;; the same two steps this console already tells its panels and its page apart
+;; with -- rather than `white', which is the one colour in the sheet that belongs
+;; to the browser rather than to the theme.
 (define ansi-background-classes
   (list '(bg-onyx-900)
         '(bg-redwood-700)
@@ -110,7 +128,7 @@
         '(bg-jeans-blue-700)
         '(bg-tawny-700)
         '(bg-olive-700)
-        '(bg-stone-100)
+        '(bg-stone-300)
         '(bg-onyx-700)
         '(bg-redwood-500)
         '(bg-asparagus-500)
@@ -118,7 +136,7 @@
         '(bg-jeans-blue-500)
         '(bg-tawny-500)
         '(bg-olive-500)
-        '(bg-white)))
+        '(bg-stone-100)))
 
 ;; The two faces reverse video reaches for when one side of a run was left to
 ;; the terminal: the terminal's own ground read as ink, and its own ink read as

@@ -33,6 +33,14 @@
    for -- a reader who wants the console should not download the log twice --
    and are fetched the first time that reading is chosen.
 
+   What a reader follows is the output, not the document.  The pane the log is
+   read in has a height of its own and scrolls inside the page, so "the end" is
+   the end of the pane's own scroll -- the page around it stays where it is, and
+   the run's name, its facts and its actions stay in front of the reader while
+   the output moves under them.  A page whose pane is shorter than its content
+   is the only case where the page itself has to move, which is why each of
+   those two readings is taken from the box it is a reading of.
+
    Nothing here knows anything on its own: the address the pane is fetched from,
    whether the job is still writing, how long the log row was when the reader was
    last sent it, and the line each folded reading belongs to, all travel in the
@@ -59,11 +67,33 @@
     return writer ? writer.getAttribute('data-log-running') === 'true' : false
   }
 
-  /* Whether the reader is at the end of the page, which is where a reader
-     following a build is: what arrives is drawn where they are looking, and a
-     reader who has scrolled back to read a line keeps where they were. */
+  /* Whether the reader is at the end of what they are reading, which is where a
+     reader following a build is: what arrives is drawn where they are looking,
+     and a reader who has scrolled back to read a line keeps where they were.
+
+     The reading is taken of the pane rather than of the page, because the pane
+     is what the reader follows: the page around it stays where it is, and a
+     reader who stretches the window while a build runs is still at the end of
+     the output underneath it.  A page with no pane in it -- one whose script
+     could not find the section it is following -- is read as a reader who is
+     at the end, so that a poll still draws what it was answered with. */
   function atTheEnd() {
-    return window.pageYOffset + window.innerHeight >= document.body.scrollHeight - 48
+    var box = pane(view)
+    if (!box) { return true }
+    return box.scrollTop + box.clientHeight >= box.scrollHeight - 24
+  }
+
+  /* Put the reader at the end of the pane, which is what a page opened on a job
+     that is still writing does: the last line is the one they came for, and a
+     build that has printed a thousand lines should open on the thousandth.  The
+     page itself is left where it is -- the run's name, its facts and its
+     actions are above the pane, and a reader who opened the page to read them
+     is not sent past them. */
+  function followTheEnd() {
+    var box = pane(view)
+    if (box && box.scrollHeight > box.clientHeight) {
+      box.scrollTop = box.scrollHeight
+    }
   }
 
   /* The readings the reader has unfolded, by the line they belong to.  The pane
@@ -154,7 +184,7 @@
         }
         target.setAttribute('data-log-have', state.getAttribute('data-log-length') || '')
         read[name] = true
-        if (stick) { window.scrollTo(0, document.body.scrollHeight) }
+        if (stick) { followTheEnd() }
         if (state.getAttribute('data-log-running') !== 'true') { stop() }
       })
       .catch(function () {
@@ -191,5 +221,11 @@
   try { remembered = localStorage.getItem('log-view') } catch (error) { remembered = null }
   choose(remembered === 'raw' ? 'raw' : 'output')
 
-  if (running()) { timer = setInterval(function () { follow(view) }, seconds * 1000) }
+  if (running()) {
+    /* A job that is still writing is opened at the end of what it has written
+       so far, and then asked for again: the reader is following the build, and
+       the pane is where it is being written. */
+    followTheEnd()
+    timer = setInterval(function () { follow(view) }, seconds * 1000)
+  }
 })()
