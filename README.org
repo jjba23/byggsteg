@@ -19,7 +19,7 @@ to hack -- on your own machine, under your own licence, with no account anywhere
 else.
 
 #+name: byggsteg-showcase
-#+caption: The landing page, the jobs a pipeline can ask for, a search across jobs, logs and profiles, the saved profiles, a year of runs in both themes, and a list of runs with the console's retry offered on one of them.
+#+caption: The console in its dark theme and in the order a reader meets it: the landing page and the job types a pipeline can ask for, the runs a deployment has behind it, one of those runs opened on its log, on the output as it arrived and on the Lisp that asked for it, a year of runs week by week, a search across jobs, logs and profiles, the saved profiles and one of them, the account of what this is, the way in, and the landing page again, where the tour began.
 [[https://codeberg.org/jjba23/byggsteg/raw/branch/trunk/docs/byggsteg-showcase.gif]]
 
 - 🌍 *Watch it run:* [[https://byggsteg.jointhefreeworld.org][byggsteg.jointhefreeworld.org]]
@@ -1102,9 +1102,10 @@ The manual is this README, rendered as a single HTML page:
 - The source of that page: [[file:README.org]] (this file), rendered by
   ~maak build-manual~ and published by ~maak deploy~
 - The demo above is [[file:docs/byggsteg-showcase.gif]]: a tour of the pages of
-  a local deployment of this console, cut from a screen recording and assembled
-  with ~ffmpeg~.  Record the same tour again after a page changes, and the
-  manual shows the console as it is rather than as it was.
+  this console as its dark theme shows them, one page read at a time and
+  assembled with ~ffmpeg~.  It is a capture of a running deployment rather than
+  a drawing of one, so recording the same tour again after a page changes is
+  what keeps the manual showing the console as it is rather than as it was.
 
 ------------------
 
