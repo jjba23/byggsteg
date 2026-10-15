@@ -29,7 +29,7 @@ else.
 
 If you like my work, please support me by [[https://bmc.link/jjbigorra][buying me a cup of coffee ☕]] so I can continue with a lot of motivation.
 
-#+TOC: headlines 2
+#+TOC: headlines 1
 
 This is both the project's README and its manual: one document, so that a reader
 has one place to look and the two cannot come to say different things.
