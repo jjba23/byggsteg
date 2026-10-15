@@ -24,7 +24,7 @@ else.
 
 - 🌍 *Watch it run:* [[https://byggsteg.jointhefreeworld.org][byggsteg.jointhefreeworld.org]]
 - 📖 *Read this document rendered as HTML:* [[https://jointhefreeworld.org/manuals/byggsteg/][the byggsteg manual]]
-- 💾 *Read the source (and send patches):* [[https://codeberg.org/jjba23/byggsteg][codeberg.org/jjba23/byggsteg]]
+- 💾 *Read the source (and send PR/issue/patches):* [[https://codeberg.org/jjba23/byggsteg][codeberg.org/jjba23/byggsteg]]
 - 🗺️ *Follow what is next:* [[https://lucidplan.jointhefreeworld.org/tickets/byggsteg][the byggsteg board]]
 
 If you like my work, please support me by [[https://bmc.link/jjbigorra][buying me a cup of coffee ☕]] so I can continue with a lot of motivation.
