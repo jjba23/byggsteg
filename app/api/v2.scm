@@ -43,10 +43,18 @@
 ;;; method it was not told to route before any route is looked up -- a deployment
 ;;; that kept the old configuration answers these with a 405.
 ;;;
-;;; The document that describes all of this to a client is `docs/openapi.v2.json',
-;;; served by `GET /api/v2/openapi.json'.  It is written by hand and read against
-;;; this file by the suite (`(veritas unit api-v2-spec)'): every route registered
-;;; below has to be in it, and it may describe no route that is not here.
+;;; The document that describes all of this to a client is `pub/openapi.yaml'.  It
+;;; is not a route here: everything under `pub/' is served as it is, so a
+;;; deployment that runs this API has the document at `/openapi.yaml', beside the
+;;; console's own stylesheets and images, and needs no endpoint of its own to
+;;; give it out.  `(byggsteg api)' names that address in the answer a client
+;;; reads when it asks what this deployment is.
+;;;
+;;; It is written by hand, and it is the document of the deployment it is served
+;;; by: a route added here and not described there is an endpoint no client can
+;;; find, and a route described there and not registered here is a promise this
+;;; deployment does not keep.  Nothing in the language makes the two agree, so a
+;;; change to one is a change to the other.
 
 (define-restful-api v2)
 
@@ -283,15 +291,6 @@ output went into, and the tarballs it collected."
 
 (api-route (get "/api/v2/tasks")
   (api-json rc 200 (tasks-json)))
-
-(api-route (get "/api/v2/openapi.json")
-  (let ((document (openapi-document)))
-    (if (not document)
-        (api-problem rc 404
-                     "this deployment serves no OpenAPI document: docs/openapi.v2.json is not in its clone")
-        (response-emit document
-                       #:status 200
-                       #:headers '((content-type application/json))))))
 
 ;;; ====== Runs ======
 

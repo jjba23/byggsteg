@@ -20,7 +20,7 @@ else.
 
 #+name: byggsteg-showcase
 #+caption: The console in its dark theme and in the order a reader meets it: the landing page and the job types a pipeline can ask for, the runs a deployment has behind it, one of those runs opened on its log, on the output as it arrived and on the Lisp that asked for it, a year of runs week by week, a search across jobs, logs and profiles, the saved profiles and one of them, the account of what this is, the way in, and the landing page again, where the tour began.
-[[https://codeberg.org/jjba23/byggsteg/raw/branch/trunk/docs/byggsteg-showcase.gif]]
+[[https://codeberg.org/jjba23/byggsteg/raw/branch/trunk/pub/byggsteg-showcase.gif]]
 
 - 🌍 *Watch it run:* [[https://byggsteg.jointhefreeworld.org][byggsteg.jointhefreeworld.org]]
 - 📖 *Read this document rendered as HTML:* [[https://jointhefreeworld.org/manuals/byggsteg/][the byggsteg manual]]
@@ -1101,7 +1101,7 @@ The manual is this README, rendered as a single HTML page:
 - Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
 - The source of that page: [[file:README.org]] (this file), rendered by
   ~maak build-manual~ and published by ~maak deploy~
-- The demo above is [[file:docs/byggsteg-showcase.gif]]: a tour of the pages of
+- The demo above is [[file:pub/byggsteg-showcase.gif]]: a tour of the pages of
   this console as its dark theme shows them, one page read at a time and
   assembled with ~ffmpeg~.  It is a capture of a running deployment rather than
   a drawing of one, so recording the same tour again after a page changes is

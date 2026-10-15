@@ -16,25 +16,23 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; What the JSON API answers, read against what it says it answers.
+;;; What the JSON API answers, read as the answers themselves.
 ;;;
-;;; The API under /api/v2 is one file of routes (`app/api/v2.scm'), one module of
-;;; shapes (`(byggsteg api)') and one document (`openapi.yaml') that is
-;;; written by hand and served by one of those routes.  Three files that have to
-;;; agree, and nothing in the language that makes them: a route added and not
-;;; described is an endpoint no client can find, a route described and not
-;;; registered is a promise the deployment does not keep, and a shape changed
-;;; without the document is a client reading a field that is not there.
+;;; The API under /api/v2 is one file of routes (`app/api/v2.scm') and one module
+;;; of shapes (`(byggsteg api)').  The document that describes them to a client
+;;; is `pub/openapi.yaml', written by hand and served as one of the deployment's
+;;; own files -- anything under `pub/' is, so it needs no route of this API to be
+;;; read.  It is prose a reader and a code generator read, not a shape this
+;;; deployment answers with, so nothing here reads it.  What a document cannot be
+;;; read for is read from the deployment itself: what a route is registered in,
+;;; and what the router is willing to route.
 ;;;
-;;; What is read here is each of those against the others, and the readings of
-;;; the answers themselves:
+;;; What is read here is the routes the file registers, and the readings of the
+;;; answers themselves:
 ;;;
-;;; * the routes the file registers, against the operations the document
-;;;   describes -- both ways, so neither may say something the other does not;
 ;;; * every route registered through `api-route' rather than beside it, since
-;;;   that macro is what answers a failure in this API's own shape;
-;;; * every `$ref' in the document, resolved, every tag declared, every
-;;;   operation id unique, and every method used allowed by the deployment's own
+;;;   that macro is what answers a failure in this API's own shape, and every
+;;;   method a route is registered in allowed by the deployment's own
 ;;;   configuration (`conf/artanis.conf'), which is what the router reads before
 ;;;   it looks a route up at all;
 ;;; * the shapes a run, a log, a tarball, a profile, an account and a session are
@@ -94,9 +92,6 @@ the same reading wherever the run was started."
 (define api-source
   (string-append (project-root) "/app/api/v2.scm"))
 
-(define openapi-file
-  (string-append (project-root) "/docs/openapi.v2.json"))
-
 (define deployment-config
   (string-append (project-root) "/conf/artanis.conf"))
 
@@ -124,11 +119,13 @@ the same reading wherever the run was started."
                         found)))))))
 
 (define (path-template path)
-  "PATH as the document writes it: a segment a route binds is written `{name}'.
+  "PATH with a segment a route binds written one way, whatever it was named.
 
 The route file names its segments the way Artanis binds them -- `:id' and
-`:token' -- and the document names them the way OpenAPI does, so the two are the
-same path only once one of them is read into the other's spelling."
+`:token' -- and the two readings of the file below are compared with each other,
+so the spelling is here rather than left to the file: a route written through
+`api-route' and the same route written beside it are one route under this, and a
+path that binds nothing is itself."
   (regexp-substitute/global #f ":([a-zA-Z]+)" path 'pre "{" 1 "}" 'post))
 
 (define (route-method name)
@@ -154,15 +151,6 @@ mistaken for a route."
        (matches-of "[(](get|post|patch|delete|page-delete)[[:space:]]+\"([^\"]+)\""
                    text)))
 
-(define (segment-name segment)
-  "SEGMENT, a part of a path, as the name it binds when it binds one.
-
-The document writes a parameter of a path as `{name}' and a part that binds
-nothing as itself, so a part is a name only where it is one."
-  (if (string-prefix? "{" segment)
-      (string-trim-right (substring segment 1) #\})
-      #f))
-
 (define (routes-through-the-macro text)
   "The routes TEXT registers through `api-route', in the order written."
   (map (lambda (found)
@@ -171,20 +159,28 @@ nothing as itself, so a part is a name only where it is one."
        (matches-of "[(]api-route[[:space:]]+[(](get|post|patch|delete|page-delete)[[:space:]]+\"([^\"]+)\""
                    text)))
 
-(define (routes-in-order routes)
-  "ROUTES, without repetitions, in one order whatever order they were read in."
-  (sort (delete-duplicates routes)
-        (lambda (a b)
-          (string<? (format #f "~a ~a" (car a) (cdr a))
-                    (format #f "~a ~a" (car b) (cdr b))))))
-
 (define registered-routes
   (routes-in (file-text api-source)))
 
 (define routed-routes
   (routes-through-the-macro (file-text api-source)))
 
-;;; ====== The document that describes them ======
+;;; ====== What the router is willing to route ======
+
+(define (allowed-methods)
+  "The methods this deployment's configuration lets the router route.
+
+Artanis refuses a method it was not told to route before any route is looked up,
+whatever a route declares, so a route registered in a method this file does not
+name is a call that can only be answered with a 405."
+  (let ((line (find (lambda (line)
+                      (string-prefix? "server.allowedmethods" line))
+                    (string-split (file-text deployment-config) #\newline))))
+    (if (not line) '()
+        (map string-trim-both
+             (string-split (cadr (string-split line #\=)) #\,)))))
+
+;;; ====== Reading an answer ======
 
 (define (read-json text)
   "TEXT, a JSON document, as guile-json reads it: objects are alists of strings,
@@ -210,159 +206,6 @@ is what tells an object (`keys . value' pairs) from a list of values."
             (cons (car pair) (keys-in-order (cdr pair))))
           (reverse value)))
     (else value)))
-
-(define (json-array value)
-  "VALUE, an array of the document or a name it says nothing about, as a list.
-
-The document is read the way guile-json reads JSON -- an array is a vector, and a
-name the document says nothing about is #f -- and the two are read as one thing
-here, so that a reading of the document is written once: an absent array is the
-empty list, because every question a reading asks of one is a question about the
-elements that are there, and there are none."
-  (cond
-    ((vector? value)
-     (vector->list value))
-    ((list? value)
-     value)
-    (else '())))
-
-(define openapi-text
-  (file-text openapi-file))
-
-(define document
-  (read-json openapi-text))
-
-(define (document-of key)
-  "KEY of the document, or #f when it says nothing under that name."
-  (assoc-ref document key))
-
-(define http-methods
-  '("get" "put" "post" "delete" "options" "head" "patch" "trace"))
-
-(define (operation-methods operations)
-  "The HTTP methods OPERATIONS -- the operations of one path item -- answers."
-  (filter (lambda (name)
-            (member name http-methods)) (map car operations)))
-
-(define (document-routes)
-  "The operations the document describes, as `(METHOD . PATH)' pairs."
-  (append-map (lambda (path-item)
-                (map (lambda (method)
-                       (cons (string-upcase method)
-                             (car path-item)))
-                     (operation-methods (cdr path-item))))
-              (document-of "paths")))
-
-(define (operation-at method path)
-  "The operation the document describes METHOD on PATH as, or #f."
-  (let ((path-item (assoc path (document-of "paths"))))
-    (and path-item
-         (assoc (string-downcase method) (cdr path-item)))))
-
-(define (declared-parameters route)
-  "The parameters the document declares for ROUTE: the ones of the path it is
-on, and the ones of the operation itself.
-
-OpenAPI allows both, and a document that puts them on the path item -- as this
-one does for the paths two operations share -- would otherwise be read as a
-document that declares none."
-  (let ((path-item (assoc (cdr route) (document-of "paths")))
-        (operation (operation-at (car route) (cdr route))))
-    (append (json-array (and path-item (assoc-ref path-item "parameters")))
-            (json-array (and operation (assoc-ref operation "parameters"))))))
-
-(define (undeclared-segments route)
-  "The segments ROUTE binds that its operation declares no parameter for.
-
-A path that binds a segment without declaring it is a document a client cannot
-call: the value it has to put there is a name it was never given."
-  (let ((declared (map follow-ref (declared-parameters route))))
-    (remove (lambda (name)
-              (find (lambda (parameter)
-                      (and (equal? (assoc-ref parameter "in") "path")
-                           (equal? (assoc-ref parameter "name") name)))
-                    declared))
-            (filter-map segment-name (string-split (cdr route) #\/)))))
-
-(define (follow-ref value)
-  "VALUE, with the component a `$ref' names read in its place.
-
-This document declares the parameters two operations share once, under
-`components', and names them by reference where they are used.  A reading of
-what an operation declares has to follow that reference, or it would read every
-declared parameter as an undeclared one -- which is exactly the reading below."
-  (let ((ref (and (pair? value) (assoc-ref value "$ref"))))
-    (if (not ref)
-        value
-        (let ((parts (string-split ref #\/)))
-          (if (and (= 4 (length parts))
-                   (equal? (car parts) "#")
-                   (equal? (cadr parts) "components"))
-              (assoc-ref (component-group (caddr parts)) (cadddr parts))
-              value)))))
-
-(define (every-ref value)
-  "Every `$ref' in VALUE, as the strings they name.
-
-The document is walked as guile-json read it: an object is an alist, an array a
-vector, and a `$ref' is a pair whose head is the name itself."
-  (cond
-    ((and (pair? value)
-          (string? (car value))
-          (string=? (car value) "$ref"))
-     (list (cdr value)))
-    ((pair? value)
-     (append (every-ref (car value)) (every-ref (cdr value))))
-    ((vector? value)
-     (append-map every-ref (vector->list value)))
-    (else '())))
-
-(define (component-group name)
-  "The components of the document under NAME, or #f when there are none."
-  (let ((components (document-of "components")))
-    (and components (assoc-ref components name))))
-
-(define (ref-resolves? ref)
-  "Whether REF -- a `#/components/<group>/<name>' -- names a component there is.
-
-An unresolvable `$ref' is a document a code generator cannot read and a client
-cannot follow, and it is the one kind of rot a hand-written document collects
-without anybody noticing: nothing in the file itself says the name is wrong."
-  (let ((parts (string-split ref #\/)))
-    (and (= 4 (length parts))
-         (equal? (car parts) "#")
-         (equal? (cadr parts) "components")
-         (let ((group (component-group (caddr parts))))
-           (and group (assoc (cadddr parts) group) #t)))))
-
-(define (declared-tags)
-  "The tags the document declares, as the names it declares them under."
-  (map (lambda (tag)
-         (assoc-ref tag "name")) (json-array (document-of "tags"))))
-
-(define (operation-ids)
-  "Every operation id the document uses, in the order the paths are written."
-  (filter-map (lambda (route)
-                (let ((operation (operation-at (car route) (cdr route))))
-                  (and operation (assoc-ref operation "operationId"))))
-              (document-routes)))
-
-(define (declared-methods)
-  "The HTTP methods the document describes an operation with."
-  (delete-duplicates (map car (document-routes))))
-
-(define (allowed-methods)
-  "The methods this deployment's configuration lets the router route.
-
-Artanis refuses a method it was not told to route before any route is looked up,
-whatever a route declares, so a document that describes an operation in a method
-this file does not name describes a call that can only be answered with a 405."
-  (let ((line (find (lambda (line)
-                      (string-prefix? "server.allowedmethods" line))
-                    (string-split (file-text deployment-config) #\newline))))
-    (if (not line) '()
-        (map string-trim-both
-             (string-split (cadr (string-split line #\=)) #\,)))))
 
 ;;; ====== A throwaway database ======
 
@@ -646,79 +489,38 @@ it."
           (list 'a-day-that-has-not-happened
                 (nulls-only-at-the-end? days)))))
 
-;;; ====== The document the deployment serves ======
-
-;; The document as the route that serves it reads it.  The route reads it from the
-;; deployment's own top level -- the directory the server was started in -- so
-;; this answers only when the suite is run from the project's own directory, which
-;; is how the project runs it: `maak test' names the load path and the locale it
-;; reads in and nothing else, so the directory is the one the task was started
-;; from.  It is #f elsewhere, and the reading of that is skipped rather than
-;; failed, since it is a reading of where the suite was run from.
-(define served-document
-  (openapi-document))
-
 ;;; ====== The readings ======
 
 (define api-suite
   (suite "the JSON API under /api/v2"
          #:shuffle? #f
          #:concurrent? #f
-         (test "the document describes the routes the API registers, and no others"
+
+         (test "every route the API registers is a call this deployment can answer"
                #:shuffle? #f
-               (assert-equal #:name
-                "every route is described, and nothing is described that is not registered"
-                #:expect (routes-in-order registered-routes)
-                #:got (routes-in-order (document-routes)))
                (assert-equal #:name
                 "every route of the API goes through `api-route', which is what answers its failures in its own shape"
                 #:expect registered-routes
-                #:got routed-routes))
-
-         (test "the document is whole, and every name in it resolves"
-               #:shuffle? #f
-               (assert-equal #:name
-                "the document is OpenAPI 3.1"
-                #:expect "3.1."
-                #:got (substring (document-of "openapi") 0 4))
+                #:got routed-routes)
+               ;; Artanis refuses a method it was not told to route before any
+               ;; route is looked up, whatever a route declares, so a route
+               ;; registered in a method this deployment's own configuration does
+               ;; not name is a call that can only be answered with a 405.
                (assert-empty #:name
-                "every `$ref' in it names a component the document defines"
-                #:got (remove ref-resolves? (every-ref document)))
-               (assert-empty #:name
-                "every tag an operation carries is one the document declares"
-                #:got (remove (lambda (tag)
-                                (member tag (declared-tags)))
-                              (delete-duplicates
-                               (append-map (lambda (route)
-                                             (let ((operation (operation-at (car route)
-                                                                            (cdr route))))
-                                               (and operation
-                                                    (vector->list (assoc-ref operation
-                                                                             "tags")))))
-                                           (document-routes)))))
+                "every method a route is registered in is one `server.allowedmethods' names"
+                #:got (remove (lambda (route)
+                                (member (car route) (allowed-methods)))
+                              registered-routes))
+               ;; The two verbs the console's own pages never send are the two
+               ;; this API adds: a removal, and a change.  A route written in one
+               ;; of them but not registered -- a change the console makes by
+               ;; submitting a form, say -- would leave a client with no way to
+               ;; ask, so both are read for here.
                (assert-equal #:name
-                "no two operations share an id"
-                #:expect (delete-duplicates (operation-ids))
-                #:got (operation-ids))
-               (assert-empty #:name
-                "every path segment an operation binds is declared a parameter of the path"
-                #:got (append-map undeclared-segments (document-routes))))
-
-         (test "the methods the document declares are the ones this deployment routes"
-               #:shuffle? #f
-               (assert-equal #:name
-                "every method an operation is described in is one `server.allowedmethods' names"
-                #:expect '()
-                #:got (remove (lambda (method)
-                                (member method (allowed-methods)))
-                              (declared-methods)))
-               ;; The two verbs the console's own pages never send are read as
-               ;; the calls they describe: a removal, and a change.
-               (assert-equal #:name
-                "the document uses the two verbs the console does not, so a removal and a change are described"
+                "the API answers the two verbs the console does not, so a removal and a change can be asked for"
                 #:expect '("DELETE" "PATCH")
                 #:got (filter (lambda (method)
-                                (member method (declared-methods)))
+                                (member method (map car registered-routes)))
                               '("DELETE" "PATCH"))))
 
          (test "a run is read as the page that draws it reads it"
@@ -943,7 +745,7 @@ it."
                 "the shape of its API is the version, the address and the document that describes it"
                 #:expect '(("version" . "2")
                            ("base" . "/api/v2")
-                           ("spec" . "/api/v2/openapi.json")
+                           ("spec" . "/openapi.yaml")
                            ("documentation" . "https://codeberg.org/jjba23/byggsteg/src/branch/trunk/README.org"))
                 #:got (as-an-unnamed-deployment
                        (lambda ()
@@ -952,7 +754,7 @@ it."
                 "every reading this API has is named in the capabilities it answers with"
                 #:expect '("activity" "artifacts" "deployment" "jobs" "logs"
                            "maintenance" "password-resets" "permissions"
-                           "preferences" "profiles" "search" "spec" "tasks"
+                           "preferences" "profiles" "search" "tasks"
                            "users")
                 #:got (sort (vector->list
                              (assoc-ref (read-json (scm->json-string (deployment-json)))
@@ -1053,15 +855,7 @@ it."
                            (the-run-is-drawn 1)
                            (a-day-with-no-runs-is-a-day #t)
                            (a-day-that-has-not-happened #t))
-                #:got (activity-summary)))
-
-         (test "the deployment serves the document this reading is of"
-               #:shuffle? #f
-               #:skip? (not served-document)
-               (assert-equal #:name
-                "the document the route reads from this clone is the file the routes are read against"
-                #:expect openapi-text
-                #:got served-document))))
+                #:got (activity-summary)))))
 
 (define (spec)
   (veritas-run api-suite))

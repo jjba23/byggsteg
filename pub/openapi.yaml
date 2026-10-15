@@ -237,27 +237,6 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Task"
-  /api/v2/openapi.json:
-    get:
-      operationId: readOpenApiDocument
-      tags:
-        - deployment
-      summary: This document.
-      description:
-        The document a deployment serves is the document in its own clone,
-        so the two cannot come apart. A deployment that kept the server and not
-        its documentation answers 404 rather than with a document about an API
-        it may no longer be running.
-      security: []
-      responses:
-        "200":
-          description: The OpenAPI document, as JSON.
-          content:
-            application/json:
-              schema:
-                type: object
-        "404":
-          $ref: "#/components/responses/NotFound"
   /api/v2/jobs:
     get:
       operationId: listRuns
@@ -1672,6 +1651,11 @@ components:
               const: /api/v2
             spec:
               type: string
+              description:
+                "The address this deployment serves this document at: a file of
+                its own, beside the console's stylesheets and images, rather
+                than a route of the API under /api/v2 -- so a client reads it
+                with the same request a reader would make."
             documentation:
               type: string
         retention:

@@ -43,9 +43,12 @@
 ;;; auth)'), the same reading v1's own guard takes.
 ;;;
 ;;; The document that describes these answers to a client is not written here: it
-;;; is `docs/openapi.v2.json', served by the route that owns it, and the suite
-;;; reads the two against each other -- every route the API registers has to be
-;;; in that document, and the document may describe no route that is not there.
+;;; is `pub/openapi.yaml', one of the files this deployment serves, and read by
+;;; whoever reads a document -- a person, or a code generator.  It is not an
+;;; endpoint of this API: anything under `pub/' is served as it is, so the
+;;; document a client reads is the file this source ships.  What a route is
+;;; registered in, and what the router is willing to route, is read from this
+;;; deployment rather than from that document (`(veritas unit api-v2-spec)').
 
 (define-module (byggsteg api)
   #:declarative? #t
@@ -109,9 +112,7 @@
                      locale-known?
                      locales-json
                      tasks-json
-                     output-text
-                     openapi-path
-                     openapi-document))
+                     output-text))
 
 ;;; ====== The address, and the answers ======
 
@@ -137,8 +138,7 @@
     "tasks"
     "maintenance"
     "preferences"
-    "password-resets"
-    "spec"))
+    "password-resets"))
 
 (define* (api-json rc status value
                    #:key (headers '()))
@@ -964,8 +964,11 @@ output takes to arrive in its log."
                   (list->vector api-capabilities))
     (api unquote
          `((version . "2") (base unquote api-base)
+           ;; The document is a file this deployment serves beside the
+           ;; console's stylesheets and images, not a route under this address,
+           ;; so it is named the way every other one of those is (`asset-url').
            (spec unquote
-                 (format #f "~a/openapi.json" api-base))
+                 (asset-url "/openapi.yaml"))
            (documentation unquote
                           (deployment-manual-url))))
     (retention unquote
@@ -1009,4 +1012,3 @@ of it (`(byggsteg job pipeline)')."
                                   (description unquote
                                                (cdr task)))) pipeline-tasks)))))
 
-;;; ====== The document that describes all of it ======
