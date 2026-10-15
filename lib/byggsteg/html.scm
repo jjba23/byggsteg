@@ -1013,43 +1013,54 @@ it answers with."
 
 (define* (make-job-link G_ job log
                         #:key (permissions all-permissions))
-  (let* ((log-filename (text-from-db (assq-ref log
-                                               'title)))
-         (logs-link (format #f "~a/logs/~a"
-                            (current-myhost)
-                            (assq-ref log
-                                      'id)))
-         (retry? (retry-offered-in-list? job
-                                         #:permissions permissions)))
-    `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
-           (a (@ (class ,dash-link-face)
-                 (href ,logs-link))
-              (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
-                                               align-center wrap-break-word))))
-                   ;; The row's own mark is the green beside its title: a list of
-                   ;; runs is read by its titles (`dash-link-face'), and the
-                   ;; icons down the left edge are what a reader follows to the
-                   ;; one they want.
-                   (span ,(icon #:type 'scroll
-                                #:icon-css (append '(text-xl no-underline)
-                                                   accent-ink)))
-                   ,(h4 log-filename
-                        #:size '(text-lg)
-                        #:color (append strong-ink
-                                        '(hover:text-asparagus-900
-                                          dark:hover:text-asparagus-100)))))
-           (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
-                                            gap-3 ml-6))))
-                ,(em (strftime "%c"
-                               (localtime (assoc-ref job
-                                                     'created-at)))
-                     #:size '(text-sm)
-                     #:color muted-ink)
-                ,(job-status-label G_ job)
-                ,(if retry?
-                     (retry-button G_ job
-                                   #:content "retry")
-                     '()))))))
+  "LOG as a row of a list of runs, JOB being the run that wrote it.
+
+A row is read as whose run it is: the run's name, the moment it was taken, the
+page its output is read on, and how it went.  Only the name is the log's, so a
+log whose job is gone has no row that can be drawn for it -- there is no moment
+to print, no status to colour, and the page the row leads to is a page about
+nothing (see `(byggsteg job retention)' for why a run is removed whole).  A row
+not drawn is also what keeps one log left behind by a job that is gone from
+taking a whole page of runs down with it."
+  (if (not job)
+      '()
+      (let* ((log-filename (text-from-db (assq-ref log
+                                                   'title)))
+             (logs-link (format #f "~a/logs/~a"
+                                (current-myhost)
+                                (assq-ref log
+                                          'id)))
+             (retry? (retry-offered-in-list? job
+                                             #:permissions permissions)))
+        `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
+               (a (@ (class ,dash-link-face)
+                     (href ,logs-link))
+                  (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
+                                                   align-center wrap-break-word))))
+                       ;; The row's own mark is the green beside its title:
+                       ;; runs are read by their titles (`dash-link-face'), and
+                       ;; the icons down the left edge are what a reader follows
+                       ;; to the one they want.
+                       (span ,(icon #:type 'scroll
+                                    #:icon-css (append '(text-xl no-underline)
+                                                       accent-ink)))
+                       ,(h4 log-filename
+                            #:size '(text-lg)
+                            #:color (append strong-ink
+                                            '(hover:text-asparagus-900
+                                              dark:hover:text-asparagus-100)))))
+               (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
+                                                gap-3 ml-6))))
+                    ,(em (strftime "%c"
+                                   (localtime (assq-ref job
+                                                         'created-at)))
+                         #:size '(text-sm)
+                         #:color muted-ink)
+                    ,(job-status-label G_ job)
+                    ,(if retry?
+                         (retry-button G_ job
+                                       #:content "retry")
+                         '())))))))
 
 (define (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"

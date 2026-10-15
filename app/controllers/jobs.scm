@@ -23,18 +23,17 @@
         (byggsteg errors)
         (web uri)
         (byggsteg preferences)
-        (byggsteg artifacts)
         (byggsteg auth)
         (uuid generate)
         (kracht prelude)
         (byggsteg job pipeline)
         (byggsteg job queue)
+        (byggsteg job retention)
         (ice-9 string-fun)
         (byggsteg domain job)
         (byggsteg domain log)
         (byggsteg sqlite job)
         (byggsteg sqlite log)
-        (byggsteg sqlite artifact)
         (app views jobs))
 
 (get "/jobs/request"
@@ -149,23 +148,23 @@
                            #:happy-flow do-retry
                            #:unhappy-flow back-to-login)))
 
-;; Deleting a job takes what the job collected with it.  Its tarballs are files
-;; on disk and the rows that record them are what makes them downloadable, so
-;; both go: a job that is gone must not leave a download behind, and one that
-;; collected several tarballs must not leave the directory growing without end.
+;; Deleting a run removes it whole: the job, the logs it wrote and the rows that
+;; record the tarballs it collected, in one transaction (see `remove-run!' in
+;; `(byggsteg job retention)'), so that a removal which goes wrong leaves the run
+;; as it was rather than half of one.  The tarballs themselves go with the rows:
+;; a run that is gone must not leave a download behind, and one that collected
+;; several tarballs must not leave the directory growing without end.
+;;
+;; The form sends the job id, which is the run; everything else about it -- the
+;; logs, the artifact rows -- is found from it, so a field that arrives as no
+;; field at all cannot leave the log of the run behind.
 (post "/jobs/manage/delete"
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
         (define (do-delete)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
-                 (job-id (assoc-ref body "job-id"))
-                 (log-id (assoc-ref body "log-id"))
-                 (log-repo (make-sqlite-log-repository))
-                 (job-repo (make-sqlite-job-repository))
-                 (artifact-repo (make-sqlite-artifact-repository)))
-            (forget-job-artifacts! artifact-repo job-id)
-            (delete-job-by-id job-repo job-id)
-            (delete-log-by-id log-repo log-id)
+                 (job-id (assoc-ref body "job-id")))
+            (remove-run! #:job-id job-id)
             (redirect-to rc
                          (string->uri (format #f "~a/logs"
                                               (current-myhost)))

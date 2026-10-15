@@ -57,7 +57,11 @@
   #:use-module (byggsteg html)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun)
-  #:export (log-page logs-page log-output))
+  ;; `log-actions' is exported beside the three pages because it is the run's own
+  ;; controls rather than part of a page's shape: the suite that reads the delete
+  ;; form -- which fields it posts, and under which names -- reads them here, so
+  ;; that the form and the handler that reads it cannot come apart unread.
+  #:export (log-page logs-page log-output log-actions))
 
 (define* (log-output #:key log job (view 'output) (have #f)
                      (frames-label "frames"))
@@ -203,27 +207,27 @@ name, and a term over nothing is worse than no term."
                                    #:size '(text-xs sm:text-sm))
                     #:color prose-ink))))
 
-(define (log-actions G_ job log permissions)
+(define (log-actions G_ job permissions)
   "The forms this page offers for the run's own actions: a retry and a delete.
 
 A job's own page offers a retry whatever its status -- except while it is still
 running, when the same data would be running twice -- to a reader whose session
 may submit one, which is what PERMISSIONS is read for."
-  (let* ((log-id (assq-ref log
-                           'id))
-         (job-id (assq-ref job
+  (let* ((job-id (assq-ref job
                            'id))
          ;; The row's keys are the columns' names, as symbols; a job looked up by
          ;; the string "id" is a job with no id, and its delete button would post
          ;; an empty one.
+         ;;
+         ;; The form sends the job id and nothing else, because the run is the
+         ;; job: the handler reads that one field and removes the run whole
+         ;; (`remove-run!' in `(byggsteg job retention)'), taking the logs the
+         ;; job wrote and the rows that record the tarballs it collected with it.
+         ;; A field carrying the id it is named after would arrive as no field at
+         ;; all, which is how a run's log came to be left behind by a removal.
          (delete-button `(form (@ (method POST)
                                   (enctype application/x-www-form-urlencoded)
                                   (action "/jobs/manage/delete"))
-                               (input (@ (id ,log-id)
-                                         (name ,log-id)
-                                         (required true)
-                                         (hidden true)
-                                         (value ,log-id)))
                                (input (@ (id "job-id")
                                          (name "job-id")
                                          (required true)
@@ -290,7 +294,7 @@ may submit one, which is what PERMISSIONS is read for."
          (job-status (job-status-label G_ job
                                        #:size '(text-base sm:text-lg
                                                           md:text-xl)))
-         (actions (log-actions G_ job log permissions))
+         (actions (log-actions G_ job permissions))
          ;; The run's name and how it ended, on one line where there is room for
          ;; one and on two where there is not.
          (heading (list `(div (@ (class ,(mk-class '(flex flex-col

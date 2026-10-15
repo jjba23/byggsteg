@@ -50,6 +50,7 @@
                           close-databases!
                           db-read
                           db-write
+                          with-transaction
                           like-pattern))
 
 ;; NOTE: `sql-row->scheme-alist' comes from `(kracht sql)' and is used below.
@@ -109,10 +110,29 @@ with the `.db' suffix that Artanis' own sqlite3 connector appends."
 (define *database-lock*
   (make-mutex))
 
+;; Whether the thread asking for the lock is the thread already holding it.
+;;
+;; A transaction holds the connection across every statement inside it, and those
+;; statements are the repositories', which take the lock themselves.  Guile has no
+;; re-entrant mutex, and one thread waiting on a lock it already holds waits for
+;; ever, so which thread holds the lock is remembered here: a fluid is one per
+;; thread, which is exactly what the lock is being asked.  Nothing else changes --
+;; the mutex is still taken once, by the outermost caller.
+(define *holding-database-lock*
+  (make-fluid #f))
+
 (define (with-database-lock thunk)
-  "Run THUNK holding the connection lock, releasing it even if THUNK raises."
-  (with-mutex *database-lock*
-              (thunk)))
+  "Run THUNK holding the connection lock, releasing it even if THUNK raises.
+
+The lock is re-entrant for one thread: a transaction holds it across its own
+statements, and the statements take it again."
+  (if (fluid-ref *holding-database-lock*)
+      (thunk)
+      ;; `with-mutex' is syntax and takes its body; `with-fluid*' is a procedure
+      ;; and takes the thunk itself, which is what makes the binding last for the
+      ;; whole of THUNK rather than for one expression of it.
+      (with-mutex *database-lock*
+                  (with-fluid* *holding-database-lock* #t thunk))))
 
 (define* (open-database #:key (path (sqlite-database-path)))
   "Open PATH as a new SQLite connection and hand it back."
@@ -244,3 +264,37 @@ are dropped."
                                                                row)))
                                           (lambda ()
                                             (sqlite-finalize stmt))))))))
+
+(define (with-transaction thunk)
+  "Run THUNK as one SQLite transaction, answering what THUNK answers.
+
+Every statement THUNK runs -- through the repositories, which take the lock for
+it as they do for any other statement -- commits together, so a set of rows that
+only makes sense together cannot be left half-written; a THUNK that raises leaves
+the database as it was, and the raise goes on its way.
+
+The connection is held for the whole of it, so no statement of another thread can
+join a transaction it was not asked to join.  The transaction begins immediately
+rather than on its first write: one that starts by reading and then writes has to
+take the write lock anyway, and taking it at the start is the one moment at which
+a competing writer can be told to wait rather than fail."
+  (with-database-lock
+   (lambda ()
+     (let ((db (database)))
+       (sqlite-exec db "BEGIN IMMEDIATE")
+       (catch #t
+              (lambda ()
+                (let ((answer (thunk)))
+                  (sqlite-exec db "COMMIT")
+                  answer))
+              (lambda (key . args)
+                ;; A rollback that cannot be made is worth saying, but the raise
+                ;; on its way out is why the transaction is being undone, and it
+                ;; is the one a reader needs.
+                (catch #t
+                       (lambda ()
+                         (sqlite-exec db "ROLLBACK"))
+                       (lambda (rollback-key . rollback-args)
+                         (log-debug s "rollback failed: ~a ~s\n"
+                                    rollback-key rollback-args)))
+                (apply throw key args)))))))

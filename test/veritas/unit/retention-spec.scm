@@ -29,6 +29,15 @@
 ;;; The database is built the way the server's is, from the migration files, and
 ;;; the tarballs are written for real, so that pruning is read as what it leaves
 ;;; on disk rather than as what it says it removed.
+;;;
+;;; Two more runs stand beside those three, for the readings after the retention
+;;; ones.  What is read there is the same fact from three ends: a run exists as
+;;; its job, its logs and the rows that record the tarballs it collected, the
+;;; retention is one caller of the removal that takes a run whole, and half of a
+;;; run is not a state a deployment is left in -- not by a removal that raises
+;;; (the transaction puts the run back) and not for long by one that stopped
+;;; between two writes (the sweep takes the log, which is the half that can be
+;;; left, since a log is written after the job that owns it).
 
 (define-module (veritas unit retention-spec)
   #:use-module (veritas veritas)
@@ -171,11 +180,29 @@ server leaves a job it has not finished with."
           #:in-progress 1
           #:created-at (days-ago 60))
 
+;; A run for the removal readings below, which is none of the three the retention
+;; readings prune: those are read as the retention left them, and a reading that
+;; removed one of them would be taken after the fact.
+(define removable-run
+  "spec-removable-run")
+;; A run whose removal is cut short, to be read as still whole afterwards.
+(define cut-short-run
+  "spec-cut-short-run")
+
+(enqueue! removable-run
+          #:success 1
+          #:created-at (days-ago 3)
+          #:updated-at (days-ago 2))
+(enqueue! cut-short-run
+          #:success 1
+          #:created-at (days-ago 3)
+          #:updated-at (days-ago 2))
+
 (define tarballs
   (map (lambda (job-id)
          (cons job-id
                (collect! job-id)))
-       (list old-run young-run running-run)))
+       (list old-run young-run running-run removable-run cut-short-run)))
 
 (define (tarball-of job-id)
   (assq-ref tarballs job-id))
@@ -188,8 +215,11 @@ server leaves a job it has not finished with."
 
 (define (log-row? job-id)
   "Whether the log of JOB-ID is still in the database."
-  (if (get-log-by-id log-repo
-                     (string-append "log-" job-id)) #t #f))
+  (log-id-row? (string-append "log-" job-id)))
+
+(define (log-id-row? id)
+  "Whether the log ID is still in the database."
+  (if (get-log-by-id log-repo id) #t #f))
 
 (define (artifact-rows job-id)
   "How many artifact rows JOB-ID still has."
@@ -280,6 +310,128 @@ run the first reading pruned and the order between them is not a guess."
                                        #:artifact-repo artifact-repo
                                        #:days 0)))))
 
+;;; ====== Removing one run, and removing one that does not go whole ======
+
+;; The job repository whose last statement raises.
+;;
+;; Everything before the job's own row goes through as it does in a deployment --
+;; the artifact rows and the logs are deleted, in the transaction -- and then the
+;; removal raises, which is what a removal looks like from the inside when it is
+;; cut short by a statement that failed or by a process that stopped.  What is
+;; read afterwards is whether those deletes are still there or whether the run
+;; was put back.
+(define (repository-that-cannot-remove-the-job)
+  (mk-job-repository
+   #:get-job-by-id-proc (repo-get-job-by-id job-repo)
+   #:delete-job-by-id-proc (lambda (job-id)
+                             (error "the removal was cut short"))))
+
+(define (removing-a-run-readings)
+  "What removing the run REMOVABLE-RUN leaves, and what it answers."
+  (let ((run (remove-run! #:job-repo job-repo
+                          #:log-repo log-repo
+                          #:artifact-repo artifact-repo
+                          #:job-id removable-run)))
+    (list (list 'the-removal-answers
+                (and run
+                     (assq-ref run
+                               'id)))
+          (list 'the-job-is-gone
+                (job-row? removable-run))
+          (list 'its-log-went-with-it
+                (log-row? removable-run))
+          (list 'its-tarball-row-went-with-it
+                (artifact-rows removable-run))
+          (list 'its-tarball-file-went-with-it
+                (file-exists? (tarball-of removable-run)))
+          (list 'the-run-beside-it-is-still-there
+                (job-row? cut-short-run)))))
+
+(define (cut-short-removal-readings)
+  "What a removal that raises part way through leaves behind.
+
+Every half of the run is read, because each of them is deleted by a statement of
+its own inside the transaction: artifact rows first, then the logs, then the job.
+A removal that raised at the last of those has already deleted the other two, so
+a run that is read as whole afterwards was put back rather than never touched."
+  (let ((raised? (catch #t
+                        (lambda ()
+                          (remove-run! #:job-repo
+                                       (repository-that-cannot-remove-the-job)
+                                       #:log-repo log-repo
+                                       #:artifact-repo artifact-repo
+                                       #:job-id cut-short-run)
+                          #f)
+                        (lambda (key . args)
+                          #t))))
+    (list (list 'the-removal-raised
+                raised?)
+          (list 'the-job-is-still-there
+                (job-row? cut-short-run))
+          (list 'its-log-is-still-there
+                (log-row? cut-short-run))
+          (list 'its-tarball-row-is-still-there
+                (artifact-rows cut-short-run))
+          (list 'its-tarball-file-is-still-there
+                (file-exists? (tarball-of cut-short-run))))))
+
+;;; ====== The logs a half-done removal leaves behind ======
+
+(define orphaned-log
+  "log-spec-orphaned")
+(define elder-orphaned-log
+  "log-spec-elder-orphaned")
+(define younger-orphaned-log
+  "log-spec-younger-orphaned")
+
+(define (insert-orphan! id title age-in-days)
+  "A log whose job is gone, as a removal that did not go whole leaves one.
+
+Nothing writes one of these on purpose: it is the state a deployment is in when
+the two writes of a removal came apart, so the reading writes the row itself and
+the sweep is asked what it makes of it."
+  (insert-log log-repo
+              `((id unquote id)
+                (title unquote title)
+                (job-id . "spec-a-job-that-was-removed")
+                (log-data . "the output of a run that is gone")
+                (created-at unquote (days-ago age-in-days)))))
+
+(define (orphaned-log-readings)
+  "What the sweep makes of a log whose job is gone, and of the logs beside it."
+  (insert-orphan! orphaned-log "spec orphaned run" 5)
+  (let ((swept (sweep-orphaned-logs! #:log-repo log-repo)))
+    (list (list 'the-logs-whose-job-is-gone
+                (map (lambda (log)
+                       (assq-ref log
+                                 'id)) swept))
+          (list 'the-orphan-is-gone
+                (log-id-row? orphaned-log))
+          (list 'the-logs-that-have-a-job-are-kept
+                (log-row? young-run))
+          (list 'and-no-run-was-touched
+                (job-row? young-run)))))
+
+(define (orphaned-log-batch-readings)
+  "The bound one sweep puts on how much it removes, and what the next one takes.
+
+Two orphans are written here, five days apart, so which of them goes first is
+not a guess: the sweep reads them oldest first, as the retention does."
+  (insert-orphan! elder-orphaned-log "spec elder orphaned run" 8)
+  (insert-orphan! younger-orphaned-log "spec younger orphaned run" 3)
+  (list (list 'a-sweep-bounded-to-one
+              (map (lambda (log)
+                     (assq-ref log
+                               'id)) (sweep-orphaned-logs! #:log-repo log-repo
+                                                           #:limit 1)))
+        (list 'the-one-behind-it-is-still-there
+              (log-id-row? younger-orphaned-log))
+        (list 'and-the-next-sweep-takes-it
+              (map (lambda (log)
+                     (assq-ref log
+                               'id)) (sweep-orphaned-logs! #:log-repo
+                                                           log-repo)))))
+
 ;;; ====== The suite ======
 
 (define retention-suite
@@ -332,7 +484,45 @@ run the first reading pruned and the order between them is not a guess."
                 "nothing is due, and a prune asked for anyway removes nothing"
                 #:expect '((nothing-is-due ())
                            (and-nothing-is-pruned 0))
-                #:got (keeping-everything-readings)))))
+                #:got (keeping-everything-readings)))
+         (test "a run that is removed is removed whole"
+               #:shuffle? #f
+               (assert-equal #:name
+                "the job, its log, its tarball's row and its tarball all go, and the run beside it stays"
+                #:expect '((the-removal-answers "spec-removable-run")
+                           (the-job-is-gone #f)
+                           (its-log-went-with-it #f)
+                           (its-tarball-row-went-with-it 0)
+                           (its-tarball-file-went-with-it #f)
+                           (the-run-beside-it-is-still-there #t))
+                #:got (removing-a-run-readings)))
+         (test "a removal that raises part way leaves the run as it was"
+               #:shuffle? #f
+               (assert-equal #:name
+                "the halves deleted before it raised are put back, down to the tarball"
+                #:expect '((the-removal-raised #t)
+                           (the-job-is-still-there #t)
+                           (its-log-is-still-there #t)
+                           (its-tarball-row-is-still-there 1)
+                           (its-tarball-file-is-still-there #t))
+                #:got (cut-short-removal-readings)))
+         (test "a log whose job is gone is swept away"
+               #:shuffle? #f
+               (assert-equal #:name
+                "the orphan goes, and the logs whose run is still there are left alone"
+                #:expect '((the-logs-whose-job-is-gone ("log-spec-orphaned"))
+                           (the-orphan-is-gone #f)
+                           (the-logs-that-have-a-job-are-kept #t)
+                           (and-no-run-was-touched #t))
+                #:got (orphaned-log-readings)))
+         (test "a sweep removes no more than the batch it was given"
+               #:shuffle? #f
+               (assert-equal #:name
+                "the oldest orphan goes first, the one behind it waits for the next sweep"
+                #:expect '((a-sweep-bounded-to-one ("log-spec-elder-orphaned"))
+                           (the-one-behind-it-is-still-there #t)
+                           (and-the-next-sweep-takes-it ("log-spec-younger-orphaned")))
+                #:got (orphaned-log-batch-readings)))))
 
 (define (spec)
   (veritas-run retention-suite))

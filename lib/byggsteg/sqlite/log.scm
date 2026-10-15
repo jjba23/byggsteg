@@ -55,6 +55,29 @@
                               #:limit limit
                               #:offset offset)))
 
+  ;; The logs whose job is gone, which no query over the log table alone can
+  ;; answer: it is the join that says whether the row the log names is still
+  ;; there.  A log is written after the job that owns it (see `retry-job!'), so a
+  ;; log with no job is never one waiting for its job to arrive -- it is what a
+  ;; run removed in two halves leaves behind (see `remove-run!').
+  ;;
+  ;; The selected columns are qualified by their table because both tables have
+  ;; an `id', a `title' and a `created_at', and a bare name would be ambiguous.
+  (define* (get-logs-without-jobs #:key limit)
+    (execute-read "get-logs-without-jobs"
+                  (make-sql-query
+                   (format #f
+                           "SELECT ~a FROM \"log\" LEFT JOIN \"job\" ON \"job\".\"id\" = \"log\".\"job_id\" WHERE \"job\".\"id\" IS NULL ORDER BY \"log\".\"created_at\" ASC~a"
+                           (string-join (map (lambda (column)
+                                               (format #f
+                                                       "\"log\".~a"
+                                                       (symbol->sql-column
+                                                        column)))
+                                             columns)
+                                        ", ")
+                           (if limit " LIMIT ?" ""))
+                   (if limit (list limit) '()))))
+
   (define (get-logs-by-job-ids ids)
     (execute-read "get-logs-by-job-ids"
                   (sql-select "log"
@@ -89,6 +112,7 @@
   (mk-log-repository #:get-log-by-id-proc get-log-by-id
                      #:get-logs-proc get-logs
                      #:get-logs-by-job-ids-proc get-logs-by-job-ids
+                     #:get-logs-without-jobs-proc get-logs-without-jobs
                      #:search-logs-proc search-logs
                      #:insert-log-proc insert-log
                      #:update-log-by-id-proc update-log-by-id

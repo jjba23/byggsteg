@@ -41,6 +41,8 @@
                           artifact-download-path
                           artifact-bundles
                           delete-artifact-file!
+                          forget-job-artifact-rows!
+                          forget-artifact-files!
                           forget-job-artifacts!
                           artifact-files
                           sweep-orphaned-artifacts!
@@ -128,25 +130,53 @@ an error, and a directory is not something a collection ever wrote."
          (begin
            (delete-file safe) #t))))
 
+;;; The tarballs a run collected, when the run goes
+
+(define* (forget-job-artifact-rows! artifact-repo job-id)
+  "Remove the rows that record the tarballs JOB-ID collected, answering the rows.
+
+The files those rows name are left where they are, because a caller removing a
+run asks for this inside the transaction that removes the run (see
+`remove-run!') and removes the files once it has committed.  What a file left
+behind is, is a tarball no row names -- which is what `sweep-orphaned-artifacts!'
+removes; what a row left behind is, is a download that cannot be served, which
+nothing removes.
+
+The rows are read before any of them is deleted, so the query does not walk a
+table that is being cut from under it."
+  (let ((artifacts (get-artifacts-by-job-ids artifact-repo
+                                             (list job-id))))
+    (for-each (lambda (artifact)
+                (delete-artifact-by-id artifact-repo
+                                       (assq-ref artifact
+                                                 'id))) artifacts)
+    artifacts))
+
+(define (forget-artifact-files! artifacts)
+  "Remove the tarballs the rows ARTIFACTS name, answering how many were removed.
+
+A row that names something a download could not be served from removes nothing
+and counts for nothing: `delete-artifact-file!' is the same reading a download
+is served under, so a file that may not be served may not be removed through it."
+  (length (filter (lambda (artifact)
+                    (delete-artifact-file! (assq-ref artifact
+                                                     'artifact-path)))
+                  artifacts)))
+
 (define* (forget-job-artifacts! artifact-repo job-id)
   "Remove the tarballs JOB-ID collected, and the rows that record them.
 
 Both go, because either alone is a lie: a row whose file is gone offers a
 download that cannot be served, and a file whose row is gone is a tarball
-nothing points at.  The file is removed first, so a tarball that cannot be
-removed is not left unrecorded.
+nothing points at.  The rows go first and the files after them, so a file that
+cannot be removed is left as a tarball no row names -- which the sweep for files
+that belong to nothing removes -- rather than as a row offering a download
+nothing can serve.
 
-The rows are read before any of them is deleted, so the query does not walk a
-table that is being cut from under it.  The answer is how many rows were
-forgotten, which is what a caller reporting the deletion has to say."
-  (let ((artifacts (get-artifacts-by-job-ids artifact-repo
-                                             (list job-id))))
-    (for-each (lambda (artifact)
-                (delete-artifact-file! (assq-ref artifact
-                                                 'artifact-path))
-                (delete-artifact-by-id artifact-repo
-                                       (assq-ref artifact
-                                                 'id))) artifacts)
+The answer is how many rows were forgotten, which is what a caller reporting the
+deletion has to say."
+  (let ((artifacts (forget-job-artifact-rows! artifact-repo job-id)))
+    (forget-artifact-files! artifacts)
     (length artifacts)))
 
 ;;; Tarballs no row points at

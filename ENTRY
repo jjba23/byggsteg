@@ -145,6 +145,32 @@
                                                 (lambda (key . args)
                                                   (display (format #f
                                                                    "\n  could not prune old runs: ~a ~s\n"
+                                                                   key args))))
+                                         ;; A run is removed whole (`remove-run!'),
+                                         ;; so a log with no job is not a run
+                                         ;; waiting for its half to arrive -- it
+                                         ;; is what a deployment was left holding
+                                         ;; by a removal that did not go whole,
+                                         ;; whichever byggsteg version made it.
+                                         ;; The sweep below is what heals such a
+                                         ;; deployment: it is the one place that
+                                         ;; outlives a request, so it is where the
+                                         ;; work no reader asked for is done.
+                                         (catch #t
+                                                (lambda ()
+                                                  (for-each (lambda (log)
+                                                              (display (format #f
+                                                                               "\nremoved the orphaned log ~a: ~a\n"
+                                                                               (assq-ref log
+                                                                                         'id)
+                                                                               (assq-ref log
+                                                                                         'title))))
+                                                            (sweep-orphaned-logs-when-due!
+                                                             #:log-repo
+                                                             log-repo)))
+                                                (lambda (key . args)
+                                                  (display (format #f
+                                                                   "\n  could not sweep orphaned logs: ~a ~s\n"
                                                                    key args))))))))))
 
 ;; Add hook on before running the Artanis application to start the queue worker
