@@ -191,9 +191,20 @@ reads the pages of this console, whose prose, whose marks and whose console
 output are not ASCII; run without a locale it would find elements no browser
 knows and fail for a reason that has nothing to do with the change it was run to
 judge.  Naming it here is part of what the pinned manifest is for: a run of the
-suite reads the same pages wherever the pipeline runs."
+suite reads the same pages wherever the pipeline runs.
+
+The specs are compiled rather than read from a cache.  A compiled spec outlives
+the library it was compiled against -- Guile decides a compiled file is still
+good by the spec's own text, and not by the macros and procedures that text was
+compiled with -- so a spec compiled before `(veritas veritas)' changed shape is
+loaded afterwards as if it still had the old one.  What that reads like is a
+failure inside this project: `Wrong type to apply: #<syntax-transformer test>'
+at the first test of a suite, on a spec whose source is untouched and whose
+suite passes when compiled afresh.  Compiling from source every run costs a few
+seconds and makes the reading depend on the specs alone, which is what a suite
+that is run to judge a change has to be."
   (time-machine-manifest-shell
-   (list "guile -L ./lib -L . -L ./test"
+   (list "guile --fresh-auto-compile -L ./lib -L . -L ./test"
          "-c '(begin (setlocale LC_ALL \"C.UTF-8\") (use-modules (veritas runner)) (run-tests))'")))
 
 (define (build-manual)
