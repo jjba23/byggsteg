@@ -287,6 +287,31 @@ its own -- is asked for as it stands."
                                            (asset-url lucida) lucida)))))
                 '()))))
 
+;;; ====== What a page says once it has been read ======
+;;;
+;;; The page-view script, which is the console's own file served from this
+;;; deployment's own host (`pub/js/symbanta.js', see `asset-url') and the
+;;; self-contained client of Symbanta, the analytics service lucidplan reports
+;;; to as well.  Where it reports to and how often are the deployment's, read
+;;; from `(byggsteg preferences)'; a deployment that has named no endpoint has
+;;; nobody to report to, and the script is then left off the page entirely
+;;; rather than run against an address the deployment did not choose.  A page
+;;; a private build server serves a reader is read in the reader's browser
+;;; alone, unless that deployment has said otherwise.
+(define (analytics-script)
+  "The page-view script, as a list of one script or of none."
+  (let ((endpoint (analytics-endpoint)))
+    (if (or (not (string? endpoint))
+            (string-null? endpoint))
+        '()
+        (list `(script (@ (type "text/javascript")
+                          (defer "")
+                          (src ,(asset-url "/js/symbanta.js"))
+                          (data-endpoint ,endpoint)
+                          (data-interval ,(number->string
+                                           (analytics-interval))))
+                      "")))))
+
 (define* (html-template G_
                         #:key title
                         (description (deployment-description))
@@ -358,6 +383,9 @@ its own -- is asked for as it stands."
                                          (href ,(asset-url
                                                  "/css/byggsteg.olive.min.css")))
                                       "")
+                                ;; The page-view script, when the deployment
+                                ;; has somewhere of its own to report to.
+                                ,@(analytics-script)
                                 (script (@ (type speculationrules))
                                         "
 {

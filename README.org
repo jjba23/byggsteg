@@ -1062,6 +1062,26 @@ BYGGSTEG_LUCIDA_FONT_URL= maak production-server
 
 This is the one setting where an empty value is not read as "nothing said": byggsteg has asked, and an empty answer means the console declares no Lucida, reading in the Lucida Sans a reader's own system has or in the bundled Plus Jakarta Sans otherwise. See [[*On Lucida fonts]] for what serving them means, and [[file:test/veritas/unit/console-resources-spec.scm][~console-resources-spec~]] for the reading that keeps the console's own files its own.
 
+*** Page analytics
+
+A page of the console can say that it was read. byggsteg ships the self-contained client of [[https://codeberg.org/jjba23/symbanta][Symbanta]] -- the privacy-friendly analytics platform LucidPlan reports to as well, `pub/js/symbanta.js', about 3KB with no dependency of its own -- and the deployment serves it like every other file of its console. Once a page is opened the script sends one page view, a heartbeat every few seconds while the tab stays visible, and one last event as it is hidden. An event carries the address that was read, the browser's language, the screen it was read on, the referring page and a session id that lives as long as the tab does; nothing about a reader outlives the tab, and nothing is sold to anybody.
+
+Where the events go is the deployment's choice rather than byggsteg's -- a build server is usually nobody's business but its team's -- so a deployment running its own Symbanta, or trusting somebody else's, names that service:
+
+#+begin_src sh
+BYGGSTEG_ANALYTICS_ENDPOINT="https://api.symbanta.jointhefreeworld.org/v1/events/register" \
+BYGGSTEG_ANALYTICS_INTERVAL=4000 \
+maak production-server
+#+end_src
+
+The interval is the heartbeat rate, in milliseconds. Left unnamed, the endpoint is the one this project reports to and the interval is four seconds; a deployment whose console should report nowhere says so with an empty endpoint:
+
+#+begin_src sh
+BYGGSTEG_ANALYTICS_ENDPOINT= maak production-server
+#+end_src
+
+This is the second setting where an empty value is not read as "nothing said", for the same reason as the Lucida sheet: byggsteg has asked where its pages report, and an answer of nothing means no page reports at all -- the script is left off every page, so no request leaves the reader's browser. An interval that is not a positive whole number is not an interval: the project's own four seconds is kept rather than a page that reports on every tick or never at all. See [[file:test/veritas/unit/analytics-spec.scm][~analytics-spec~]] for the readings that keep a page reporting only where its deployment said it should.
+
 ------------------
 
 * Performance

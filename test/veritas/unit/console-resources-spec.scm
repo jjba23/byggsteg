@@ -182,7 +182,7 @@
                                                         (match:substring match
                                                          1))
                                                       (list-matches
-                                                       "url\\('\\.\\./fonts/lucida/([^']+)\\)'"
+                                                       "url\\('\\.\\./fonts/lucida/([^']+)'\\)"
                                                        sheet)) string=?)))
                    (assert-true (positive? (length faces))
                                 #:name "the sheet declares the Lucida faces")

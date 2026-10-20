@@ -35,6 +35,10 @@
                                deployment-logo
                                asset-base-url
                                asset-url
+                               project-analytics-endpoint
+                               project-analytics-interval
+                               analytics-endpoint
+                               analytics-interval
                                lucida-font-url
                                artifact-location
                                artifact-sweep-grace-seconds
@@ -179,6 +183,56 @@ frame, and a console that is nobody's in particular is still this project's."
     (if (and (string? base)
              (positive? (string-length base)))
         (string-append (string-trim-right base #\/) path) path)))
+
+;;; ====== Whether a page is reported, and where to ======
+;;;
+;;; byggsteg's pages can say that they were read: `pub/js/symbanta.js' is the
+;;; self-contained client of Symbanta, the free-software analytics service
+;;; lucidplan reports to as well, and it sends one page-view when a page is
+;;; opened, a heartbeat while its tab stays visible and one last event as it is
+;;; hidden.  An event carries the address that was read, the browser's language
+;;; and the screen it was read on -- and a session id that lasts as long as the
+;;; tab does.  Nothing about a reader survives the tab, and nothing is sold to
+;;; anybody.
+;;;
+;;; The endpoint is the deployment's, not byggsteg's: a page of this console is
+;;; a build server, which is usually nobody's business but its team's.  The
+;;; project's own value is the service this project's pages report to, and a
+;;; deployment that runs -- or trusts -- another names it here.  The script is left off
+;;; every page when there is no endpoint at all, and there is no default address
+;;; to fall back to, so `BYGGSTEG_ANALYTICS_ENDPOINT=' is how a deployment says
+;;; that nothing of its console leaves the reader's browser.
+;;;
+;;; The empty value is read here rather than by `deployment-setting', for the
+;;; reason `lucida-font-url' is: a deployment has been asked, and an answer of
+;;; nothing is an answer.
+
+(define project-analytics-endpoint
+  "https://api.symbanta.jointhefreeworld.org/v1/events/register")
+
+;; How often a page reports while its tab stays visible, in milliseconds.
+(define project-analytics-interval 4000)
+
+(define analytics-endpoint
+  (make-parameter (let ((set (getenv "BYGGSTEG_ANALYTICS_ENDPOINT")))
+                    (if (string? set) set project-analytics-endpoint))))
+
+;; `BYGGSTEG_ANALYTICS_INTERVAL' is read as a number of milliseconds: a value
+;; that is not a positive whole number is not an interval, and the project's
+;; own is kept rather than a page that reports on every tick or never at all.
+(define (deployment-number-setting variable default)
+  "DEFAULT, or the positive whole number the deployment set VARIABLE to."
+  (let ((set (getenv variable)))
+    (if (string? set)
+        (let ((number (string->number set)))
+          (if (and (integer? number)
+                   (exact? number)
+                   (positive? number)) number default))
+        default)))
+
+(define analytics-interval
+  (make-parameter (deployment-number-setting "BYGGSTEG_ANALYTICS_INTERVAL"
+                                             project-analytics-interval)))
 
 ;;; The Lucida faces of the console, and whether it asks for them at all
 ;;;
