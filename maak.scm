@@ -18,6 +18,11 @@
 
 (define-module (maak)
   #:use-module (maak maak)
+  ;; What the release tasks read the tree with: a file that carries a copy of
+  ;; the version is rewritten through a regular expression, and `get-string-all'
+  ;; is how a file is read whole.  The DSL re-exports neither.
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 textual-ports)
   #:declarative? #t)
 
 ;; ====== Maak constants ======
@@ -171,6 +176,186 @@ Remove all files in the byggsteg location, ignoring errors."
 (define (default)
   "Default task to be run, list available tasks."
   ($ '("maak --list")))
+
+;; ====== The version, and its release ======
+;;
+;; The version is written by hand once, in lib/byggsteg/version.scm, which is
+;; what `maak version' prints.  Nothing else in the tree names it: the console
+;; does not say which release it is, and the Woodpecker images byggsteg's own
+;; pipeline runs (the `byggsteg-woodpecker-*' plugins) are released on their
+;; own.  A file that cannot read a Scheme module -- a spec, a manual page, a
+;; README -- goes in `version-sites' below, and `sync-version' writes the version
+;; into it.
+;;
+;; The module is loaded on demand rather than imported at the top of this file.
+;; Maak puts the directory the Maak file lives in on the load path and not the
+;; `lib' beside it, so an import there would stop this file loading at all --
+;; every task with it -- unless each run named `-L ./lib'.  Reading the module out
+;; of `./lib' is also what makes the version the checkout's: a task run by an
+;; older maak, or from a shell whose load path names another byggsteg, still
+;; answers for the tree it was started in.
+
+(define version-source
+  "lib/byggsteg/version.scm")
+
+;; Each site is a file and a regular expression matching one place in it where
+;; the version is written, with the version itself as the first group.  Only that
+;; group is replaced, so everything around it -- a field's alignment, a page's
+;; quoting, a sample's wording -- stays the file's business rather than this
+;; list's.
+;;
+;; Nothing is listed yet: byggsteg's one reading of its version is the module
+;; above.  This is the list a copy goes in, and `sync-version' rewrites whatever
+;; is in it.
+(define version-sites
+  '())
+
+(define (byggsteg-version-library)
+  "This checkout's `(byggsteg version)' module, loaded on demand.
+
+The load path is extended with the `lib' of the checkout rather than with one
+named by the caller, so that the module these tasks read is the one the tree
+holds and not one installed elsewhere."
+  (unless (file-exists? version-source)
+    (error (format #f
+                   "no ~a here; run maak from the root of a byggsteg checkout"
+                   version-source)))
+  (unless (member "./lib" %load-path)
+    (set! %load-path (cons "./lib" %load-path)))
+  (resolve-module '(byggsteg version) #:ensure #t))
+
+(define (version)
+  "Print the byggsteg version this checkout is at."
+  ((module-ref (byggsteg-version-library)
+               'print-version)))
+
+(define* (checkout-version #:optional (directory "."))
+  "The version the checkout in DIRECTORY is at, read from its own file.
+
+The file is read as text rather than loaded as a module, which is what makes the
+version the checkout's: the task is given a directory to work in, and the
+reading has to come from there and not from whatever byggsteg a load path
+happens to name."
+  (let ((file (if (string=? directory ".")
+                  version-source
+                  (string-append directory "/" version-source))))
+    (unless (file-exists? file)
+      (error (format #f "no ~a in ~a; name the checkout's root"
+                     version-source directory)))
+    (let ((found (string-match
+                  "byggsteg-version[ \t\n]+\"([0-9]+\\.[0-9]+\\.[0-9]+)\""
+                  (call-with-input-file file get-string-all))))
+      (unless found
+        (error (format #f
+                       "~a does not define byggsteg-version as a version"
+                       file)))
+      (match:substring found 1))))
+
+(define (git-exit directory . arguments)
+  "The exit code git ended with, run in DIRECTORY with ARGUMENTS.
+
+`system*' answers with the wait status rather than the exit code -- a command
+that exited 1 reads as 256 -- so it is divided back down here, and a git that
+could not be started at all reads as the 127 a shell would report.  The
+arguments are a list rather than a command line, so a commit message with spaces
+or quotes in it reaches git as one argument and no shell splits it again."
+  (let ((status (apply system* "git" "-C" directory arguments)))
+    (if status (quotient status 256) 127)))
+
+(define* (sync-version #:optional (directory "."))
+  "Write the version into every file that cannot read it from the module, then
+commit and tag the release.
+
+The version is written by hand once, in lib/byggsteg/version.scm, which is what
+`maak version' prints.  The files in `version-sites' cannot read a Scheme module,
+so they carry copies, and this task rewrites them from that file.  Each copy is
+found by a regular expression over the file and only the version inside the match
+is replaced, so the rest of the file is left exactly as it was.
+
+A release is then the whole ritual in one command: the copies are made to agree,
+everything tracked that changed is committed as `chore: Release vX.Y.Z', and that
+commit is tagged `vX.Y.Z'.  The commit is `git commit -am', so it takes every
+tracked change in the tree rather than only the ones this task made; commit
+anything unrelated first if it should not ride along.  A version whose tag
+already exists is refused rather than committed again or retagged, and a tree
+with nothing left to commit is tagged where it stands.
+
+DIRECTORY is the checkout to work in, the current directory by default.  The
+version is read from that checkout's own file rather than from the running
+library, so the task releases the tree it was started in."
+  (define repo directory)
+
+  (define (path file)
+    (if (string=? directory ".")
+        file
+        (string-append directory "/" file)))
+
+  (define (read-text file)
+    (if (file-exists? (path file))
+        (call-with-input-file (path file) get-string-all)
+        (error (format #f
+                       "sync-version: no ~a in ~a; name the checkout's root"
+                       file directory))))
+
+  (define (write-text file text)
+    (call-with-output-file (path file)
+      (lambda (port) (display text port))))
+
+  (define (rewrite text pattern version)
+    "Return TEXT with the version PATTERN names replaced by VERSION."
+    (regexp-substitute/global
+     #f pattern text 'pre
+     (lambda (match)
+       (regexp-substitute/global #f "[0-9]+\\.[0-9]+\\.[0-9]+"
+                                 (match:substring match 0)
+                                 'pre version 'post))
+     'post))
+
+  (define (sync-copy! site version)
+    "Write VERSION into the copy SITE names, and return whether it had to."
+    (let* ((file (car site))
+           (text (read-text file))
+           (rewritten (rewrite text (cdr site) version)))
+      (if (string=? text rewritten)
+          #f
+          (begin (write-text file rewritten) #t))))
+
+  (let* ((version (checkout-version directory))
+         (tag (string-append "v" version)))
+    ;; A tree that is not a checkout has nothing to commit and nothing to tag,
+    ;; and a release that was half made is worse than one that was refused.
+    (unless (file-exists? (path ".git"))
+      (error (format #f
+                     "sync-version: ~a is not a git checkout, so there is nothing to commit or tag"
+                     directory)))
+    ;; `show-ref --quiet' answers with its exit status and prints nothing, which
+    ;; `rev-parse --verify' does not: a release that is refused should say why
+    ;; and nothing else.
+    (when (zero? (git-exit repo "show-ref" "--verify" "--quiet"
+                           (string-append "refs/tags/" tag)))
+      (error (format #f
+                     "sync-version: ~a is already released as ~a; bump ~a first"
+                     version tag version-source)))
+    (for-each (lambda (site)
+                (when (sync-copy! site version)
+                  (log-info "Wrote ~a into ~a." version (car site))))
+              version-sites)
+    (if (zero? (git-exit repo "diff" "--quiet" "HEAD"))
+        (begin
+          (unless (zero? (git-exit repo "tag" tag))
+            (error (format #f
+                           "sync-version: `git tag ~a' failed; nothing was released"
+                           tag)))
+          (log-info "Nothing to commit; tagged ~a at the current commit."
+                    tag))
+        (let ((message (format #f "chore: Release v~a" version)))
+          (unless (zero? (git-exit repo "commit" "-am" message))
+            (error "sync-version: git commit failed, so nothing was tagged"))
+          (unless (zero? (git-exit repo "tag" tag))
+            (error (format #f
+                           "sync-version: `git tag ~a' failed; the release was committed, but not tagged"
+                           tag)))
+          (log-info "Committed `~a' and tagged ~a." message tag)))))
 
 (define (test)
   "Run the project's test suite.

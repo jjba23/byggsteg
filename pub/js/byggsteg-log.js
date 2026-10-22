@@ -41,10 +41,25 @@
    is the only case where the page itself has to move, which is why each of
    those two readings is taken from the box it is a reading of.
 
+   A poll of the pane is answered with the run's state as well: its status, the
+   mark of work in progress, its facts and its actions (see `log-poll' in
+   `(app views logs)').  Those are drawn where the page draws them, so a build
+   that ends while a reader is watching it says `job succeeded' -- and offers the
+   retry it now allows -- without the page being asked for again.
+
+   A poll that is not answered is asked again rather than given up on.  The job
+   is still writing whether or not this page can reach the server for a moment,
+   and a page that stopped following it at the first refused request left the
+   reader with a log that stops mid-line and a status that says `in progress'
+   for a run that will never say anything again on that page.  So a failed ask
+   is made again, each one after a longer wait -- the page backs off to the half
+   minute a reader will wait before deciding the deployment is down rather than
+   busy, and comes back to its own pace the moment an ask is answered.
+
    Nothing here knows anything on its own: the address the pane is fetched from,
    whether the job is still writing, how long the log row was when the reader was
    last sent it, and the line each folded reading belongs to, all travel in the
-   markup (see `log-output' in `(app views logs)').  Everything in this file is
+   markup (see `log-page' in `(app views logs)').  Everything in this file is
    read as a hint rather than a truth: a page whose script did not run is still a
    page with the job's output on it. */
 (function () {
@@ -56,15 +71,21 @@
   var read = { output: true, raw: false }
   var timer = null
   var busy = false
+  /* The pace a page that is being written is read at, and the longest this
+     waits after asks that were not answered. */
   var seconds = 3
+  var longest = 30
+  var wait = seconds
 
   function pane(name) {
     return section.querySelector('[data-log-pane="' + name + '"]')
   }
 
+  /* Whether the run has more to say, which is the section's own reading of it:
+     the pane is not asked, because a pane is what is being drawn and the state
+     of the run is what says whether to draw it again. */
   function running() {
-    var writer = section.querySelector('[data-log-running]')
-    return writer ? writer.getAttribute('data-log-running') === 'true' : false
+    return section.getAttribute('data-log-running') === 'true'
   }
 
   /* Whether the reader is at the end of what they are reading, which is where a
@@ -125,6 +146,35 @@
     }
   }
 
+  /* Draw the run's state from the answer over the place the page draws it: the
+     status in the heading, the mark of work in progress beside the tabs, the
+     facts in the column and the actions that become possible once the job has
+     stopped writing.
+
+     What is drawn is the server's markup for it and not a reading of the answer
+     here, because the readings are the server's: only it knows how a job went,
+     what it took, or what its reader may do next.  A place that is answered
+     empty -- the mark of a job that is over, the actions of a reader who is
+     offered none -- is hidden rather than left as a box in the layout.
+
+     The places are looked for in the document rather than in the section the
+     output is read in: the status is in the page's heading and the run's facts
+     and actions are in the column beside the pane, which is the whole point of
+     drawing them -- they stay in front of a reader while the output moves. */
+  function redraw(state) {
+    var places = ['data-log-status', 'data-log-live', 'data-log-facts',
+                  'data-log-actions']
+    for (var i = 0; i < places.length; i++) {
+      var here = document.querySelector('[' + places[i] + ']')
+      var there = state.querySelector('[' + places[i] + ']')
+      if (!here || !there) { continue }
+      if (here.innerHTML !== there.innerHTML) {
+        here.innerHTML = there.innerHTML
+        here.hidden = !there.firstElementChild
+      }
+    }
+  }
+
   /* The tab showing the reading the reader is looking at is filled and the other
      is paper.  What those two look like is the console's -- the page is drawn
      with the two faces on each tab, and this script takes whichever of the two
@@ -147,7 +197,14 @@
   }
 
   function stop() {
-    if (timer) { clearInterval(timer); timer = null }
+    if (timer) { clearTimeout(timer); timer = null }
+  }
+
+  /* When the pane is asked for again, which is after an answer and after a
+     failure alike: what decides whether to ask at all is the job, not this. */
+  function schedule(delay) {
+    stop()
+    timer = setTimeout(function () { follow(view) }, delay * 1000)
   }
 
   function follow(name) {
@@ -163,35 +220,68 @@
     var query = url + '?view=' + name + '&at=' + new Date().getTime()
               + (have ? '&have=' + have : '')
     fetch(query, { credentials: 'same-origin' })
-      .then(function (response) { return response.text() })
+      .then(function (response) {
+        /* A refusal or an error is an answer that says nothing about the job,
+           which is the kind of ask this retries rather than trusts. */
+        if (!response.ok) { throw new Error('the log was not answered') }
+        return response.text()
+      })
       .then(function (html) {
         busy = false
+        /* The server is answering again, so the page goes back to the pace of
+           a log that is being written. */
+        wait = seconds
         var holder = document.createElement('div')
         holder.innerHTML = html
         var state = holder.firstElementChild
-        if (!state || !state.hasAttribute('data-log-running')) { return }
+        /* An answer that is not the state of a run -- an error page served
+           with a 200, or a page from something else in front of the
+           deployment -- leaves the reader with what they have and asks again. */
+        if (!state || !state.hasAttribute('data-log-state')) {
+          schedule(wait)
+          return
+        }
+        /* The run's own readings are drawn first, and then the output: a page
+           that is told the job is over draws it where the reader is looking
+           before the last line arrives under it. */
+        redraw(state)
+        /* What the page believes about the job is what the answer says, so that
+           the section is read the same way by whoever reads it next -- the
+           retry after a failed ask included. */
+        section.setAttribute('data-log-running',
+                             state.getAttribute('data-log-running') || 'false')
         /* A pane the reader already has is answered with the state and no
            output at all, which is what a poll with nothing new to draw is: the
            job has printed no more, and the document is not drawn again. */
-        if (state.firstElementChild) {
-          /* The answer is the pane as the server draws it -- the state of the
-             job around the output -- so it is drawn where the pane's own state
-             was rather than in place of it: what the page was answered with
-             first is what it is answered with again. */
+        var content = state.querySelector('[data-log-out]')
+        if (content) {
+          /* The output is moved out of the answer into the pane rather than the
+             answer being put in the pane, because the answer also carries the
+             run's state, which belongs outside it. */
           while (target.firstChild) { target.removeChild(target.firstChild) }
-          target.appendChild(state)
+          while (content.firstChild) { target.appendChild(content.firstChild) }
           unfoldAgain(opened)
         }
         target.setAttribute('data-log-have', state.getAttribute('data-log-length') || '')
         read[name] = true
         if (stick) { followTheEnd() }
-        if (state.getAttribute('data-log-running') !== 'true') { stop() }
+        /* A job that has stopped writing has said everything it will say: the
+           page draws what it was answered with and stops asking.  One that is
+           still writing is asked for again. */
+        if (running()) { schedule(wait) }
+        else { stop() }
       })
       .catch(function () {
         busy = false
-        /* A page that cannot ask any more is a page with the output it was
-           answered with, which is what a reader has if they never open it. */
-        stop()
+        /* A page that cannot ask once is not a page that cannot ask: the job is
+           still writing, and the pane it writes into is what the reader came
+           for.  So the ask is made again, each failure after a longer wait, so
+           that a deployment that is busy -- or a reader whose connection has
+           gone -- is not hammered by every tab that is following a build.  What
+           the page says meanwhile is the output it was last answered with, and
+           the mark of work in progress beside it, which is still true. */
+        wait = Math.min(wait * 2, longest)
+        if (running()) { schedule(wait) } else { stop() }
       })
   }
 
@@ -212,10 +302,8 @@
     }
   })
 
-  var drawn = section.querySelector('[data-log-length]')
-  if (drawn) {
-    pane('output').setAttribute('data-log-have', drawn.getAttribute('data-log-length'))
-  }
+  var drawn = section.getAttribute('data-log-length')
+  if (drawn) { pane('output').setAttribute('data-log-have', drawn) }
 
   var remembered = null
   try { remembered = localStorage.getItem('log-view') } catch (error) { remembered = null }
@@ -226,6 +314,6 @@
        so far, and then asked for again: the reader is following the build, and
        the pane is where it is being written. */
     followTheEnd()
-    timer = setInterval(function () { follow(view) }, seconds * 1000)
+    schedule(seconds)
   }
 })()

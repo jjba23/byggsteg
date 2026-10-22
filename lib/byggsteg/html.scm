@@ -19,6 +19,7 @@
 (define-module (byggsteg html)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg permissions)
+  #:use-module (byggsteg version)
   #:use-module (byggsteg job pipeline)
   #:use-module (byggsteg artifacts)
   #:use-module (byggsteg faces)
@@ -46,6 +47,9 @@
                           locale-choose-form
                           job-form
                           job-status-label
+                          job-still-to-come?
+                          row-status-region
+                          row-actions-region
                           retry-button
                           retry-offered-in-list?
                           retry-offered-on-page?
@@ -321,9 +325,13 @@ its own -- is asked for as it stands."
                         (should-auto-refresh #f)
                         (auto-refresh-seconds 12)
                         (is-logged-in #f))
-  ;; The wait before a page asks for itself again.  A log being followed while
-  ;; its job runs is served every few seconds rather than every twelve, which is
-  ;; what makes a streamed log arrive while it is still being written.
+  ;; The wait before a page asks for itself again, for a page that wants to.
+  ;; None does now: a log being followed and a list of runs being watched both
+  ;; keep themselves current from what the server answers them with (see
+  ;; `pub/js/byggsteg-log.js' and `pub/js/byggsteg-logs.js'), which costs the
+  ;; reader neither their place on the page nor the reading they had unfolded.
+  ;; A page that cannot be kept current that way -- one whose whole body is what
+  ;; changes -- is the one this is still for.
   (let ((maybe-auto-refresh (cond
                               ((equal? should-auto-refresh #t)
                                `(meta (@ (content ,(format #f "~a"
@@ -750,9 +758,29 @@ its own -- is asked for as it stands."
                                #:size '(text-sm)
                                #:leading '(leading-5)
                                #:color muted-ink)
-                          ,(em (format #f "~a ~a"
-                                       (G_ "version:")
-                                       (get-short-commit-sha))
+                          ;; The release beside the commit it was built from:
+                          ;; the commit says which tree this deployment runs, and
+                          ;; the release says what to call it -- what a reader
+                          ;; quotes in a bug report, and what `maak version'
+                          ;; answers with.  The release is read from
+                          ;; `(byggsteg version)' rather than written here, so
+                          ;; that the one place a version is written by hand is
+                          ;; also the one place the console reads it (see
+                          ;; `maak sync-version').
+                          ,(em (let ((commit (get-short-commit-sha)))
+                                 ;; A tree that is not a git checkout -- an
+                                 ;; installed copy, an unpacked archive -- has
+                                 ;; no commit to name, and a footer that said
+                                 ;; `()' says less than one that says only the
+                                 ;; release.
+                                 (if (and (string? commit)
+                                          (not (string-null? commit)))
+                                     (format #f "~a ~a (~a)"
+                                             (G_ "version:")
+                                             byggsteg-version commit)
+                                     (format #f "~a ~a"
+                                             (G_ "version:")
+                                             byggsteg-version)))
                                #:family '(font-mono)
                                #:size '(text-sm)
                                #:leading '(leading-5)
@@ -897,8 +925,9 @@ A job that is still going is the one status that is not a finished reading, so
 it is the one that carries the mark work in progress carries (`pending-mark',
 `(byggsteg faces)'): a spinner beside the two words, both of them in the blue a
 running job is read in.  Without it a reader looking at a queue of rows has two
-words to tell a job that is going from one that has stopped, and a page that
-refreshes itself every twelve seconds to say nothing more than that.
+words to tell a job that is going from one that has stopped, and a row that is
+asked again for its status (`pub/js/byggsteg-logs.js') would have to be answered
+with words alone to say which of the two it is.
 
 The mark is the framework's own, and it is a live region: a reader who cannot
 see the spinner is told that the job is in progress by the words beside it, and
@@ -909,18 +938,25 @@ the label under them says so again in the box the mark hides."
                             'job-failed))
         (in-progress (assoc-ref job
                                 'job-in-progress)))
+    ;; The mark and the words are written inside the row rather than beside it:
+    ;; the span is what puts them on one line with room between them, and an
+    ;; empty span left open in front of them is a `flex' row of nothing.  It also
+    ;; matters to what the markup is read as -- a status is drawn into a page by
+    ;; the answer to a poll (`log-poll', `(app views logs)'), and the answer is
+    ;; parsed as a fragment, where an empty element written as `<span .../>' is
+    ;; read as an opening tag and swallows the readings after it.
     (define (status-row face mark? label)
       "FACE's two words, with the mark of work in progress when MARK? asks for
 it."
       `((span (@ (class ,(mk-class '(flex flex-row
                                             items-center
-                                            gap-2)))))
+                                            gap-2))))
               ,@(if mark?
                     (pending-mark #:size 'sm #:label label)
                     '())
               ,(sub-h4 label
                        #:color face
-                       #:size size)))
+                       #:size size))))
     (cond
       ((equal? success 1)
        (status-row job-succeeded-face #f (G_ "job succeeded")))
@@ -1039,6 +1075,56 @@ it answers with."
                                           "a project, a branch, a word from a log"))
           ,(terminal-submit-button (G_ "search")))))
 
+(define (job-still-to-come? job)
+  "Whether JOB's row can still change on its own: it has been taken and not yet
+finished.
+
+The two finished flags are what say so rather than the one in-progress flag:
+`job-in-progress' is 1 only once the deployment's worker has started the job, and
+a job that has been taken and not started is the state between -- the one read as
+`job queued' (`job-status-label') -- which is the state a reader watching a list
+most wants to see change."
+  (not (or (equal? 1 (assoc-ref job
+                                'job-success))
+           (equal? 1 (assoc-ref job
+                                'job-failed)))))
+
+(define (row-status-region G_ job)
+  "The status of JOB, in the place a row of a list draws it.
+
+The mark of work in progress is inside it rather than beside it, because a job
+that is going is read in the same words with the same ring wherever it is read
+(`job-status-label'): a row that is answered with the status of a finished run
+arrives without the mark, which is the whole of what a list of runs was reloading
+itself every twelve seconds to find out."
+  (list `(span (@ (data-log-status ""))
+               ,@(job-status-label G_ job))))
+
+(define* (row-actions-region G_ job
+                             #:key (permissions all-permissions))
+  "The controls a row of a list draws for JOB, in the place they are read in.
+
+A list offers a retry for a failed run and nothing else
+(`retry-offered-in-list?'), and a run that fails while a reader is looking at the
+list has to arrive with the one control the list would have drawn had the page
+been asked for again; a row that offers nothing is an empty place rather than no
+place, so that the control it does not offer yet has somewhere to appear."
+  (let ((actions (if (retry-offered-in-list? job
+                                             #:permissions permissions)
+                     (retry-button G_ job
+                                   #:content "retry")
+                     '())))
+    (if (null? actions)
+        ;; The empty place is written with a child of its own -- an empty text
+        ;; node -- for the reason the empty pane on a log's page is (see
+        ;; `log-page' in `(app views logs)'): a childless element is serialized
+        ;; as `<span .../>', which an HTML parser reads as an opening tag.
+        `((span (@ (data-log-actions "")
+                   (hidden ""))
+               ""))
+        `((span (@ (data-log-actions ""))
+               ,@actions)))))
+
 (define* (make-job-link G_ job log
                         #:key (permissions all-permissions))
   "LOG as a row of a list of runs, JOB being the run that wrote it.
@@ -1049,7 +1135,12 @@ log whose job is gone has no row that can be drawn for it -- there is no moment
 to print, no status to colour, and the page the row leads to is a page about
 nothing (see `(byggsteg job retention)' for why a run is removed whole).  A row
 not drawn is also what keeps one log left behind by a job that is gone from
-taking a whole page of runs down with it."
+taking a whole page of runs down with it.
+
+The row names the job it is about and whether that job can still change
+(`data-log-row', `data-log-running'), which is how the script that keeps a list
+current finds the row it was answered about and which rows are worth asking for
+at all (see `pub/js/byggsteg-logs.js')."
   (if (not job)
       '()
       (let* ((log-filename (text-from-db (assq-ref log
@@ -1057,10 +1148,12 @@ taking a whole page of runs down with it."
              (logs-link (format #f "~a/logs/~a"
                                 (current-myhost)
                                 (assq-ref log
-                                          'id)))
-             (retry? (retry-offered-in-list? job
-                                             #:permissions permissions)))
-        `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
+                                          'id))))
+        `((div (@ (data-log-row ,(assq-ref job
+                                          'id))
+                  (data-log-running ,(if (job-still-to-come? job)
+                                         "true" "false"))
+                  (class ,(mk-class '(flex flex-col gap-1))))
                (a (@ (class ,dash-link-face)
                      (href ,logs-link))
                   (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
@@ -1084,11 +1177,9 @@ taking a whole page of runs down with it."
                                                          'created-at)))
                          #:size '(text-sm)
                          #:color muted-ink)
-                    ,(job-status-label G_ job)
-                    ,(if retry?
-                         (retry-button G_ job
-                                       #:content "retry")
-                         '())))))))
+                    ,@(row-status-region G_ job)
+                    ,@(row-actions-region G_ job
+                                          #:permissions permissions)))))))
 
 (define (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"

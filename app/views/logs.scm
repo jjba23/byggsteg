@@ -36,6 +36,14 @@
 ;;; running job keeps the reader at the end of the *output* rather than at the
 ;;; end of the document (see `pub/js/byggsteg-log.js').
 ;;;
+;;; A page following a job is answered again with two things: the output the job
+;;; has printed since, and the run's own state -- its status, the mark of work in
+;;; progress, its facts and its actions -- so that the page arrives at `job
+;;; succeeded' where the reader is standing, rather than after a manual reload.
+;;; The readings of the run travel in the answer (`log-poll' below) because only
+;;; the server knows them, and each is marked with the place on the page it is
+;;; drawn in, which is what the script replaces it by.
+;;;
 ;;; The blocks below are built with `list' rather than by nesting backquotes: a
 ;;; page of four blocks with a column inside it is four levels of quasiquote,
 ;;; and a page whose shape has to be read out of its parentheses is a page
@@ -61,11 +69,27 @@
   ;; controls rather than part of a page's shape: the suite that reads the delete
   ;; form -- which fields it posts, and under which names -- reads them here, so
   ;; that the form and the handler that reads it cannot come apart unread.
-  #:export (log-page logs-page log-output log-actions))
+  #:export (log-page logs-page log-poll logs-status log-output log-actions))
 
-(define* (log-output #:key log job (view 'output) (have #f)
-                     (frames-label "frames"))
-  "A job's output as the pane it is read in, and the state of the job that wrote it.
+(define (log-text log)
+  "The text of the log row LOG.
+
+A row that has not been written yet holds nothing rather than a log of nothing,
+and the page reads the absence as the empty log it is: a job that has printed
+nothing still has a pane, because the reader is following it."
+  (let ((data (assq-ref log
+                        'log-data)))
+    (if (string? data) data "")))
+
+(define (log-length log)
+  "How long the log row LOG is, as the number a poll is answered with.
+
+The length is the whole of what says whether the output has changed: a reader
+last sent a row of this length has the whole of it."
+  (number->string (string-length (log-text log))))
+
+(define* (log-output #:key log (view 'output) (frames-label "frames"))
+  "A job's output as the pane it is read in.
 
 The output is read two ways and a pane is one of them: `output' is the console
 the job printed -- the escapes read, the colours drawn, a line a program painted
@@ -75,42 +99,23 @@ characters spelled out (`(byggsteg ansi)', `ansi->raw-text'), which is what a
 reader looks at when they want to see what the command actually wrote rather
 than what a terminal made of it.
 
-A page following a running job asks for this again every few seconds, so the
-state of the job travels in the pane rather than beside it: whether the job is
-still writing, which is what tells the page whether to ask again at all.  HAVE
-is the length of the log row the reader was last sent, and a reader who already
-has the whole row is told that it has not changed rather than sent the output
-a second time to say so.
-
 The `pre' is unframed on purpose.  The pane the page wraps around it
 (`log-pane-face') carries the ground, the hairline and the scroll, so it is the
 pane that stays where it is and the output that moves inside it -- a frame drawn
-by the output would scroll away with it, leaving a border with three sides."
-  (let* ((escaped (if (string? (assq-ref log
-                                         'log-data))
-                      (assq-ref log
-                                'log-data) ""))
-         (output (html-unescape escaped))
-         (running? (equal? 1 (assq-ref job
-                                       'job-in-progress)))
-         (unchanged? (and have
-                          (equal? have (number->string (string-length escaped))))))
-    (list `(div (@ (data-log-running ,(if running? "true" "false"))
-                   (data-log-length ,(number->string (string-length escaped))))
-                ;; A job that has printed nothing yet still has a pane: the
-                ;; reader is following it, and an empty frame is what there is
-                ;; to follow.
-                ,@(if unchanged?
-                      '()
-                      (list (terminal-pre (if (eq? view 'raw)
-                                              (html-escape
-                                               (ansi->raw-text output))
-                                              output)
-                                          #:size '(text-sm md:text-md)
-                                          #:wrap? #f
-                                          #:framed? #f
-                                          #:ansi? (eq? view 'output)
-                                          #:frames-label frames-label)))))))
+by the output would scroll away with it, leaving a border with three sides.
+
+This is the output alone; what a poll is answered with is the output beside the
+state of the run that wrote it, which is `log-poll' below."
+  (let* ((escaped (log-text log))
+         (output (html-unescape escaped)))
+    (list (terminal-pre (if (eq? view 'raw)
+                            (html-escape (ansi->raw-text output))
+                            output)
+                        #:size '(text-sm md:text-md)
+                        #:wrap? #f
+                        #:framed? #f
+                        #:ansi? (eq? view 'output)
+                        #:frames-label frames-label))))
 
 (define* (log-view-tabs G_ #:key (chosen 'output))
   "The two tabs that choose the reading of a job's output, CHOSEN being the one
@@ -263,6 +268,164 @@ may submit one, which is what PERMISSIONS is read for."
                 (list delete-button)
                 '()))))
 
+;;
+;; The run's state, as the places on the page it is read in
+;;
+;; A page following a job asks for the pane again every few seconds, and the
+;; job's own state changes while it does: it stops writing, it says how it went,
+;; the time taken appears under the time started, and a retry becomes possible.
+;; So each of those readings is drawn in a place with a name -- `data-log-status'
+;; and its three neighbours -- and the answer to a poll carries the same four
+;; places, which is what the script replaces them by (see `pub/js/byggsteg-log.js').
+;; Without them a reader watching a build is told `job in progress' until they
+;; reload the page by hand, however long the log has been finished.
+
+(define (log-status-region G_ job)
+  "The run's status, where the page reads it.
+
+The status is the one reading of a job both this page and the list of logs draw,
+so the two cannot come to different colours for it."
+  (list `(span (@ (data-log-status ""))
+               ,@(job-status-label G_ job
+                                   #:size '(text-base sm:text-lg
+                                                      md:text-xl)))))
+
+(define (log-live-region G_ job)
+  "The mark of work in progress, or the place it was read in once the job is done.
+
+An empty place is drawn with the attribute the page draws it with, so that the
+answer to a poll can be drawn over it: the mark goes away when the job stops
+writing, and a page that had no place for it to go away from would keep it.
+
+The place is written with a child of its own -- an empty text node -- for the
+reason the empty pane is (see `output-panes' below): a childless element is
+serialized as `<div .../>', which an HTML parser reads as an opening tag, so an
+empty place would swallow the readings written after it."
+  (if (equal? 1 (assq-ref job
+                           'job-in-progress))
+      `((div (@ (data-log-live ""))
+             ,@(log-live-mark G_)))
+      `((div (@ (data-log-live "")
+                (hidden ""))
+             ""))))
+
+(define (log-facts-region G_ job log-id)
+  "The run's own facts, where the page reads them."
+  (list `(dl (@ (data-log-facts ""))
+             ,@(run-facts G_ job log-id))))
+
+(define (log-actions-region G_ job permissions)
+  "The run's own actions, where the page reads them.
+
+A reader nothing is offered is drawn an empty place rather than no place: a
+retry becomes possible when the job stops writing, and it has to be drawn
+somewhere the page already has."
+  (let ((actions (log-actions G_ job permissions)))
+    (if (null? actions)
+        `((div (@ (data-log-actions "")
+                  (hidden ""))
+               ""))
+        `((div (@ (data-log-actions ""))
+               ,@(terminal-panel actions #:gap '(gap-3)))))))
+
+(define* (log-poll G_ #:key log job permissions (view 'output) (have #f)
+                   (frames-label "frames"))
+  "What a page following a job is answered with: the output, and the run's state.
+
+The output is the pane the job writes into, and the state is the four readings
+of the run that change while it does -- its status, the mark of work in
+progress, its facts and its actions -- each in the place the page draws it.
+
+A reader who was last sent a row of HAVE's length is answered with the state
+alone: the output has not changed, and sending it again to say so is a page of
+build output spent on a sentence.  The state is sent either way, because it is
+the state that says whether the job is over, and a job that is over is the one
+reading a reader watching it cannot do without.
+
+The output travels in a place of its own (`data-log-out') rather than as the
+whole of the answer, so that the state beside it can be drawn where it belongs:
+the script moves the output into the pane and the rest into the page."
+  (let* ((running? (equal? 1 (assq-ref job
+                                       'job-in-progress)))
+         (changed? (not (and have (equal? have (log-length log))))))
+    (list `(div (@ (data-log-state "")
+                   (data-log-running ,(if running? "true" "false"))
+                   (data-log-length ,(log-length log)))
+                ,@(log-status-region G_ job)
+                ,@(log-live-region G_ job)
+                ,@(log-facts-region G_ job (assq-ref log
+                                                     'id))
+                ,@(log-actions-region G_ job permissions)
+                ;; A job that has printed nothing yet still has a pane: the
+                ;; reader is following it, and an empty frame is what there is
+                ;; to follow.
+                ,@(if changed?
+                      `((div (@ (data-log-out ""))
+                             ,@(log-output #:log log
+                                           #:view view
+                                           #:frames-label frames-label)))
+                      '())))))
+
+;;
+;; A list of runs, kept current
+;;
+;; A list of runs is drawn once and read for a while: a run on it starts, prints,
+;; stops and says how it went while the reader is looking at the list.  The page
+;; used to ask for itself again every twelve seconds to say so, which is a page
+;; that is right for a moment and takes the reader's place on the list with it
+;; every time.  Instead the rows that can still change say so with
+;; `data-log-running' (`make-job-link', `(byggsteg html)') and the script asks
+;; for their readings alone (see `pub/js/byggsteg-logs.js'), which is what the
+;; answer below is.
+
+(define* (logs-status G_ #:key jobs (permissions '()) (newest '()))
+  "The rows of a list of runs, as the parts of them that change while they run.
+
+A row is answered with the status in the place the page reads a status in, which
+carries the mark of work in progress for a run that is still to come, and with
+the controls the row would be drawn with for a reader holding PERMISSIONS -- the
+retry a failed run is offered, and nothing for a run that went well.  Each row of
+the answer names the job it is about, so that a row the reader is looking at is
+drawn over where it stands rather than moved or drawn again.
+
+A job the list does not show is simply not drawn: the script matches what it is
+answered with by the id, and a row it cannot find is a row it leaves alone.
+
+NEWEST is the runs the list is headed by now, each as its log paired with its job,
+and each drawn whole -- as `make-job-link' draws it -- rather than as the parts of
+a row that change.  A run taken while the reader is reading the list is not a row
+that changes on the page: it is a row the page has never drawn, and the only
+thing that can say so is a row a reader could have been sent had they asked for
+the page again.  A run that is in both readings -- one the script asked about
+because it is still to come, and one the newest runs name -- is drawn once, since
+the script draws every row of the answer it cannot find on the list, and would
+draw that one twice."
+  (let ((asked (map (lambda (job)
+                      (assq-ref job
+                                'id)) jobs)))
+    (list `(div (@ (data-log-rows ""))
+                ,@(map (lambda (job)
+                         `(div (@ (data-log-row ,(assq-ref job
+                                                          'id))
+                                  (data-log-running ,(if (job-still-to-come? job)
+                                                         "true" "false")))
+                               ,@(row-status-region G_ job)
+                               ,@(row-actions-region G_ job
+                                                     #:permissions
+                                                     permissions)))
+                       jobs)
+                ,@(append-map
+                   (lambda (run)
+                     (let ((log (car run))
+                           (job (cdr run)))
+                       (if (member (assq-ref job
+                                             'id)
+                                   asked)
+                           '()
+                           (make-job-link G_ job log
+                                          #:permissions permissions))))
+                   newest)))))
+
 (define* (log-page rc
                    #:key job
                    log
@@ -289,14 +452,9 @@ may submit one, which is what PERMISSIONS is read for."
          (running? (equal? 1 (assq-ref job
                                        'job-in-progress)))
          (G_ (:i18n rc))
-         ;; The status is the one reading of a job both this page and the list
-         ;; of logs draw, so the two cannot come to different colours for it.
-         (job-status (job-status-label G_ job
-                                       #:size '(text-base sm:text-lg
-                                                          md:text-xl)))
-         (actions (log-actions G_ job permissions))
          ;; The run's name and how it ended, on one line where there is room for
-         ;; one and on two where there is not.
+         ;; one and on two where there is not.  How it ended is the place a poll
+         ;; draws over (see `log-status-region').
          (heading (list `(div (@ (class ,(mk-class '(flex flex-col
                                                              sm:flex-row
                                                              sm:flex-wrap
@@ -306,15 +464,14 @@ may submit one, which is what PERMISSIONS is read for."
                              ,(terminal-heading log-filename
                                                 #:tag 'h1
                                                 #:size '(text-xl sm:text-2xl))
-                             ,job-status)))
+                             ,@(log-status-region G_ job))))
          ;; The two readings of the job's output, the mark that says whether it
          ;; is still arriving, and the pane it is read in.
          (output-panes
           (list `(div (@ (data-log-pane "output")
                          (class ,log-pane-face))
-                      ,(log-output #:log log
-                                   #:job job
-                                   #:frames-label (G_ "frames")))
+                      ,@(log-output #:log log
+                                    #:frames-label (G_ "frames")))
                 ;; The empty pane is written with a child of its own -- an
                 ;; empty text node -- and that is not decoration: the
                 ;; serializer closes a childless element as `<div .../>', and
@@ -352,15 +509,17 @@ may submit one, which is what PERMISSIONS is read for."
                                          #:size '(text-sm md:text-md)))))
          ;; The job's output as the block a reader came for: the tabs above the
          ;; pane, the pane itself, and the expression under it.  It carries the
-         ;; address the script asks for the pane at, and whether the job is
-         ;; still writing, which is what tells the script whether to keep
-         ;; asking.
+         ;; address the script asks for the pane at, whether the job is still
+         ;; writing, which is what tells the script whether to keep asking, and
+         ;; how long the log row already is, which is what tells the answer that
+         ;; the reader has the whole of it.
          (log-block (list `(section (@ (id "job-log")
                                        (data-log-url ,(format #f
                                                        "/logs/~a/output"
                                                        log-id))
                                        (data-log-running ,(if running?
                                                               "true" "false"))
+                                       (data-log-length ,(log-length log))
                                        (class ,(mk-class '(flex flex-col
                                                                   gap-3
                                                                   w-full
@@ -371,9 +530,7 @@ may submit one, which is what PERMISSIONS is read for."
                                                                 justify-between
                                                                 gap-2))))
                                  ,@(log-view-tabs G_)
-                                 ,@(if running?
-                                       (log-live-mark G_)
-                                       '()))
+                                 ,@(log-live-region G_ job))
                             ,@output-panes
                             ,@job-expression)))
          ;; The run's facts and its actions, as the column beside the log on a
@@ -388,11 +545,9 @@ may submit one, which is what PERMISSIONS is read for."
                                                               lg:w-1/3
                                                               lg:shrink-0
                                                               min-w-0))))
-                               ,@(if (null? actions)
-                                     '()
-                                     (terminal-panel actions #:gap '(gap-3)))
+                               ,@(log-actions-region G_ job permissions)
                                ,@(terminal-panel
-                                  (list (dl (run-facts G_ job log-id)))
+                                  (log-facts-region G_ job log-id)
                                   #:gap '(gap-1))
                                ;; The tarballs the job built, each one a
                                ;; download, in a panel of their own: they are
@@ -487,8 +642,33 @@ may submit one, which is what PERMISSIONS is read for."
                                                                           '(flex
                                                                             flex-col
                                                                             gap-4))))))
-                                ,jobs-html)
-                           ,page-buttons)))
+                                ;; The rows are drawn once and then kept
+                                ;; current by the script below, which asks for
+                                ;; the readings of the rows that can still
+                                ;; change -- so the list no longer reloads
+                                ;; itself to say that a run went well.
+                                (div (@ (id "logs-list")
+                                        (data-logs-status-url "/logs-status")
+                                        ;; How many of the newest runs a poll
+                                        ;; is also answered with, and so
+                                        ;; whether it is answered with them at
+                                        ;; all: a run that is taken while the
+                                        ;; reader is reading belongs at the top
+                                        ;; of the newest page of the list, and
+                                        ;; only that page has a top for it to
+                                        ;; arrive at.
+                                        ,@(if (zero? offset)
+                                              `((data-logs-head
+                                                 ,(number->string limit)))
+                                              '())
+                                        (class ,(mk-class '(flex flex-col
+                                                                    gap-4))))
+                                     ,jobs-html))
+                           ,page-buttons
+                           (script (@ (type "text/javascript")
+                                      (src ,(asset-url
+                                             "/js/byggsteg-logs.js")))
+                                   ""))))
     (html-template G_
                    #:title (format #f "byggsteg - ~a"
                                    (G_ "logs"))
@@ -496,5 +676,4 @@ may submit one, which is what PERMISSIONS is read for."
                                   "The runs this byggsteg deployment has executed, newest first, each with its status and the artifacts it collected")
                    #:path "/logs"
                    #:is-logged-in is-logged-in
-                   #:body logs-html
-                   #:should-auto-refresh #t)))
+                   #:body logs-html)))
