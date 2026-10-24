@@ -461,6 +461,28 @@ msgstr "Byggsteg pull en herstart GNU Shepherd daemon zelf"
 msgid "Allow passing arbitrary list of commands (via trivial-cmds field)"
 msgstr "Laat je een lijst met commando's aangeven (via trivial-cmds veld)"
 
+#: app/views/index.scm:94
+msgid ""
+"Run a target in the job's clone, with the runner the checkout has: Maak for a "
+"maak.scm, Just for a justfile, Make for a Makefile, and Make when it keeps "
+"none of them. Any target the project has can be asked for, and a runner's "
+"name and a dash -- just-test, maak-test -- names the runner instead."
+msgstr ""
+"Voer een doel uit in de clone van de opdracht, met de uitvoerder die de "
+"checkout heeft: Maak voor een maak.scm, Just voor een justfile, Make voor een "
+"Makefile, en Make als er geen van deze is. Elk doel dat het project heeft kan "
+"gevraagd worden, en de naam van een uitvoerder met een streepje -- just-test, "
+"maak-test -- benoemt die uitvoerder."
+
+#: app/views/index.scm:101
+msgid ""
+"Act on the machine byggsteg runs on rather than on the checkout: deploy it, "
+"restart a GNU Shepherd service, or update and restart byggsteg itself."
+msgstr ""
+"Werkt op de machine waarop byggsteg draait in plaats van op de "
+"checkout: uitrollen, een GNU Shepherd-dienst herstarten, of byggsteg zelf "
+"bijwerken en herstarten."
+
 #: app/views/index.scm:131
 msgid ""
 "byggsteg aims to be the hackable continuous integration and delivery system, "

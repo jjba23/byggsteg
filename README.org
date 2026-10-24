@@ -104,10 +104,12 @@ thread of the same program.  See [[*Concurrency and the queue]].
   stages run in the order they are written, one log, one status, and the first
   failure stops the rest -- so a deploy that was going to ship a build the test
   stage never produced does not run.
-- *Run anything.*  Named tasks for the usual moves -- ~maak-test~,
-  ~make-build~, ~pull-and-restart~, ~maak-deploy~, ~byggsteg-version~ and the
-  rest -- and a ~trivial~ task that takes the shell commands you write
-  yourself.
+- *Run anything.*  A task is a word for something to do: ~build~, ~test~,
+  ~lint~, ~check~, ~fmt~, ~docs~, ~package~, ~migrate~ and the rest are run
+  with the runner the checkout has (Maak or Make), an unknown name is run as
+  the target it names, ~deploy~ and ~restart~ act on the machine, and a
+  ~trivial~ task takes the shell commands you write yourself.  See
+  [[*Types of jobs]].
 - *Logs that arrive while the job runs.*  Every command is read line by line as
   it prints (~→ running command: <cmd>~), written into the job's log in batches
   of twenty, and readable on the job's own page -- while it is still running.
@@ -197,17 +199,71 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
 When defining a pipeline alist, the task field can be either a single step, or multiple.
 You should either pass a string or a list of strings of job names.
 
-~make-test~ | ~maak-test~ - Run test suite with ~make~ or ~maak~.
+A task is a word for something to do, and the vocabulary has three families: *targets*, which are run in the job's clone; *machine* tasks, which act on the machine byggsteg runs on; and *trivial*, which runs whatever commands the job wrote.  The names below are the ones a client is handed by ~GET /api/v2/tasks~ and the ones the landing page lists; a job may also name a target byggsteg has never heard of, and it is run all the same.
 
-~pull-and-restart~ - Git pull and restart a GNU Shepherd service.
+*** Targets
 
-~pull-and-deploy~ | ~maak-deploy~ - Run a deploy with make or maak.
+A target is run in the job's clone by the runner that checkout has: the files it keeps at its root name the tool that knows its targets.  A job therefore says what it wants done and the checkout says how, which is why ~test~ is the same request on a Maak project, a Just one and a Make one.
 
-~byggsteg-version~ - Byggsteg pull and restart the Shepherd daemon itself.
+| Target      | What it runs                                    |
+|-------------+-------------------------------------------------|
+| ~build~     | the project's build                             |
+| ~test~      | the test suite                                  |
+| ~lint~      | the linter                                      |
+| ~check~     | every check the project has                     |
+| ~fmt~       | the formatter                                   |
+| ~docs~      | the documentation                               |
+| ~package~   | what the project ships                          |
+| ~migrate~   | the database migrations                         |
+| ~clean~     | removes what a build left behind                |
+| ~coverage~  | measures how much of the code the tests reach   |
+| ~benchmark~ | the benchmarks                                  |
+| ~smoke~     | the smoke tests                                 |
+| ~e2e~       | the end-to-end tests                            |
+| ~audit~     | audits the dependencies the project ships        |
 
-~make-build~ | ~maak-build~ - Run a build with ~make~ or ~maak~ (~make-build~ is the fallback task).
+The runners are read in this order, and the first file that is there decides:
 
-~trivial~ - Allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.
+| Runner  | Chosen by                                        | Runs                  |
+|---------+--------------------------------------------------+-----------------------|
+| =maak=  | ~maak.scm~                                       | ~maak <target>~       |
+| =just=  | ~justfile~, ~Justfile~, ~.justfile~              | ~just <target>~       |
+| =task=  | ~Taskfile.yml~, ~Taskfile.yaml~, ~taskfile.yml~  | ~task <target>~       |
+| =mask=  | ~maskfile.md~                                    | ~mask <target>~       |
+| =rake=  | ~Rakefile~, ~rakefile~, ~Rakefile.rb~            | ~rake <target>~       |
+| =make=  | ~Makefile~, ~makefile~, ~GNUmakefile~            | ~make <target>~       |
+| =dune=  | ~dune-project~                                   | ~dune <target>~       |
+| =cargo= | ~Cargo.toml~                                     | ~cargo <target>~      |
+| =deno=  | ~deno.json~, ~deno.jsonc~                        | ~deno task <target>~  |
+| =pnpm=  | ~pnpm-lock.yaml~                                 | ~pnpm run <target>~   |
+| =yarn=  | ~yarn.lock~                                      | ~yarn run <target>~   |
+| =npm=   | ~package-lock.json~, ~package.json~              | ~npm run <target>~    |
+
+The order is a preference rather than an accident: a ~maak.scm~ is this project's own runner and comes first; a ~justfile~ or a ~Taskfile.yml~ is an explicit choice of task runner and comes before ~make~; and ~make~ comes before the language's own runner, so a Rust or OCaml or JavaScript project that also keeps a Makefile is read as a Make checkout, because the Makefile is the way in.  ~make~ is also the fallback: a clone that keeps none of these files is read as a Make checkout, which is what byggsteg has always done.
+
+Every target has a spelling for every runner.  ~test~ asks the checkout which one to use; ~just-test~ names Just, ~maak-test~ names Maak, ~make-test~ names Make, and the same goes for ~npm-test~, ~cargo-test~ and the rest.  It is one rule rather than a list of combinations, so it reaches a target nobody has listed too: ~(task . "just-publish")~ runs ~just publish~ on a checkout that would otherwise have chosen Make.
+
+A target that does not exist is not a fallback: a job that asks for ~publish~ on a project that has no such target fails with the runner's own message in its log, which says which target was missing and in which checkout.
+
+Adding a runner is one entry in ~lib/byggsteg/job/runners.scm~ -- its name, the files that mark a checkout as its own, and the words that run a target in it -- and it is addressable as ~<runner>-<target>~ from that moment on.
+
+*** Machine tasks
+
+These are not run in a clone, because what they do is to the machine: they restart a service, deploy a checkout, or replace byggsteg itself.
+
+| Task                                        | What it does                                              |
+|---------------------------------------------+-----------------------------------------------------------|
+| ~deploy~                                     | deploy the checkout, with the runner the checkout has     |
+| ~maak-deploy~, ~make-deploy~                 | the same, with the runner named                           |
+| ~restart~, ~pull-and-restart~                | restart the GNU Shepherd service the project runs as      |
+| ~pull-and-deploy~                            | ~sudo make deploy~ -- kept for jobs written before ~deploy~ |
+| ~byggsteg-version~                           | update byggsteg's own clone and restart its Shepherd daemon |
+
+The clone is pulled by the job's own clone step before any task runs, which is why ~restart~ and ~pull-and-restart~ are one command and why ~pull-and-deploy~ does not pull twice.  ~restart~ enables the service before restarting it, so the first job after a daemon is added to a deployment's configuration starts it.
+
+*** Anything
+
+~trivial~ allows passing any arbitrary commands to build your own pipeline completely. This means also that you should pass an additional field to the alist you send to byggsteg, namely, ~trivial-cmds~ which should be a list of strings, representing commands to run, in order.  A ~trivial~ job has no clone, so it is the one way to build a pipeline that does not begin with a repository.
 
 ------------------
 

@@ -20,6 +20,7 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg artifacts)
   #:use-module (byggsteg job steps)
+  #:use-module (byggsteg job tasks)
   #:use-module (byggsteg job streaming)
   #:use-module (byggsteg domain job)
   #:use-module (byggsteg domain log)
@@ -45,7 +46,11 @@
   #:use-module (rnrs io ports)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 threads)
-  #:export (run-pipeline-task pipeline-tasks job-pipeline
+  ;; The vocabulary the dispatch below is written in, and the list this
+  ;; module hands a client of the pipeline: re-exported rather than
+  ;; exported, because it is `(byggsteg job tasks)' that defines it.
+  #:re-export (pipeline-tasks)
+  #:export (run-pipeline-task job-pipeline
                               job-specs
                               job-title-prefix
                               fail-job
@@ -102,8 +107,19 @@ stopped here comes back to a queue that does not still hold this job."
                             (image #f)
                             (daemon-name #f)
                             (trivial-cmds '()))
+  "Run TASK for the job whose project is PROJECT, and answer a step result.
+
+A task is one of the names `(byggsteg job tasks)' lists, or any other
+name, which is run as a target in the clone.  Three names are done by
+the worker itself rather than by a runner -- `byggsteg-version',
+`trivial', and the restart -- because they are not a command in a
+clone: they stop and start services, or run the commands the job wrote.
+Everything else is a target, and the runner is the checkout's choice or
+the task's prefix."
   (cond
-    ;; Byggsteg version update
+    ;; Byggsteg version update: the clone is updated by the clone step,
+    ;; and the restart is asked for here so that it happens after the
+    ;; job's row is written (see `request-service-restart!').
     ((equal? task "byggsteg-version")
      (request-service-restart! (format #f
                                 "cd ~a && sudo herd restart ~a || true"
@@ -115,40 +131,30 @@ stopped here comes back to a queue that does not still hold this job."
                             #:daemon-name daemon-name
                             #:env env))
 
-    ;; Herd pull and restart
-    ((equal? task "pull-and-restart")
-     (pull-and-restart-step #:project project
-                            #:branch-name branch-name
-                            #:daemon-name daemon-name
-                            #:env env))
+    ;; The clone has already been pulled by the job's clone step, so
+    ;; these two are the restart half of their names.
+    ((member task '("restart" "pull-and-restart"))
+     (restart-step #:project project
+                   #:branch-name branch-name
+                   #:daemon-name daemon-name
+                   #:env env))
 
-    ;; Pull and make deploy
+    ;; Kept as its own task and its own command: it predates the runner
+    ;; being read from the checkout, and runs `make deploy'.
     ((equal? task "pull-and-deploy")
      (pull-and-deploy-step #:project project
                            #:branch-name branch-name
                            #:env env))
 
-    ;; maak deploy
-    ((equal? task "maak-deploy")
-     (maak-deploy-step #:project project
-                       #:branch-name branch-name
-                       #:env env))
+    ;; The deploy family: `deploy' asks the checkout which runner to use,
+    ;; and the two prefixed spellings answer for it.
+    ((member task '("deploy" "maak-deploy" "make-deploy"))
+     (deploy-step #:project project
+                  #:branch-name branch-name
+                  #:task task
+                  #:env env))
 
-    ;; make test
-    ((equal? task "make-test")
-     (make-test-step #:project project
-                     #:branch-name branch-name
-                     #:env env
-                     #:image image))
-
-    ;; maak test
-    ((equal? task "maak-test")
-     (maak-test-step #:project project
-                     #:branch-name branch-name
-                     #:env env
-                     #:image image))
-
-    ;; Trivial - Allow user to specify all commands
+    ;; Anything a job writes, as it is.
     ((equal? task "trivial")
      (trivial-step #:project project
                    #:branch-name branch-name
@@ -156,44 +162,27 @@ stopped here comes back to a queue that does not still hold this job."
                    #:env env
                    #:image image))
 
-    ;; maak build
-    ((equal? task "maak-build")
-     (maak-build-step #:project project
-                      #:branch-name branch-name
-                      #:env env
-                      #:image image))
-
-    ;; Otherwise attempt generic `make build'
-    (else (make-build-step #:project project
-                           #:branch-name branch-name
-                           #:env env
-                           #:image image))))
+    ;; Everything else is a target in the clone -- a known one, or one
+    ;; the project invented.  A name nobody has heard of is not a
+    ;; fallback to `make build' any more: it is the target it names, and
+    ;; a runner that has no such target says so in the job's log.
+    (else (target-step #:project project
+                       #:branch-name branch-name
+                       #:task task
+                       #:env env
+                       #:image image))))
 
 ;;; ====== The tasks a job may ask for ======
 ;;;
-;;; The names `run-pipeline-task' dispatches on, in the order the landing page
-;;; lists them, each with the reading of it a client is handed: the JSON API
-;;; answers with this list (`GET /api/v2/tasks'), because a job is Lisp that
-;;; names one of these, and a client writing that Lisp has to be told which
-;;; names exist.  They are kept beside the dispatch for the reason the dispatch
-;;; is one `cond' rather than two: a task that is dispatched and not listed is a
-;;; task nobody can find, and one that is listed and not dispatched is a job
-;;; that runs `make build' whatever the file said.
+;;; The vocabulary -- the names, the readings a client is handed, and the
+;;; three families they are read in -- is `(byggsteg job tasks)', and the
+;;; dispatch above reads the same names.  The list is re-exported here
+;;; because this is the module a client of the pipeline already reads,
+;;; and the JSON API (`GET /api/v2/tasks') answers with it.
 ;;;
-;;; A description is written here in the language of this source, and the page
-;;; writes its own in the reader's -- four of them, with GNU gettext -- so a
-;;; name added to the dispatch above is added here, and translating the reading
-;;; of it is a page's own business.
-(define pipeline-tasks
-  '(("maak-test" . "Run the test suite with Maak")
-    ("make-test" . "Run the test suite with Make")
-    ("pull-and-restart" . "Git pull, and restart the wanted GNU Shepherd service")
-    ("pull-and-deploy" . "Git pull, and run the deploy task")
-    ("maak-deploy" . "Run a deploy with Maak")
-    ("maak-build" . "Run a build with Maak")
-    ("make-build" . "Run a build with Make (the task a job that names none falls back to)")
-    ("byggsteg-version" . "Update byggsteg's own clone, and restart its GNU Shepherd daemon")
-    ("trivial" . "Run the commands the job's `trivial-cmds' field lists, as they are")))
+;;; The readings are written in the language of this source, and the page
+;;; writes its own in the reader's -- four of them, with GNU gettext -- so
+;;; translating a reading is a page's own business.
 
 (define (job-spec? value)
   "Is VALUE one job: the alist of fields a job describes itself with?

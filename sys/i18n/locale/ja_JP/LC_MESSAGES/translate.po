@@ -463,6 +463,26 @@ msgid "Allow passing arbitrary list of commands (via trivial-cmds field)"
 msgstr ""
 "コマンドの任意の長さのリストを渡すことを許可(trivial-cmdsフィールド経由)"
 
+#: app/views/index.scm:94
+msgid ""
+"Run a target in the job's clone, with the runner the checkout has: Maak for a "
+"maak.scm, Just for a justfile, Make for a Makefile, and Make when it keeps "
+"none of them. Any target the project has can be asked for, and a runner's "
+"name and a dash -- just-test, maak-test -- names the runner instead."
+msgstr ""
+"ジョブのクローン内でターゲットを実行します。使用するランナーはチェックアウトが決めます"
+"（maak.scm なら Maak、justfile なら Just、Makefile なら Make、どれもなければ Make）。"
+"プロジェクトにある任意のターゲットを指定でき、ランナー名とハイフン（just-test、"
+"maak-test）でそのランナーを明示できます。"
+
+#: app/views/index.scm:101
+msgid ""
+"Act on the machine byggsteg runs on rather than on the checkout: deploy it, "
+"restart a GNU Shepherd service, or update and restart byggsteg itself."
+msgstr ""
+"チェックアウトではなく byggsteg が動作するマシンに対して操作します。デプロイ、"
+"GNU Shepherd サービスの再起動、または byggsteg 自体の更新と再起動を行います。"
+
 #: app/views/index.scm:131
 msgid ""
 "byggsteg aims to be the hackable continuous integration and delivery system, "

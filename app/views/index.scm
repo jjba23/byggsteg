@@ -20,6 +20,7 @@
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg faces)
   #:use-module (byggsteg html)
+  #:use-module (byggsteg job tasks)
   #:use-module (ice-9 i18n)
   #:use-module (artanis i18n)
   #:use-module (artanis artanis)
@@ -56,6 +57,18 @@
 "
                  "    (task . (\"maak-test\" \"maak-deploy\"))))")))
 
+(define (task-terms names)
+  "NAMES, drawn as the code terms a reader may write, separated by a space.
+
+The names are identifiers, so they are not translated; what a reader is
+told about them is."
+  (if (null? names)
+      '()
+      (cons (terminal-code (car names))
+            (if (null? (cdr names))
+                '()
+                (cons " " (task-terms (cdr names)))))))
+
 (define (job-type-expl G_)
   (let* ((dl-classes '(flex flex-col gap-1 py-2))
          ;; The terms and the readings under them are read in the console's own
@@ -64,63 +77,41 @@
          ;; near-whites the phosphor screen has no room for, so both are handed
          ;; `prose-ink' (`(byggsteg faces)') and the readings keep only their
          ;; layout.
-         (dd-classes '(py-3 px-2 font-mono)))
-    (terminal-glass-panel (list (terminal-heading (G_ "job types"))
-                                (dl (list (dt (list (terminal-code "maak-test")
-                                                    " | "
-                                                    (terminal-code "make-test"))
-                                               #:color prose-ink)
-                                          (dd (G_
-                                               "Run test suite with Maak or Make")
-                                              #:dd-classes dd-classes
-                                              #:color prose-ink
-                                              #:size '(text-md))
-                                          (dt (terminal-code
-                                               "pull-and-restart")
-                                              #:color prose-ink)
-                                          (dd (G_
-                                               "Git pull and restart wanted GNU Shepherd service")
-                                              #:dd-classes dd-classes
-                                              #:color prose-ink
-                                              #:size '(text-md))
-                                          (dt (list (terminal-code
-                                                     "maak-deploy") " | "
-                                                    (terminal-code
-                                                     "pull-and-deploy"))
-                                              #:color prose-ink)
-                                          (dd (G_
-                                               "Run a deploy with Maak or Make")
-                                              #:dd-classes dd-classes
-                                              #:color prose-ink
-                                              #:size '(text-md))
-                                          (dt (list (terminal-code
-                                                     "maak-build") " | "
-                                                    (terminal-code
-                                                     "make-build"))
-                                              #:color prose-ink)
-                                          (dd (G_
-                                               "Run a build with Maak or Make (make-build is the fallback task)")
-                                              #:dd-classes dd-classes
-                                              #:color prose-ink
-                                              #:size '(text-md))
-                                          (dt (terminal-code
-                                               "byggsteg-version")
-                                              #:color prose-ink)
-                                          (dd (G_
-                                               "Byggsteg pull and restart GNU Shepherd daemon itself")
-                                              #:dd-classes dd-classes
-                                              #:color prose-ink
-                                              #:size '(text-md))
-                                          (dt (terminal-code "trivial")
-                                              #:color prose-ink)
-                                          (dd (G_
-                                               "Allow passing arbitrary list of commands (via trivial-cmds field)")
-                                              #:dd-classes dd-classes
-                                              #:color prose-ink
-                                              #:size '(text-md)))
-                                    #:dl-classes dl-classes))
-                          #:classes '(max-w-prose)
-                          #:content-classes '(flex flex-col gap-2))))
+         (dd-classes '(py-3 px-2 font-mono))
+         (group-names (lambda (group)
+                        (map car (assoc-ref pipeline-task-groups group)))))
+    (terminal-glass-panel
+     (list (terminal-heading (G_ "job types"))
+           (dl (list
+                ;; The bare spellings only: the `maak-' and `make-' forms of
+                ;; the same targets are what the reading under them explains,
+                ;; and forty-two code terms in one line is a wall rather than
+                ;; a vocabulary.
+                (dt (task-terms (list-head (group-names 'targets)
+                                           (length target-task-readings)))
+                    #:color prose-ink)
+                (dd (G_
+                     "Run a target in the job's clone, with the runner the checkout has: Maak for a maak.scm, Just for a justfile, Make for a Makefile, and Make when it keeps none of them. Any target the project has can be asked for, and a runner's name and a dash -- just-test, maak-test -- names the runner instead.")
+                    #:dd-classes dd-classes
+                    #:color prose-ink
+                    #:size '(text-md))
+                (dt (task-terms (group-names 'machine))
+                    #:color prose-ink)
+                (dd (G_
+                     "Act on the machine byggsteg runs on rather than on the checkout: deploy it, restart a GNU Shepherd service, or update and restart byggsteg itself.")
+                    #:dd-classes dd-classes
+                    #:color prose-ink
+                    #:size '(text-md))
+                (dt (task-terms (group-names 'anything))
+                    #:color prose-ink)
+                (dd (G_
+                     "Allow passing arbitrary list of commands (via trivial-cmds field)")
+                    #:dd-classes dd-classes
+                    #:color prose-ink
+                    #:size '(text-md)))
+               #:dl-classes dl-classes))
+     #:classes '(max-w-prose)
+     #:content-classes '(flex flex-col gap-2))))
 
 (define* (welcome-page rc
                        #:key is-logged-in selected-locale)

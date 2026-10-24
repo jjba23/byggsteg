@@ -461,6 +461,28 @@ msgstr "Actualiza byggsteg y reinicia el daemon GNU Shepherd del mismo"
 msgid "Allow passing arbitrary list of commands (via trivial-cmds field)"
 msgstr "Permite pasar una lista de instrucciones (con el campo trivial-cmds)"
 
+#: app/views/index.scm:94
+msgid ""
+"Run a target in the job's clone, with the runner the checkout has: Maak for a "
+"maak.scm, Just for a justfile, Make for a Makefile, and Make when it keeps "
+"none of them. Any target the project has can be asked for, and a runner's "
+"name and a dash -- just-test, maak-test -- names the runner instead."
+msgstr ""
+"Ejecuta un objetivo en el clon de la tarea, con el ejecutor que tenga el "
+"checkout: Maak si hay un maak.scm, Just si hay un justfile, Make si hay un "
+"Makefile, y Make si no hay ninguno. Se puede pedir cualquier objetivo que "
+"tenga el proyecto, y el nombre de un ejecutor con un guion -- just-test, "
+"maak-test -- nombra ese ejecutor."
+
+#: app/views/index.scm:101
+msgid ""
+"Act on the machine byggsteg runs on rather than on the checkout: deploy it, "
+"restart a GNU Shepherd service, or update and restart byggsteg itself."
+msgstr ""
+"Actúa sobre la máquina donde se ejecuta byggsteg en lugar del "
+"checkout: despliega, reinicia un servicio de GNU Shepherd, o actualiza y "
+"reinicia el propio byggsteg."
+
 #: app/views/index.scm:131
 msgid ""
 "byggsteg aims to be the hackable continuous integration and delivery system, "

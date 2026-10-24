@@ -222,6 +222,15 @@ paths:
         Lisp has to be told which names exist. A description is written in the
         language of the source rather than in the reader's -- a page translates,
         and a document a script reads has one reading of it.
+
+        These are the names byggsteg itself knows. A job may also name a
+        target the vocabulary does not list (`publish`, `serve`, anything the
+        project's runner has) and it is run in the checkout all the same; a
+        runner's name and a dash (`just-test`, `maak-test`, `make-test`,
+        `npm-test`) names that runner instead of letting the checkout choose.
+        The runners, and the files that make a checkout one of theirs, are in
+        `(byggsteg job runners)`: maak, just, task, mask, rake, make, dune,
+        cargo, deno, pnpm, yarn and npm.
       security: []
       responses:
         "200":

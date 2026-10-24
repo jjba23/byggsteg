@@ -95,6 +95,34 @@ the same reading wherever the run was started."
 (define deployment-config
   (string-append (project-root) "/conf/artanis.conf"))
 
+;;; ====== The vocabulary, written out ======
+
+;; The task names this deployment advertises, written here rather than read
+;; from `(byggsteg job tasks)': the point of the reading is that the list a
+;; client is handed is the vocabulary the project meant to ship, so it is
+;; pinned here as the words a reader of the manual would find.  A task added
+;; to the module without being added here -- or the other way round -- fails
+;; this reading, which is what keeps the two from drifting.
+(define advertised-targets
+  '("build" "test" "lint" "check" "fmt" "docs" "package" "migrate"
+    "clean" "coverage" "benchmark" "smoke" "e2e" "audit"))
+
+(define advertised-machine-tasks
+  '("deploy" "maak-deploy" "make-deploy" "restart"
+    "pull-and-deploy" "pull-and-restart" "byggsteg-version"))
+
+(define (advertised-tasks)
+  "The task names this deployment answers with, in the order it answers them."
+  (append advertised-targets
+          (map (lambda (task) (string-append "maak-" task))
+               advertised-targets)
+          (map (lambda (task) (string-append "just-" task))
+               advertised-targets)
+          (map (lambda (task) (string-append "make-" task))
+               advertised-targets)
+          advertised-machine-tasks
+          '("trivial")))
+
 ;;; ====== The routes the API registers ======
 
 ;; A route is a form a method and a path are registered with, and a route of
@@ -804,9 +832,7 @@ it."
                #:shuffle? #f
                (assert-equal #:name
                 "every task a client may write is answered with the name it is dispatched by"
-                #:expect '("maak-test" "make-test" "pull-and-restart"
-                           "pull-and-deploy" "maak-deploy" "maak-build"
-                           "make-build" "byggsteg-version" "trivial")
+                #:expect (advertised-tasks)
                 #:got (map (lambda (task)
                              (assoc-ref task "name"))
                            (vector->list

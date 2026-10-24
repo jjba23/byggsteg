@@ -19,6 +19,7 @@
 (define-module (byggsteg job steps)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg container)
+  #:use-module (byggsteg job runners)
   #:use-module (byggsteg job streaming)
   #:use-module (byggsteg artifacts)
   #:use-module (byggsteg domain artifact)
@@ -34,13 +35,12 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:export (display-cmd do-in-clone-dir
-                        pull-and-restart-step
+                        checkout-runner
+                        task-runner
+                        target-step
+                        deploy-step
+                        restart-step
                         pull-and-deploy-step
-                        maak-deploy-step
-                        make-build-step
-                        maak-build-step
-                        make-test-step
-                        maak-test-step
                         git-details-step
                         sys-details-step
                         clone-repo-step
@@ -279,9 +279,78 @@ back with the newlines the reader took off."
     ($ running
        #:env env)))
 
-(define* (pull-and-restart-step #:key project branch-name
-                                (env #f)
-                                (daemon-name #f))
+;;; ====== The tasks a job may ask for ======
+;;;
+;;; A task that names a target -- `build', `test', `lint', `fmt', `docs',
+;;; `package', `migrate', or any other name the project's runner knows --
+;;; is run in the job's clone by the runner that checkout has: the tool
+;;; whose files it keeps (see `(byggsteg job runners)') -- Maak for a
+;;; maak.scm, Just for a justfile, Make for a Makefile, and Make when it
+;;; has none of them.  A name prefixed with a runner's name and a dash
+;;; names the runner instead of asking for it, which is what a project
+;;; that keeps two of those files says.  The vocabulary itself -- the
+;;; names and the readings a client is handed -- is `(byggsteg job tasks)'.
+
+(define (checkout-runner clone-dir)
+  "Return the name of the runner CLONE-DIR's targets are run with.
+
+The tool the checkout keeps the files of, in the order the runner table
+prefers them, and Make for a clone that keeps none of them (or is not
+there yet, as in a task run by hand)."
+  (runner-name (runner-for-checkout clone-dir)))
+
+(define (task-runner clone-dir task)
+  "Return the runner TASK asks for, or the one CLONE-DIR has."
+  (or (runner-by-name (task-runner-name task))
+      (runner-for-checkout clone-dir)))
+
+(define (runner-command-string runner target)
+  "Return the command that runs TARGET with RUNNER, as a shell string."
+  (string-join (runner-command-line runner target) " "))
+
+(define* (target-step #:key project branch-name task env image)
+  "Run TASK's target in the job's clone, with the runner the checkout has.
+
+A runner's name and a dash names the runner (`just-test', `npm-test');
+a bare name asks the checkout, which is what makes `test' the same
+request on a Maak project, a Just one and a Make one.  An unknown name
+is a target too -- `publish' runs the clone's `publish' target -- so a
+project does not have to ask byggsteg to have heard of a target before it
+can run it."
+  (let* ((clone-dir (string-append (job-clone-location) project "/"
+                                   branch-name))
+         (runner (task-runner clone-dir task))
+         (target (task-target task)))
+    (do-in-clone-dir clone-dir
+                     (list (runner-command-string runner target))
+                     #:env env
+                     #:image image)))
+
+(define* (deploy-step #:key project branch-name task env)
+  "Deploy the job's clone, with the runner the checkout has.
+
+The deploy acts on the machine -- it is `sudo', and it restarts what the
+application runs as -- so it is never run inside a build container, and
+a job that names an image for its tests and builds still deploys here."
+  (let* ((clone-dir (string-append (job-clone-location) project "/"
+                                   branch-name))
+         (runner (task-runner clone-dir (or task "deploy"))))
+    (do-in-clone-dir clone-dir
+                     (list (string-append "sudo "
+                                          (runner-command-string runner
+                                                                 "deploy")))
+                     #:env env)))
+
+(define* (restart-step #:key project branch-name
+                       (env #f)
+                       (daemon-name #f))
+  "Restart the GNU Shepherd service the job's project runs as.
+
+The clone is pulled by the job's own clone step, before any task runs,
+so this is the restart half of `pull-and-restart' and the whole of
+`restart'.  A service that is not enabled is enabled first: a deployment
+adds a daemon to config.scm and the first job after that has to enable
+it, or `herd restart' would only ever say that it is not running."
   (let* ((clone-dir (string-append (job-clone-location) project "/"
                                    branch-name))
          (daemon-to-restart (if (not daemon-name) project daemon-name)))
@@ -293,55 +362,16 @@ back with the newlines the reader took off."
 
 (define* (pull-and-deploy-step #:key project branch-name
                                (env #f))
+  "Run `make deploy' in the job's clone, which the clone step has pulled.
+
+Kept as its own name and its own command: the task predates the runner
+being read from the checkout, and a project that has both a maak.scm and
+a Makefile asked for Make with it."
   (let* ((clone-dir (string-append (job-clone-location) project "/"
                                    branch-name)))
     (do-in-clone-dir clone-dir
                      '("sudo make deploy")
                      #:env env)))
-
-(define* (maak-deploy-step #:key project branch-name
-                           (env #f))
-  (let* ((clone-dir (string-append (job-clone-location) project "/"
-                                   branch-name)))
-    (do-in-clone-dir clone-dir
-                     '("sudo maak deploy")
-                     #:env env)))
-
-(define* (make-build-step #:key project branch-name
-                          (env #f) (image #f))
-  (let* ((clone-dir (string-append (job-clone-location) project "/"
-                                   branch-name)))
-    (do-in-clone-dir clone-dir
-                     '("make build")
-                     #:env env
-                     #:image image)))
-
-(define* (maak-build-step #:key project branch-name
-                          (env #f) (image #f))
-  (let* ((clone-dir (string-append (job-clone-location) project "/"
-                                   branch-name)))
-    (do-in-clone-dir clone-dir
-                     '("maak build")
-                     #:env env
-                     #:image image)))
-
-(define* (make-test-step #:key project branch-name
-                         (env #f) (image #f))
-  (let* ((clone-dir (string-append (job-clone-location) project "/"
-                                   branch-name)))
-    (do-in-clone-dir clone-dir
-                     '("make test")
-                     #:env env
-                     #:image image)))
-
-(define* (maak-test-step #:key project branch-name
-                         (env #f) (image #f))
-  (let* ((clone-dir (string-append (job-clone-location) project "/"
-                                   branch-name)))
-    (do-in-clone-dir clone-dir
-                     '("maak test")
-                     #:env env
-                     #:image image)))
 
 (define* (git-details-step #:key project branch-name)
   (let* ((clone-dir (string-append (job-clone-location) project "/"
