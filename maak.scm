@@ -392,6 +392,21 @@ that is run to judge a change has to be."
    (list "guile --fresh-auto-compile -L ./lib -L . -L ./test"
          "-c '(begin (setlocale LC_ALL \"C.UTF-8\") (use-modules (veritas runner)) (run-tests))'")))
 
+(define (container-check)
+  "Say how this deployment would run a job that names an image.
+
+Reads the same variables `(byggsteg container)' reads -- BYGGSTEG_CONTAINER_RUNTIME,
+BYGGSTEG_CONTAINER_USER, BYGGSTEG_CONTAINER_IMAGE, DOCKER_HOST -- and prints what
+a build would be started with, then the command it would run.  Nothing is
+started: this is the reading to take when a job that names an image behaves
+differently from the machine it is on, and the answer is the machine's, not the
+manual's."
+  (time-machine-manifest-shell
+   (list "guile -L ./lib -L ."
+         (format #f "-c ~a"
+                 (shell-quoted
+                  "(begin (use-modules (byggsteg container)) (display (container-description)) (newline) (newline) (display (container-command \"maak test\" #:image (or (container-image) \"docker.io/library/alpine:3\") #:workdir \"/etc/byggsteg/job-clone/example/trunk\")) (newline))")))))
+
 (define (build-manual)
   "Render the project's manual -- the README -- as a single HTML page."
   (time-machine-manifest-shell (list (~ "emacs -Q --batch --eval '~s'"

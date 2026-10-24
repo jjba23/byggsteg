@@ -7,6 +7,10 @@ byggsteg.db-shm
 byggsteg.db-wal
 *.log
 env.scm
+# ... except the dummy one the test suite runs with, which is part of
+# the source rather than a deployment's secrets.  It is `(byggsteg env)'
+# on the load path `maak test' uses (-L ./test).
+!test/byggsteg/env.scm
 .nrepl-port
 reports/
 README.html

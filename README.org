@@ -139,6 +139,12 @@ thread of the same program.  See [[*Concurrency and the queue]].
 - *Everything about an instance is configuration.*  Its name, its mark, its
   sentence, its source, its manual and its documentation come from its
   environment; the behaviour of everything else is a few lines of Scheme away.
+- *Builds in containers, or not.*  A job that names an ~image~ is built in it --
+  rootless, with the clone and the Docker API socket mounted where the build
+  expects them -- and a job that names none runs on the machine.  Which runtime
+  it is, and which account owns the containers, is the deployment's answer;
+  testcontainers works by finding the socket you already have.  See
+  [[*Building in containers]].
 - *Cross-platform.*  Runs anywhere Guile Scheme can run, and exposes web
   endpoints -- so it is accessible from a laptop, a phone, or a script.
 - *Free software.*  Licensed under the GNU AGPL v3 or newer, documentation under
@@ -222,6 +228,8 @@ You should either pass a string or a list of strings of job names.
 ~trivial-cmds~ is a list of strings which represent commands to be run.
 
 ~artifacts~ is a list of what to keep once the job's commands are over: a path, relative to the job's clone, or a bundle written as ~(name . (path ...))~ that is packed into a tarball of its own and offered under that name. See [[*Artifacts]].
+
+~image~ is the container image a job's build and test steps run in, for a deployment that has a container runtime. Omit it and the job runs on the machine, which is what every job did before this field existed. See [[*Building in containers]].
 
 *** Example jobs
 
@@ -864,7 +872,7 @@ For running byggsteg yourself, you'll need to define and load a module called ~(
   "my-password")
 #+end_src
 
-The file is loaded by ~ENTRY~ when the server starts, so a change to it needs a restart.
+The file is loaded by ~ENTRY~ when the server starts, so a change to it needs a restart. A test run does not need one: ~test/byggsteg/env.scm~ is the same module with values that are nobody's, and it is what the suite runs with (see [[*Running the test suite]]).
 
 ------------------
 
@@ -944,6 +952,65 @@ The artifact directory belongs to byggsteg: its queue worker removes what the da
 
 ------------------
 
+** Building in containers
+
+A job may name the image its *build* and *test* steps run in. The image is a field of the job, so a project decides for itself how it is built; nothing about a deployment has to change for a job to start using one, and nothing changes for the jobs that do not:
+
+#+begin_src scheme
+(lambda ()
+  `((project . "wikimusic-api")
+    (branch-name . "trunk")
+    (task . ("maak-test" "maak-build"))
+    (image . "docker.io/library/node:22")
+    (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
+#+end_src
+
+What runs in the image are ~maak-test~, ~make-test~, ~maak-build~, ~make-build~ and ~trivial~. The deploy and restart tasks -- ~maak-deploy~, ~pull-and-deploy~, ~pull-and-restart~ and ~byggsteg-version~ -- do not: they act on the machine byggsteg is on, through ~sudo herd~ and ~sudo maak deploy~, so a pipeline can build in a container and deploy on the host in the same run.
+
+The clone is mounted at the path it already has, so a task's ~cd~ works unchanged, and the container's user is mapped to the account that owns the clone, so the files a build writes belong to that account outside the container too -- which is what lets artifacts be collected afterwards and the next stage read them. This is ~--userns=keep-id~ on Podman, and a named ~--user~ on Docker.
+
+A job that names no image runs on the machine, exactly as it did before this existed. A deployment that wants *every* job built in a container names the default image for the jobs that do not:
+
+| Variable                        | What it says                                                                 |
+|---------------------------------+-------------------------------------------------------------------------------|
+| ~BYGGSTEG_CONTAINER_RUNTIME~    | ~auto~ (the default), ~podman~, ~docker~ or ~none~. ~auto~ takes the runtime that is installed, and runs on the machine when neither is. |
+| ~BYGGSTEG_CONTAINER_USER~       | The account the runtime is run as, through ~sudo -u~. A deployment whose daemon is ~root~ names an unprivileged account here, and the containers are that account's -- rootless, with no privilege borrowed from the daemon. Empty runs the runtime as byggsteg. |
+| ~BYGGSTEG_CONTAINER_IMAGE~      | The image a job that names none is built in. Empty is no default, so such a job runs on the machine. |
+| ~BYGGSTEG_CONTAINER_NETWORK~    | The ~--network~ a build joins. Empty is the runtime's default. |
+
+What a deployment would do is one command away, and the answer is the machine's rather than the manual's:
+
+#+begin_src sh
+maak container-check
+# runtime:       podman (/run/current-system/profile/bin/podman)
+# user:          byggsteg-runner
+# socket:        /run/user/998/podman/podman.sock (present)
+# default image: none: jobs run on the machine unless they name one
+# 'sudo' '-u' 'byggsteg-runner' ... 'podman' 'run' '--rm' '--userns=keep-id' ...
+#+end_src
+
+Nothing is started by it: ~container-check~ prints the reading and the command a build would run.
+
+*** testcontainers, and the Docker API socket
+
+A test suite that starts a database, a queue or an SMTP server in a container speaks the Docker API, not the CLI, and it finds that API by connecting to a socket named by ~DOCKER_HOST~. Byggsteg discovers that socket rather than asking for it: ~DOCKER_HOST~ when the deployment named one, and otherwise the runtime user's own socket, ~/run/user/<uid>/podman/podman.sock~.
+
+When the socket exists, every job's commands are handed it, together with the variables testcontainers reads:
+
+#+begin_src sh
+DOCKER_HOST=unix:///run/user/998/podman/podman.sock
+TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/run/user/998/podman/podman.sock
+TESTCONTAINERS_RYUK_DISABLED=true
+#+end_src
+
+A job that names ~DOCKER_HOST~ itself keeps its own: the variables byggsteg adds never replace one the job's ~env~ field named.
+
+Ryuk is testcontainers' reaper: a container that mounts the socket and removes other containers' leftovers. It is the part of testcontainers that most often cannot start against a rootless runtime, so it is disabled unless a deployment asks for it with ~BYGGSTEG_TESTCONTAINERS_RYUK_DISABLED=0~. A suite that runs inside the build container finds the same socket there, because it is mounted at the same path.
+
+The socket is served by the machine, not by byggsteg: on a Guix System it is a ~podman system service~ Shepherd unit per user (see ~(wolk-jjba containers)~ in the wolk-jjba repository). A deployment on another distribution can get the same socket with ~systemctl --user enable --now podman.socket~ or by running ~podman system service --time=0 unix://$XDG_RUNTIME_DIR/podman/podman.sock~ once.
+
+------------------
+
 ** Keeping it running: a Shepherd service
 
 Here follows an example of a Guix Shepherd service:
@@ -1017,6 +1084,8 @@ otherwise.
 The knobs byggsteg's worker and pages are tuned with are parameters in ~lib/byggsteg/preferences.scm~, each with a comment saying what it does: how many jobs run at once (~job-concurrency~), how long a run is kept (~job-retention-days~), how much a page of search results holds (~search-result-limit~), how many weeks the activity page draws (~activity-weeks~), and the rest. A deployment that wants different numbers changes them there, or sets them from its own code before the server starts.
 
 The two things a deployment has to be able to move -- where the clones are made and where the tarballs are written -- are read from the environment as well, as are the public address of the deployment (~BYGGSTEG_PUBLIC_URL~) and the database the command-line tasks act on (~BYGGSTEG_DB~).
+
+How a job that names an image is built is read the same way: ~BYGGSTEG_CONTAINER_RUNTIME~, ~BYGGSTEG_CONTAINER_USER~, ~BYGGSTEG_CONTAINER_IMAGE~ and ~BYGGSTEG_CONTAINER_NETWORK~ are the parameters ~job-container-runtime~, ~job-container-user~, ~job-container-image~ and ~job-container-network~, and their defaults are "auto", "the user byggsteg runs as", "no default image" and "the runtime's own network". See [[*Building in containers]].
 
 The locale a job's commands are run in is read that way too. A daemon started from a service, a container or a system unit is usually started without one, and a command started without one reads and writes in ~C~: a compiler writes ~?~ where a source file held an accent, a test suite reports a diff of question marks, and the log a reader opens says the build printed ~?~ rather than what it printed. So byggsteg names ~C.UTF-8~ -- no language, and the encoding its own logs, pages and terminal are in -- for a job whose deployment, and whose own ~env~ field, named no locale. A deployment that wants its jobs read in another language, or one that has to hand a job the environment exactly as it stands, names ~LANG~, ~LC_ALL~ or ~LC_CTYPE~ in the environment byggsteg is started in, or in the job's own ~env~ field (see [[*Fields of a job]]); a variable both of them set is the job's. An empty naming is not a naming: ~LANG=~ is how a shell or a unit file that wanted a locale and had none says so, and it leaves byggsteg's own name in place.
 
@@ -1215,6 +1284,15 @@ how a failing pipeline stops, and what a job does with a locale are all question
 the suite asks and answers.  The run names the locale it reads in (~C.UTF-8~)
 rather than inheriting one and runs inside the pinned manifest, so a run on your
 machine is a run in CI.
+
+The suite needs no ~env.scm~ of its own.  A deployment's keys are read by
+~(byggsteg auth)~, ~(byggsteg mail)~ and the controllers, and a run that had none
+would compile against a module that is not there; ~test/byggsteg/env.scm~ is that
+module for the suite -- the same settings with values that are obviously
+nobody's -- and it is found because ~maak test~ puts ~./test~ on the load path,
+where ~(byggsteg env)~ is ~byggsteg/env.scm~.  A server never adds that
+directory, so the keys a deployment signs with are always its own.
+
 
 ------------------
 

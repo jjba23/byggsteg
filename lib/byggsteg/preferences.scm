@@ -43,6 +43,12 @@
                                artifact-location
                                artifact-sweep-grace-seconds
                                artifact-sweep-interval
+                               job-container-runtime
+                               job-container-user
+                               job-container-image
+                               job-container-network
+                               testcontainers-ryuk-disabled?
+                               testcontainers-host-override
                                job-retention-days
                                job-retention-interval
                                job-retention-batch
@@ -79,6 +85,53 @@ means the deployment did not say, not that it wants to be called nothing."
 (define artifact-location
   (make-parameter (deployment-setting "BYGGSTEG_ARTIFACT_LOCATION"
                                       "/etc/byggsteg/artifacts/")))
+
+;;; ====== How a job's commands are run ======
+;;;
+;;; A deployment that builds in containers says so here; one that does
+;;; not says nothing and every job runs on the machine, which is what
+;;; byggsteg has always done.  The runtime is read through
+;;; `(byggsteg container)', which turns these settings into the command a
+;;; step runs and into the environment its Docker clients read.
+
+;; `auto', `podman', `docker' or `none': which runtime a job that names
+;; an image is built with.  `auto' takes what the machine has.
+(define job-container-runtime
+  (make-parameter (deployment-setting "BYGGSTEG_CONTAINER_RUNTIME" "auto")))
+
+;; The account the runtime is run as.  A deployment whose daemon runs as
+;; root names an unprivileged account here, and the containers are that
+;; account's -- not root's.
+(define job-container-user
+  (make-parameter (deployment-setting "BYGGSTEG_CONTAINER_USER" "")))
+
+;; The image a job that names none is built in.  Empty means the job
+;; runs on this machine.
+(define job-container-image
+  (make-parameter (deployment-setting "BYGGSTEG_CONTAINER_IMAGE" "")))
+
+;; The network a build joins, passed to the runtime as `--network'.
+;; Empty is the runtime's own default.
+(define job-container-network
+  (make-parameter (deployment-setting "BYGGSTEG_CONTAINER_NETWORK" "")))
+
+;; Whether testcontainers' reaper (Ryuk) is disabled.  It is by default:
+;; Ryuk is a container that mounts the Docker socket and kills other
+;; containers' leftovers, which under a rootless runtime is the one part
+;; of testcontainers that most often cannot start.  A deployment that
+;; wants it says `BYGGSTEG_TESTCONTAINERS_RYUK_DISABLED=0'.
+(define testcontainers-ryuk-disabled?
+  (make-parameter
+   (let ((set (getenv "BYGGSTEG_TESTCONTAINERS_RYUK_DISABLED")))
+     (not (and (string? set)
+               (member set '("0" "false" "no" "off")))))))
+
+;; The address testcontainers should reach a mapped container port on,
+;; when the machine's own answer is wrong -- a build inside a container
+;; on a bridge network, say.  Empty leaves testcontainers to decide.
+(define testcontainers-host-override
+  (make-parameter (deployment-setting "BYGGSTEG_TESTCONTAINERS_HOST_OVERRIDE"
+                                      "")))
 
 ;;; What a deployment calls itself, and where it sends a reader
 ;;;

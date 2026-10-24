@@ -99,6 +99,7 @@ stopped here comes back to a queue that does not still hold this job."
                             branch-name
                             task
                             (env #f)
+                            (image #f)
                             (daemon-name #f)
                             (trivial-cmds '()))
   (cond
@@ -137,31 +138,36 @@ stopped here comes back to a queue that does not still hold this job."
     ((equal? task "make-test")
      (make-test-step #:project project
                      #:branch-name branch-name
-                     #:env env))
+                     #:env env
+                     #:image image))
 
     ;; maak test
     ((equal? task "maak-test")
      (maak-test-step #:project project
                      #:branch-name branch-name
-                     #:env env))
+                     #:env env
+                     #:image image))
 
     ;; Trivial - Allow user to specify all commands
     ((equal? task "trivial")
      (trivial-step #:project project
                    #:branch-name branch-name
                    #:cmds trivial-cmds
-                   #:env env))
+                   #:env env
+                   #:image image))
 
     ;; maak build
     ((equal? task "maak-build")
      (maak-build-step #:project project
                       #:branch-name branch-name
-                      #:env env))
+                      #:env env
+                      #:image image))
 
     ;; Otherwise attempt generic `make build'
     (else (make-build-step #:project project
                            #:branch-name branch-name
-                           #:env env))))
+                           #:env env
+                           #:image image))))
 
 ;;; ====== The tasks a job may ask for ======
 ;;;
@@ -269,6 +275,13 @@ was started in."
                                   'task))
          (env (assq-ref spec
                         'env))
+         ;; A job may name the image its build and test steps run in.
+         ;; The deploy and restart tasks are not run there -- they act on
+         ;; this machine, through `sudo herd' and `sudo maak deploy' --
+         ;; so a pipeline can build in a container and deploy on the
+         ;; host in the same run.
+         (image (assq-ref spec
+                          'image))
          (tasks (cond
                   ((list? task-or-tasks)
                    task-or-tasks)
@@ -311,6 +324,7 @@ was started in."
                                                  #:task task
                                                  #:daemon-name daemon-name
                                                  #:env env
+                                                 #:image image
                                                  #:trivial-cmds
                                                  trivial-cmds)))
                           tasks)))

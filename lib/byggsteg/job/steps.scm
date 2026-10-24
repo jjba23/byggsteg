@@ -18,6 +18,7 @@
 
 (define-module (byggsteg job steps)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg container)
   #:use-module (byggsteg job streaming)
   #:use-module (byggsteg artifacts)
   #:use-module (byggsteg domain artifact)
@@ -54,6 +55,7 @@
                         run-steps
                         make-step-result
                         command-environment
+                        job-command-environment
                         $
                         display-cmd))
 
@@ -175,6 +177,32 @@ own rather than of the machine it happens to run on."
                      (cdr e))) env)
       '()))
 
+(define (environment-names? environment name)
+  "Whether ENVIRONMENT already names the variable NAME.
+
+The container variables are added to a job's environment only when the
+job did not name them itself: a job that runs against a Docker daemon of
+its own says so in its `env', and nothing byggsteg computes should
+quietly overrule it."
+  (any (lambda (entry)
+         (equal? (variable-of entry) name)) environment))
+
+(define* (job-command-environment env #:key (from (environ)))
+  "The environment a job's command is run in.
+
+This is `command-environment' -- the deployment's own environment, the
+job's `env' and a locale -- with the container runtime's variables
+added: DOCKER_HOST and the testcontainers settings, which are what let
+a suite that starts a database find it.  They are added here rather than
+in `command-environment' so that the locale rule stays one rule about
+one thing, and a job that named one of these variables keeps its own."
+  (let* ((base (command-environment env #:from from))
+         (extra (container-environment)))
+    (append base
+            (filter (lambda (entry)
+                      (not (environment-names? base (variable-of entry))))
+                    extra))))
+
 (define (make-utf-8-readable! port)
   "Read PORT as UTF-8, whatever locale this process was started in.
 
@@ -216,9 +244,11 @@ back with the newlines the reader took off."
                      #:output (cdr input+output)
                      #:error (cdr input+output)
                      ;; The command's environment: the daemon's, the job's own
-                     ;; `env' field, and a locale when neither names one (see
-                     ;; `command-environment').
-                     #:environment (command-environment env)))
+                     ;; `env' field, a locale when neither names one (see
+                     ;; `command-environment'), and the container runtime's
+                     ;; socket when there is one (see
+                     ;; `job-command-environment').
+                     #:environment (job-command-environment env)))
          (_ (close-port (cdr input+output)))
          (in (car input+output))
          ;; A job with no log row still streams, into a buffer nobody reads, so
@@ -235,11 +265,18 @@ back with the newlines the reader took off."
     (make-step-result (equal? 0 exit-code) out cmd)))
 
 (define* (do-in-clone-dir clone-dir cmds
-                          #:key (env #f))
+                          #:key (env #f) (image #f))
   (let* ((command (format #f "cd ~a && ~a" clone-dir
-                          (string-join cmds " && "))))
-    (display-cmd command)
-    ($ command
+                          (string-join cmds " && ")))
+         ;; A job that names an image runs the command there.  The clone
+         ;; is mounted at the path it already has, so the `cd' above is
+         ;; the same path inside the container as outside it.
+         (running (container-command command
+                                     #:image image
+                                     #:workdir clone-dir
+                                     #:env (if (list? env) env '()))))
+    (display-cmd running)
+    ($ running
        #:env env)))
 
 (define* (pull-and-restart-step #:key project branch-name
@@ -271,36 +308,40 @@ back with the newlines the reader took off."
                      #:env env)))
 
 (define* (make-build-step #:key project branch-name
-                          (env #f))
+                          (env #f) (image #f))
   (let* ((clone-dir (string-append (job-clone-location) project "/"
                                    branch-name)))
     (do-in-clone-dir clone-dir
                      '("make build")
-                     #:env env)))
+                     #:env env
+                     #:image image)))
 
 (define* (maak-build-step #:key project branch-name
-                          (env #f))
+                          (env #f) (image #f))
   (let* ((clone-dir (string-append (job-clone-location) project "/"
                                    branch-name)))
     (do-in-clone-dir clone-dir
                      '("maak build")
-                     #:env env)))
+                     #:env env
+                     #:image image)))
 
 (define* (make-test-step #:key project branch-name
-                         (env #f))
+                         (env #f) (image #f))
   (let* ((clone-dir (string-append (job-clone-location) project "/"
                                    branch-name)))
     (do-in-clone-dir clone-dir
                      '("make test")
-                     #:env env)))
+                     #:env env
+                     #:image image)))
 
 (define* (maak-test-step #:key project branch-name
-                         (env #f))
+                         (env #f) (image #f))
   (let* ((clone-dir (string-append (job-clone-location) project "/"
                                    branch-name)))
     (do-in-clone-dir clone-dir
                      '("maak test")
-                     #:env env)))
+                     #:env env
+                     #:image image)))
 
 (define* (git-details-step #:key project branch-name)
   (let* ((clone-dir (string-append (job-clone-location) project "/"
@@ -401,12 +442,24 @@ the step is where the fact that it exists is still known."
                           cmd))))
 
 (define* (trivial-step #:key project branch-name cmds
-                       (env #f))
+                       (env #f) (image #f))
   (let* ((no-errors? #t))
     (map (lambda (c)
            (if (not no-errors?)
                (make-step-result #f "" "")
-               (let* ((res ($ c
+               (let* ((running (container-command c
+                                                  #:image image
+                                                  ;; A trivial job has no
+                                                  ;; clone to mount, so its
+                                                  ;; commands run in the
+                                                  ;; container's own
+                                                  ;; scratch directory.
+                                                  #:workdir (if (and image
+                                                                  (string? image))
+                                                               "/tmp" #f)
+                                                  #:volume? #f
+                                                  #:env (if (list? env) env '())))
+                      (res ($ running
                               #:env env)))
                  (if (step-result-succeeded? res)
                      (set! no-errors? #t)
