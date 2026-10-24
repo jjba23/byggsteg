@@ -175,7 +175,7 @@ Remove all files in the byggsteg location, ignoring errors."
 
 (define (default)
   "Default task to be run, list available tasks."
-  ($ '("maak --list")))
+  (list-tasks))
 
 ;; ====== The version, and its release ======
 ;;
@@ -423,7 +423,9 @@ manual's."
 
 (define (fmt)
   "Format Scheme source code files according to the Guix style guide."
-  ($ '("find . -maxdepth 8 -name '*.scm'" "-type f -exec guix style -f {} \\;")))
+  (run (list "find" "." "-maxdepth" "8" "-name" "*.scm" "-type" "f"
+             "-exec" "guix" "style" "-f" "{}" ";")
+       #:verbose? #t))
 
 (define (hot-reload)
   "Hot-reloading developer's setup."
@@ -449,7 +451,7 @@ manual's."
 (define (kill-server)
   "Kill any running HTTP server in the same port."
   ($ (list (~ "fuser -k ~a/tcp || true" http-port)))
-  ($ '("sleep 1")))
+  (run (list "sleep" "1")))
 
 (define (server)
   "Target to start the byggsteg server with the default configuration."
