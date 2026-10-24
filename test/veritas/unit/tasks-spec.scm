@@ -113,8 +113,17 @@
 
 (prepare-checkout!)
 
+;; The throwaway bin first, then the PATH the suite was started with.
+;;
+;; Prepending rather than replacing is what makes the readings the same on
+;; every machine: the fake `maak' and `just' shadow whatever the host has,
+;; while `make' -- and the `bash' a step is spawned with -- are found where
+;; the run found them.  Replacing the PATH with /usr/bin:/bin works on a
+;; distribution that keeps Make there and fails on a Guix machine, where
+;; `maak test' runs inside the pinned manifest and Make is in /gnu/store.
 (define spec-path
-  (format #f "~a/bin:/run/current-system/profile/bin:/usr/bin:/bin" spec-root))
+  (string-append (format #f "~a/bin" spec-root)
+                 ":" (or (getenv "PATH") "/usr/bin:/bin")))
 
 (define* (run-target #:key project task)
   "Run TASK in PROJECT's clone, with the throwaway PATH, and answer the step."
