@@ -19,10 +19,12 @@
 (define-module (maak)
   #:use-module (maak maak)
   ;; What the release tasks read the tree with: a file that carries a copy of
-  ;; the version is rewritten through a regular expression, and `get-string-all'
-  ;; is how a file is read whole.  The DSL re-exports neither.
+  ;; the version is rewritten through a regular expression.  The DSL re-exports
+  ;; the git wrappers but not the regexp procedures, so that module is named
+  ;; here, and the git module is imported under a prefix so that a release's
+  ;; `git' is the library's and never a task of this file.
   #:use-module (ice-9 regex)
-  #:use-module (ice-9 textual-ports)
+  #:use-module ((maak git) #:prefix git:)
   #:declarative? #t)
 
 ;; ====== Maak constants ======
@@ -83,18 +85,6 @@
 (define migrations-dir
   "resources/migrations/sqlite")
 
-;; Quote TEXT the way a POSIX shell reads it back as TEXT: wrapped in single
-;; quotes, where every character is literal, with a single quote of its own
-;; closed, escaped and reopened.  A password is allowed to hold one, and this
-;; is what keeps it from ending the argument early.
-(define (shell-quoted text)
-  (string-append "'"
-                 (apply string-append
-                        (map (lambda (c)
-                               (if (eqv? c #\') "'\\''"
-                                   (string c)))
-                             (string->list text))) "'"))
-
 ;; ====== Maak i18n abstractions ======
 
 (define (i18n-compile* lang)
@@ -104,9 +94,9 @@ Args: lang represents the language code (e.g., en_US, nl_NL, etc.)
 
 Use msgfmt to compile the .po file into a .mo file for the specified language
 The output .mo file will be placed in the LC_MESSAGES directory under the language's folder."
-  ($ (list (~ "msgfmt -v -o ~a/~a/LC_MESSAGES/~a.mo" i18n-dir lang
-              i18n-textdomain)
-           (~ "~a/~a/LC_MESSAGES/~a.po" i18n-dir lang i18n-textdomain))))
+  (run (list "msgfmt" "-v"
+             "-o" (~ "~a/~a/LC_MESSAGES/~a.mo" i18n-dir lang i18n-textdomain)
+             (~ "~a/~a/LC_MESSAGES/~a.po" i18n-dir lang i18n-textdomain))))
 
 (define (i18n-init* lang)
   "Initialize a new translation file from a template (.pot) for a specific language.
@@ -117,10 +107,12 @@ Use msginit to generate a .po file from the .pot template for the specified lang
 The -l option sets the language, and --no-translator means no translator is pre-filled in the .po file
 The generated .po file is placed in the LC_MESSAGES directory for the given language"
   (mkdir-p (~ "~a/~a/LC_MESSAGES" i18n-dir lang))
-  ($ (list (~ "msginit -l ~a.UTF8 -o" lang)
-           (~ "~a/~a/LC_MESSAGES/~a.po" i18n-dir lang i18n-textdomain)
-           (~ "-i ~a/~a.pot --no-translator" i18n-dir i18n-textdomain))
-     #:verbose? #t))
+  (run (list "msginit"
+             "-l" (~ "~a.UTF8" lang)
+             "-o" (~ "~a/~a/LC_MESSAGES/~a.po" i18n-dir lang i18n-textdomain)
+             "-i" (~ "~a/~a.pot" i18n-dir i18n-textdomain)
+             "--no-translator")
+       #:verbose? #t))
 
 (define (i18n-merge* lang)
   "Merge translation updates from the template (.pot) into an existing .po file.
@@ -130,29 +122,33 @@ Args: lang represents the language code (e.g., en_US, nl_NL, etc.)
 Use msgmerge to update the specified language's .po file with new translations from the template (.pot)
 The -U flag updates the .po file in place
 This ensures the .po file stays up-to-date with the latest changes in the template"
-  ($ (list "msgmerge -U"
-           (~ "~a/~a/LC_MESSAGES/~a.po" i18n-dir lang i18n-textdomain)
-           (~ "~a/~a.pot" i18n-dir i18n-textdomain))))
+  (run (list "msgmerge" "-U"
+             (~ "~a/~a/LC_MESSAGES/~a.po" i18n-dir lang i18n-textdomain)
+             (~ "~a/~a.pot" i18n-dir i18n-textdomain))))
 
 (define* (i18n-extract* #:key (update? #t))
   "Extract translatable strings from Scheme source files using xgettext.
 Args: update? represents whether we should update a template or create a new one."
-  ($ (list (~ "xgettext --default-domain=~a" i18n-textdomain)
-           (~ "--output=~a/~a.pot" i18n-dir i18n-textdomain)
-           "--language=Scheme --keyword=G_"
-           "--sort-by-file"
-           (if update? "--join-existing" "")
-           (~ "--copyright-holder=\"~a\""
-              (string-join copyright-holders ","))
-           (~ "--package-name=~a" i18n-textdomain)
-           "lib/byggsteg/job/*.scm"
-           "lib/byggsteg/*.scm"
-           "app/controllers/*.scm"
-           "app/views/*.scm"
-           "app/api/*.scm"
-           "ENTRY"
-           "--from-code UTF-8")
-     #:verbose? #t))
+  ;; xgettext is given source globs, so the shell is asked for the file names:
+  ;; `#:expand? #t' is what turns `lib/byggsteg/job/*.scm' into the files in it.
+  (run (append (list "xgettext"
+                     (~ "--default-domain=~a" i18n-textdomain)
+                     (~ "--output=~a/~a.pot" i18n-dir i18n-textdomain)
+                     "--language=Scheme" "--keyword=G_"
+                     "--sort-by-file")
+               (if update? (list "--join-existing") '())
+               (list (~ "--copyright-holder=\"~a\""
+                        (string-join copyright-holders ","))
+                     (~ "--package-name=~a" i18n-textdomain)
+                     "lib/byggsteg/job/*.scm"
+                     "lib/byggsteg/*.scm"
+                     "app/controllers/*.scm"
+                     "app/views/*.scm"
+                     "app/api/*.scm"
+                     "ENTRY"
+                     "--from-code" "UTF-8"))
+       #:expand? #t
+       #:verbose? #t))
 
 ;; ====== Maak tasks ======
 
@@ -161,7 +157,7 @@ Args: update? represents whether we should update a template or create a new one
 Create the necessary directory for job cloning, if it doesn't exist
 Change ownership of the byggsteg location to the current user."
   (mkdir-p (~ "~a/job-clone" byggsteg-dir))
-  ($ (list (~ "chown -R \"${USER}\" ~a" byggsteg-dir))))
+  (run (list "chown" "-R" (or (getenv "USER") "") byggsteg-dir)))
 
 (define (dir-uninstall)
   "Target to clean up the byggsteg installation (remove job files)
@@ -170,8 +166,9 @@ Remove all files in the byggsteg location, ignoring errors."
 
 (define (repl)
   "Development REPL."
-  (time-machine-manifest-shell '("guile -L ./lib -L ."
-                                 "-c '((@ (ares server) run-nrepl-server))'")))
+  (time-machine-manifest-shell
+   (list "guile" "-L" "./lib" "-L" "."
+         "-c" "'((@ (ares server) run-nrepl-server))'")))
 
 (define (default)
   "Default task to be run, list available tasks."
@@ -217,9 +214,9 @@ The load path is extended with the `lib' of the checkout rather than with one
 named by the caller, so that the module these tasks read is the one the tree
 holds and not one installed elsewhere."
   (unless (file-exists? version-source)
-    (error (format #f
-                   "no ~a here; run maak from the root of a byggsteg checkout"
-                   version-source)))
+    (task-error "no ~a here; run maak from the root of a byggsteg checkout"
+                #:args (list version-source)
+                #:hint "Change to the root of a byggsteg checkout first."))
   (unless (member "./lib" %load-path)
     (set! %load-path (cons "./lib" %load-path)))
   (resolve-module '(byggsteg version) #:ensure #t))
@@ -238,29 +235,19 @@ reading has to come from there and not from whatever byggsteg a load path
 happens to name."
   (let ((file (if (string=? directory ".")
                   version-source
-                  (string-append directory "/" version-source))))
+                  (~ "~a/~a" directory version-source))))
     (unless (file-exists? file)
-      (error (format #f "no ~a in ~a; name the checkout's root"
-                     version-source directory)))
+      (task-error "no ~a in ~a; name the checkout's root"
+                  #:args (list version-source directory)
+                  #:hint "Name the checkout's root as DIRECTORY."))
     (let ((found (string-match
                   "byggsteg-version[ \t\n]+\"([0-9]+\\.[0-9]+\\.[0-9]+)\""
-                  (call-with-input-file file get-string-all))))
+                  (read-file file))))
       (unless found
-        (error (format #f
-                       "~a does not define byggsteg-version as a version"
-                       file)))
+        (task-error "~a does not define byggsteg-version as a version"
+                    #:args (list file)
+                    #:hint "Write (define byggsteg-version \"X.Y.Z\") in it."))
       (match:substring found 1))))
-
-(define (git-exit directory . arguments)
-  "The exit code git ended with, run in DIRECTORY with ARGUMENTS.
-
-`system*' answers with the wait status rather than the exit code -- a command
-that exited 1 reads as 256 -- so it is divided back down here, and a git that
-could not be started at all reads as the 127 a shell would report.  The
-arguments are a list rather than a command line, so a commit message with spaces
-or quotes in it reaches git as one argument and no shell splits it again."
-  (let ((status (apply system* "git" "-C" directory arguments)))
-    (if status (quotient status 256) 127)))
 
 (define* (sync-version #:optional (directory "."))
   "Write the version into every file that cannot read it from the module, then
@@ -288,18 +275,18 @@ library, so the task releases the tree it was started in."
   (define (path file)
     (if (string=? directory ".")
         file
-        (string-append directory "/" file)))
+        (~ "~a/~a" directory file)))
 
   (define (read-text file)
-    (if (file-exists? (path file))
-        (call-with-input-file (path file) get-string-all)
-        (error (format #f
-                       "sync-version: no ~a in ~a; name the checkout's root"
-                       file directory))))
+    (let ((full (path file)))
+      (if (file-exists? full)
+          (read-file full)
+          (task-error "sync-version: no ~a in ~a; name the checkout's root"
+                      #:args (list file directory)
+                      #:hint "Name the checkout's root as DIRECTORY."))))
 
   (define (write-text file text)
-    (call-with-output-file (path file)
-      (lambda (port) (display text port))))
+    (write-file (path file) text))
 
   (define (rewrite text pattern version)
     "Return TEXT with the version PATTERN names replaced by VERSION."
@@ -320,42 +307,62 @@ library, so the task releases the tree it was started in."
           #f
           (begin (write-text file rewritten) #t))))
 
+  ;; ---- The commit and the tag --------------------------------------------
+  ;;
+  ;; The library wrappers take `#:directory', so a release of another checkout
+  ;; commits there rather than wherever maak was started from.
+
+  (define (changes-to-commit?)
+    "Return whether anything tracked differs from the last commit."
+    (not (string=? ""
+                   (string-trim-both
+                    (git:git-output (list "diff" "--name-only" "HEAD")
+                                    #:directory repo)))))
+
+  (define (commit-release version)
+    "Commit every tracked change as the release VERSION, and return the message."
+    (let ((message (~ "chore: Release v~a" version)))
+      (unless (git:git (list "commit" "--all" "-m" message)
+                       #:directory repo #:allow-failure? #t)
+        (task-error "sync-version: git commit failed, so nothing was tagged"
+                    #:hint "Commit or stash what git refuses, then run it again."))
+      message))
+
+  (define (tag-release version)
+    "Tag the current commit as the release VERSION, and return the tag."
+    (let ((tag (~ "v~a" version)))
+      (unless (git:git (list "tag" tag)
+                       #:directory repo #:allow-failure? #t)
+        (task-error "sync-version: `git tag ~a' failed; the release was committed, but not tagged"
+                    #:args (list tag)
+                    #:hint "Tag the release by hand once the reason is fixed."))
+      tag))
+
   (let* ((version (checkout-version directory))
-         (tag (string-append "v" version)))
+         (tag (~ "v~a" version)))
     ;; A tree that is not a checkout has nothing to commit and nothing to tag,
     ;; and a release that was half made is worse than one that was refused.
     (unless (file-exists? (path ".git"))
-      (error (format #f
-                     "sync-version: ~a is not a git checkout, so there is nothing to commit or tag"
-                     directory)))
-    ;; `show-ref --quiet' answers with its exit status and prints nothing, which
-    ;; `rev-parse --verify' does not: a release that is refused should say why
-    ;; and nothing else.
-    (when (zero? (git-exit repo "show-ref" "--verify" "--quiet"
-                           (string-append "refs/tags/" tag)))
-      (error (format #f
-                     "sync-version: ~a is already released as ~a; bump ~a first"
-                     version tag version-source)))
+      (task-error "sync-version: ~a is not a git checkout, so there is nothing to commit or tag"
+                  #:args (list directory)
+                  #:hint "Run it inside a checkout, or name one as DIRECTORY."))
+    ;; The tags are read as a list rather than asked about one at a time: reading
+    ;; them prints nothing, which is what a task that refuses a release wants.
+    (when (member tag (git:git-tags #:directory repo))
+      (task-error "sync-version: ~a is already released as ~a; bump ~a first"
+                  #:args (list version tag version-source)
+                  #:hint "Write the next version into that file."))
     (for-each (lambda (site)
                 (when (sync-copy! site version)
                   (log-info "Wrote ~a into ~a." version (car site))))
               version-sites)
-    (if (zero? (git-exit repo "diff" "--quiet" "HEAD"))
+    (if (changes-to-commit?)
+        (let ((message (commit-release version)))
+          (tag-release version)
+          (log-info "Committed `~a' and tagged ~a." message tag))
         (begin
-          (unless (zero? (git-exit repo "tag" tag))
-            (error (format #f
-                           "sync-version: `git tag ~a' failed; nothing was released"
-                           tag)))
-          (log-info "Nothing to commit; tagged ~a at the current commit."
-                    tag))
-        (let ((message (format #f "chore: Release v~a" version)))
-          (unless (zero? (git-exit repo "commit" "-am" message))
-            (error "sync-version: git commit failed, so nothing was tagged"))
-          (unless (zero? (git-exit repo "tag" tag))
-            (error (format #f
-                           "sync-version: `git tag ~a' failed; the release was committed, but not tagged"
-                           tag)))
-          (log-info "Committed `~a' and tagged ~a." message tag)))))
+          (tag-release version)
+          (log-info "Nothing to commit; tagged ~a at the current commit." tag)))))
 
 (define (test)
   "Run the project's test suite.
@@ -389,8 +396,9 @@ suite passes when compiled afresh.  Compiling from source every run costs a few
 seconds and makes the reading depend on the specs alone, which is what a suite
 that is run to judge a change has to be."
   (time-machine-manifest-shell
-   (list "guile --fresh-auto-compile -L ./lib -L . -L ./test"
-         "-c '(begin (setlocale LC_ALL \"C.UTF-8\") (use-modules (veritas runner)) (run-tests))'")))
+   (list "guile" "--fresh-auto-compile"
+         "-L" "./lib" "-L" "." "-L" "./test"
+         "-c" "'(begin (setlocale LC_ALL \"C.UTF-8\") (use-modules (veritas runner)) (run-tests))'")))
 
 (define (container-check)
   "Say how this deployment would run a job that names an image.
@@ -402,16 +410,17 @@ started: this is the reading to take when a job that names an image behaves
 differently from the machine it is on, and the answer is the machine's, not the
 manual's."
   (time-machine-manifest-shell
-   (list "guile -L ./lib -L ."
-         (format #f "-c ~a"
-                 (shell-quoted
-                  "(begin (use-modules (byggsteg container)) (display (container-description)) (newline) (newline) (display (container-command \"maak test\" #:image (or (container-image) \"docker.io/library/alpine:3\") #:workdir \"/etc/byggsteg/job-clone/example/trunk\")) (newline))")))))
+   (list "guile" "-L" "./lib" "-L" "."
+         "-c"
+         (shell-quote
+          "(begin (use-modules (byggsteg container)) (display (container-description)) (newline) (newline) (display (container-command \"maak test\" #:image (or (container-image) \"docker.io/library/alpine:3\") #:workdir \"/etc/byggsteg/job-clone/example/trunk\")) (newline))"))))
 
 (define (build-manual)
   "Render the project's manual -- the README -- as a single HTML page."
-  (time-machine-manifest-shell (list (~ "emacs -Q --batch --eval '~s'"
-                                        emacs-lisp-manual-publish-cmd))
-                               #:verbose? #t))
+  (time-machine-manifest-shell
+   (list "emacs" "-Q" "--batch" "--eval"
+         (~ "'~s'" emacs-lisp-manual-publish-cmd))
+   #:verbose? #t))
 
 (define (deploy)
   "Deploy the project's documentation, which is its README."
@@ -436,9 +445,9 @@ manual's."
                                                       hot-reload-file-types)
                                                      ","))
                                      "--on-busy-update=restart"
-                                     "--shell bash"
-                                     "--watch . --"
-                                     "maak server")))
+                                     "--shell" "bash"
+                                     "--watch" "." "--"
+                                     "maak" "server")))
 
 (define (hr)
   "Alias to hot-reloading."
@@ -450,18 +459,22 @@ manual's."
 
 (define (kill-server)
   "Kill any running HTTP server in the same port."
-  ($ (list (~ "fuser -k ~a/tcp || true" http-port)))
+  ;; A port nothing is listening on is the ordinary case, so a `fuser' that
+  ;; finds nobody to kill is not a failure of the task.
+  (run (list "fuser" "-k" (~ "~a/tcp" http-port))
+       #:allow-failure? #t)
   (run (list "sleep" "1")))
 
 (define (server)
   "Target to start the byggsteg server with the default configuration."
   (kill-server)
-  (time-machine-manifest-shell '("art work")))
+  (time-machine-manifest-shell (list "art" "work")))
 
 (define (production-server)
   "Target to start the byggsteg server with the production configuration."
   (kill-server)
-  (time-machine-manifest-shell '("art work -c conf/production.conf")))
+  (time-machine-manifest-shell (list "art" "work"
+                                     "-c" "conf/production.conf")))
 
 (define (migrate)
   "Apply the SQL migrations to the database in this directory with mutastructura.
@@ -473,10 +486,10 @@ transaction.  That is what makes this safe to run at any time, and it is also
 the way to bring a database that one deployment made up to what the source in
 front of it expects.  Mutastructura is the only thing that applies migrations;
 no task reads the SQL files and hands them to sqlite3 itself."
-  (time-machine-manifest-shell (list (format #f
-                                      "mutastructura --database sqlite3 --connection ~a --migrations ~a"
-                                      (shell-quoted (deployment-db))
-                                      (shell-quoted migrations-dir)))
+  (time-machine-manifest-shell (list "mutastructura"
+                                     "--database" "sqlite3"
+                                     "--connection" (shell-quote (deployment-db))
+                                     "--migrations" (shell-quote migrations-dir))
                                #:verbose? #t))
 
 (define (init-db)
@@ -491,12 +504,10 @@ which is why a deployment that has data runs `maak migrate' instead."
                               (deployment-db)))
   (delete-file-recursively (~ "~a-wal"
                               (deployment-db)))
-  ;; The command list, not the bare string: `time-machine-manifest-shell'
-  ;; appends what it is given to the `guix time-machine ... shell' it builds,
-  ;; so a string here would make the whole command an improper list.
-  (time-machine-manifest-shell (list (~
-                                      "sqlite3 ~a 'PRAGMA journal_mode=WAL;'"
-                                      (deployment-db))))
+  ;; The database file and the SQL, one argv word each: the PRAGMA keeps the
+  ;; single quotes of a shell word, because `sqlite3' is what strips them.
+  (time-machine-manifest-shell (list "sqlite3" (deployment-db)
+                                     "'PRAGMA journal_mode=WAL;'"))
   (migrate))
 
 (define (create-user username email password . permissions)
@@ -547,8 +558,8 @@ Once one super user exists, the rest are made at /users/new with it."
                                 (string-join (map (lambda (permission)
                                                     (format #f "~s" permission))
                                                   wanted) " "))))))))
-    (time-machine-manifest-shell (list (format #f "guile -L ./lib -L . -c ~a"
-                                               (shell-quoted expression))))))
+    (time-machine-manifest-shell (list "guile" "-L" "./lib" "-L" "."
+                                       "-c" (shell-quote expression)))))
 
 ;; ====== Maak i18n tasks ======
 
@@ -559,8 +570,9 @@ The queue worker does this on its own once an hour, so this task is for a
 directory that has already collected orphans: tarballs left by a job removed
 before deleting one took them with it, or by a deployment that was stopped
 between writing a tarball and recording it."
-  (time-machine-manifest-shell (list "guile -L ./lib -L ."
-                                "-c '(begin (use-modules (byggsteg sqlite artifact) (byggsteg artifacts)) (let ((removed (sweep-orphaned-artifacts! (make-sqlite-artifact-repository)))) (format #t \"~a orphaned artifact(s) removed~%\" (length removed)) (for-each (lambda (path) (format #t \"  ~a~%\" path)) removed)))'")))
+  (time-machine-manifest-shell
+   (list "guile" "-L" "./lib" "-L" "."
+         "-c" "'(begin (use-modules (byggsteg sqlite artifact) (byggsteg artifacts)) (let ((removed (sweep-orphaned-artifacts! (make-sqlite-artifact-repository)))) (format #t \"~a orphaned artifact(s) removed~%\" (length removed)) (for-each (lambda (path) (format #t \"  ~a~%\" path)) removed)))'")))
 
 (define (prune-old-runs)
   "Remove the runs that have outlived their retention, with their tarballs.
@@ -568,8 +580,9 @@ between writing a tarball and recording it."
 The queue worker does this on its own once a day, so this task is for a
 deployment that has just been given a shorter retention, or one whose worker has
 not been running."
-  (time-machine-manifest-shell (list "guile -L ./lib -L ."
-                                "-c '(begin (use-modules (byggsteg job retention) (byggsteg preferences)) (format #t \"keeping runs for ~a day(s)~%\" (job-retention-days)) (let ((pruned (prune-old-runs!))) (format #t \"~a run(s) pruned~%\" (length pruned)) (for-each (lambda (run) (format #t \"  ~a  ~a~%\" (assq-ref run 'id) (assq-ref run 'title))) pruned)))'")))
+  (time-machine-manifest-shell
+   (list "guile" "-L" "./lib" "-L" "."
+         "-c" "'(begin (use-modules (byggsteg job retention) (byggsteg preferences)) (format #t \"keeping runs for ~a day(s)~%\" (job-retention-days)) (let ((pruned (prune-old-runs!))) (format #t \"~a run(s) pruned~%\" (length pruned)) (for-each (lambda (run) (format #t \"  ~a  ~a~%\" (assq-ref run 'id) (assq-ref run 'title))) pruned)))'")))
 
 (define (i18n-compile)
   "Compile the translation files for all locales."
@@ -604,8 +617,9 @@ not been running."
   (i18n-extract* #:update? #t))
 
 (define (olive-css)
-  ($ '("curl --output \"./pub/css/byggsteg.olive.min.css\""
-       "\"https://codeberg.org/jjba23/olive-css/raw/branch/trunk/resources/css/byggsteg.olive.min.css\"")))
+  (curl-download
+   "https://codeberg.org/jjba23/olive-css/raw/branch/trunk/resources/css/byggsteg.olive.min.css"
+   #:output "./pub/css/byggsteg.olive.min.css"))
 
 ;; The Lucida faces `pub/css/lucida.css' declares, by the names it declares them
 ;; under.  The console asks for these files from its own host, and Lucida is
@@ -638,19 +652,31 @@ not been running."
 
 (define (lucida-fonts)
   "Fetch the Lucida faces the console serves from this deployment's own host."
-  ($ (list (format #f
-            "mkdir -p ./pub/fonts/lucida && for f in ~a; do curl --fail --location --output \"./pub/fonts/lucida/$f.woff\" \"~a/$f.woff\" || exit 1; done"
-            (string-join lucida-font-files " ")
-            (lucida-font-source)))))
+  ;; One download per face, in the order the list names them, and the first
+  ;; failure stops the task: that is what the loop this replaces did, with the
+  ;; exit status of the curl that failed.
+  (mkdir-p "./pub/fonts/lucida")
+  (for-each (lambda (font)
+              (curl-download (~ "~a/~a.woff" (lucida-font-source) font)
+                             #:output (~ "./pub/fonts/lucida/~a.woff" font)))
+            lucida-font-files))
 
 (define (import-production-database)
   "Import production env's database to local workspace via SSH/SCP"
-  ($ '("scp wolk-jjba:/etc/byggsteg/job-clone/byggsteg/trunk/byggsteg.db* .")))
+  ;; The `*' belongs to the remote shell: scp hands the whole remote path to
+  ;; ssh, so it is quoted by nothing and expanded there.
+  (run (list "scp"
+             "wolk-jjba:/etc/byggsteg/job-clone/byggsteg/trunk/byggsteg.db*"
+             ".")))
 
 (define (import-production-env)
   "Import production env's database to local workspace via SSH/SCP"
-  ($ '("scp wolk-jjba:/etc/byggsteg/job-clone/byggsteg/trunk/env.scm .")))
+  (run (list "scp"
+             "wolk-jjba:/etc/byggsteg/job-clone/byggsteg/trunk/env.scm"
+             ".")))
 
 (define (local-login)
-  ($ '("http --form POST" "http://localhost:50002/api/v1/login"
-       "email=jjbigorra@gmail.com" "password=***")))
+  (run (list "http" "--form" "POST"
+             "http://localhost:50002/api/v1/login"
+             "email=jjbigorra@gmail.com"
+             "password=***")))
