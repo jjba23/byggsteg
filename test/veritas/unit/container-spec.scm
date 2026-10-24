@@ -281,7 +281,13 @@ not with the quotes."
                                      (string-prefix? "XDG_RUNTIME_DIR=/run/user/"
                                                      word))
                                    (word-list-in command))
-                              #:name "and so is the runtime directory of that account")))))
+                              #:name "and so is the runtime directory of that account")
+                 ;; The runtime finds newuidmap/newgidmap through PATH; a
+                 ;; reset PATH can leave them out and fail the namespace.
+                 (assert-true (any (lambda (word)
+                                     (string-prefix? "PATH=" word))
+                                   (word-list-in command))
+                              #:name "and the PATH the daemon was started with")))))
 
 (define (spec)
   (veritas-run container-suite))

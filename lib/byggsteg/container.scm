@@ -429,7 +429,19 @@ directory are."
                                         (or (passwd:dir (getpwnam user)) "/"))
                                 (format #f "XDG_RUNTIME_DIR=~a"
                                         (format #f "/run/user/~a"
-                                                (cadr identity))))
+                                                (cadr identity)))
+                                ;; The runtime finds its helpers through
+                                ;; PATH -- `newuidmap' and `newgidmap',
+                                ;; which a rootless podman runs to map the
+                                ;; subuids it was given.  `sudo' resets it,
+                                ;; and a reset PATH can leave them out (or
+                                ;; find a copy that is not setuid), which
+                                ;; fails the namespace setup.  The PATH the
+                                ;; daemon was started with is the one that
+                                ;; already works for it.
+                                (format #f "PATH=~a"
+                                        (or (getenv "PATH")
+                                            "/usr/local/bin:/usr/bin:/bin")))
                           '())
                       (cons program arguments)))
          " "))))
