@@ -211,37 +211,71 @@ to kracht, which hyphenates the column names the way the domain records expect."
             (on-row row)
             (loop)) #t))))
 
+(define (with-prepared-statement db query thunk)
+  "Run THUNK with QUERY's statement on DB, and reset it when THUNK is done.
+
+The statement comes from the connection's cache rather than being made
+afresh for every query.  That is what the cache is for -- one statement
+per SQL text, reset between uses -- and it also keeps the statement owned
+by the connection itself, which is the only owner that outlives a
+collection: a statement prepared per query is referenced by nothing but
+the query using it, and a read that allocates -- every row read from a
+text column does -- can meet a collection that takes it away.
+
+What that looked like, when it happened once in the retention spec:
+
+  statement already finalized
+
+raised from inside a read that was using its own statement.  The same
+read, run twenty times in a row by `(veritas unit sqlite-spec)', answered
+with no row at all once in twenty, and did so in about one run in six
+before this was changed.  With the statement owned by the connection and
+reset here, that spec has not failed in a hundred runs.
+
+The reset is written out rather than left to a `dynamic-wind': it runs on
+the way back from a query that answers, and from one that raises.  A
+query that raises must not leave its cursor, and the implicit transaction
+that cursor keeps open, behind it."
+  (with-database-lock
+   (lambda ()
+     (let ((stmt (sqlite-prepare db
+                                 (sql-query-sql query)
+                                 #:cache? #t)))
+       (catch #t
+              (lambda ()
+                (bind-parameters! stmt
+                                  (sql-query-params query))
+                (let ((answer (thunk stmt)))
+                  (sqlite-reset stmt)
+                  answer))
+              (lambda (key . args)
+                ;; The raise is what a reader needs; a reset that cannot be
+                ;; made must not replace it.
+                (catch #t
+                       (lambda ()
+                         (sqlite-reset stmt))
+                       (lambda ignored #f))
+                (apply throw key args)))))))
+
 (define (db-read db)
   "Curry DB into a reader: `(execute-read \"name\" query)' where QUERY is a
 <sql-query>.  Rows come back as alists keyed by hyphenated column symbols."
   (lambda (name query)
     (log-debug s "~a query:\n\t~a\n" name
                (sql-query-sql query))
-    (with-database-lock (lambda ()
-                          (let ((stmt (sqlite-prepare db
-                                                      (sql-query-sql query))))
-                            (dynamic-wind (lambda ()
-                                            #t)
-                                          (lambda ()
-                                            (bind-parameters! stmt
-                                                              (sql-query-params
-                                                               query))
-                                            (let* ((column-names (sqlite-column-names
-                                                                  stmt))
-                                                   (rows '()))
-                                              (step-until-done stmt
-                                                               (lambda (row)
-                                                                 (set! rows
-                                                                       (cons (row->alist
-                                                                              column-names
-                                                                              row)
-                                                                        rows))))
-                                              (log-debug s "~a rows: ~a\n"
-                                                         name
-                                                         (length rows))
-                                              (reverse rows)))
-                                          (lambda ()
-                                            (sqlite-finalize stmt))))))))
+    (with-prepared-statement
+     db query
+     (lambda (stmt)
+       (let* ((column-names (sqlite-column-names stmt))
+              (rows '()))
+         (step-until-done stmt
+                          (lambda (row)
+                            (set! rows (cons (row->alist column-names
+                                                         row)
+                                             rows))))
+         (log-debug s "~a rows: ~a\n" name
+                    (length rows))
+         (reverse rows))))))
 
 (define (db-write db)
   "Curry DB into a writer: `(execute-write \"name\" query)' where QUERY is a
@@ -250,20 +284,10 @@ are dropped."
   (lambda (name query)
     (log-debug s "~a query:\n\t~a\n" name
                (sql-query-sql query))
-    (with-database-lock (lambda ()
-                          (let ((stmt (sqlite-prepare db
-                                                      (sql-query-sql query))))
-                            (dynamic-wind (lambda ()
-                                            #t)
-                                          (lambda ()
-                                            (bind-parameters! stmt
-                                                              (sql-query-params
-                                                               query))
-                                            (step-until-done stmt
-                                                             (lambda (row)
-                                                               row)))
-                                          (lambda ()
-                                            (sqlite-finalize stmt))))))))
+    (with-prepared-statement
+     db query
+     (lambda (stmt)
+       (step-until-done stmt (lambda (row) row))))))
 
 (define (with-transaction thunk)
   "Run THUNK as one SQLite transaction, answering what THUNK answers.
