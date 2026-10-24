@@ -58,16 +58,39 @@
                  "    (task . (\"maak-test\" \"maak-deploy\"))))")))
 
 (define (task-terms names)
-  "NAMES, drawn as the code terms a reader may write, separated by a space.
+  "NAMES, each drawn as the code term a reader may write.
 
 The names are identifiers, so they are not translated; what a reader is
-told about them is."
-  (if (null? names)
-      '()
-      (cons (terminal-code (car names))
-            (if (null? (cdr names))
-                '()
-                (cons " " (task-terms (cdr names)))))))
+told about them is.
+
+The tokens come back as a run with no separators between them, because
+the row that holds them is a flex container (see `term-row') and a flex
+container does its own spacing: a whitespace-only text node between two
+flex items becomes no item at all, so a space written here would be
+dropped and the terms would end up touching."
+  (map terminal-code names))
+
+(define (term-row names)
+  "NAMES as one wrapping row of command tokens, the row a `dt' draws.
+
+The tokens are laid out in a flex row rather than as one inline run, and
+the difference is visible wherever the row wraps.  hygguile's `code' has
+no vertical padding on purpose -- an inline box's padding does not grow
+its line box, so a padded pill in running prose paints over the line
+above it -- and `dt' is drawn on a 16px line at 16px, while a token is
+12px: the chip's border box comes out at 18px inside a 16px line, so the
+second row of a dozen tokens overlapped the first by two pixels and the
+two hairlines read as one thick rule.  A flex row gives every token a
+box of its own and a `gap-y' puts air between the rows that hold them.
+
+The `mt-2 pt-1' are `dt''s own default classes, restated because
+`#:dt-classes' replaces them rather than adding to them.  The horizontal
+gap is one step and the vertical two: a token is wider than it is tall,
+so a row needs less between its columns than it does between its rows."
+  (dt (task-terms names)
+      #:color prose-ink
+      #:dt-classes '(mt-2 pt-1 flex flex-wrap items-center
+                    gap-x-1 gap-y-2)))
 
 (define (job-type-expl G_)
   (let* ((dl-classes '(flex flex-col gap-1 py-2))
@@ -87,23 +110,20 @@ told about them is."
                 ;; the same targets are what the reading under them explains,
                 ;; and forty-two code terms in one line is a wall rather than
                 ;; a vocabulary.
-                (dt (task-terms (list-head (group-names 'targets)
-                                           (length target-task-readings)))
-                    #:color prose-ink)
+                (term-row (list-head (group-names 'targets)
+                                     (length target-task-readings)))
                 (dd (G_
                      "Run a target in the job's clone, with the runner the checkout has: Maak for a maak.scm, Just for a justfile, Make for a Makefile, and Make when it keeps none of them. Any target the project has can be asked for, and a runner's name and a dash -- just-test, maak-test -- names the runner instead.")
                     #:dd-classes dd-classes
                     #:color prose-ink
                     #:size '(text-md))
-                (dt (task-terms (group-names 'machine))
-                    #:color prose-ink)
+                (term-row (group-names 'machine))
                 (dd (G_
                      "Act on the machine byggsteg runs on rather than on the checkout: deploy it, restart a GNU Shepherd service, or update and restart byggsteg itself.")
                     #:dd-classes dd-classes
                     #:color prose-ink
                     #:size '(text-md))
-                (dt (task-terms (group-names 'anything))
-                    #:color prose-ink)
+                (term-row (group-names 'anything))
                 (dd (G_
                      "Allow passing arbitrary list of commands (via trivial-cmds field)")
                     #:dd-classes dd-classes
