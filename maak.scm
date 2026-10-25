@@ -178,11 +178,10 @@ Remove all files in the byggsteg location, ignoring errors."
 ;;
 ;; The version is written by hand once, in lib/byggsteg/version.scm, which is
 ;; what `maak version' prints.  Nothing else in the tree names it: the console
-;; does not say which release it is, and the Woodpecker images byggsteg's own
-;; pipeline runs (the `byggsteg-woodpecker-*' plugins) are released on their
-;; own.  A file that cannot read a Scheme module -- a spec, a manual page, a
-;; README -- goes in `version-sites' below, and `sync-version' writes the version
-;; into it.
+;; does not say which release it is, and the Woodpecker image byggsteg's own
+;; pipeline runs (the `byggsteg-woodpecker' plugin) is released on its own.  A
+;; file that cannot read a Scheme module -- a spec, a manual page, a README --
+;; goes in `version-sites' below, and `sync-version' writes the version into it.
 ;;
 ;; The module is loaded on demand rather than imported at the top of this file.
 ;; Maak puts the directory the Maak file lives in on the load path and not the
