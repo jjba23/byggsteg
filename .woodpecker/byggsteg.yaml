@@ -17,9 +17,7 @@
 # along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 variables:
-  - &submit_job_image "docker.io/jjba23/byggsteg-woodpecker-submit-job:v0.2.0"
-  - &poll_job_image "docker.io/jjba23/byggsteg-woodpecker-poll-job:v0.2.0"
-  - &get_token_image "docker.io/jjba23/byggsteg-woodpecker-get-token:v0.2.0"
+  - &byggsteg_image "docker.io/jjba23/byggsteg-woodpecker:v0.3.0"
   - &jointhefreeworld_byggsteg_url "https://byggsteg.jointhefreeworld.org"
   - &main_branch "trunk"
 
@@ -32,7 +30,9 @@ clone:
 steps:
   get-byggsteg-token:
     name: "🔒 Get token @ Byggsteg"
-    image: *get_token_image
+    image: *byggsteg_image
+    commands:
+      - /bin/byggsteg-woodpecker get-token
     when:
       - event: [push]
         branch: [*main_branch]
@@ -45,7 +45,9 @@ steps:
 
   submit-byggsteg-job:
     name: "💼 Submit job @ Byggsteg"
-    image: *submit_job_image
+    image: *byggsteg_image
+    commands:
+      - /bin/byggsteg-woodpecker submit-job
     when:
       - event: [push]
         branch: [*main_branch]
@@ -61,7 +63,9 @@ steps:
 
   poll-byggsteg-job:
     name: "🔄 Poll job status @ Byggsteg"
-    image: *poll_job_image
+    image: *byggsteg_image
+    commands:
+      - /bin/byggsteg-woodpecker poll-job
     when:
       - event: [push]
         branch: [*main_branch]
