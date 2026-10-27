@@ -540,6 +540,16 @@ its own -- is asked for as it stands."
                    'folder
                    (G_ "profiles")))
 
+;; The checkouts the deployment's jobs are run in, which is the one page of this
+;; console that reads the machine rather than a row: what a project was cloned
+;; from, how much room its clones take, and the way to remove one.  It sits with
+;; the console's other readings, because reading it needs no permission -- the
+;; forms under it are drawn for whoever holds one (see `(app views clones)').
+(define (clones-button G_)
+  (nav-link-button G_ "/clones"
+                   'git-branch
+                   (G_ "clones")))
+
 ;; The page that says where the console came from.  It is the bar's last
 ;; deployment button and the one no account is needed for, which is why it
 ;; sits beside the reader's own button rather than among the work.
@@ -627,6 +637,7 @@ its own -- is asked for as it stands."
                          (div ,(activity-button G_))
                          (div ,(search-button G_))
                          (div ,(profiles-button G_))
+                         (div ,(clones-button G_))
                          (div ,(about-button G_))
                          (div ,(if (not is-logged-in)
                                    (login-button G_)

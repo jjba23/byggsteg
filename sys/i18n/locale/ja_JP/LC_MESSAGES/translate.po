@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byggsteg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 15:09+0200\n"
+"POT-Creation-Date: 2026-10-27 22:01+0100\n"
 "PO-Revision-Date: 2025-01-19 16:01+0100\n"
 "Last-Translator: Tomo Dote <fu7mu4@gmail.com>\n"
 "Language-Team: none\n"
@@ -19,15 +19,15 @@ msgstr ""
 "X-Language: ja_JP\n"
 "X-Source-Language: C\n"
 
-#: ENTRY:94
+#: ENTRY:94 ENTRY:96
 msgid "initializing byggsteg queue worker"
 msgstr "byggsteg キューワーカーを初期化"
 
-#: app/controllers/jobs.scm:80
+#: app/controllers/jobs.scm:79 app/controllers/jobs.scm:80
 msgid "Job started successfully!"
 msgstr ""
 
-#: app/controllers/jobs.scm:83
+#: app/controllers/jobs.scm:82 app/controllers/jobs.scm:83
 msgid "A new job has been started at byggsteg with id"
 msgstr ""
 
@@ -35,106 +35,107 @@ msgstr ""
 msgid "You are now logged in successfully!"
 msgstr ""
 
-#: app/controllers/me.scm:158
+#: app/controllers/me.scm:158 app/controllers/me.scm:163
 msgid "a password needs to be longer, or of more kinds of character"
 msgstr ""
 
-#: app/controllers/me.scm:160 app/views/me.scm:317 app/views/me.scm:345
+#: app/controllers/me.scm:160 app/controllers/me.scm:165 app/views/me.scm:317
+#: app/views/me.scm:345 app/views/me.scm:350 app/views/me.scm:378
 #, fuzzy
 msgid "a password needs"
 msgstr "パスワード"
 
-#: app/controllers/me.scm:201
+#: app/controllers/me.scm:201 app/controllers/me.scm:209
 #, fuzzy
 msgid "Password reset"
 msgstr "パスワード"
 
-#: app/controllers/me.scm:203
+#: app/controllers/me.scm:203 app/controllers/me.scm:211
 msgid "Password reset link sent"
 msgstr ""
 
-#: app/controllers/me.scm:205
+#: app/controllers/me.scm:205 app/controllers/me.scm:213
 msgid "Could not send the password reset link"
 msgstr ""
 
-#: app/controllers/me.scm:209
+#: app/controllers/me.scm:209 app/controllers/me.scm:217
 msgid "If that address has an account here, a reset link is on its way."
 msgstr ""
 
-#: app/controllers/me.scm:214
+#: app/controllers/me.scm:214 app/controllers/me.scm:222
 msgid "Look in the inbox of"
 msgstr ""
 
-#: app/controllers/me.scm:219
+#: app/controllers/me.scm:219 app/controllers/me.scm:227
 msgid "The mail service did not take it. Please try again in a moment."
 msgstr ""
 
-#: app/controllers/me.scm:272
+#: app/controllers/me.scm:272 app/controllers/me.scm:280
 msgid "The two passwords did not match"
 msgstr ""
 
-#: app/controllers/me.scm:273
+#: app/controllers/me.scm:273 app/controllers/me.scm:281
 msgid "Type the same password in both fields."
 msgstr ""
 
-#: app/controllers/me.scm:278
+#: app/controllers/me.scm:278 app/controllers/me.scm:286
 msgid "That password is not strong enough"
 msgstr ""
 
-#: app/controllers/me.scm:306
+#: app/controllers/me.scm:306 app/controllers/me.scm:314
 msgid "Your password has been reset"
 msgstr ""
 
-#: app/controllers/me.scm:308
+#: app/controllers/me.scm:308 app/controllers/me.scm:316
 msgid "Sign in with the password you just chose."
 msgstr ""
 
-#: app/controllers/me.scm:444
+#: app/controllers/me.scm:421 app/controllers/me.scm:444
 msgid "User created"
 msgstr ""
 
-#: app/controllers/me.scm:446
+#: app/controllers/me.scm:423 app/controllers/me.scm:446
 msgid "User created, but the invitation could not be sent"
 msgstr ""
 
-#: app/controllers/me.scm:449
+#: app/controllers/me.scm:426 app/controllers/me.scm:449
 msgid "A link to set a password has been sent to them."
 msgstr ""
 
-#: app/controllers/me.scm:451
+#: app/controllers/me.scm:428 app/controllers/me.scm:451
 msgid ""
 "The account has no password yet: use reset password on it to send the "
 "invitation again."
 msgstr ""
 
-#: app/views/about.scm:133
+#: app/views/about.scm:133 app/views/about.scm:143
 #, fuzzy
 msgid "read the source"
 msgstr "ソースコードをここで探す"
 
-#: app/views/about.scm:138
+#: app/views/about.scm:138 app/views/about.scm:148
 msgid "read the manual"
 msgstr ""
 
-#: app/views/about.scm:143
+#: app/views/about.scm:143 app/views/about.scm:153
 msgid "read the documentation"
 msgstr ""
 
-#: app/views/about.scm:170
+#: app/views/about.scm:170 app/views/about.scm:180
 msgid "byggsteg --origin"
 msgstr ""
 
-#: app/views/about.scm:174
+#: app/views/about.scm:174 app/views/about.scm:184
 msgid ""
 "the account of a build step: where this console came from, the framework it "
 "stands on, and why it was written to be extended rather than configured."
 msgstr ""
 
-#: app/views/about.scm:183
+#: app/views/about.scm:183 app/views/about.scm:193
 msgid "the short version"
 msgstr ""
 
-#: app/views/about.scm:185
+#: app/views/about.scm:185 app/views/about.scm:195
 msgid ""
 "byggsteg is the Norwegian word for a build step, and that is the size of the "
 "thing: one step, then the next, and then the one nobody has written yet. It "
@@ -142,41 +143,41 @@ msgid ""
 "made of five moving parts you can read, run and replace."
 msgstr ""
 
-#: app/views/about.scm:188
+#: app/views/about.scm:188 app/views/about.scm:198
 msgid ""
 "a piece of Lisp that returns a plan: the project, the branch to take, where "
 "to clone it from and which tasks to run on it"
 msgstr ""
 
-#: app/views/about.scm:191
+#: app/views/about.scm:191 app/views/about.scm:201
 msgid ""
 "one loop in one thread, taking whatever the queue holds and doing the steps "
 "the job asks for"
 msgstr ""
 
-#: app/views/about.scm:194
+#: app/views/about.scm:194 app/views/about.scm:204
 msgid ""
 "written as the command prints it, so a run is read while it runs rather than "
 "once it is over"
 msgstr ""
 
-#: app/views/about.scm:197
+#: app/views/about.scm:197 app/views/about.scm:207
 msgid ""
 "what a run leaves behind: kept where the deployment can serve it, and swept "
 "when it is no longer wanted"
 msgstr ""
 
-#: app/views/about.scm:200
+#: app/views/about.scm:200 app/views/about.scm:210
 msgid ""
 "one SQLite file and one server on a machine of your own, under a licence "
 "that lets you take it apart"
 msgstr ""
 
-#: app/views/about.scm:206
+#: app/views/about.scm:206 app/views/about.scm:216
 msgid "how byggsteg came to be"
 msgstr ""
 
-#: app/views/about.scm:208
+#: app/views/about.scm:208 app/views/about.scm:218
 msgid ""
 "There is no first version of this page. Every delivery system is built "
 "twice: once by the people who had to deliver before it existed, and once "
@@ -184,7 +185,7 @@ msgid ""
 "byggsteg's, and it is shorter than the first."
 msgstr ""
 
-#: app/views/about.scm:210
+#: app/views/about.scm:210 app/views/about.scm:220
 msgid ""
 "Before byggsteg, a release was a ritual performed by hand. A person signed "
 "in to a machine, pulled a branch, built it, restarted a service, and "
@@ -193,7 +194,7 @@ msgid ""
 "it had done, and what it could not say was why it had failed."
 msgstr ""
 
-#: app/views/about.scm:212
+#: app/views/about.scm:212 app/views/about.scm:222
 msgid ""
 "Then two people met, and a door appeared where a wall had stood. Mu Lei, "
 "known as NalaGinrut, showed Josep Bigorra, known as jjba23, GNU Artanis, and "
@@ -202,7 +203,7 @@ msgid ""
 "deployment believes about itself. This console is what grew in that world."
 msgstr ""
 
-#: app/views/about.scm:214
+#: app/views/about.scm:214 app/views/about.scm:224
 msgid ""
 "The framework itself came out of a question. At GNU, the project was "
 "choosing a language for its own website, and many of the answers were "
@@ -219,7 +220,7 @@ msgid ""
 "stands on."
 msgstr ""
 
-#: app/views/about.scm:216
+#: app/views/about.scm:216 app/views/about.scm:226
 msgid ""
 "And so byggsteg was written in that world and named in another. It is a "
 "build step, and only a build step: not a platform, not a shelf, not a "
@@ -227,47 +228,47 @@ msgid ""
 "delivery is the thing it was built to answer."
 msgstr ""
 
-#: app/views/about.scm:222
+#: app/views/about.scm:222 app/views/about.scm:232
 msgid "the world that Artanis opened"
 msgstr ""
 
-#: app/views/about.scm:224
+#: app/views/about.scm:224 app/views/about.scm:234
 msgid ""
 "It is worth saying plainly what was handed over, because it was not a "
 "library so much as a country with its borders left open."
 msgstr ""
 
-#: app/views/about.scm:227
+#: app/views/about.scm:227 app/views/about.scm:237
 msgid ""
 "a page is announced as a method and a path, and the answer is a procedure of "
 "your own"
 msgstr ""
 
-#: app/views/about.scm:230
+#: app/views/about.scm:230 app/views/about.scm:240
 msgid ""
 "SXML: the page you are reading is a list, built by Scheme, in the same "
 "language as the job it describes"
 msgstr ""
 
-#: app/views/about.scm:233
+#: app/views/about.scm:233 app/views/about.scm:243
 msgid ""
 "translation is part of the framework, which is why this deployment answers "
 "in English, Dutch, Spanish and Japanese"
 msgstr ""
 
-#: app/views/about.scm:236
+#: app/views/about.scm:236 app/views/about.scm:246
 msgid ""
 "mime types, cookies, static files and a page of its own for each status "
 "code: a frame a deployment hangs its own chrome on"
 msgstr ""
 
-#: app/views/about.scm:239
+#: app/views/about.scm:239 app/views/about.scm:249
 msgid ""
 "the whole console is one process started from one configuration file, with "
 "no container between you and it"
 msgstr ""
 
-#: app/views/about.scm:241
+#: app/views/about.scm:241 app/views/about.scm:251
 msgid ""
 "Of all of it, one sentence did the most work: a page in Artanis is a list, "
 "and a list is a program. A system whose interface is a list is a system "
@@ -275,45 +276,45 @@ msgid ""
 "computed is one nobody has to wait for permission to change."
 msgstr ""
 
-#: app/views/about.scm:262
+#: app/views/about.scm:262 app/views/about.scm:272
 msgid "an infinitely extensible system"
 msgstr ""
 
-#: app/views/about.scm:264
+#: app/views/about.scm:264 app/views/about.scm:274
 msgid ""
 "Most continuous integration systems are shelves. You take a step down from "
 "the shelf, put it in the order the shelf expects, and configure it. A shelf "
 "is useful, and a shelf is also a ceiling: what it cannot hold, you cannot do."
 msgstr ""
 
-#: app/views/about.scm:266
+#: app/views/about.scm:266 app/views/about.scm:276
 msgid ""
 "byggsteg was built the other way round — it is a library with a page on top "
 "— and the library has three doors in it, one for each thing a delivery is "
 "made of."
 msgstr ""
 
-#: app/views/about.scm:269
+#: app/views/about.scm:269 app/views/about.scm:279
 msgid ""
 "a thunk returning an alist, so a pipeline is a value your own program can "
 "compute, save as a profile, or send from a phone"
 msgstr ""
 
-#: app/views/about.scm:272
+#: app/views/about.scm:272 app/views/about.scm:282
 msgid ""
 "the worker looks the name up and runs the clause that answers to it; "
 "teaching byggsteg a new verb is adding a clause, not inventing a plugin "
 "protocol"
 msgstr ""
 
-#: app/views/about.scm:275
+#: app/views/about.scm:275 app/views/about.scm:285
 msgid ""
 "it is handed the clone directory, announces what it is doing in the log as "
 "it does it, and answers with a result — and the trivial task is the door "
 "left open for the day a deployment wants something nobody has written yet"
 msgstr ""
 
-#: app/views/about.scm:278
+#: app/views/about.scm:278 app/views/about.scm:288
 msgid ""
 "Nothing in it is finished in the sense of closed. The set of things byggsteg "
 "can do is not a list of features somebody chose in advance; it is the set of "
@@ -322,53 +323,53 @@ msgid ""
 "system whose next feature is a definition."
 msgstr ""
 
-#: app/views/about.scm:284
+#: app/views/about.scm:284 app/views/about.scm:294
 msgid "who made what"
 msgstr ""
 
-#: app/views/about.scm:286
+#: app/views/about.scm:286 app/views/about.scm:296
 msgid ""
 "Every file of byggsteg carries two copyright lines, and they are the story "
 "told plainly: the orchestrator and the framework it is served from, the "
 "maintainer who wrote one and the engineer who wrote the other."
 msgstr ""
 
-#: app/views/about.scm:289
+#: app/views/about.scm:289 app/views/about.scm:299
 msgid ""
 "Josep Bigorra (@jjba23): the orchestrator, its pages, and hygguile, the "
 "interface library they are built from"
 msgstr ""
 
-#: app/views/about.scm:292
+#: app/views/about.scm:292 app/views/about.scm:302
 msgid ""
 "Mu Lei (@NalaGinrut): the framework every page of this deployment is served "
 "from, and the second name on each file of this repository"
 msgstr ""
 
-#: app/views/about.scm:295
+#: app/views/about.scm:295 app/views/about.scm:305
 msgid ""
 "the language both of them are written in, and the reason a job can be data"
 msgstr ""
 
-#: app/views/about.scm:298
+#: app/views/about.scm:298 app/views/about.scm:308
 msgid ""
 "the utility stylesheet the terminal is dressed in, also by @jjba23, under "
 "the LGPL"
 msgstr ""
 
-#: app/views/about.scm:301
+#: app/views/about.scm:301 app/views/about.scm:311
 msgid ""
 "the manifest that pins the toolchain, so that a build here is a build "
 "wherever the pipeline runs"
 msgstr ""
 
-#: app/views/about.scm:304
+#: app/views/about.scm:304 app/views/about.scm:314
 msgid ""
 "the file that remembers, the task runner, and the editor the whole of it was "
 "written in"
 msgstr ""
 
-#: app/views/about.scm:306
+#: app/views/about.scm:306 app/views/about.scm:316
 msgid ""
 "byggsteg is free software under the GNU Affero General Public License, "
 "either version 3 or later. Take it, run it on your own machine, read it, "
@@ -376,11 +377,13 @@ msgid ""
 "about."
 msgstr ""
 
-#: app/views/about.scm:333 lib/byggsteg/html.scm:431 lib/byggsteg/html.scm:594
+#: app/views/about.scm:333 app/views/about.scm:343 lib/byggsteg/html.scm:431
+#: lib/byggsteg/html.scm:559 lib/byggsteg/html.scm:594
+#: lib/byggsteg/html.scm:738
 msgid "about"
 msgstr ""
 
-#: app/views/about.scm:335
+#: app/views/about.scm:335 app/views/about.scm:345
 msgid ""
 "How byggsteg came to be: how NalaGinrut showed Josep Bigorra the world GNU "
 "Artanis opened, and why byggsteg is an infinitely extensible CI/CD system -- "
@@ -391,50 +394,153 @@ msgstr ""
 msgid "job runs"
 msgstr ""
 
-#: app/views/activity.scm:190
+#: app/views/activity.scm:190 app/views/activity.scm:196
 msgid "a calendar of the days jobs ran on"
 msgstr ""
 
-#: app/views/activity.scm:203
+#: app/views/activity.scm:203 app/views/activity.scm:208
 msgid "fewer"
 msgstr ""
 
-#: app/views/activity.scm:210
+#: app/views/activity.scm:210 app/views/activity.scm:215
 msgid "more"
 msgstr ""
 
-#: app/views/activity.scm:221 app/views/activity.scm:247
-#: lib/byggsteg/html.scm:403
+#: app/views/activity.scm:221 app/views/activity.scm:226
+#: app/views/activity.scm:247 app/views/activity.scm:250
+#: lib/byggsteg/html.scm:403 lib/byggsteg/html.scm:521
 msgid "activity"
 msgstr ""
 
-#: app/views/activity.scm:227
+#: app/views/activity.scm:227 app/views/activity.scm:231
 msgid "no job has run in this deployment yet"
 msgstr ""
 
-#: app/views/activity.scm:229
+#: app/views/activity.scm:229 app/views/activity.scm:233
 msgid "job runs, week by week"
 msgstr ""
 
-#: app/views/activity.scm:233
+#: app/views/activity.scm:233 app/views/activity.scm:237
 msgid "busiest day"
 msgstr ""
 
-#: app/views/activity.scm:236
+#: app/views/activity.scm:236 app/views/activity.scm:240
 msgid "weeks shown"
 msgstr ""
 
-#: app/views/activity.scm:244
+#: app/views/activity.scm:244 app/views/activity.scm:247
 msgid "each square is one day; darker means more jobs were queued that day"
 msgstr ""
 
-#: app/views/activity.scm:249
+#: app/views/activity.scm:249 app/views/activity.scm:252
 msgid ""
 "A year of runs this byggsteg deployment has executed, drawn as a heatmap: "
 "one square per day, darker where more jobs were queued"
 msgstr ""
 
-#: app/views/index.scm:63
+#: app/views/clones.scm:95 app/views/logs.scm:139 app/views/logs.scm:251
+#: app/views/me.scm:170 app/views/me.scm:191 app/views/profiles.scm:87
+#: app/views/profiles.scm:136
+msgid "delete"
+msgstr "削除"
+
+#: app/views/clones.scm:96
+#, fuzzy
+msgid "delete all"
+msgstr "削除"
+
+#: app/views/clones.scm:133
+msgid "origin for every branch"
+msgstr ""
+
+#: app/views/clones.scm:137
+msgid "set origin"
+msgstr ""
+
+#: app/views/clones.scm:150
+msgid "size unknown"
+msgstr ""
+
+#: app/views/clones.scm:193
+msgid "origin"
+msgstr ""
+
+#: app/views/clones.scm:203
+msgid "no origin"
+msgstr ""
+
+#: app/views/clones.scm:204
+msgid "size"
+msgstr ""
+
+#: app/views/clones.scm:267
+msgid "clone"
+msgstr ""
+
+#: app/views/clones.scm:268 lib/byggsteg/html.scm:551
+msgid "clones"
+msgstr ""
+
+#: app/views/clones.scm:271
+msgid "taking"
+msgstr ""
+
+#: app/views/clones.scm:277
+msgid "nothing was cloned here"
+msgstr ""
+
+#: app/views/clones.scm:320
+msgid "nothing was removed: no clone stands there"
+msgstr ""
+
+#: app/views/clones.scm:324
+msgid "clone removed"
+msgstr ""
+
+#: app/views/clones.scm:325
+msgid "clones removed"
+msgstr ""
+
+#: app/views/clones.scm:331
+msgid "no clone of that project could be pointed at that origin"
+msgstr ""
+
+#: app/views/clones.scm:335
+msgid "clone now pulls from the new origin"
+msgstr ""
+
+#: app/views/clones.scm:336
+msgid "clones now pull from the new origin"
+msgstr ""
+
+#: app/views/clones.scm:344
+msgid "branch was left as it was"
+msgstr ""
+
+#: app/views/clones.scm:345
+msgid "branches were left as they were"
+msgstr ""
+
+#: app/views/clones.scm:392 app/views/clones.scm:414
+#, fuzzy
+msgid "job clones"
+msgstr "成功したジョブ"
+
+#: app/views/clones.scm:396
+msgid "the checkouts the jobs of this deployment are run in, under"
+msgstr ""
+
+#: app/views/clones.scm:406
+msgid "no project has been cloned here yet"
+msgstr ""
+
+#: app/views/clones.scm:416
+msgid ""
+"The clones this byggsteg deployment's jobs are run in, where each of them "
+"pulls from, and how much room they take"
+msgstr ""
+
+#: app/views/index.scm:63 app/views/index.scm:107
 msgid "job types"
 msgstr "ジョブタイプ"
 
@@ -454,36 +560,37 @@ msgstr ""
 msgid "Run a build with Maak or Make (make-build is the fallback task)"
 msgstr ""
 
+#: app/views/index.scm:94 app/views/index.scm:116
+msgid ""
+"Run a target in the job's clone, with the runner the checkout has: Maak for "
+"a maak.scm, Just for a justfile, Make for a Makefile, and Make when it keeps "
+"none of them. Any target the project has can be asked for, and a runner's "
+"name and a dash -- just-test, maak-test -- names the runner instead."
+msgstr ""
+"ジョブのクローン内でターゲットを実行します。使用するランナーはチェックアウト"
+"が決めます（maak.scm なら Maak、justfile なら Just、Makefile なら Make、どれ"
+"もなければ Make）。プロジェクトにある任意のターゲットを指定でき、ランナー名と"
+"ハイフン（just-test、maak-test）でそのランナーを明示できます。"
+
 #: app/views/index.scm:96
 msgid "Byggsteg pull and restart GNU Shepherd daemon itself"
 msgstr "ByggstegはプルしてGNU Shepherdデーモン自身を再起動"
 
-#: app/views/index.scm:101
-msgid "Allow passing arbitrary list of commands (via trivial-cmds field)"
-msgstr ""
-"コマンドの任意の長さのリストを渡すことを許可(trivial-cmdsフィールド経由)"
-
-#: app/views/index.scm:94
-msgid ""
-"Run a target in the job's clone, with the runner the checkout has: Maak for a "
-"maak.scm, Just for a justfile, Make for a Makefile, and Make when it keeps "
-"none of them. Any target the project has can be asked for, and a runner's "
-"name and a dash -- just-test, maak-test -- names the runner instead."
-msgstr ""
-"ジョブのクローン内でターゲットを実行します。使用するランナーはチェックアウトが決めます"
-"（maak.scm なら Maak、justfile なら Just、Makefile なら Make、どれもなければ Make）。"
-"プロジェクトにある任意のターゲットを指定でき、ランナー名とハイフン（just-test、"
-"maak-test）でそのランナーを明示できます。"
-
-#: app/views/index.scm:101
+#: app/views/index.scm:101 app/views/index.scm:122
 msgid ""
 "Act on the machine byggsteg runs on rather than on the checkout: deploy it, "
 "restart a GNU Shepherd service, or update and restart byggsteg itself."
 msgstr ""
-"チェックアウトではなく byggsteg が動作するマシンに対して操作します。デプロイ、"
-"GNU Shepherd サービスの再起動、または byggsteg 自体の更新と再起動を行います。"
+"チェックアウトではなく byggsteg が動作するマシンに対して操作します。デプロ"
+"イ、GNU Shepherd サービスの再起動、または byggsteg 自体の更新と再起動を行いま"
+"す。"
 
-#: app/views/index.scm:131
+#: app/views/index.scm:101 app/views/index.scm:128
+msgid "Allow passing arbitrary list of commands (via trivial-cmds field)"
+msgstr ""
+"コマンドの任意の長さのリストを渡すことを許可(trivial-cmdsフィールド経由)"
+
+#: app/views/index.scm:131 app/views/index.scm:159
 msgid ""
 "byggsteg aims to be the hackable continuous integration and delivery system, "
 "allowing engineers to deliver software quicker and with less friction"
@@ -491,20 +598,20 @@ msgstr ""
 "byggstegはハック可能なCI/CDシステムを目指しています。より高速に摩擦なくエンジ"
 "ニアにソフトウェアを提供します"
 
-#: app/views/index.scm:140
+#: app/views/index.scm:140 app/views/index.scm:169
 #, fuzzy
 msgid "byggsteg"
 msgstr "byggstegにログイン"
 
-#: app/views/index.scm:168
+#: app/views/index.scm:168 app/views/index.scm:197
 msgid "a pipeline"
 msgstr ""
 
-#: app/views/index.scm:182
+#: app/views/index.scm:182 app/views/index.scm:211
 msgid "welcome to byggsteg"
 msgstr "byggstegにようこそ"
 
-#: app/views/index.scm:184
+#: app/views/index.scm:184 app/views/index.scm:213
 msgid ""
 "byggsteg is a hackable, extensible CI/CD orchestrator written in Guile "
 "Scheme: write a pipeline as Lisp, watch its log while it runs, and host the "
@@ -512,11 +619,13 @@ msgid ""
 msgstr ""
 
 #: app/views/jobs.scm:39 app/views/jobs.scm:47 lib/byggsteg/html.scm:418
+#: lib/byggsteg/html.scm:536
 msgid "run job"
 msgstr "ジョブの実行"
 
-#: app/views/login.scm:43 app/views/me.scm:147 app/views/me.scm:431
-#: app/views/me.scm:523
+#: app/views/login.scm:43 app/views/me.scm:147 app/views/me.scm:162
+#: app/views/me.scm:431 app/views/me.scm:470 app/views/me.scm:523
+#: app/views/me.scm:561
 msgid "email"
 msgstr ""
 
@@ -525,6 +634,7 @@ msgid "password"
 msgstr "パスワード"
 
 #: app/views/login.scm:53 app/views/login.scm:75 app/views/me.scm:131
+#: app/views/me.scm:144
 msgid "login"
 msgstr "ログイン"
 
@@ -532,7 +642,7 @@ msgstr "ログイン"
 msgid "account to reset (email)"
 msgstr ""
 
-#: app/views/login.scm:72 app/views/me.scm:398
+#: app/views/login.scm:72 app/views/me.scm:398 app/views/me.scm:432
 msgid "reset"
 msgstr ""
 
@@ -546,65 +656,70 @@ msgstr ""
 msgid "login to byggsteg"
 msgstr "byggstegにログイン"
 
-#: app/views/login.scm:105 app/views/me.scm:126
+#: app/views/login.scm:105 app/views/me.scm:126 app/views/me.scm:139
 #, fuzzy
 msgid "reset password"
 msgstr "パスワード"
 
-#: app/views/logs.scm:139 app/views/me.scm:170 app/views/profiles.scm:136
-msgid "delete"
-msgstr "削除"
-
-#: app/views/logs.scm:158
-msgid "time taken"
-msgstr ""
-
-#: app/views/logs.scm:167
-msgid "started at"
-msgstr "開始時"
-
-#: app/views/logs.scm:173
-msgid "updated at"
-msgstr "更新時"
-
-#: app/views/logs.scm:178
-msgid "log uuid"
-msgstr ""
-
-#: app/views/logs.scm:226
-msgid "inspect the job's lambda expression"
-msgstr ""
-
-#: app/views/logs.scm:263
+#: app/views/logs.scm:145 app/views/logs.scm:263
 msgid "rendered"
 msgstr "レンダリング"
 
-#: app/views/logs.scm:273
+#: app/views/logs.scm:146 app/views/logs.scm:273
 msgid "raw bytes"
 msgstr "生のバイト"
 
-#: app/views/logs.scm:277
+#: app/views/logs.scm:158 app/views/logs.scm:188
+msgid "time taken"
+msgstr ""
+
+#: app/views/logs.scm:167 app/views/logs.scm:181
+msgid "started at"
+msgstr "開始時"
+
+#: app/views/logs.scm:168
+msgid "the job is still writing"
+msgstr ""
+
+#: app/views/logs.scm:169
+msgid "live"
+msgstr ""
+
+#: app/views/logs.scm:173 app/views/logs.scm:197 app/views/profiles.scm:174
+msgid "updated at"
+msgstr "更新時"
+
+#: app/views/logs.scm:178 app/views/logs.scm:209
+msgid "log uuid"
+msgstr ""
+
+#: app/views/logs.scm:226 app/views/logs.scm:507
+msgid "inspect the job's lambda expression"
+msgstr ""
+
+#: app/views/logs.scm:277 app/views/logs.scm:474
 msgid "frames"
 msgstr "フレーム"
 
-#: app/views/logs.scm:282
+#: app/views/logs.scm:282 app/views/logs.scm:591
 msgid "job log"
 msgstr ""
 
-#: app/views/logs.scm:328
+#: app/views/logs.scm:328 app/views/logs.scm:625
 msgid "previous"
 msgstr ""
 
-#: app/views/logs.scm:336
+#: app/views/logs.scm:336 app/views/logs.scm:633
 msgid "next"
 msgstr ""
 
-#: app/views/logs.scm:340 app/views/logs.scm:352 app/views/search.scm:176
-#: lib/byggsteg/html.scm:413
+#: app/views/logs.scm:340 app/views/logs.scm:352 app/views/logs.scm:637
+#: app/views/logs.scm:674 app/views/search.scm:176 app/views/search.scm:180
+#: lib/byggsteg/html.scm:413 lib/byggsteg/html.scm:531
 msgid "logs"
 msgstr "ログ"
 
-#: app/views/logs.scm:354
+#: app/views/logs.scm:354 app/views/logs.scm:676
 msgid ""
 "The runs this byggsteg deployment has executed, newest first, each with its "
 "status and the artifacts it collected"
@@ -614,288 +729,316 @@ msgstr ""
 msgid "my unique id:"
 msgstr ""
 
-#: app/views/me.scm:62
+#: app/views/me.scm:62 app/views/me.scm:64
 msgid "my permissions (in database):"
 msgstr ""
 
-#: app/views/me.scm:73
+#: app/views/me.scm:73 app/views/me.scm:76
 msgid "current session permissions (in token):"
 msgstr ""
 
-#: app/views/me.scm:80
+#: app/views/me.scm:80 app/views/me.scm:91
 msgid ""
 "tip: if your session permissions don't match the DB consider logging out and "
 "logging in again"
 msgstr ""
 
-#: app/views/me.scm:86
+#: app/views/me.scm:86 app/views/me.scm:98
 msgid "logged in until"
 msgstr ""
 
-#: app/views/me.scm:93
+#: app/views/me.scm:93 app/views/me.scm:106
 msgid "me"
 msgstr ""
 
-#: app/views/me.scm:114
+#: app/views/me.scm:114 app/views/me.scm:127
 msgid "go to user management"
 msgstr ""
 
-#: app/views/me.scm:119
+#: app/views/me.scm:119 app/views/me.scm:132
 msgid "logout"
 msgstr ""
 
-#: app/views/me.scm:141 app/views/me.scm:427 app/views/me.scm:516
+#: app/views/me.scm:141 app/views/me.scm:154 app/views/me.scm:427
+#: app/views/me.scm:466 app/views/me.scm:516 app/views/me.scm:554
 msgid "username"
 msgstr "ユーザー名"
 
-#: app/views/me.scm:152
+#: app/views/me.scm:152 app/views/me.scm:169
 msgid "id"
 msgstr ""
 
-#: app/views/me.scm:158
+#: app/views/me.scm:158 app/views/me.scm:177
 msgid "permissions"
 msgstr ""
 
-#: app/views/me.scm:175
+#: app/views/me.scm:175 app/views/me.scm:196
 msgid "are you sure you want to delete this user?"
 msgstr ""
 
-#: app/views/me.scm:184 app/views/me.scm:553
+#: app/views/me.scm:184 app/views/me.scm:217 app/views/me.scm:553
+#: app/views/me.scm:592
 msgid "edit"
 msgstr ""
 
-#: app/views/me.scm:193
+#: app/views/me.scm:193 app/views/me.scm:226
 #, fuzzy
 msgid "user management"
 msgstr "ユーザー名"
 
-#: app/views/me.scm:198
+#: app/views/me.scm:198 app/views/me.scm:231
 msgid "User management"
 msgstr ""
 
-#: app/views/me.scm:204 app/views/me.scm:409
+#: app/views/me.scm:204 app/views/me.scm:237 app/views/me.scm:409
+#: app/views/me.scm:448
 msgid "new user"
 msgstr ""
 
-#: app/views/me.scm:228 app/views/me.scm:331
+#: app/views/me.scm:228 app/views/me.scm:261 app/views/me.scm:331
+#: app/views/me.scm:364
 msgid "empty"
 msgstr ""
 
-#: app/views/me.scm:229
+#: app/views/me.scm:229 app/views/me.scm:262
 msgid "weak"
 msgstr ""
 
-#: app/views/me.scm:230
+#: app/views/me.scm:230 app/views/me.scm:263
 msgid "fair"
 msgstr ""
 
-#: app/views/me.scm:231
+#: app/views/me.scm:231 app/views/me.scm:264
 msgid "good"
 msgstr ""
 
-#: app/views/me.scm:232
+#: app/views/me.scm:232 app/views/me.scm:265
 msgid "strong"
 msgstr ""
 
-#: app/views/me.scm:326
+#: app/views/me.scm:326 app/views/me.scm:359
 #, fuzzy
 msgid "password strength"
 msgstr "パスワード"
 
-#: app/views/me.scm:354 app/views/me.scm:361
+#: app/views/me.scm:354 app/views/me.scm:361 app/views/me.scm:387
+#: app/views/me.scm:394
 msgid "Reset your password"
 msgstr ""
 
-#: app/views/me.scm:365
+#: app/views/me.scm:365 app/views/me.scm:398
 msgid "perform a password reset for"
 msgstr ""
 
-#: app/views/me.scm:383
+#: app/views/me.scm:383 app/views/me.scm:417
 #, fuzzy
 msgid "new password"
 msgstr "パスワード"
 
-#: app/views/me.scm:390
+#: app/views/me.scm:390 app/views/me.scm:424
 #, fuzzy
 msgid "confirm password"
 msgstr "パスワード"
 
-#: app/views/me.scm:414
+#: app/views/me.scm:414 app/views/me.scm:453
 msgid "New User"
 msgstr ""
 
-#: app/views/me.scm:441
+#: app/views/me.scm:441 app/views/me.scm:480
 msgid ""
 "the account is created without a password, and a link to set one is sent to "
 "the address above"
 msgstr ""
 
-#: app/views/me.scm:443 app/views/me.scm:531
+#: app/views/me.scm:443 app/views/me.scm:482 app/views/me.scm:531
+#: app/views/me.scm:569
 msgid "user permissions"
 msgstr ""
 
-#: app/views/me.scm:452
+#: app/views/me.scm:452 app/views/me.scm:492
 msgid "create"
 msgstr ""
 
-#: app/views/me.scm:490
+#: app/views/me.scm:490 app/views/me.scm:528
 msgid "edit user"
 msgstr ""
 
-#: app/views/me.scm:497
+#: app/views/me.scm:497 app/views/me.scm:535
 msgid "Edit User"
 msgstr ""
 
-#: app/views/profiles.scm:59 lib/byggsteg/html.scm:669
+#: app/views/profiles.scm:59 app/views/profiles.scm:107
+#: lib/byggsteg/html.scm:669 lib/byggsteg/html.scm:833
 msgid "profile name"
 msgstr "プロファイル名"
 
-#: app/views/profiles.scm:63
+#: app/views/profiles.scm:63 app/views/profiles.scm:111
+#: app/views/profiles.scm:248
 #, fuzzy
 msgid "profile code"
 msgstr "プロファイル名"
 
-#: app/views/profiles.scm:85
-msgid "save"
-msgstr "保存"
-
-#: app/views/profiles.scm:90
-msgid "profile details"
-msgstr "プロファイル詳細"
-
-#: app/views/profiles.scm:115
+#: app/views/profiles.scm:70 app/views/profiles.scm:115
 msgid "start new job"
 msgstr "新しいジョブの開始"
 
-#: app/views/profiles.scm:155
+#: app/views/profiles.scm:85 app/views/profiles.scm:118
+msgid "save"
+msgstr "保存"
+
+#: app/views/profiles.scm:90 app/views/profiles.scm:224
+msgid "profile details"
+msgstr "プロファイル詳細"
+
+#: app/views/profiles.scm:155 app/views/profiles.scm:260
 #, fuzzy
 msgid "profile"
 msgstr "プロファイル"
 
-#: app/views/profiles.scm:157
+#: app/views/profiles.scm:157 app/views/profiles.scm:262
 msgid "the saved byggsteg job"
 msgstr ""
 
+#: app/views/profiles.scm:167
+#, fuzzy
+msgid "saved at"
+msgstr "開始時"
+
 #: app/views/profiles.scm:171 app/views/profiles.scm:178
-#: app/views/profiles.scm:212
+#: app/views/profiles.scm:212 app/views/profiles.scm:274
+#: app/views/profiles.scm:281 app/views/profiles.scm:309
 msgid "new profile"
 msgstr "新しいプロファイル"
 
+#: app/views/profiles.scm:180
+#, fuzzy
+msgid "profile uuid"
+msgstr "プロファイル名"
+
 #: app/views/profiles.scm:188 app/views/profiles.scm:195
-#: app/views/search.scm:182 lib/byggsteg/html.scm:423
+#: app/views/profiles.scm:294 app/views/profiles.scm:301
+#: app/views/search.scm:182 app/views/search.scm:186 lib/byggsteg/html.scm:423
+#: lib/byggsteg/html.scm:541
 msgid "profiles"
 msgstr "プロファイル"
 
-#: app/views/profiles.scm:190
+#: app/views/profiles.scm:190 app/views/profiles.scm:296
 msgid ""
 "The jobs this byggsteg deployment has saved as profiles, each ready to run "
 "again"
 msgstr ""
 
-#: app/views/search.scm:77
+#: app/views/profiles.scm:237
+#, fuzzy
+msgid "saved job"
+msgstr "新しいジョブの開始"
+
+#: app/views/search.scm:77 app/views/search.scm:79
 msgid "no matches"
 msgstr ""
 
-#: app/views/search.scm:80
+#: app/views/search.scm:80 app/views/search.scm:82
 msgid "matches"
 msgstr ""
 
-#: app/views/search.scm:147 app/views/search.scm:190 lib/byggsteg/html.scm:408
-#: lib/byggsteg/html.scm:901
+#: app/views/search.scm:147 app/views/search.scm:152 app/views/search.scm:190
+#: app/views/search.scm:194 lib/byggsteg/html.scm:408 lib/byggsteg/html.scm:526
+#: lib/byggsteg/html.scm:901 lib/byggsteg/html.scm:1087
 msgid "search"
 msgstr ""
 
-#: app/views/search.scm:159
+#: app/views/search.scm:159 app/views/search.scm:163
 msgid "search the jobs, logs and profiles of this deployment"
 msgstr ""
 
-#: app/views/search.scm:161
+#: app/views/search.scm:161 app/views/search.scm:165
 msgid "nothing matched"
 msgstr ""
 
-#: app/views/search.scm:164
+#: app/views/search.scm:164 app/views/search.scm:168
 msgid "matches across the jobs, logs and profiles"
 msgstr ""
 
-#: app/views/search.scm:167
+#: app/views/search.scm:167 app/views/search.scm:171
 msgid "jobs"
 msgstr ""
 
-#: app/views/search.scm:192
+#: app/views/search.scm:192 app/views/search.scm:196
 msgid "Search this byggsteg deployment's jobs, logs and profiles"
 msgstr ""
 
-#: lib/byggsteg/html.scm:579
+#: lib/byggsteg/html.scm:579 lib/byggsteg/html.scm:723
 msgid "source"
 msgstr ""
 
-#: lib/byggsteg/html.scm:584
+#: lib/byggsteg/html.scm:584 lib/byggsteg/html.scm:728
 msgid "manual"
 msgstr ""
 
-#: lib/byggsteg/html.scm:589
+#: lib/byggsteg/html.scm:589 lib/byggsteg/html.scm:733
 msgid "documentation"
 msgstr ""
 
-#: lib/byggsteg/html.scm:609
+#: lib/byggsteg/html.scm:609 lib/byggsteg/html.scm:752
 msgid "back to the top"
 msgstr ""
 
-#: lib/byggsteg/html.scm:621
+#: lib/byggsteg/html.scm:621 lib/byggsteg/html.scm:767
 msgid "© Josep Bigorra & NalaGinrut -- AGPL-3.0-or-later"
 msgstr ""
 
-#: lib/byggsteg/html.scm:628
+#: lib/byggsteg/html.scm:628 lib/byggsteg/html.scm:790
+#: lib/byggsteg/html.scm:793
 msgid "version:"
 msgstr ""
 
-#: lib/byggsteg/html.scm:749
+#: lib/byggsteg/html.scm:749 lib/byggsteg/html.scm:912
 msgid "learn writing a byggsteg pipeline"
 msgstr "yggstegパイプラインの書き方を学ぶ"
 
-#: lib/byggsteg/html.scm:761
+#: lib/byggsteg/html.scm:761 lib/byggsteg/html.scm:924
 #, fuzzy
 msgid "job code"
 msgstr "成功したジョブ"
 
-#: lib/byggsteg/html.scm:765
+#: lib/byggsteg/html.scm:765 lib/byggsteg/html.scm:928
 msgid "submit"
 msgstr "送信"
 
-#: lib/byggsteg/html.scm:779
+#: lib/byggsteg/html.scm:779 lib/byggsteg/html.scm:973
 msgid "job succeeded"
 msgstr "成功したジョブ"
 
-#: lib/byggsteg/html.scm:783
+#: lib/byggsteg/html.scm:783 lib/byggsteg/html.scm:975
 msgid "job failed"
 msgstr "失敗したジョブ"
 
-#: lib/byggsteg/html.scm:787
+#: lib/byggsteg/html.scm:787 lib/byggsteg/html.scm:977
 msgid "job in progress"
 msgstr "実行中のジョブ"
 
-#: lib/byggsteg/html.scm:792
+#: lib/byggsteg/html.scm:792 lib/byggsteg/html.scm:982
 #, fuzzy
 msgid "job queued"
 msgstr "成功したジョブ"
 
-#: lib/byggsteg/html.scm:872
+#: lib/byggsteg/html.scm:872 lib/byggsteg/html.scm:1058
 msgid "download"
 msgstr ""
 
-#: lib/byggsteg/html.scm:884
+#: lib/byggsteg/html.scm:884 lib/byggsteg/html.scm:1070
 msgid "artifacts"
 msgstr ""
 
-#: lib/byggsteg/html.scm:896
+#: lib/byggsteg/html.scm:896 lib/byggsteg/html.scm:1082
 msgid "search jobs, logs and profiles"
 msgstr ""
 
-#: lib/byggsteg/html.scm:900
+#: lib/byggsteg/html.scm:900 lib/byggsteg/html.scm:1086
 msgid "a project, a branch, a word from a log"
 msgstr ""
 
-#: lib/byggsteg/job/pipeline.scm:412
+#: lib/byggsteg/job/pipeline.scm:412 lib/byggsteg/job/pipeline.scm:441
 msgid "starting new job"
 msgstr "新しいジョブの開始"
 

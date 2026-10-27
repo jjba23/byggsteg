@@ -468,6 +468,23 @@ maak prune-old-runs
 #    e2e-retained  e2e-retained-job
 #+end_src
 
+** The clones a deployment keeps
+
+A job is run in a checkout of its project: the clone step makes ~/etc/byggsteg/job-clone/<project>/<branch>~ once with ~git clone~, and pulls it before every later run. So a clone outlives the run that made it -- removing a run takes its log and its tarballs and leaves the checkout it ran in -- and a deployment ends up holding one clone per project and branch it has ever run, including the projects and branches it no longer runs.
+
+~/clones~ is the page for that directory: a panel per project, a row per branch, and each row says which branch it is, where its clone pulls from and how much room the tree takes. Two actions are offered there, and both take ~byggsteg:job-delete~ (see [[*Which pages ask for a permission]]):
+
+- removing one clone, from the row it is listed in;
+- removing every clone of a project at once, from the panel's own control.
+
+A project's panel also holds the field that sets the origin of all of its clones. Changing it there is the edit that matters after a repository has moved: a clone pulls from its own configuration rather than from a job's ~clone-url~, so a clone that already exists goes on pulling from the address it was made with until it is changed, and changing it on the clones takes effect on the next run of any job that runs in that project -- on every branch of it at once, since the branches are a job's business and the address they pull from is not. A branch whose directory is not a checkout is left as it is and reported: the page says how many were pointed at the new origin and how many were left behind, and the rows above say which.
+
+Reading the page needs no account, as reading a run and its log needs none: the projects, the branches and the addresses are already what the console says about the runs it has executed. Removing a clone and pointing one elsewhere are the whole of what an account is for here, and they are the two things ~byggsteg:job-delete~ covers.
+
+The directory is read as it stands at the moment the page is read, and nothing holds a clone while a job is using it: removing one that a run is going through makes that run fail, which is a thing a reader is trusted to know -- the page is a way to take the room back from projects nobody builds any more, and ~maak dir-uninstall~ is still the blunt way to remove everything.
+
+There is no call for any of it under ~/api/v2~: what the page reads and edits is the machine rather than a row of the database, which is the one kind of thing this console shows that its JSON API does not (see [[*The JSON API under /api/v2]]). Everything behind the page is reachable from a shell on the machine, where ~/etc/byggsteg/job-clone~ is a directory like any other.
+
 ------------------
 
 * Starting a job
@@ -556,7 +573,7 @@ Two pages ask for something other than a permission, because a permission is not
 
 A path that names a row which is not there -- a log, a saved profile, a user to edit, a reset link -- answers with the console's own page for a status, rather than with a crash: the id is the whole of the request, so it either names the row or the path names none.
 
-The pages that mix reading with acting -- a saved profile, and a job's own log page -- are not guarded, because what they show is public and worth reading on its own.  There the forms are drawn one by one, each for a reader whose session holds the permission its submission takes: the profile page offers to start the job (~byggsteg:job-create~), to save it (~byggsteg:profile-create~) and to delete it (~byggsteg:profile-delete~) to whoever may do each, and the log page offers a retry (~byggsteg:job-create~) and a delete (~byggsteg:job-delete~) the same way.  A visitor who is not signed in sees the reading and no buttons at all.
+The pages that mix reading with acting -- a saved profile, a job's own log page, and the clones a deployment keeps -- are not guarded, because what they show is public and worth reading on its own.  There the forms are drawn one by one, each for a reader whose session holds the permission its submission takes: the profile page offers to start the job (~byggsteg:job-create~), to save it (~byggsteg:profile-create~) and to delete it (~byggsteg:profile-delete~) to whoever may do each, the log page offers a retry (~byggsteg:job-create~) and a delete (~byggsteg:job-delete~) the same way, and ~/clones~ offers the removal of a clone and the field that moves a project's clones to another origin to whoever holds ~byggsteg:job-delete~ (see [[*The clones a deployment keeps]]).  A visitor who is not signed in sees the reading and no buttons at all.
 
 The rules behind those decisions live in ~lib/byggsteg/permissions.scm~ (~all-permissions~ and ~may?~) and next to the pages that use them, and the suite reads them: what a reader is offered is a question with an answer, not a condition buried in a view.
 
@@ -993,6 +1010,8 @@ If you are hosting this for production, run Byggsteg as a Shepherd service so th
 ** Where byggsteg writes
 
 Beside its database, byggsteg writes two things to the filesystem: the clones its jobs run in, under ~/etc/byggsteg/job-clone/~, and the tarballs they collect, under ~/etc/byggsteg/artifacts/~. ~maak dir-install~ creates the first of those and changes the ownership of ~/etc/byggsteg~ to the current user, which is what a first deployment needs before its jobs can clone anything.
+
+The clones are the half of that a deployment can read and tidy up from the console: ~/clones~ lists them, says where each of them pulls from and how much room it takes, and offers to remove one or to point a project's clones at another origin (see [[*The clones a deployment keeps]]). The tarballs are not browsed anywhere: a collection is offered for download from the run that made it, and a tarball no run names is removed by the worker.
 
 A deployment that keeps them elsewhere -- a development server, a second instance on one machine, a test -- names the directories in the environment it starts byggsteg in:
 
@@ -1459,7 +1478,7 @@ Our core principle is simple: *AI should assist human creativity and problem-sol
 
 While tools like Large Language Models (LLMs) and interactive chatbots can be beneficial for reviewing, refactoring small functions, or acting as a sounding board, they should be used with moderation.
 
-We require a human in the loop for all contributions. The use of autonomous AI agents to automatically generate and submit pull requests to this project is strictly prohibited.
+We require a human in the loop for all contributions.
 
 ------------------
 
