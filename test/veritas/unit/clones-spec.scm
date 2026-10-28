@@ -18,7 +18,7 @@
 
 ;;; The clone directory: what stands in it, and the two edits a page offers.
 ;;;
-;;; The readings below are of the three things that go wrong quietly, which is
+;;; The readings below are of the four things that go wrong quietly, which is
 ;;; why they are taken at all rather than left to a deployment to notice:
 ;;;
 ;;;   - a name a request carries must not name a path outside the clone
@@ -36,12 +36,19 @@
 ;;;   - the origin edit must cover every checkout of a project and must say which
 ;;;     of its branches it could not cover.  Setting it on the first branch and
 ;;;     reporting success is the failure mode: the branch that was skipped goes on
-;;;     pulling from the old address, and nothing says so.
+;;;     pulling from the old address, and nothing says so;
+;;;
+;;;   - no element of the page may be closed on itself.  The serializer writes a
+;;;     childless element as `<div .../>', which a browser reads as an opening
+;;;     tag, so a place drawn for an action nobody is offered is a place that
+;;;     swallows the rest of the page -- the whole reading, drawn as a panel
+;;;     inside a panel inside a panel.
 ;;;
 ;;; The fixture is throwaway checkouts under /tmp, made with the git a deployment
-;;; runs its jobs with, and it is two clone directories rather than one: what is
-;;; read is read in the first and what is removed or repointed is removed in the
-;;; second, so no reading depends on the order the suite runs its tests in.
+;;; runs its jobs with, and it is three clone directories rather than one: what
+;;; is read is read in the first, what is removed or repointed is removed in the
+;;; second, and the third holds a project with no clone under it -- so no reading
+;;; depends on the order the suite runs its tests in.
 
 (define-module (veritas unit clones-spec)
   #:use-module (veritas veritas)
@@ -72,6 +79,11 @@
 ;; deployment's and must still be there when the readings are over.
 (define outside-root
   (format #f "/tmp/byggsteg-clones-spec-outside-~a/" (getpid)))
+
+;; A third clone directory, holding one project and no clone under it: the
+;; project whose branches have all been removed, which the page still draws.
+(define blank-root
+  (format #f "/tmp/byggsteg-clones-spec-blank-~a/" (getpid)))
 
 (define (sh command)
   "Run COMMAND, and say whether it succeeded.
@@ -120,6 +132,8 @@ rather than a directory that quietly is not there."
        (make-tree! edit-root)
        (make-tree! outside-root)
        (make-tree! outside-tree)
+       (make-tree! blank-root)
+       (make-tree! (string-append blank-root "blank/"))
        (write-file! (string-append outside-tree "kept.txt")
                     "not this deployment's")
        (for-each (lambda (path)
@@ -193,8 +207,33 @@ support deployment)'), so the reading is of the same page everywhere."
   (page-markup (format #f "/tmp/byggsteg-clones-spec-none-~a/" (getpid))
                #:permissions '(byggsteg:job-delete)))
 
+;; The page about a project whose branches have all been removed, read by a
+;; reader who may manage it: the one panel that has an action for no clone.
+(define markup-of-a-project-with-no-clone
+  (page-markup blank-root #:permissions '(byggsteg:job-delete)))
+
 (define (holds? markup needle)
   (and (string-contains markup needle) #t))
+
+;; The elements of MARKUP that are closed on themselves, if any.
+;;
+;; A tag of a non-void element written as `<div .../>' is read by a browser as
+;; an opening one, so the element swallows everything that follows it: a panel
+;; with no action to put in its action column is drawn as a nest of panels
+;; inside panels rather than as a page.  The offenders come back whole, so a
+;; failure prints the element that did it rather than the page it hides in.
+;; The same reading `(veritas unit error-pages-spec)' takes of the status pages.
+(define (self-closed-elements markup)
+  (let ((pattern (make-regexp
+                  "<(div|p|pre|span|a|h1|h2|h3|dl|dt|dd|section|form)[^>]*/>")))
+    (let loop
+      ((start 0)
+       (found '()))
+      (let ((match (regexp-exec pattern markup start)))
+        (if match
+            (loop (match:end match 0)
+                  (cons (match:substring match 0) found))
+            (reverse found))))))
 
 ;;; ====== The readings ======
 
@@ -389,6 +428,16 @@ support deployment)'), so the reading is of the same page everywhere."
                              #:name "and no removal of a project")
                (assert-true (holds? markup-visitor "trunk")
                             #:name "the reading itself is everyone's"))
+
+         (test "no element of the page is closed on itself"
+               (assert-empty #:name
+                "no panel, row or place of the page swallows what follows it"
+                #:got (apply append
+                             (map self-closed-elements
+                                  (list markup-manager
+                                        markup-visitor
+                                        markup-of-nothing
+                                        markup-of-a-project-with-no-clone)))))
 
          (test "the page says what the last edit did"
                (assert-true (holds? (page-markup spec-root

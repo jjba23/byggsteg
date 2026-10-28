@@ -204,12 +204,21 @@ PERMISSIONS)."
                ,(clone-row-fact G_ (G_ "size")
                                 (clone-size-reading G_ (assq-ref branch
                                                                  'bytes))))
-          (div (@ (class ,(mk-class '(flex flex-row items-center gap-2
-                                              shrink-0))))
-               ,@(if (may? permissions
-                           'byggsteg:job-delete)
-                     (list (clone-delete-form G_ project name))
-                     '())))))
+          ;; The action is drawn with the row, or not drawn at all.  A place
+          ;; left standing for an action nobody is offered is a childless
+          ;; element, and the serializer closes one as `<div .../>' -- a slash
+          ;; an HTML parser reads as nothing and takes the tag for an opening
+          ;; one, so the row would swallow the branch below it and the page
+          ;; would be read as rows inside rows (see `row-actions-region' in
+          ;; `(byggsteg html)' for the same reading of the same writer).
+          ,@(if (may? permissions
+                      'byggsteg:job-delete)
+                (list `(div (@ (class ,(mk-class '(flex flex-row
+                                                          items-center
+                                                          gap-2
+                                                          shrink-0))))
+                            ,(clone-delete-form G_ project name)))
+                '()))))
 
 ;;; ====== One project ======
 
@@ -283,18 +292,22 @@ answers with; the caller splices it into the page."
                                  ;; The whole project's clones go at once from
                                  ;; here: a deployment that no longer builds a
                                  ;; project asks for the room back, and not to
-                                 ;; visit its branches one at a time.
-                                 (div (@ (class ,(mk-class '(flex
-                                                            flex-row
-                                                            items-center
-                                                            gap-2
-                                                            shrink-0))))
-                                      ,@(if (and may-manage?
-                                                 (not (null? branches)))
-                                            (list (clone-delete-form G_
-                                                                     project
-                                                                     #f))
-                                            '()))))
+                                 ;; visit its branches one at a time.  Like the
+                                 ;; row's action, it is drawn with the panel or
+                                 ;; not at all, so that the panel says nothing
+                                 ;; in a `<div .../>' -- which a browser reads
+                                 ;; as an opening tag (see `clone-row').
+                                 ,@(if (and may-manage?
+                                            (not (null? branches)))
+                                       (list `(div (@ (class ,(mk-class '(flex
+                                                                          flex-row
+                                                                          items-center
+                                                                          gap-2
+                                                                          shrink-0))))
+                                                   ,(clone-delete-form G_
+                                                                       project
+                                                                       #f)))
+                                       '())))
                      (if (null? branches)
                          (list `(p (@ (class ,(mk-class
                                                clone-prose-class)))
