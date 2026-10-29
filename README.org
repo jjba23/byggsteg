@@ -7,7 +7,7 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://jointhefreeworld.org/static/css/jointhefreeworld.css" />
 
 [[https://jointhefreeworld.org/ggg/dist/byggsteg.svg]] [[https://jointhefreeworld.org/ggg/dist/scheme-guile.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-guix.svg]] [[https://jointhefreeworld.org/ggg/dist/hygguile.svg]]
-[[https://jointhefreeworld.org/ggg/dist/license-agpl3+.svg]] [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/maak.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-artanis.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]]
+[[https://jointhefreeworld.org/ggg/dist/license-mit.svg]] [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/maak.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-artanis.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]]
 
 /a build step, in Lisp: describe your pipeline as a list, and byggsteg runs it/
 
@@ -149,9 +149,8 @@ thread of the same program.  See [[*Concurrency and the queue]].
   [[*Building in containers]].
 - *Cross-platform.*  Runs anywhere Guile Scheme can run, and exposes web
   endpoints -- so it is accessible from a laptop, a phone, or a script.
-- *Free software.*  Licensed under the GNU AGPL v3 or newer, documentation under
-  the GNU FDL v1.3 or newer.  Contribute to it, or extend it with features of
-  your own.
+- *Free software.*  Licensed under the MIT License, documentation under the GNU
+  FDL v1.3 or newer.  Contribute to it, or extend it with features of your own.
 - *Reproducible.*  Everything the project is run with is pinned in a GNU Guix
   manifest, from the Guile that runs the server to the Emacs that renders this
   manual.
@@ -1484,9 +1483,9 @@ We require a human in the loop for all contributions.
 
 * Licensing
 
-byggsteg and all of its source code are free software, licensed under the GNU Affero General Public License v3 (or newer at your convenience).
+byggsteg and all of its source code are free and open software, licensed under the MIT License.
 
-https://www.gnu.org/licenses/agpl-3.0.html
+https://opensource.org/license/mit
 
 The documentation and examples, including this document, which are provided with byggsteg, are all licensed under the GNU Free Documentation License v1.3 (or newer at your convenience).
 

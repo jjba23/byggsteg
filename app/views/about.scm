@@ -1,20 +1,8 @@
 ;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
+;; SPDX-License-Identifier: MIT
 ;; Copyright © Josep Bigorra known as "jjba23" <jjbigorra@gmail.com>
 ;; Copyright © Mu Lei known as "NalaGinrut" <NalaGinrut@gmail.com>
-
-;; byggsteg is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU Affero General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-;; byggsteg is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU Affero General Public License for more details.
-
-;; You should have received a copy of the GNU Affero General Public License
-;; along with byggsteg.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; The account of where this console came from.
 ;;;
@@ -313,7 +301,7 @@ stands."
                                      (G_
                                       "the file that remembers, the task runner, and the editor the whole of it was written in"))))
                      (about-paragraph (G_
-                                       "byggsteg is free software under the GNU Affero General Public License, either version 3 or later. Take it, run it on your own machine, read it, break it, and add the step it is missing: that is the door this page is about."))
+                                       "byggsteg is free software under the MIT License. Take it, run it on your own machine, read it, break it, and add the step it is missing: that is the door this page is about."))
                      (about-links G_))))
 
 ;;; ====== The page ======

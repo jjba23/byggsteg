@@ -370,10 +370,9 @@ msgstr ""
 
 #: app/views/about.scm:306 app/views/about.scm:316
 msgid ""
-"byggsteg is free software under the GNU Affero General Public License, "
-"either version 3 or later. Take it, run it on your own machine, read it, "
-"break it, and add the step it is missing: that is the door this page is "
-"about."
+"byggsteg is free software under the MIT License. Take it, run it on your "
+"own machine, read it, break it, and add the step it is missing: that is "
+"the door this page is about."
 msgstr ""
 
 #: app/views/about.scm:333 app/views/about.scm:343 lib/byggsteg/html.scm:431
@@ -984,7 +983,7 @@ msgid "back to the top"
 msgstr ""
 
 #: lib/byggsteg/html.scm:621 lib/byggsteg/html.scm:767
-msgid "© Josep Bigorra & NalaGinrut -- AGPL-3.0-or-later"
+msgid "© Josep Bigorra & NalaGinrut -- MIT"
 msgstr ""
 
 #: lib/byggsteg/html.scm:628 lib/byggsteg/html.scm:790
@@ -1073,10 +1072,6 @@ msgstr "empezar trabajo"
 #~ msgid "byggsteg is the hackable Guile CI/CD system"
 #~ msgstr "byggsteg es el sistema CI/CD Guile hackeable"
 
-#~ msgid "byggsteg is free software, available under the GNU AGPL v3 or newer"
-#~ msgstr ""
-#~ "byggsteg es software gratuito, disponible sobre la licencia GNU AGPL v3 o "
-#~ "mas nueva"
 
 #~ msgid "powered by Guile Scheme, GNU Artanis, GNU Guix, OliveCSS"
 #~ msgstr ""

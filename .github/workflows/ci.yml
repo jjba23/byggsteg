@@ -1,0 +1,24 @@
+# byggsteg - the CI/CD orchestrator written in Guile Scheme
+#
+# SPDX-License-Identifier: MIT
+# Copyright © Josep Bigorra known as "jjba23" <jjbigorra@gmail.com>
+# Copyright © Mu Lei known as "NalaGinrut" <NalaGinrut@gmail.com>
+
+name: CI
+
+on:
+  push:
+    branches: [trunk]
+
+permissions:
+  contents: read
+
+jobs:
+  byggsteg:
+    name: 🧱 Byggsteg
+    uses: jjba23/byggsteg-github/.github/workflows/byggsteg.yml@trunk
+    with:
+      tasks: maak-test byggsteg-version maak-deploy
+      daemon-name: byggsteg-daemon
+      timeout-minutes: 60
+    secrets: inherit
