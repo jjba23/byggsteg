@@ -373,6 +373,92 @@ a Makefile asked for Make with it."
     (do-in-clone-dir clone-dir
                      '("uname -a"))))
 
+;;; ====== The clone, and bringing it up to date ======
+;;;
+;;; A job is run in a checkout of its project that outlives the run: made once
+;;; with `git clone', and brought to the branch's tip before every later run.
+;;; That checkout is a mirror of the branch and nothing else -- it holds no
+;;; work of its own worth keeping -- which is what lets the update be a fetch
+;;; and a forced checkout rather than a pull.
+
+(define* (clone-checkout-command clone-dir branch-name)
+  "Return the shell command that brings CLONE-DIR to BRANCH-NAME's tip.
+
+The fetch is named by ref and the checkout is forced onto the branch, so the
+command does not depend on the clone having an upstream, on the branch being
+the one it happens to have checked out, or on the remote still having the
+history the clone last saw.  A pull cannot say the last of those: when the
+branch was rewritten -- a forced push to `trunk' leaves every deployment's
+clone on a line the remote no longer has -- Git has to choose between merging
+and rebasing and refuses when nothing has told it which, and either choice
+builds something the remote does not have: a rebase replays the discarded tip
+onto the new history, a merge joins the two.  What a build has to run is the
+commit that was pushed, which is what the fetch's own `FETCH_HEAD' is.
+
+The directory has to be a checkout in its own right, and is asked for its top
+level before anything is run in it: a clone whose `.git' was removed is a
+plain directory, and Git run in one walks up to whatever repository holds it
+-- usually the deployment's own -- and would fetch and force a checkout there.
+The answer is compared with the directory's physical path, which is the only
+top level a clone of a project can have.
+
+What can go wrong is said in the job's log in this project's words rather than
+Git's, because the log is the only place an operator reads it.  A clone that
+is no longer a checkout, a checkout with no origin (the clones page repoints
+one, and a deployment may have removed it), a branch that was deleted or
+renamed, a remote that is briefly unreachable -- tried three times, waiting
+longer between each -- and a fetch that worked while the checkout of it did
+not.  Nothing is written until the fetch has succeeded, so a job that cannot
+reach its remote fails on the checkout it already had rather than on a tree
+half-way between two commits."
+  (format #f "\
+dir=~a
+branch=~a
+if ! command -v git >/dev/null 2>&1; then
+  echo 'byggsteg: git is not on this deployment PATH, so the clone cannot be updated' >&2
+  exit 1
+fi
+if ! cd \"$dir\"; then
+  echo \"byggsteg: cannot enter the clone $dir\" >&2
+  exit 1
+fi
+root=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ \"$root\" != \"$(pwd -P)\" ]; then
+  echo \"byggsteg: $dir is not a git checkout; remove it and the next run clones it again\" >&2
+  exit 1
+fi
+if ! origin=$(git remote get-url origin 2>/dev/null); then
+  echo \"byggsteg: $dir has no origin remote to fetch $branch from\" >&2
+  exit 1
+fi
+before=$(git rev-parse --short HEAD 2>/dev/null) || before=none
+attempt=1
+while :; do
+  if GIT_TERMINAL_PROMPT=0 git fetch --quiet origin \"+refs/heads/$branch:refs/remotes/origin/$branch\"; then
+    break
+  fi
+  if [ \"$attempt\" -ge 3 ]; then
+    echo \"byggsteg: could not fetch $branch from $origin after 3 attempts; is the branch still there, and is the remote reachable?\" >&2
+    exit 1
+  fi
+  echo \"byggsteg: fetching $branch from $origin failed; retrying in $((attempt * 2))s\" >&2
+  sleep $((attempt * 2))
+  attempt=$((attempt + 1))
+done
+if ! git checkout --quiet --force -B \"$branch\" FETCH_HEAD; then
+  echo \"byggsteg: fetched $branch from $origin but could not check it out\" >&2
+  exit 1
+fi
+after=$(git rev-parse --short HEAD)
+if [ \"$before\" = \"$after\" ]; then
+  echo \"byggsteg: $branch was already at $after\"
+else
+  echo \"byggsteg: $branch moved from $before to $after\"
+fi
+"
+          (shell-quote clone-dir)
+          (shell-quote branch-name)))
+
 (define* (clone-repo-step #:key project branch-name clone-url)
   (let* ((clone-dir (string-append (job-clone-location) "/" project "/"
                                    branch-name))
@@ -387,8 +473,7 @@ a Makefile asked for Make with it."
                                   clone-url
                                   clone-dir)))
           ($ clone-cmd))
-        (let ((pull-cmd (format #f "cd ~s && git reset --hard && git pull"
-                                clone-dir)))
+        (let ((pull-cmd (clone-checkout-command clone-dir branch-name)))
           ($ pull-cmd)))))
 
 (define* (collect-artifacts-step #:key id
