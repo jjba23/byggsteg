@@ -1504,7 +1504,7 @@ The manual is this README, rendered as a single HTML page:
 - Online HTML: https://jointhefreeworld.org/manuals/byggsteg/index.html
 - The source of that page: [[file:README.org]] (this file), rendered by
   ~maak build-manual~ and published by ~maak deploy~
-- The demo above is [[file:pub/byggsteg-showcase.gif]]: a tour of the pages of
+- The demo above is a tour of the pages of
   this console as its dark theme shows them, one page read at a time and
   assembled with ~ffmpeg~.  It is a capture of a running deployment rather than
   a drawing of one, so recording the same tour again after a page changes is
