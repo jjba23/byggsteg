@@ -49,8 +49,6 @@ delivery (CI & CD) pipelines in an easy way that are tailored to your needs and
 which you fully control -- easily deployed to your private VPS, to your own
 self-hosting, or to a cloud of your choosing.
 
-[[https://jointhefreeworld.org/static-assets/byggsteg/logo-small.png]]
-
 View a live instance of byggsteg here: https://byggsteg.jointhefreeworld.org
 
 I don't mind having the software building and testing happening in the same
