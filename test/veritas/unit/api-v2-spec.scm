@@ -476,6 +476,21 @@ middle of the year would be a day the drawing forgot."
                                        (eq? day 'null)) rest))
       (else (loop (cdr rest))))))
 
+;; The day the grid below is read on, and the instant the run in it was queued
+;; at.  Both are fixed rather than taken from the clock: fifty weeks reach back
+;; 350 days, which touches twelve calendar months when it starts in a July and
+;; thirteen when it starts in a November, so a grid read on whatever day the
+;; suite happens to run would be asserting a different year every few weeks.
+;; The day is a Monday in the middle of a year, which is the layout the
+;; expectation below describes: the columns run from a Sunday, the last one is
+;; the week today falls in, and the days after today in it have not happened.
+(define activity-day
+  (civil->day-number 2026 6 15))
+
+(define (activity-instant)
+  "Noon, local time, on ACTIVITY-DAY: the same civil date in every timezone."
+  (+ (* activity-day 86400) 43200))
+
 (define (activity-summary)
   "The year of runs a grid is read as.
 
@@ -483,7 +498,8 @@ Only what the drawing says is read: how many weeks it covers, how many runs the
 year holds, what the busiest day is, and -- the reading a client has to keep --
 that a day which has not happened yet is `null' rather than a day with nothing on
 it."
-  (let* ((grid (json-of (activity-json (heatmap-of (list (current-time))))))
+  (let* ((grid (json-of (activity-json (heatmap-of (list (activity-instant))
+                                                    #:today (activity-instant)))))
          (columns (vector->list (assoc-ref grid "columns")))
          (days (append-map (lambda (column)
                              (vector->list (assoc-ref column "days")))

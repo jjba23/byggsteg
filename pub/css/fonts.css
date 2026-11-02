@@ -14,8 +14,8 @@
    https://github.com/cormullion/juliamono/
 
    `maak fonts' fetches the files into `pub/fonts/', named after the family,
-   the style and the subset they carry, and writes this sheet from the same
-   list -- so a refresh moves both together.
+   the style and the subset they carry -- which is the name each `@font-face'
+   below declares.
 
    One `@font-face' per family, style and subset, with the address of the file
    relative to this sheet (`../fonts/') rather than absolute: the sheet and the
