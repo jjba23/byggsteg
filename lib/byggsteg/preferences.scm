@@ -27,7 +27,6 @@
                                project-analytics-interval
                                analytics-endpoint
                                analytics-interval
-                               lucida-font-url
                                artifact-location
                                artifact-sweep-grace-seconds
                                artifact-sweep-interval
@@ -244,9 +243,8 @@ frame, and a console that is nobody's in particular is still this project's."
 ;;; to fall back to, so `BYGGSTEG_ANALYTICS_ENDPOINT=' is how a deployment says
 ;;; that nothing of its console leaves the reader's browser.
 ;;;
-;;; The empty value is read here rather than by `deployment-setting', for the
-;;; reason `lucida-font-url' is: a deployment has been asked, and an answer of
-;;; nothing is an answer.
+;;; The empty value is read here rather than by `deployment-setting': a
+;;; deployment has been asked, and an answer of nothing is an answer.
 
 (define project-analytics-endpoint
   "https://api.symbanta.jointhefreeworld.org/v1/events/register")
@@ -274,31 +272,6 @@ frame, and a console that is nobody's in particular is still this project's."
 (define analytics-interval
   (make-parameter (deployment-number-setting "BYGGSTEG_ANALYTICS_INTERVAL"
                                              project-analytics-interval)))
-
-;;; The Lucida faces of the console, and whether it asks for them at all
-;;;
-;;; The console is read in Lucida Sans where a reader's system has it -- the
-;;; family is first in the `font-sans' stack of `pub/css/byggsteg.olive.min.css'
-;;; -- and the faces that stack falls back to are declared by a stylesheet of
-;;; the deployment's own, `pub/css/lucida.css', whose files a deployment fetches
-;;; into `pub/fonts/lucida' with `maak lucida-fonts'.  Lucida is proprietary: it
-;;; is not byggsteg's to give away, so the source ships no faces and each
-;;; deployment serves its own, from its own host, like every other resource of
-;;; its console (see `asset-url').
-;;;
-;;; This is the address of that stylesheet.  A deployment that keeps it -- or a
-;;; sheet of its own -- elsewhere names it here, and one that may not serve
-;;; these faces at all sets the variable to nothing,
-;;; `BYGGSTEG_LUCIDA_FONT_URL=', and no page of its console asks for Lucida: the
-;;; stack then reads in the Lucida Sans the reader's own system has, or in the
-;;; bundled Plus Jakarta Sans beside it.
-;;;
-;;; The empty value is read here rather than by `deployment-setting', which
-;;; takes an empty value for a deployment that did not say -- but this one has
-;;; been asked, and an answer of nothing is an answer.
-(define lucida-font-url
-  (make-parameter (let ((set (getenv "BYGGSTEG_LUCIDA_FONT_URL")))
-                    (if (string? set) set "/css/lucida.css"))))
 
 ;;; The address a deployment is reached at, as the pages it serves write links
 ;;;

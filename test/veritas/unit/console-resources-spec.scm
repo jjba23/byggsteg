@@ -61,11 +61,10 @@
                                    "rel=\"preload\"[^>]*as=\"style\"[^>]*href=\"([^\"]+)\""
                                    page))) string=?))
 
-;; The sheets this console serves itself: the two families byggsteg bundles, the
-;; Lucida in front of them, the icon font, and the utility sheet the terminal is
-;; dressed in.
+;; The sheets this console serves itself: the three families byggsteg bundles, the
+;; icon font, and the utility sheet the terminal is dressed in.
 (define console-stylesheets
-  '("/css/fonts.css" "/css/lucida.css" "/css/phosphor.css"
+  '("/css/fonts.css" "/css/phosphor.css"
     "/css/byggsteg.olive.min.css"))
 
 ;; Where a deployment serves `pub/' from: the directory a deployed byggsteg runs
@@ -138,45 +137,22 @@
                   #:pattern
                   "src=\"https://assets.example.org/img/byggsteg-logo.png\""
                   #:got (at-an-asset-host a-page))))
-         (test "the Lucida in front of the stack is the deployment's to serve"
-          #:shuffle? #f
-          (assert-contains #:name
-                           "a page asks for the Lucida sheet by default"
-                           #:expect (a-page)
-                           #:got "/css/lucida.css")
-          (assert-not-contains #:name
-           "a deployment that may not serve those faces asks for none"
-           #:expect (parameterize ((lucida-font-url ""))
-                      (a-page))
-           #:got "/css/lucida.css")
-          (assert-contains #:name
-           "and one with a sheet of its own is asked for that"
-           #:expect (parameterize ((lucida-font-url
-                                    "https://example.org/lucida.css"))
-                      (a-page))
-           #:got "https://example.org/lucida.css")
-          (assert-not-contains #:name
-           "which is asked for as it stands and not moved to an asset host"
-           #:expect (parameterize ((asset-base-url
-                                    "https://assets.example.org")
-                                   (lucida-font-url
-                                    "https://example.org/lucida.css"))
-                      (a-page))
-           #:got "https://assets.example.org/https://example.org"))
-         (test "and the Lucida sheet names faces the deployment has"
+         (test "and the typography sheet names faces the deployment has"
                #:shuffle? #f
-               (let ((sheet (read-file (served-file "/css/lucida.css"))))
+               (let ((sheet (read-file (served-file "/css/fonts.css"))))
                  (let ((faces (delete-duplicates (map (lambda (match )
                                                         (match:substring match
                                                          1))
                                                       (list-matches
-                                                       "url\\('\\.\\./fonts/lucida/([^']+)'\\)"
+                                                       "url\\(\\.\\./fonts/([^')]+)\\)"
                                                        sheet)) string=?)))
-                   (assert-true (positive? (length faces))
-                                #:name "the sheet declares the Lucida faces")
+                   (assert-equal #:name
+                    "the sheet declares the three families it bundles"
+                    #:expect 10
+                    #:got (length faces))
                    (for-each (lambda (face)
                                (assert-true (file-exists? (string-append
-                                                           "pub/fonts/lucida/"
+                                                           "pub/fonts/"
                                                            face))
                                             #:name (format #f
                                                     "and the deployment has ~a to serve"

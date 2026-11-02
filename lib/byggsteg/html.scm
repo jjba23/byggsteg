@@ -195,22 +195,21 @@ cannot be closed early by it."
 ;;;
 ;;; Every stylesheet, script and icon a page of this console is built from is a
 ;;; file of the deployment, served from its own host and named through
-;;; `asset-url': the typography of the console (`fonts.css'), the Lucida faces
-;;; in front of it (`lucida.css', which a deployment fetches for itself), the
-;;; Phosphor icon font, the utility sheet the terminal is dressed in, and the
-;;; framework's own script blocks.  A deployment that keeps its assets on
-;;; another host -- a cache, a CDN, an object store -- names that host in
-;;; `BYGGSTEG_ASSET_URL' and every one of these links is written to it; one that
-;;; keeps them where it is asks nobody at all, and a console behind a firewall,
-;;; on an intranet or on a machine that is simply offline looks the way it was
-;;; designed to.
+;;; `asset-url': the typography of the console (`fonts.css'), the Phosphor icon
+;;; font, the utility sheet the terminal is dressed in, and the framework's own
+;;; script blocks.  A deployment that keeps its assets on another host -- a
+;;; cache, a CDN, an object store -- names that host in `BYGGSTEG_ASSET_URL' and
+;;; every one of these links is written to it; one that keeps them where it is
+;;; asks nobody at all, and a console behind a firewall, on an intranet or on a
+;;; machine that is simply offline looks the way it was designed to.
 ;;;
 ;;; The list below is `(hygguile hygguile)'s own list of recommended resources,
-;;; which is not used here: its typography comes from a font API on the public
-;;; web and its icons from a CDN, so every page of this console would ask two
-;;; third parties for its own appearance -- and tell them who read it.  The
-;;; framework's script blocks are the framework's own and are taken as they
-;;; come; what this console asks for by itself is asked for below.
+;;; which is not used here: its typography is declared from a host the
+;;; framework's author runs and its icons from a CDN, so every page of this
+;;; console would ask two third parties for its own appearance -- and tell them
+;;; who read it.  The framework's script blocks are the framework's own and are
+;;; taken as they come; what this console asks for by itself is asked for
+;;; below.
 (define (console-resources)
   "The stylesheets, icons and script blocks every page of the console is
 built from, each served by this deployment itself."
@@ -256,28 +255,14 @@ built from, each served by this deployment itself."
 (define (console-typography)
   "The faces the console is read in, as this deployment serves them.
 
-`fonts.css' is the two families byggsteg bundles with it: Intel One Mono for
-the terminal's mono type and Plus Jakarta Sans for its sans faces, both under
-the Open Font License.  `lucida.css' is the Lucida the console's own stack
-names first, which is proprietary and so is not byggsteg's to ship: a
-deployment fetches its own copy of the faces (`maak lucida-fonts') and serves
-them from its own host, names a sheet of its own by setting
-`BYGGSTEG_LUCIDA_FONT_URL' to its address, or sets that variable to nothing and
-then asks for no Lucida at all -- the stack reads in the Lucida Sans the
-reader's own system has, or in the Plus Jakarta Sans beside it.
-
-An address that is a path is served by this deployment and follows it to its
-asset host if it has one; one that is a whole address -- a sheet on a host of
-its own -- is asked for as it stands."
-  (let ((lucida (lucida-font-url)))
-    (append (list `(link (@ (rel stylesheet)
-                            (href ,(asset-url "/css/fonts.css")))))
-            (if (and (string? lucida)
-                     (positive? (string-length lucida)))
-                (list `(link (@ (rel stylesheet)
-                                (href ,(if (string-prefix? "/" lucida)
-                                           (asset-url lucida) lucida)))))
-                '()))))
+`fonts.css' declares the three families byggsteg bundles with it -- Work Sans
+for its sans faces, Source Serif 4 for long-form reading and JuliaMono for the
+terminal's mono type, all under the Open Font License -- and names the files
+beside it in `pub/fonts/'.  The sheet is a file of this deployment, so its
+address is built like every other asset's: a path that follows the deployment
+to its asset host if it has one."
+  (list `(link (@ (rel stylesheet)
+                  (href ,(asset-url "/css/fonts.css"))))))
 
 ;;; ====== What a page says once it has been read ======
 ;;;

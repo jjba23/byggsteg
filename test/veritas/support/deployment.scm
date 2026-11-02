@@ -44,8 +44,8 @@
   "THUNK read as this project's own deployment: the console a fresh clone serves.
 
 The settings a page is built from are bound to the values this project ships --
-its name, its sentence, its mark, its addresses, the analytics service its pages
-report to and the Lucida sheet in front of its stack -- whatever the environment
+its name, its sentence, its mark, its addresses and the analytics service its
+pages report to -- whatever the environment
 of the machine running the suite has been configured to say.  Everything else
 THUNK reads is left as it found it.
 
@@ -62,8 +62,7 @@ which is what the identity suite does."
                  (deployment-documentation-url project-documentation-url)
                  ;; No asset host, so every resource is at the deployment's own
                  ;; path; no public address, so a page built where there is no
-                 ;; running server names paths rather than half an address; and
-                 ;; the Lucida sheet this project ships the stack in front of.
+                 ;; running server names paths rather than half an address.
                  (asset-base-url "")
                  (public-url "")
                  ;; The page-view script a deployment may put on its pages:
@@ -72,6 +71,5 @@ which is what the identity suite does."
                  ;; page carries even where the machine running the suite has
                  ;; named an endpoint of its own.
                  (analytics-endpoint project-analytics-endpoint)
-                 (analytics-interval project-analytics-interval)
-                 (lucida-font-url "/css/lucida.css"))
+                 (analytics-interval project-analytics-interval))
     (thunk)))

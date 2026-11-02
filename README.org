@@ -1177,7 +1177,7 @@ Each has byggsteg's own value until a deployment names another, so a deployment 
 
 *** The console's own resources
 
-The console is served by the deployment that runs it: its typography (`pub/css/fonts.css'), the Lucida faces in front of it (`pub/css/lucida.css'), its icons (`pub/css/phosphor.css'), the utility sheet the terminal is dressed in, the mark its landing page shows (`pub/img/'), and the framework's own scripts. No page of it asks a search engine, a font API, an icon CDN or any other website for anything, so a console behind a firewall, on an intranet or on a machine that is simply offline looks the way it was designed to -- and a reader of a private build server does not announce themselves to two third parties by opening it.
+The console is served by the deployment that runs it: its typography (`pub/css/fonts.css'), its icons (`pub/css/phosphor.css'), the utility sheet the terminal is dressed in, the mark its landing page shows (`pub/img/'), and the framework's own scripts. No page of it asks a search engine, a font API, an icon CDN or any other website for anything, so a console behind a firewall, on an intranet or on a machine that is simply offline looks the way it was designed to -- and a reader of a private build server does not announce themselves to two third parties by opening it.
 
 A deployment that keeps its files somewhere else -- a cache, a CDN, an object store -- names that host and every link to them is written to it:
 
@@ -1188,20 +1188,9 @@ maak production-server
 
 Left empty, as it is by default, the links are paths of the deployment's own (`/css/fonts.css'), which is also what a deployment behind a TLS terminator wants: the reader's own host answers, in http or https as they arrived.
 
-The one resource byggsteg does not ship is Lucida, which is proprietary: a deployment takes its own copies of those faces (`maak lucida-fonts'), serves them from its own host, and names the stylesheet that declares them:
+The type is byggsteg's own to ship: Work Sans, Source Serif 4 and JuliaMono are all under the SIL Open Font License, and `maak fonts' fetches the files into `pub/fonts/' from the projects that publish them. The console is read in Work Sans, sets long-form text in Source Serif 4 and the terminal in JuliaMono; no third party is asked for any of it.
 
-#+begin_src sh
-# the default: the sheet this deployment serves itself
-BYGGSTEG_LUCIDA_FONT_URL="/css/lucida.css" maak production-server
-
-# a sheet of your own, on a host of your own
-BYGGSTEG_LUCIDA_FONT_URL="https://example.org/lucida.css" maak production-server
-
-# no Lucida at all
-BYGGSTEG_LUCIDA_FONT_URL= maak production-server
-#+end_src
-
-This is the one setting where an empty value is not read as "nothing said": byggsteg has asked, and an empty answer means the console declares no Lucida, reading in the Lucida Sans a reader's own system has or in the bundled Plus Jakarta Sans otherwise. See [[*On Lucida fonts]] for what serving them means, and [[file:test/veritas/unit/console-resources-spec.scm][~console-resources-spec~]] for the reading that keeps the console's own files its own.
+See [[*On fonts]] for where each family comes from, and [[file:test/veritas/unit/console-resources-spec.scm][~console-resources-spec~]] for the reading that keeps the console's own files its own.
 
 *** Page analytics
 
@@ -1221,7 +1210,7 @@ The interval is the heartbeat rate, in milliseconds. Left unnamed, the endpoint 
 BYGGSTEG_ANALYTICS_ENDPOINT= maak production-server
 #+end_src
 
-This is the second setting where an empty value is not read as "nothing said", for the same reason as the Lucida sheet: byggsteg has asked where its pages report, and an answer of nothing means no page reports at all -- the script is left off every page, so no request leaves the reader's browser. An interval that is not a positive whole number is not an interval: the project's own four seconds is kept rather than a page that reports on every tick or never at all. See [[file:test/veritas/unit/analytics-spec.scm][~analytics-spec~]] for the readings that keep a page reporting only where its deployment said it should.
+An empty endpoint is not read as "nothing said": byggsteg has asked where its pages report, and an answer of nothing means no page reports at all -- the script is left off every page, so no request leaves the reader's browser. An interval that is not a positive whole number is not an interval: the project's own four seconds is kept rather than a page that reports on every tick or never at all. See [[file:test/veritas/unit/analytics-spec.scm][~analytics-spec~]] for the readings that keep a page reporting only where its deployment said it should.
 
 ------------------
 
@@ -1512,15 +1501,30 @@ The manual is this README, rendered as a single HTML page:
 
 ------------------
 
-** On Lucida fonts
+** On fonts
 
-Lucida fonts are proprietary typefaces originally developed by Bigelow & Holmes. They remain a long-time favorite for many people and are very legible in many situations and hardware/software. While they are bundled pre-installed on many operating systems and platforms, they remain proprietary fonts.
+The console is set in three libre families, all under the SIL Open Font License
+1.1 and all fetched into `pub/fonts/' by `maak fonts', so a deployment ships
+them itself and asks nobody at run time:
 
-You may use these font files under principles of fair use or for local development and non-commercial purposes, provided it is not for profit and used without securing a proper commercial license where required by law. Users and contributors are solely responsible for ensuring their usage complies with applicable software licensing terms and intellectual property rights.
+- *Work Sans* (the `font-sans' of the console) -- the family every screen's
+  prose, controls and tables are set in. From [[https://fonts.google.com/specimen/Work+Sans][Google Fonts]], Copyright 2019
+  The Work Sans Project Authors.
+- *Source Serif 4* (its `font-serif') -- long-form text: a description, a
+  manual page, a body of prose. From
+  [[https://fonts.google.com/specimen/Source+Serif+4][Google Fonts]], Copyright
+  2014-2023 Adobe.
+- *JuliaMono* (the `font-mono' of the terminal) -- a run's output, a build log,
+  a snippet of YAML. From [[https://juliamono.netlify.app/][its own project]]
+  (it is not in the Google Fonts catalogue), Copyright 2019-2024 Cormullion.
 
-Because of that, byggsteg ships no Lucida files and asks nobody else for them. Where it used to reach for a copy on another website, the deployment now serves its own: ~maak lucida-fonts~ fetches the faces into ~pub/fonts/lucida/~, ~pub/css/lucida.css~ declares them -- the sheet the console links, with the addresses of the files relative to it, so the two move together -- and the console reads in Lucida wherever a reader's system has not got it. A deployment that may not serve them sets ~BYGGSTEG_LUCIDA_FONT_URL=~ and declares none, and a deployment with a licence of its own for them, or with its own mirror of the files, names the sheet it keeps them in: ~BYGGSTEG_LUCIDA_FONT_URL=https://example.org/lucida.css~. The task takes its copies from this project's host of them unless the deployment names another with ~BYGGSTEG_LUCIDA_FONT_SOURCE~.
+Work Sans and Source Serif 4 are variable fonts, so one file per style carries
+the whole weight axis; JuliaMono ships static weights, hence the regular and
+bold latin files and the two faces split at 600. `pub/css/fonts.css` declares
+them, with the addresses of the files relative to it, so the sheet and the files
+move together to whatever host a deployment serves them from.
 
-The other faces are not a question of permission: Intel One Mono and Plus Jakarta Sans, the two families byggsteg bundles for its terminal, are under the SIL Open Font License; the Phosphor icon font is MIT.
+The Phosphor icon font is MIT.
 
 ------------------
 

@@ -608,45 +608,110 @@ not been running."
    "https://codeberg.org/jjba23/olive-css/raw/branch/trunk/resources/css/byggsteg.olive.min.css"
    #:output "./pub/css/byggsteg.olive.min.css"))
 
-;; The Lucida faces `pub/css/lucida.css' declares, by the names it declares them
-;; under.  The console asks for these files from its own host, and Lucida is
-;; proprietary -- the files are not byggsteg's to give away, so the source does
-;; not carry them -- which is why a deployment fetches its own copies:
+;; The three families `pub/css/fonts.css' declares, as the CSS itself names
+;; them.  They are libre -- SIL Open Font License 1.1, all three -- so a
+;; deployment ships them itself rather than fetching anything at run time:
 ;;
-;;   maak lucida-fonts
+;;   maak fonts
 ;;
-;; from the root of the clone the server serves `pub/' from, which is where a
-;; deployed byggsteg runs from.  Where they are taken from is this project's own
-;; host of them unless the deployment names another (`BYGGSTEG_LUCIDA_FONT_SOURCE',
-;; a directory of `.woff' files), which is what a deployment with its own mirror
-;; of the faces -- or a licence of its own for them -- sets.  See "On Lucida
-;; fonts" in the manual before serving them.
-(define lucida-font-files
-  '("LSANS" "LSANSI"
-    "LSANSD"
-    "LSANSDI"
-    "LTYPE"
-    "LTYPEO"
-    "LTYPEB"
-    "LTYPEBO"
-    "l_10646"))
+;; fetches them into `pub/fonts/' from the projects that publish them.  Work
+;; Sans and Source Serif 4 are Google's, so their own stylesheet is asked for
+;; and every subset it names is taken, named after the family, the style and
+;; the subset it carries -- which is the name `pub/css/fonts.css' declares.
+;; JuliaMono is not in the Google Fonts catalogue, so it is taken from its own
+;; project at a release tag instead, and the two latin files are the regular
+;; and the bold weight the terminal is set in.
+(define web-font-families
+  '("Work+Sans:ital,wght@0,100..900;1,100..900"
+    "Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900"))
 
-(define (lucida-font-source)
-  (let ((named (getenv "BYGGSTEG_LUCIDA_FONT_SOURCE")))
-    (if (and named
-             (positive? (string-length named))) named
-        "https://jointhefreeworld.org/static-assets/fonts")))
+;; The subsets the sheet declares, kept apart from the rest of the answer so
+;; that a family with a Greek or Cyrillic range does not fetch files no sheet
+;; names.
+(define web-font-subsets
+  '("latin" "latin-ext"))
 
-(define (lucida-fonts)
-  "Fetch the Lucida faces the console serves from this deployment's own host."
-  ;; One download per face, in the order the list names them, and the first
-  ;; failure stops the task: that is what the loop this replaces did, with the
-  ;; exit status of the curl that failed.
-  (mkdir-p "./pub/fonts/lucida")
+(define juliamono-version
+  "v0.63.2")
+
+(define juliamono-font-files
+  '(("juliamono-normal-latin.woff2"
+     . "https://raw.githubusercontent.com/cormullion/juliamono/v0.63.2/webfonts/JuliaMono-RegularLatin.woff2")
+    ("juliamono-bold-latin.woff2"
+     . "https://raw.githubusercontent.com/cormullion/juliamono/v0.63.2/webfonts/JuliaMono-BoldLatin.woff2")))
+
+;; A font service answers an ordinary browser with woff2 and answers a bare HTTP
+;; client with something older, so the request wears a browser's name.
+(define font-service-user-agent
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36")
+
+;; What a family is called in a file name: the family as the service writes it,
+;; lowercased, with its spaces turned into dashes.
+(define (font-file-slug family)
+  (string-map (lambda (character)
+                (if (char=? character #\space) #\- character))
+              (string-downcase family)))
+
+;; The faces a Google stylesheet declares, as (URL STYLE SUBSET FAMILY) lists in
+;; the order it declares them.  Every block is announced by the subset it
+;; carries and states its own family and slope, so each face is named while the
+;; block that describes it is still in hand.
+(define (web-font-faces css)
+  (let loop
+    ((lines (string-split css #\newline))
+     (subset "")
+     (family "")
+     (style "normal")
+     (faces '()))
+    (if (null? lines)
+        (reverse faces)
+        (let* ((line (car lines))
+               (announced (string-match "^/\\* (.+) \\*/[[:space:]]*$" line))
+               (named (string-match "font-family:[[:space:]]*'([^']+)'" line))
+               (sloped (string-match "font-style:[[:space:]]*italic" line))
+               (straight (string-match "font-style:[[:space:]]*normal" line))
+               (face (string-match "url\\((https://[^)]+\\.woff2)\\)" line)))
+          (cond
+           (announced (loop (cdr lines)
+                            (match:substring announced 1) family style faces))
+           (named (loop (cdr lines) subset (match:substring named 1) style faces))
+           (sloped (loop (cdr lines) subset family "italic" faces))
+           (straight (loop (cdr lines) subset family "normal" faces))
+           (face (loop (cdr lines) subset family style
+                       (cons (list (match:substring face 1) style subset family)
+                             faces)))
+           (else (loop (cdr lines) subset family style faces)))))))
+
+(define (fonts)
+  "Fetch the three families the console is set in into this deployment's pub/fonts."
+  (mkdir-p "./pub/fonts")
+  ;; -- The two web families ------------------------------------------------
+  (for-each (lambda (family)
+              (let* ((css (curl-text (~
+                                      "https://fonts.googleapis.com/css2?family=~a&display=swap"
+                                      family)
+                                     #:user-agent font-service-user-agent))
+                     (faces (filter (lambda (face)
+                                      (member (caddr face)
+                                              web-font-subsets))
+                                    (web-font-faces css))))
+                (when (null? faces)
+                  (error "fonts: the font service answered with no face for"
+                         family))
+                (for-each (lambda (face)
+                            (curl-download (car face)
+                                           #:output
+                                           (~ "./pub/fonts/~a-~a-~a.woff2"
+                                              (font-file-slug (cadddr face))
+                                              (cadr face)
+                                              (caddr face))))
+                          faces)))
+            web-font-families)
+  ;; -- The monospace family ------------------------------------------------
   (for-each (lambda (font)
-              (curl-download (~ "~a/~a.woff" (lucida-font-source) font)
-                             #:output (~ "./pub/fonts/lucida/~a.woff" font)))
-            lucida-font-files))
+              (curl-download (cdr font)
+                             #:output (~ "./pub/fonts/~a" (car font))))
+            juliamono-font-files))
 
 (define (import-production-database)
   "Import production env's database to local workspace via SSH/SCP"
