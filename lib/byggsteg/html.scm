@@ -59,8 +59,8 @@ titled after a project whose name holds a `<', or a log line that prints one,
 arrive as the text it is rather than as markup; text written by hand, in the
 escaped shape or not, is safe either way."
   (html-escape (html-unescape (if (string? value) value
-                                  (format #f "~a"
-                                          (or value ""))))))
+                                (format #f "~a"
+                                        (or value ""))))))
 
 ;;; ====== What a page says about itself ======
 ;;;
@@ -80,14 +80,14 @@ already built from -- otherwise.  A page built where there is no running server
 address."
   (let ((named (public-url)))
     (cond
-      ((and (string? named)
-            (positive? (string-length named)))
-       (string-trim-right named #\/))
-      (else (catch #t
+      [(and (string? named)
+         (positive? (string-length named)))
+       (string-trim-right named #\/)]
+      [else (catch #t
                    (lambda ()
                      (current-myhost))
                    (lambda (key . args)
-                     ""))))))
+                     ""))])))
 
 (define (absolute-address address)
   "ADDRESS as the readers that never loaded this page have to read it.
@@ -101,10 +101,10 @@ left as it is, and a page built where there is no running server and no address
 of its own keeps the path rather than being announced by half an address."
   (let ((base (deployment-url)))
     (if (or (string-prefix? "http://" address)
-            (string-prefix? "https://" address)
-            (string-prefix? "//" address)
-            (not (positive? (string-length base)))) address
-        (string-append base address))))
+          (string-prefix? "https://" address)
+          (string-prefix? "//" address)
+          (not (positive? (string-length base)))) address
+      (string-append base address))))
 
 (define* (discovery-meta #:key title description path robots)
   "The head of a page as the readers that never open the terminal read it.
@@ -118,16 +118,16 @@ name, since a half-written one points a crawler somewhere that is not here.
 tag has two), so the image is announced by the two tags that can be written."
   (let* ((base (deployment-url))
          (url (if (or (string-null? base)
-                      (not (string? path))) ""
-                  (string-append base path))))
+                    (not (string? path))) ""
+                (string-append base path))))
     `((meta (@ (name description)
                (content ,description)))
       (meta (@ (name robots)
                (content ,robots)))
       ,@(if (string-null? url)
-            '()
-            (list `(link (@ (rel canonical)
-                            (href ,url)))))
+          '()
+          (list `(link (@ (rel canonical)
+                          (href ,url)))))
       (meta (@ (property og:type)
                (content "website")))
       (meta (@ (property og:site_name)
@@ -137,9 +137,9 @@ tag has two), so the image is announced by the two tags that can be written."
       (meta (@ (property og:description)
                (content ,description)))
       ,@(if (string-null? url)
-            '()
-            (list `(meta (@ (property og:url)
-                            (content ,url)))))
+          '()
+          (list `(meta (@ (property og:url)
+                          (content ,url)))))
       (meta (@ (property og:image)
                (content ,(absolute-address (deployment-logo)))))
       (meta (@ (name twitter:card)
@@ -163,8 +163,8 @@ quotes arrive as JSON and not as markup.  It holds no `</script', so the page
 cannot be closed early by it."
   (let* ((base (deployment-url))
          (url (if (or (string-null? base)
-                      (not (string? path))) #f
-                  (string-append base path))))
+                    (not (string? path))) #f
+                (string-append base path))))
     (scm->json-string (append `((@context . "https://schema.org")
                                 (@type . "SoftwareApplication")
                                 (name unquote
@@ -188,8 +188,8 @@ cannot be closed early by it."
                                         (price . "0")
                                         (priceCurrency . "EUR")))
                               (if url
-                                  (list `(url unquote url))
-                                  '())))))
+                                (list `(url unquote url))
+                                '())))))
 
 ;;; ====== What the console is built of ======
 ;;;
@@ -236,10 +236,10 @@ built from, each served by this deployment itself."
         (show-notifications-from-url-js
          #:header-classes (mk-class (append '(text-xl) accent-ink))
          #:close-icon-classes (mk-class (append '(ph
-                                                   ph-x
-                                                   cursor-pointer
-                                                   text-xl)
-                                                 accent-ink))
+                                                  ph-x
+                                                  cursor-pointer
+                                                  text-xl)
+                                                accent-ink))
          #:card-classes prose-ink)
         ;; The mark a control wears while the form it is in is being sent, which
         ;; is the console's own: the framework's scripts are the framework's,
@@ -285,15 +285,15 @@ to its asset host if it has one."
   "The page-view script, as a list of one script or of none."
   (let ((endpoint (analytics-endpoint)))
     (if (or (not (string? endpoint))
-            (string-null? endpoint))
-        '()
-        (list `(script (@ (type "text/javascript")
-                          (defer "")
-                          (src ,(asset-url "/js/symbanta.js"))
-                          (data-endpoint ,endpoint)
-                          (data-interval ,(number->string
-                                           (analytics-interval))))
-                      "")))))
+          (string-null? endpoint))
+      '()
+      (list `(script (@ (type "text/javascript")
+                        (defer "")
+                        (src ,(asset-url "/js/symbanta.js"))
+                        (data-endpoint ,endpoint)
+                        (data-interval ,(number->string
+                                         (analytics-interval))))
+                     "")))))
 
 (define* (html-template G_
                         #:key title
@@ -312,11 +312,11 @@ to its asset host if it has one."
   ;; A page that cannot be kept current that way -- one whose whole body is what
   ;; changes -- is the one this is still for.
   (let ((maybe-auto-refresh (cond
-                              ((equal? should-auto-refresh #t)
+                              [(equal? should-auto-refresh #t)
                                `(meta (@ (content ,(format #f "~a"
-                                                    auto-refresh-seconds))
-                                         (http-equiv "refresh")) ()))
-                              (else `()))))
+                                                           auto-refresh-seconds))
+                                         (http-equiv "refresh")) ())]
+                              [else `()])))
     ;; Olive switches its dark palette on `data-theme' at the root element, and
     ;; the attribute below is what makes the terminal dark without any script:
     ;; the phosphor screen is the theme byggsteg is read in.  A reader who has
@@ -345,7 +345,7 @@ to its asset host if it has one."
                                 ;; well as read, because the moon/sun button
                                 ;; hygguile draws flips `data-theme' on its own.
                                 (script (@ (type "text/javascript"))
-                                 "
+                                        "
 (function () {
   var root = document.documentElement
   var choice = null
@@ -393,10 +393,10 @@ to its asset host if it has one."
                           ;; `onyx' neutral, phosphor `olive' prose,
                           ;; monospaced and square.
                           (body (@ (class ,(mk-class (append
-                                                     '(bg-stone-100
-                                                       dark:bg-onyx-900
-                                                       rounded-none font-mono)
-                                                     prose-ink))))
+                                                      '(bg-stone-100
+                                                        dark:bg-onyx-900
+                                                        rounded-none font-mono)
+                                                      prose-ink))))
                                 ,notification-tray
                                 ;; `min-h-screen' rather than `h-screen': the
                                 ;; footer still sits at the bottom of a short
@@ -423,8 +423,8 @@ to its asset host if it has one."
                                 ;; ink back in front of the page's own text.
                                 (div (@ (class ,(mk-class (append
                                                            '(flex flex-col
-                                                             min-h-screen
-                                                             justify-between)
+                                                                  min-h-screen
+                                                                  justify-between)
                                                            prose-ink))))
                                      (div ,(page-top G_
                                                      #:is-logged-in
@@ -551,13 +551,13 @@ to its asset host if it has one."
 ;; outside its ramps.
 (define (account-button G_ href icon-type label)
   `((a (@ (class ,(mk-class (append '(lowercase no-underline
-                                        font-sans
-                                        font-medium
-                                        flex
-                                        flex-row
-                                        items-center
-                                        gap-2)
-                                      nav-button-ink)))
+                                                font-sans
+                                                font-medium
+                                                flex
+                                                flex-row
+                                                items-center
+                                                gap-2)
+                                    nav-button-ink)))
           (href ,href))
        ,(terminal-icon-button #:icon icon-type
                               #:size nav-button-size
@@ -597,17 +597,15 @@ to its asset host if it has one."
                                             ;; framework's rather than the
                                             ;; console's.
                                             #:content `((div ,(icon #:type 'sun
-                                                                    #:icon-css '
-                                                                    (text-sm
-                                                                     md:text-md
-                                                                     text-asparagus-900
-                                                                     dark:text-asparagus-100))
+                                                                    #:icon-css '(text-sm
+                                                                                 md:text-md
+                                                                                 text-asparagus-900
+                                                                                 dark:text-asparagus-100))
                                                              ,(icon #:type 'moon
-                                                                    #:icon-css '
-                                                                    (text-sm
-                                                                     md:text-md
-                                                                     text-asparagus-900
-                                                                     dark:text-asparagus-100))))
+                                                                    #:icon-css '(text-sm
+                                                                                 md:text-md
+                                                                                 text-asparagus-900
+                                                                                 dark:text-asparagus-100))))
                                             #:color '(text-asparagus-900
                                                       dark:text-asparagus-300)
                                             #:weight '(font-light)
@@ -619,8 +617,8 @@ to its asset host if it has one."
                          (div ,(clones-button G_))
                          (div ,(about-button G_))
                          (div ,(if (not is-logged-in)
-                                   (login-button G_)
-                                   (me-button G_))))))
+                                 (login-button G_)
+                                 (me-button G_))))))
     ;; The bar is a pane of terminal glass rather than an opaque strip: it stays
     ;; under the reader's eye while the page scrolls, and whatever passes behind
     ;; it arrives tinted and blurred.  It takes no washes -- the wordmark and the
@@ -641,8 +639,8 @@ to its asset host if it has one."
                                             (alt "")
                                             (loading lazy)
                                             (class ,(mk-class '(h-7 w-auto
-                                                                shrink-0)))))
-                                    (span (@ (class ,prompt-face)) "$")
+                                                                    shrink-0)))) "")
+                                    ;; (span (@ (class ,prompt-face)) "$")
                                     ,(h3 (list (deployment-name))
                                          #:color (append accent-ink
                                                          '(hover:text-asparagus-700
@@ -660,25 +658,25 @@ to its asset host if it has one."
                             ;; the boxes come back and the bar is the bar of a wide screen -- the
                             ;; deployment's buttons at one end, the reader's at the other.
                             (div (@ (class ,(mk-class '(flex flex-row
-                                                        flex-wrap
-                                                        items-center
-                                                        align-center
-                                                        gap-1
-                                                        sm:gap-2
-                                                        sm:justify-between))))
-                                 (div (@ (class ,(mk-class '(contents sm:flex
-                                                             sm:flex-row
-                                                             sm:flex-wrap
-                                                             sm:justify-start
+                                                             flex-wrap
+                                                             items-center
+                                                             align-center
                                                              gap-1
-                                                             sm:gap-2))))
+                                                             sm:gap-2
+                                                             sm:justify-between))))
+                                 (div (@ (class ,(mk-class '(contents sm:flex
+                                                                      sm:flex-row
+                                                                      sm:flex-wrap
+                                                                      sm:justify-start
+                                                                      gap-1
+                                                                      sm:gap-2))))
                                       ,link-buttons)
                                  (div (@ (class ,(mk-class '(contents sm:flex
-                                                             sm:flex-row
-                                                             sm:flex-wrap
-                                                             sm:justify-start
-                                                             gap-1
-                                                             sm:gap-2))))
+                                                                      sm:flex-row
+                                                                      sm:flex-wrap
+                                                                      sm:justify-start
+                                                                      gap-1
+                                                                      sm:gap-2))))
                                       ,action-buttons)))
                           #:tag 'header
                           #:position '(sticky top-0 z-10)
@@ -726,17 +724,17 @@ to its asset host if it has one."
                               #:href "/about"
                               #:family '(font-mono)
                               #:size '(text-sm)
-                              #:color accent-ink)                                (a (@ (href "javascript:void(0)")
-                                (class ,(mk-class (append
-                                                   '(no-underline
-                                                     cursor-pointer
-                                                     font-mono
-                                                     font-medium
-                                                     text-sm)
-                                                   accent-ink)))
-                                (onclick
-                                 "window.scrollTo({ top: 0, behavior: 'smooth' })"))
-                             ,(G_ "back to the top")))
+                              #:color accent-ink) (a (@ (href "javascript:void(0)")
+                                                        (class ,(mk-class (append
+                                                                           '(no-underline
+                                                                             cursor-pointer
+                                                                             font-mono
+                                                                             font-medium
+                                                                             text-sm)
+                                                                           accent-ink)))
+                                                        (onclick
+                                                         "window.scrollTo({ top: 0, behavior: 'smooth' })"))
+                                                     ,(G_ "back to the top")))
                      ;; The licence line reads at the size of the links above it and at
                      ;; the line height of a line rather than of a paragraph: the footer
                      ;; is two lines of small print, and small print is not read any
@@ -772,13 +770,13 @@ to its asset host if it has one."
                                  ;; `()' says less than one that says only the
                                  ;; release.
                                  (if (and (string? commit)
-                                          (not (string-null? commit)))
-                                     (format #f "~a ~a (~a)"
-                                             (G_ "version:")
-                                             byggsteg-version commit)
-                                     (format #f "~a ~a"
-                                             (G_ "version:")
-                                             byggsteg-version)))
+                                       (not (string-null? commit)))
+                                   (format #f "~a ~a (~a)"
+                                           (G_ "version:")
+                                           byggsteg-version commit)
+                                   (format #f "~a ~a"
+                                           (G_ "version:")
+                                           byggsteg-version)))
                                #:family '(font-mono)
                                #:size '(text-sm)
                                #:leading '(leading-5)
@@ -816,11 +814,11 @@ to its asset host if it has one."
 
 (define (maybe-profile-name G_ is-profile)
   (cond
-    ((equal? is-profile #t)
+    [(equal? is-profile #t)
      (terminal-input #:label (G_ "profile name")
                      #:required #t
-                     #:name 'profile-name))
-    (else `())))
+                     #:name 'profile-name)]
+    [else `()]))
 
 (define* (locale-choose-form G_
                              #:key selected-locale)
@@ -947,26 +945,26 @@ the label under them says so again in the box the mark hides."
       "FACE's two words, with the mark of work in progress when MARK? asks for
 it."
       `((span (@ (class ,(mk-class '(flex flex-row
-                                            items-center
-                                            gap-2))))
+                                          items-center
+                                          gap-2))))
               ,@(if mark?
-                    (pending-mark #:size 'sm #:label label)
-                    '())
+                  (pending-mark #:size 'sm #:label label)
+                  '())
               ,(sub-h4 label
                        #:color face
                        #:size size))))
     (cond
-      ((equal? success 1)
-       (status-row job-succeeded-face #f (G_ "job succeeded")))
-      ((equal? failure 1)
-       (status-row job-failed-face #f (G_ "job failed")))
-      ((equal? in-progress 1)
-       (status-row job-running-face #t (G_ "job in progress")))
+      [(equal? success 1)
+       (status-row job-succeeded-face #f (G_ "job succeeded"))]
+      [(equal? failure 1)
+       (status-row job-failed-face #f (G_ "job failed"))]
+      [(equal? in-progress 1)
+       (status-row job-running-face #t (G_ "job in progress"))]
       ;; A job that is neither running nor finished is one whose flags say
       ;; nothing yet; it is still worth a colour rather than a blank -- and the
       ;; mark with it, since a job whose own row has not been written yet is a
       ;; job the deployment has taken and not yet started.
-      (else (status-row job-running-face #t (G_ "job queued"))))))
+      [else (status-row job-running-face #t (G_ "job queued"))])))
 
 ;; Both rules below answer for a reader as well as for a job, because a retry is
 ;; a form: what is offered is what the reader can send, and a form drawn for
@@ -983,8 +981,8 @@ that retry takes `byggsteg:job-create', so a reader who does not hold it is
 offered nothing, however red the row is."
   (if (and (equal? (assoc-ref job
                               'job-failed) 1)
-           (may? permissions
-                 'byggsteg:job-create)) #t #f))
+        (may? permissions
+              'byggsteg:job-create)) #t #f))
 
 (define* (retry-offered-on-page? job
                                  #:key (permissions all-permissions))
@@ -995,8 +993,8 @@ then be running twice.  Every other job -- queued, succeeded or failed -- can be
 run again from the page that reads it, by a reader who may submit one."
   (if (and (not (equal? (assoc-ref job
                                    'job-in-progress) 1))
-           (may? permissions
-                 'byggsteg:job-create)) #t #f))
+        (may? permissions
+              'byggsteg:job-create)) #t #f))
 
 (define (delete-offered-on-page? permissions)
   "Whether a reader holding PERMISSIONS is offered the form that deletes a job.
@@ -1028,7 +1026,7 @@ its own to log, and the job it retries keeps saying what it said."
             ;; the phosphor screen was the brightest word on the page.
             ,(terminal-primary-icon-button #:icon 'arrow-clockwise
                                            #:content (if content
-                                                         (G_ content) "")
+                                                       (G_ content) "")
                                            #:type 'submit)))))
 
 (define (artifact-download G_ artifact)
@@ -1052,11 +1050,11 @@ its own to log, and the job it retries keeps saying what it said."
 (define* (artifact-downloads G_ artifacts)
   "The tarballs a job built, each one a download."
   (if (nil? artifacts)
-      '()
-      (list `(div (@ (class ,(mk-class '(flex flex-col gap-2 py-2))))
-                  ,(terminal-heading (G_ "artifacts"))
-                  ,@(map (lambda (artifact)
-                           (artifact-download G_ artifact)) artifacts)))))
+    '()
+    (list `(div (@ (class ,(mk-class '(flex flex-col gap-2 py-2))))
+                ,(terminal-heading (G_ "artifacts"))
+                ,@(map (lambda (artifact)
+                         (artifact-download G_ artifact)) artifacts)))))
 
 (define* (search-form G_
                       #:optional (query ""))
@@ -1084,8 +1082,8 @@ a job that has been taken and not started is the state between -- the one read a
 most wants to see change."
   (not (or (equal? 1 (assoc-ref job
                                 'job-success))
-           (equal? 1 (assoc-ref job
-                                'job-failed)))))
+         (equal? 1 (assoc-ref job
+                              'job-failed)))))
 
 (define (row-status-region G_ job)
   "The status of JOB, in the place a row of a list draws it.
@@ -1109,19 +1107,19 @@ been asked for again; a row that offers nothing is an empty place rather than no
 place, so that the control it does not offer yet has somewhere to appear."
   (let ((actions (if (retry-offered-in-list? job
                                              #:permissions permissions)
-                     (retry-button G_ job
-                                   #:content "retry")
-                     '())))
+                   (retry-button G_ job
+                                 #:content "retry")
+                   '())))
     (if (null? actions)
-        ;; The empty place is written with a child of its own -- an empty text
-        ;; node -- for the reason the empty pane on a log's page is (see
-        ;; `log-page' in `(app views logs)'): a childless element is serialized
-        ;; as `<span .../>', which an HTML parser reads as an opening tag.
-        `((span (@ (data-log-actions "")
-                   (hidden ""))
-               ""))
-        `((span (@ (data-log-actions ""))
-               ,@actions)))))
+      ;; The empty place is written with a child of its own -- an empty text
+      ;; node -- for the reason the empty pane on a log's page is (see
+      ;; `log-page' in `(app views logs)'): a childless element is serialized
+      ;; as `<span .../>', which an HTML parser reads as an opening tag.
+      `((span (@ (data-log-actions "")
+                 (hidden ""))
+              ""))
+      `((span (@ (data-log-actions ""))
+              ,@actions)))))
 
 (define* (make-job-link G_ job log
                         #:key (permissions all-permissions))
@@ -1140,44 +1138,44 @@ The row names the job it is about and whether that job can still change
 current finds the row it was answered about and which rows are worth asking for
 at all (see `pub/js/byggsteg-logs.js')."
   (if (not job)
-      '()
-      (let* ((log-filename (text-from-db (assq-ref log
-                                                   'title)))
-             (logs-link (format #f "~a/logs/~a"
-                                (current-myhost)
-                                (assq-ref log
-                                          'id))))
-        `((div (@ (data-log-row ,(assq-ref job
-                                          'id))
-                  (data-log-running ,(if (job-still-to-come? job)
-                                         "true" "false"))
-                  (class ,(mk-class '(flex flex-col gap-1))))
-               (a (@ (class ,dash-link-face)
-                     (href ,logs-link))
-                  (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
-                                                   align-center wrap-break-word))))
-                       ;; The row's own mark is the green beside its title:
-                       ;; runs are read by their titles (`dash-link-face'), and
-                       ;; the icons down the left edge are what a reader follows
-                       ;; to the one they want.
-                       (span ,(icon #:type 'scroll
-                                    #:icon-css (append '(text-xl no-underline)
-                                                       accent-ink)))
-                       ,(h4 log-filename
-                            #:size '(text-lg)
-                            #:color (append strong-ink
-                                            '(hover:text-asparagus-900
-                                              dark:hover:text-asparagus-100)))))
-               (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
-                                                gap-3 ml-6))))
-                    ,(em (strftime "%c"
-                                   (localtime (assq-ref job
-                                                         'created-at)))
-                         #:size '(text-sm)
-                         #:color muted-ink)
-                    ,@(row-status-region G_ job)
-                    ,@(row-actions-region G_ job
-                                          #:permissions permissions)))))))
+    '()
+    (let* ((log-filename (text-from-db (assq-ref log
+                                                 'title)))
+           (logs-link (format #f "~a/logs/~a"
+                              (current-myhost)
+                              (assq-ref log
+                                        'id))))
+      `((div (@ (data-log-row ,(assq-ref job
+                                         'id))
+                (data-log-running ,(if (job-still-to-come? job)
+                                     "true" "false"))
+                (class ,(mk-class '(flex flex-col gap-1))))
+             (a (@ (class ,dash-link-face)
+                   (href ,logs-link))
+                (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center
+                                                 align-center wrap-break-word))))
+                     ;; The row's own mark is the green beside its title:
+                     ;; runs are read by their titles (`dash-link-face'), and
+                     ;; the icons down the left edge are what a reader follows
+                     ;; to the one they want.
+                     (span ,(icon #:type 'scroll
+                                  #:icon-css (append '(text-xl no-underline)
+                                                     accent-ink)))
+                     ,(h4 log-filename
+                          #:size '(text-lg)
+                          #:color (append strong-ink
+                                          '(hover:text-asparagus-900
+                                            dark:hover:text-asparagus-100)))))
+             (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
+                                              gap-3 ml-6))))
+                  ,(em (strftime "%c"
+                                 (localtime (assq-ref job
+                                                      'created-at)))
+                       #:size '(text-sm)
+                       #:color muted-ink)
+                  ,@(row-status-region G_ job)
+                  ,@(row-actions-region G_ job
+                                        #:permissions permissions)))))))
 
 (define (make-profile-link profile)
   (let* ((profiles-link (format #f "/profiles/~a"
@@ -1198,7 +1196,7 @@ at all (see `pub/js/byggsteg-logs.js')."
 (define-syntax-rule (if-job-was-updated-html job html)
   "Render HTML conditionally for jobs that contain updated_at field"
   (cond
-    ((equal? (assoc-ref job
+    [(equal? (assoc-ref job
                         'updated-at) #f)
-     '())
-    (else html)))
+     '()]
+    [else html]))
