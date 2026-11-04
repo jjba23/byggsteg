@@ -213,7 +213,13 @@ cannot be closed early by it."
 (define (console-resources)
   "The stylesheets, icons and script blocks every page of the console is
 built from, each served by this deployment itself."
-  (list (console-typography)
+  (list `(link (@ (rel icon)
+                  (type "image/svg+xml")
+                  (href ,(asset-url "/img/byggsteg-logo.svg"))) "")
+        `(link (@ (rel "shortcut icon")
+                  (type "image/x-icon")
+                  (href ,(asset-url "/favicon.ico"))) "")
+        (console-typography)
         (phosphor-icons #:stylesheet-href (asset-url "/css/phosphor.css"))
         (fly-out-css)
         (hygguile-extras-css)
@@ -628,6 +634,14 @@ to its asset host if it has one."
                                                                 items-center
                                                                 gap-2
                                                                 no-underline))))
+                                    ;; The deployment's mark, beside the wordmark: the
+                                    ;; same image the landing page and a link preview
+                                    ;; are drawn with, so a reader meets one logo.
+                                    (img (@ (src ,(deployment-logo))
+                                            (alt "")
+                                            (loading lazy)
+                                            (class ,(mk-class '(h-7 w-auto
+                                                                shrink-0)))))
                                     (span (@ (class ,prompt-face)) "$")
                                     ,(h3 (list (deployment-name))
                                          #:color (append accent-ink
