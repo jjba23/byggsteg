@@ -289,8 +289,11 @@
 ;; reading `(veritas unit error-pages-spec)' takes of the status pages, with
 ;; the elements this page is built from.
 (define (self-closed-elements)
+  ;; The void elements are left out: the serializer writes them as a lone tag
+  ;; (`<img ... />'), which a browser reads as the element itself and never as
+  ;; an opening tag that swallows what follows.
   (let ((pattern (make-regexp
-                  "<(div|p|pre|span|a|h1|h2|dl|dt|dd|footer|header|img)[^>]*/>")))
+                  "<(div|p|pre|span|a|h1|h2|dl|dt|dd|footer|header)[^>]*/>")))
     (let loop
       ((start 0)
        (found '()))
