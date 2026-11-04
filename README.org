@@ -9,6 +9,9 @@
 [[https://jointhefreeworld.org/ggg/dist/byggsteg.svg]] [[https://jointhefreeworld.org/ggg/dist/scheme-guile.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-guix.svg]] [[https://jointhefreeworld.org/ggg/dist/hygguile.svg]]
 [[https://jointhefreeworld.org/ggg/dist/license-mit.svg]] [[https://jointhefreeworld.org/ggg/dist/license-fdl13+.svg]] [[https://jointhefreeworld.org/ggg/dist/maak.svg]] [[https://jointhefreeworld.org/ggg/dist/gnu-artanis.svg]] [[https://jointhefreeworld.org/ggg/dist/i18n-gnu-gettext.svg]] [[https://jointhefreeworld.org/ggg/dist/jointhefreeworld-org.svg]]
 
+#+attr_html: :width 160 :alt byggsteg logo
+[[file:logo.svg]]
+
 /a build step, in Lisp: describe your pipeline as a list, and byggsteg runs it/
 
 byggsteg is a continuous integration and delivery system written in Scheme (GNU
@@ -1140,7 +1143,6 @@ The pages that answer only to an account -- ~/me~, ~/users/*~, ~/password/*~, an
 
 ------------------
 
-
 ------------------
 
 * Configuring a deployment
@@ -1239,7 +1241,6 @@ plan:
   - name: Fetch log by UUID
     request:
       url: https://byggsteg.jointhefreeworld.org/logs/4868ce1e-d029-4fdb-bbbe-d54d1616a631
-
 
 #+end_src
 
@@ -1353,7 +1354,6 @@ module for the suite -- the same settings with values that are obviously
 nobody's -- and it is found because ~maak test~ puts ~./test~ on the load path,
 where ~(byggsteg env)~ is ~byggsteg/env.scm~.  A server never adds that
 directory, so the keys a deployment signs with are always its own.
-
 
 ------------------
 
