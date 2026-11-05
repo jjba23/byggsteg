@@ -251,6 +251,19 @@ page as it is opened."
                                               "data-log-actions")
                                      '("wall time" "cpu time" "peak memory"
                                        "3.5s" "2.0 MB")))
+                 ;; The terms and readings are components, not text written
+                 ;; into the quasiquote: a `G_' left unquoted is serialized as
+                 ;; an element the browser has never heard of, and the ink the
+                 ;; panel asks for is lost with it.
+                 (assert-equal #:name
+                  "the usage terms are terms, not markup, and use the reading ink"
+                  #:expect '(#f #t #t)
+                  #:got (let ((usage (between markup
+                                             "data-log-usage"
+                                             "data-log-actions")))
+                          (list (reads? usage "<G_>")
+                                (reads? usage ">steps<")
+                                (reads? usage "dark:text-stone-700"))))
                  (assert-equal #:name
                   "the graph is a labelled region, and its links say what they open"
                   #:expect '(#t #t)

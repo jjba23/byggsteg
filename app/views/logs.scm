@@ -530,8 +530,8 @@ find the place it is drawn in."
   (list
    `(dl (@ (data-log-usage "")
            (aria-busy "true"))
-        (dt (G_ "reading") #:color prose-ink)
-        (dd "…" #:color prose-ink))))
+        ,(dt (G_ "reading") #:color prose-ink)
+        ,(dd "…" #:color prose-ink))))
 
 (define (log-output-placeholder G_)
   "What the output pane says while the first response is on its way."
@@ -552,23 +552,23 @@ find the place it is drawn in."
   (let ((usage (log-usage sections)))
     (list
      `(dl (@ (data-log-usage ""))
-          (dt (G_ "steps") #:color prose-ink)
-          (dd ,(number->string (assq-ref usage 'steps))
-              #:color prose-ink)
-          (dt (G_ "wall time") #:color prose-ink)
-          (dd ,(usage-reading (assq-ref usage 'wall) human-duration)
-              #:color prose-ink)
-          (dt (G_ "cpu time") #:color prose-ink)
-          (dd ,(usage-reading (assq-ref usage 'cpu) human-duration)
-              #:color prose-ink)
-          (dt (G_ "peak memory") #:color prose-ink)
-          (dd ,(usage-reading (assq-ref usage 'rss) human-memory)
-              #:color prose-ink)
-          (dt (G_ "output") #:color prose-ink)
-          (dd ,(format #f "~a ~a"
+          ,(dt (G_ "steps") #:color prose-ink)
+          ,(dd (number->string (assq-ref usage 'steps))
+               #:color prose-ink)
+          ,(dt (G_ "wall time") #:color prose-ink)
+          ,(dd (usage-reading (assq-ref usage 'wall) human-duration)
+               #:color prose-ink)
+          ,(dt (G_ "cpu time") #:color prose-ink)
+          ,(dd (usage-reading (assq-ref usage 'cpu) human-duration)
+               #:color prose-ink)
+          ,(dt (G_ "peak memory") #:color prose-ink)
+          ,(dd (usage-reading (assq-ref usage 'rss) human-memory)
+               #:color prose-ink)
+          ,(dt (G_ "output") #:color prose-ink)
+          ,(dd (format #f "~a ~a"
                        (assq-ref usage 'lines)
                        (plural (assq-ref usage 'lines) (G_ "line")))
-              #:color prose-ink)))))
+               #:color prose-ink)))))
 
 (define (diagnostic-face severity)
   "The ink a build-wide diagnostic is read in."
