@@ -198,13 +198,11 @@
               ;; one are not there to read.
               (job-id (and l (assoc-ref l
                                         'job-id)))
-              (j (and job-id (get-job-by-id job-repo job-id)))
-              ;; The page draws its own log and graph while the answer is
-              ;; built: a reader without JavaScript has the whole run in the
-              ;; first response.  The script keeps a running page current; it is
-              ;; no longer what puts the run on the page in the first place.
-              ;; `?full=1' stays a valid spelling of this same complete page.
-              (defer? #f))
+              (j (and job-id (get-job-by-id job-repo job-id))))
+         ;; The page draws its own log and graph while the answer is built: a
+         ;; reader without JavaScript has the whole run in the first response.
+         ;; The script keeps a running page current; `?full=1' is the same
+         ;; complete page.
          ;; A log that is not there is a 404 rather than a page about nothing:
          ;; the id is the whole of the request, so it either names a log or the
          ;; path names none.  A log whose job is gone is the same page about
@@ -226,7 +224,7 @@
                                                #:job j
                                                #:log l
                                                #:artifacts artifacts
-                                               #:defer? defer?
+                                               #:defer? #f
                                                ;; What the reader may do with
                                                ;; this run: retry it, delete it,
                                                ;; or neither.

@@ -403,8 +403,9 @@ each node links to its step.
 
 The page draws the graph and the whole log in the first answer, so a reader
 without JavaScript gets both: the script is what keeps a running job current,
-not what puts the run on the page.  ~/logs/<id>?full=1~ remains a valid spelling
-of the same complete page.
+not what puts the run on the page.  Without the script a running page is a
+snapshot -- reload it to read what has arrived since.  ~/logs/<id>?full=1~
+remains a valid spelling of the same complete page.
 
 The log page is also a set of resizable panes: the pipeline, the output, the
 job's expression and the facts column each have a splitter of their own.  Drag
