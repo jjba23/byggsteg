@@ -41,6 +41,7 @@
   #:export (run-pipeline-task job-pipeline
                               job-specs
                               job-title-prefix
+                              expand-job-matrix
                               fail-job
                               run-one-job
                               run-jobs-concurrently
@@ -234,6 +235,98 @@ clone."
                  'project))
       (else "pipeline"))))
 
+;;; ====== A job's matrix ======
+;;;
+;;; `(matrix . ((lang . ("guile" "python")) (os . ("linux" "musl"))))'
+;;; is how a job asks for the same steps once per combination.  The field is
+;;; read before any step is built: each combination becomes a spec of its own,
+;;; with its values as `MATRIX_<DIMENSION>' variables and a label the log can
+;;; announce.  Nothing below the expansion knows there was a matrix, so a
+;;; combination is a job like any other -- and a retry of the run runs the
+;;; matrix again rather than a remembered one, which is what a retry is for.
+;;;
+;;; The combinations are run one after another, in the order the values are
+;;; written, because that is what a job's stages already are: a pipeline that
+;;; stopped at the first failure must stop a matrix there too.
+
+(define (matrix-dimension? field)
+  "Whether FIELD is a matrix dimension: a name and the values it may take."
+  (and (pair? field)
+       (symbol? (car field))
+       (list? (cdr field))))
+
+(define (matrix-combinations dimensions)
+  "Every combination of DIMENSIONS, in the order its values are written."
+  (if (null? dimensions)
+      '(())
+      (let* ((dimension (car dimensions))
+             (name (car dimension))
+             (values (cdr dimension))
+             (rest (matrix-combinations (cdr dimensions))))
+        (if (null? values)
+            (error "byggsteg: matrix dimension has no values" name)
+            (append-map (lambda (value)
+                          (map (lambda (combination)
+                                 (cons (cons name value) combination))
+                               rest))
+                        values)))))
+
+(define (matrix-variable pair)
+  "The environment variable PAIR is read as: its name in upper case, with a
+`MATRIX_' prefix so that a job's own variables are never overruled by it."
+  (string-append "MATRIX_"
+                 (string-upcase (symbol->string (car pair)))))
+
+(define (matrix-label combination)
+  "COMBINATION written the way the log announces it."
+  (string-join (map (lambda (pair)
+                      (format #f "~a=~a" (car pair) (cdr pair)))
+                    combination)
+               ", "))
+
+(define (replace-job-field spec name value)
+  "SPEC with FIELD NAME set to VALUE, and the old one gone."
+  (cons (cons name value)
+        (filter (lambda (field)
+                  (not (eq? (car field) name))) spec)))
+
+(define (expand-job-matrix spec)
+  "SPEC as the specs its `matrix' field asks for.
+
+A spec with no matrix -- or one with no dimensions -- answers with itself, so
+this is safe to call on every job.  The `matrix' field is replaced rather than
+kept, so reading an expanded spec again expands nothing."
+  (let ((matrix (assq-ref spec 'matrix)))
+    (if (or (not (list? matrix)) (null? matrix))
+        (list spec)
+        (let* ((dimensions (filter matrix-dimension? matrix))
+               (env (let ((given (assq-ref spec 'env)))
+                      (if (list? given) given '()))))
+          (map (lambda (combination)
+                 (let* ((with-env (append env
+                                          (map (lambda (pair)
+                                                 (cons (matrix-variable pair)
+                                                       (format #f "~a"
+                                                               (cdr pair))))
+                                               combination)))
+                        (spec (replace-job-field spec 'env with-env))
+                        (spec (replace-job-field spec 'matrix-label
+                                                 (matrix-label combination))))
+                   (filter (lambda (field)
+                             (not (eq? (car field) 'matrix))) spec)))
+               (matrix-combinations dimensions))))))
+
+(define (announce-matrix-step label)
+  "Put LABEL in the running job's log, and answer a step with no output.
+
+The announcement is a step of its own so that a reader of the log sees which
+combination the commands under it belong to, and so that a graph of the run has
+a node between the combinations rather than two identical chains."
+  (let ((cmd (format #f "matrix ~a" label)))
+    (if (current-log-stream)
+        (log-stream-start-command! (current-log-stream) cmd))
+    (make-step-result #t "" cmd)))
+
 (define* (job-spec-steps spec job artifact-repo)
   "The steps of one job SPEC of the job row JOB.
 
@@ -268,6 +361,12 @@ was started in."
          (trivial-cmds (assq-ref spec
                                  'trivial-cmds))
          (cloning? (nil? trivial-cmds))
+         (matrix-steps
+          (let ((label (assq-ref spec 'matrix-label)))
+            (if label
+                (list (lambda ()
+                        (announce-matrix-step label)))
+                '())))
          (clone-steps (if cloning?
                           (list (lambda ()
                                   (clone-repo-step #:project project
@@ -305,7 +404,7 @@ was started in."
                                                  #:trivial-cmds
                                                  trivial-cmds)))
                           tasks)))
-    (append clone-steps sys-steps git-details-steps pipe-steps)))
+    (append matrix-steps clone-steps sys-steps git-details-steps pipe-steps)))
 
 ;;;
 ;;; A job's artifacts
@@ -406,7 +505,7 @@ bundle."
                        job
                        log)
   "Run the job row JOB, streaming its output into LOG's row as it is produced."
-  (let* ((specs (job-specs job))
+  (let* ((specs (append-map expand-job-matrix (job-specs job)))
          (log-id (if log
                      (assq-ref log
                                'id) #f))

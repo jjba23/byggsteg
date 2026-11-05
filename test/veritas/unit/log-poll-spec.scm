@@ -33,6 +33,7 @@
   #:use-module (app views logs)
   #:use-module (byggsteg permissions)
   #:use-module (artanis utils)
+  #:use-module (ice-9 format)
   #:export (spec))
 
 ;; The reading below is of one deployment: the words on the page are left as
@@ -70,15 +71,48 @@
     (log-data . "hello\nworld\n")
     (created-at . 0)))
 
+;; A log with commands in it, so that what a poll draws is read as the steps
+;; the commands wrote rather than as one wall of text.  The completion lines are
+;; the runner's, not a command's: a poll must not show them as output.
+(define stepped-log
+  '((id . "spec-log-id")
+    (title . "spec run")
+    (job-id . "spec-job-id")
+    (log-data . "\n→ running command: cd /tmp/x && git clone -b trunk u /tmp/x\ncloned\n✓ command finished in 1.20s (cpu 0.40s, rss 1.0MB)\n\n→ running command: cd /tmp/x && maak build\ncompiled\n✓ command finished in 2.30s (cpu 0.80s, rss 2.0MB)\n")
+    (created-at . 0)))
+
+;; A build whose commands wrote diagnostics rather than failing: a warning is a
+;; reading of the build, not of the step that happened to print it.
+(define diagnostic-log
+  '((id . "spec-log-id")
+    (title . "spec run")
+    (job-id . "spec-job-id")
+    (log-data . "\n→ running command: cd /tmp/x && maak build\nsrc/x.c:10:2: warning: unused variable\nerror: could not compile\n✓ command finished in 1.00s\n")
+    (created-at . 0)))
+
+;; A job whose only command is the clone, so that the clone is the only step a
+;; page could have a reason to open.
+(define* (clone-only-log #:key (failed? #f))
+  `((id . "spec-log-id")
+    (title . "spec run")
+    (job-id . "spec-job-id")
+    (log-data unquote
+              (format #f
+                      "\n→ running command: cd /tmp/x && git clone -b trunk u /tmp/x\ncloning\n~a command ~a\n"
+                      (if failed? "✗" "✓")
+                      (if failed? "failed (exit 1) after 0.50s" "finished in 0.50s")))
+    (created-at . 0)))
+
 ;;; ====== Reading an answer ======
 
 (define* (answer job
-                 #:key (have #f) (permissions all-permissions))
+                 #:key (have #f) (permissions all-permissions)
+                 (log spec-log))
   "The answer a page following JOB is given, for a reader last sent HAVE.
 
 A reader who names no HAVE is one who has none of the output yet, which is the
 page as it is opened."
-  (sxml->xml-string (log-poll G_ #:log spec-log #:job job
+  (sxml->xml-string (log-poll G_ #:log log #:job job
                               #:have have
                               #:permissions permissions)))
 
@@ -98,6 +132,16 @@ page as it is opened."
         (let* ((rest (substring text from (string-length text)))
                (to (string-contains rest end)))
           (if to (substring rest 0 to) rest)))))
+
+(define (section-open? markup index)
+  "Whether the step INDEX of MARKUP was drawn open."
+  (let* ((needle (format #f "data-log-section=\"~a\"" index))
+         (at (string-contains markup needle)))
+    (if (not at) #f
+        (let* ((rest (substring markup at (string-length markup)))
+               (end (string-contains rest ">"))
+               (tag (if end (substring rest 0 end) rest)))
+          (if (string-contains tag " open") #t #f)))))
 
 ;;; ====== The suite ======
 
@@ -164,6 +208,94 @@ page as it is opened."
                                            #:updated-at 5)
                                  #:have "12")
                 #:got "job failed"))
+         (test "a log is drawn as the steps that wrote it, and as their chain"
+               #:shuffle? #f
+               (let ((markup (answer (spec-job #:success 1
+                                               #:in-progress 0
+                                               #:updated-at 5)
+                                     #:log stepped-log)))
+                 (assert-equal #:name
+                  "each command is a folded step, in the order it was run"
+                  #:expect '(#t #t #t #t)
+                  #:got (readings-of markup
+                                     '("data-log-section=\"0\""
+                                       "data-log-section=\"1\""
+                                       "#step-0"
+                                       "data-log-graph=\"\"")))
+                 (assert-equal #:name
+                  "the stage of each step is the one its command names"
+                  #:expect '(#t #t)
+                  #:got (readings-of markup '("clone" "build")))
+                 (assert-equal #:name
+                  "the completion the runner wrote is a badge, not output"
+                  #:expect '(#t #f)
+                  #:got (list (reads? markup "cloned")
+                              (reads? markup "command finished")))
+                 (assert-equal #:name
+                  "and the log's own lines are all still there"
+                  #:expect '(#t #t)
+                  #:got (readings-of markup '("cloned" "compiled")))
+                 (assert-equal #:name
+                  "the graph names each step and says how long it took"
+                  #:expect '(#t #t #t #t)
+                  #:got (readings-of markup
+                                     '("data-graph-stage=\"clone\""
+                                       "data-graph-stage=\"build\""
+                                       "2 steps"
+                                       "1.2s")))
+                 (assert-equal #:name
+                  "and the poll carries the build's measured usage"
+                  #:expect '(#t #t #t #t #t)
+                  #:got (readings-of (between markup
+                                              "data-log-usage"
+                                              "data-log-actions")
+                                     '("wall time" "cpu time" "peak memory"
+                                       "3.5s" "2.0 MB")))))
+         (test "a build's warnings and errors are read across its steps"
+               #:shuffle? #f
+               (let ((markup (answer (spec-job #:success 1
+                                               #:in-progress 0
+                                               #:updated-at 5)
+                                     #:log diagnostic-log)))
+                 (assert-equal #:name
+                  "the answer carries the build-wide diagnostics and their counts"
+                  #:expect '(#t #t #t #t #t)
+                  #:got (readings-of markup
+                                     '("data-log-diagnostics=\"\""
+                                       "1 warning"
+                                       "1 error"
+                                       "warning: unused variable"
+                                       "error: could not compile")))))
+         (test "the clone is folded by default"
+               #:shuffle? #f
+               (assert-equal #:name
+                "a successful clone-only step and a running one are both closed"
+                #:expect '(#f #f)
+                #:got (list (section-open?
+                             (sxml->xml-string
+                              (log-output #:log (clone-only-log)
+                                          #:job (spec-job #:success 1
+                                                          #:in-progress 0
+                                                          #:updated-at 5)
+                                          #:G_ G_))
+                             0)
+                           (section-open?
+                            (sxml->xml-string
+                             (log-output #:log (clone-only-log)
+                                         #:job (spec-job)
+                                         #:G_ G_))
+                            0)))
+               (assert-equal #:name
+                "a failed clone is still opened for the reader"
+                #:expect #t
+                #:got (section-open?
+                       (sxml->xml-string
+                        (log-output #:log (clone-only-log #:failed? #t)
+                                    #:job (spec-job #:failed 1
+                                                    #:in-progress 0
+                                                    #:updated-at 5)
+                                    #:G_ G_))
+                       0)))
          (test "the retry a finished job allows arrives with the answer"
                #:shuffle? #f
                (assert-equal #:name

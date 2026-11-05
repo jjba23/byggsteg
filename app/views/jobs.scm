@@ -34,4 +34,11 @@
                    #:body `((div (@ (class ,(page-body-class)))
                                  ,(terminal-heading (G_ "run job")
                                                     #:tag 'h2)
-                                 ,(job-form G_ "/jobs/manage/submit" #f))))))
+                                 ,(job-form G_ "/jobs/manage/submit" #f)
+                                 ;; The two fields a job can use that are not a
+                                 ;; target are named here, where a job is written:
+                                 ;; a reader who has a container runtime would
+                                 ;; otherwise have to find them in the manual.
+                                 (p (@ (class ,(mk-class (append '(text-sm)
+                                                                muted-ink))))
+                                    ,(G_ "A job may name an (image . \"...\") to run its targets in that container, and a (matrix . ((name . (\"a\" \"b\")))) to run once per combination.")))))))

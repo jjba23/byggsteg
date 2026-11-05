@@ -1,24 +1,24 @@
 ;;; byggsteg - the CI/CD orchestrator written in Guile Scheme
 
-;; SPDX-License-Identifier: MIT
-;; Copyright © Josep Bigorra known as "jjba23" <jjbigorra@gmail.com>
-;; Copyright © Mu Lei known as "NalaGinrut" <NalaGinrut@gmail.com>
+;;; SPDX-License-Identifier: MIT
+;;; Copyright © Josep Bigorra known as "jjba23" <jjbigorra@gmail.com>
+;;; Copyright © Mu Lei known as "NalaGinrut" <NalaGinrut@gmail.com>
 
-;; Running a kracht <sql-query> against the byggsteg SQLite file.
-;;
-;; Every statement reaching this module arrives built by `(kracht sql)': a SQL
-;; string with `?' placeholders and a separate list of values.  The values are
-;; handed to SQLite with `sqlite-bind-arguments', so they are bound by the
-;; engine and never spliced into the statement text.  A value therefore cannot
-;; change the shape of the statement, which is what removes the escaping
-;; problem instead of restating it.
-;;
-;; Artanis' own `DB-query' cannot do this: it forwards a single string to
-;; guile-dbi, whose `dbi-query' takes exactly two arguments and has no binding
-;; step at all.  That is why byggsteg talks to its SQLite file through
-;; guile-sqlite3, the binding Artanis is configured to name (`db.name' in
-;; conf/artanis.conf), and why this module, rather than a request, owns the
-;; connection.
+;;; Running a kracht <sql-query> against the byggsteg SQLite file.
+;;;
+;;; Every statement reaching this module arrives built by `(kracht sql)': a SQL
+;;; string with `?' placeholders and a separate list of values.  The values are
+;;; handed to SQLite with `sqlite-bind-arguments', so they are bound by the
+;;; engine and never spliced into the statement text.  A value therefore cannot
+;;; change the shape of the statement, which is what removes the escaping
+;;; problem instead of restating it.
+;;;
+;;; Artanis' own `DB-query' cannot do this: it forwards a single string to
+;;; guile-dbi, whose `dbi-query' takes exactly two arguments and has no binding
+;;; step at all.  That is why byggsteg talks to its SQLite file through
+;;; guile-sqlite3, the binding Artanis is configured to name (`db.name' in
+;;; conf/artanis.conf), and why this module, rather than a request, owns the
+;;; connection.
 
 (define-module (byggsteg sqlite util)
   #:declarative? #t
@@ -41,18 +41,18 @@
                           with-transaction
                           like-pattern))
 
-;; NOTE: `sql-row->scheme-alist' comes from `(kracht sql)' and is used below.
-;; It is deliberately not listed in `#:export': this is a declarative module,
-;; where every exported name is created as an unbound local binding first, so
-;; exporting an imported name would shadow the import and unbound it.
+;;; NOTE: `sql-row->scheme-alist' comes from `(kracht sql)' and is used below.
+;;; It is deliberately not listed in `#:export': this is a declarative module,
+;;; where every exported name is created as an unbound local binding first, so
+;;; exporting an imported name would shadow the import and unbound it.
 
 ;;;
 ;;; Which file, and which connection
 ;;;
 
-;; #f means "take it from the Artanis configuration", which is where the rest
-;; of the deployment is described; a caller may set it to point the repositories
-;; at another file (a test database, for instance).
+;;; #f means "take it from the Artanis configuration", which is where the rest
+;;; of the deployment is described; a caller may set it to point the repositories
+;;; at another file (a test database, for instance).
 (define database-path
   (make-parameter #f))
 
@@ -61,7 +61,7 @@
          (lambda ()
            (let ((name (get-conf '(db name))))
              (and name
-                  (format #f "~a" name))))
+               (format #f "~a" name))))
          (lambda (key . args)
            #f)))
 
@@ -69,43 +69,43 @@
   "Path of the byggsteg SQLite file: `db.name' from the Artanis configuration,
 with the `.db' suffix that Artanis' own sqlite3 connector appends."
   (or (database-path)
-      (let ((name (configured-database-name)))
-        (if (and name
-                 (not (string-null? name)))
-            (string-append name ".db")
-            ;; Artanis serves its defaults before its configuration is read, so
-            ;; an unreadable setting falls back to the file byggsteg ships with.
-            "byggsteg.db"))))
+    (let ((name (configured-database-name)))
+      (if (and name
+            (not (string-null? name)))
+        (string-append name ".db")
+        ;; Artanis serves its defaults before its configuration is read, so
+        ;; an unreadable setting falls back to the file byggsteg ships with.
+        "byggsteg.db"))))
 
-;; One connection per path, kept for the lifetime of the process.  Guile's
-;; threads here are green threads, and a SQLite call does not yield to another
-;; one mid-statement, so a single handle serves both the web workers and the
-;; queue worker -- as long as they take turns, which is what the lock below is
-;; for.
+;;; One connection per path, kept for the lifetime of the process.  Guile's
+;;; threads here are green threads, and a SQLite call does not yield to another
+;;; one mid-statement, so a single handle serves both the web workers and the
+;;; queue worker -- as long as they take turns, which is what the lock below is
+;;; for.
 (define *connections*
   (make-hash-table))
 
-;; guile-sqlite3 keeps a *cache of prepared statements per connection*, and that
-;; cache is a plain Guile hash table: two threads making statements on one
-;; connection -- a request reading a log while the queue worker streams into it,
-;; say -- mutate it at the same time and can be handed each other's statement,
-;; which then fails on the wrong number of parameters.  Rather than hand every
-;; thread a connection of its own (a write would then queue behind SQLite's
-;; single writer with an error to retry, instead of waiting a moment here),
-;; every statement this module runs holds one lock, so a connection is only ever
-;; used by one caller at a time.  Statements are short; the shell commands a job
-;; spends its time in are not run under this lock.
+;;; guile-sqlite3 keeps a *cache of prepared statements per connection*, and that
+;;; cache is a plain Guile hash table: two threads making statements on one
+;;; connection -- a request reading a log while the queue worker streams into it,
+;;; say -- mutate it at the same time and can be handed each other's statement,
+;;; which then fails on the wrong number of parameters.  Rather than hand every
+;;; thread a connection of its own (a write would then queue behind SQLite's
+;;; single writer with an error to retry, instead of waiting a moment here),
+;;; every statement this module runs holds one lock, so a connection is only ever
+;;; used by one caller at a time.  Statements are short; the shell commands a job
+;;; spends its time in are not run under this lock.
 (define *database-lock*
   (make-mutex))
 
-;; Whether the thread asking for the lock is the thread already holding it.
-;;
-;; A transaction holds the connection across every statement inside it, and those
-;; statements are the repositories', which take the lock themselves.  Guile has no
-;; re-entrant mutex, and one thread waiting on a lock it already holds waits for
-;; ever, so which thread holds the lock is remembered here: a fluid is one per
-;; thread, which is exactly what the lock is being asked.  Nothing else changes --
-;; the mutex is still taken once, by the outermost caller.
+;;; Whether the thread asking for the lock is the thread already holding it.
+;;;
+;;; A transaction holds the connection across every statement inside it, and those
+;;; statements are the repositories', which take the lock themselves.  Guile has no
+;;; re-entrant mutex, and one thread waiting on a lock it already holds waits for
+;;; ever, so which thread holds the lock is remembered here: a fluid is one per
+;;; thread, which is exactly what the lock is being asked.  Nothing else changes --
+;;; the mutex is still taken once, by the outermost caller.
 (define *holding-database-lock*
   (make-fluid #f))
 
@@ -115,12 +115,12 @@ with the `.db' suffix that Artanis' own sqlite3 connector appends."
 The lock is re-entrant for one thread: a transaction holds it across its own
 statements, and the statements take it again."
   (if (fluid-ref *holding-database-lock*)
-      (thunk)
-      ;; `with-mutex' is syntax and takes its body; `with-fluid*' is a procedure
-      ;; and takes the thunk itself, which is what makes the binding last for the
-      ;; whole of THUNK rather than for one expression of it.
-      (with-mutex *database-lock*
-                  (with-fluid* *holding-database-lock* #t thunk))))
+    (thunk)
+    ;; `with-mutex' is syntax and takes its body; `with-fluid*' is a procedure
+    ;; and takes the thunk itself, which is what makes the binding last for the
+    ;; whole of THUNK rather than for one expression of it.
+    (with-mutex *database-lock*
+                (with-fluid* *holding-database-lock* #t thunk))))
 
 (define* (open-database #:key (path (sqlite-database-path)))
   "Open PATH as a new SQLite connection and hand it back."
@@ -133,8 +133,8 @@ statements, and the statements take it again."
   "The connection for PATH, opening it on first use."
   (with-database-lock (lambda ()
                         (or (hash-ref *connections* path)
-                            (let ((db (open-database #:path path)))
-                              (hash-set! *connections* path db) db)))))
+                          (let ((db (open-database #:path path)))
+                            (hash-set! *connections* path db) db)))))
 
 (define (close-databases!)
   "Close every connection this process opened.  For shutdown and for tests."
@@ -154,11 +154,11 @@ statements, and the statements take it again."
   "SQLite has no boolean type and `sqlite-bind' rejects a Scheme boolean, so
 #t and #f travel as the 1 and 0 the columns hold."
   (cond
-    ((eq? value #t)
-     1)
-    ((eq? value #f)
-     0)
-    (else value)))
+    [(eq? value #t)
+     1]
+    [(eq? value #f)
+     0]
+    [else value]))
 
 (define (bind-parameters! stmt params)
   (apply sqlite-bind-arguments stmt
@@ -172,14 +172,14 @@ The two wildcards a reader may have typed are escaped, so a search for `%' or
 something if the statement using it says `ESCAPE '\\'' as the search queries
 below do.  A query that is not a string searches for nothing rather than for
 everything."
-  (let ((query (if (string? query) query "")))
+  (let* ((query (if (string? query) query "")))
     (string-append "%"
                    (apply string-append
                           (map (lambda (c)
                                  (if (memv c
                                            '(#\\ #\% #\_))
-                                     (string #\\ c)
-                                     (string c)))
+                                   (string #\\ c)
+                                   (string c)))
                                (string->list query))) "%")))
 
 (define (row->alist column-names row)
@@ -195,9 +195,9 @@ to kracht, which hyphenates the column names the way the domain records expect."
     ()
     (let ((row (sqlite-step stmt)))
       (if row
-          (begin
-            (on-row row)
-            (loop)) #t))))
+        (begin
+          (on-row row)
+          (loop)) #t))))
 
 (define (with-prepared-statement db query thunk)
   "Run THUNK with QUERY's statement on DB, and reset it when THUNK is done.
@@ -254,8 +254,8 @@ that cursor keeps open, behind it."
     (with-prepared-statement
      db query
      (lambda (stmt)
-       (let* ((column-names (sqlite-column-names stmt))
-              (rows '()))
+       (let ((column-names (sqlite-column-names stmt))
+             (rows '()))
          (step-until-done stmt
                           (lambda (row)
                             (set! rows (cons (row->alist column-names

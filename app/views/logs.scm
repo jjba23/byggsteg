@@ -40,6 +40,8 @@
 (define-module (app views logs)
   #:use-module (byggsteg preferences)
   #:use-module (byggsteg ansi)
+  #:use-module (byggsteg job log-sections)
+  #:use-module (srfi srfi-1)
   #:use-module (kracht prelude)
   #:use-module (byggsteg faces)
   #:use-module (kracht prelude)
@@ -76,7 +78,511 @@ The length is the whole of what says whether the output has changed: a reader
 last sent a row of this length has the whole of it."
   (number->string (string-length (log-text log))))
 
-(define* (log-output #:key log (view 'output) (frames-label "frames"))
+;;; ====== A log read as its steps ======
+;;;
+;;; The pane a reader follows is still the log, but it is drawn as the commands
+;;; that wrote it: one folded section per step, with the stage it belongs to and
+;;; how it went.  The reading is `(byggsteg job log-sections)''s, so the page,
+;;; the poll and the graph cannot disagree about where a command begins.
+
+(define (log-raw-text log)
+  "The text of LOG, unescaped once, as the console is read."
+  (html-unescape (log-text log)))
+
+(define (log-sections-of log job)
+  "The steps of LOG, with JOB's state answering for the last one."
+  (log-sections (log-raw-text log)
+                #:running? (and job
+                                (equal? 1 (assq-ref job
+                                                    'job-in-progress)))
+                #:job-failed? (and job
+                                   (equal? 1 (assq-ref job
+                                                       'job-failed)))))
+
+(define (section-status-face status)
+  "The ink a step's outcome is read in, the run's own three inks."
+  (case status
+    ((succeeded) job-succeeded-face)
+    ((failed) job-failed-face)
+    ((running) job-running-face)
+    (else muted-ink)))
+
+(define (section-status-glyph status)
+  "The mark beside a step's outcome, for a reader who scans a list of them."
+  (case status
+    ((succeeded) "✓")
+    ((failed) "✗")
+    ((running) "▶")
+    (else "·")))
+
+(define (section-status-word G_ status)
+  (G_ (case status
+        ((succeeded) "succeeded")
+        ((failed) "failed")
+        ((running) "running")
+        (else "pending"))))
+
+(define (shorten text limit)
+  "TEXT, cut to LIMIT characters with an ellipsis when it is longer."
+  (if (> (string-length text) limit)
+      (string-append (substring text 0 (- limit 1)) "…")
+      text))
+
+(define (section-heading G_ section)
+  "The header of one step: the stage, what it ran, and how it went."
+  (let ((status (section-status section))
+        (image (section-image section)))
+    `(summary (@ (class ,(mk-class '(cursor-pointer flex flex-row flex-wrap
+                                               items-center gap-2
+                                               px-2 py-2 font-mono text-sm))))
+              (span (@ (class ,(mk-class '(text-xs uppercase tracking-widest
+                                                   px-1 border
+                                                   border-asparagus-700
+                                                   dark:border-asparagus-900
+                                                   text-asparagus-900
+                                                   dark:text-asparagus-300))))
+                    ,(G_ (stage-label (section-stage section))))
+              (span (@ (class ,(mk-class (append '(min-w-0 wrap-break-word)
+                                                 strong-ink))))
+                    ,(section-summary section))
+              ,@(if image
+                    (list `(span (@ (class ,(mk-class (append '(text-xs)
+                                                             muted-ink))))
+                                 ,(format #f "in ~a" image)))
+                    '())
+              (span (@ (class ,(mk-class '(ml-auto flex flex-row items-center
+                                                   gap-1 text-xs))))
+                    ,@(if (eq? status 'running)
+                          (pending-mark #:size 'xs
+                                        #:label (section-status-word G_
+                                                                      'running))
+                          '())
+                    (span (@ (class ,(mk-class (append '()
+                                                       (section-status-face
+                                                        status)))))
+                          ,(section-status-glyph status)
+                          " "
+                          ,(section-status-word G_ status))
+                    (span (@ (class ,(mk-class (append '(ml-1) muted-ink))))
+                          ,(format #f "~a lines~a"
+                                   (section-line-count section)
+                                   (let ((usage (section-usage section)))
+                                     (if (and usage (assq-ref usage 'wall))
+                                         (string-append
+                                          " · "
+                                          (human-duration
+                                           (assq-ref usage 'wall)))
+                                         ""))))))))
+
+(define* (section-details G_ section index
+                          #:key (frames-label "frames") (open? #f))
+  "One step as a folded section of the log.
+
+A failed step is drawn open, and so is one that is still writing: those are the
+readings a reader following a build is looking for.  Every other step is folded
+until it is asked for, which is what turns a thousand-line log into the list of
+commands that produced it."
+  (let ((text (section-text section)))
+    `(details (@ (id ,(format #f "step-~a" index))
+                 (data-log-section ,(number->string index))
+                 (class ,(mk-class '(border border-asparagus-700
+                                             dark:border-asparagus-900
+                                             bg-stone-100 dark:bg-onyx-900
+                                             min-w-0)))
+                 ,@(if open? '((open "")) '()))
+               ,(section-heading G_ section)
+               ,@(if (positive? (string-length text))
+                     (list `(div (@ (class ,(mk-class '(border-t
+                                                        border-asparagus-700
+                                                        dark:border-asparagus-900))))
+                                 ,@(terminal-pre text
+                                                 #:size '(text-sm)
+                                                 #:wrap? #f
+                                                 #:framed? #f
+                                                 #:ansi? #t
+                                                 #:frames-label frames-label)))
+                     '()))))
+
+(define (graph-status-border status)
+  "The hairline a graph node is drawn with, by how its step went."
+  (case status
+    ((failed) '(border-redwood-700 dark:border-redwood-300))
+    ((running) '(border-jeans-blue-700 dark:border-jeans-blue-300))
+    ((succeeded) '(border-asparagus-700 dark:border-asparagus-900))
+    (else '(border-stone-500 dark:border-onyx-500))))
+
+(define (graph-node-face status)
+  "The hairline and layout of a graph node, by how its step went."
+  (append '(border px-2 py-1 flex flex-col gap-0 min-w-0)
+          (graph-status-border status)))
+
+(define (section-wall-time section)
+  "The measured wall time of SECTION, or #f when its log was not measured."
+  (let ((usage (section-usage section)))
+    (and usage (assq-ref usage 'wall))))
+
+(define (graph-row-wall steps)
+  "The measured wall time of STEPS together, or #f when none was measured."
+  (let ((times (filter-map section-wall-time steps)))
+    (if (null? times) #f (apply + times))))
+
+(define (count-of-status steps status)
+  (length (filter (lambda (section)
+                    (eq? (section-status section) status))
+                  steps)))
+
+(define (plural count word)
+  (if (= count 1) word (string-append word "s")))
+
+(define (graph-summary G_ steps)
+  "What the graph is made of, in the words a reader scans it for."
+  (let ((count (length steps))
+        (stages (delete-duplicates (map section-stage steps)))
+        (wall (graph-row-wall steps))
+        (failed (count-of-status steps 'failed))
+        (running (count-of-status steps 'running)))
+    (string-append
+     (format #f "~a ~a · ~a ~a"
+             count (plural count (G_ "step"))
+             (length stages) (plural (length stages) (G_ "stage")))
+     (if wall (format #f " · ~a" (human-duration wall)) "")
+     (if (positive? failed)
+         (format #f " · ~a ~a" failed (plural failed (G_ "failed step"))) "")
+     (if (positive? running)
+         (format #f " · ~a ~a" running (plural running (G_ "running step"))) ""))))
+
+(define (graph-legend G_ steps)
+  "The outcomes the graph holds, as a count a reader can scan."
+  (let ((statuses (filter (lambda (status)
+                            (positive? (count-of-status steps status)))
+                          '(succeeded running failed unknown))))
+    (if (null? statuses)
+        '()
+        (list
+         `(span (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
+                                              gap-2 text-xs))))
+                ,@(append-map
+                   (lambda (status)
+                     (list
+                      `(span (@ (class ,(mk-class
+                                         (append '(flex flex-row items-center
+                                                           gap-1)
+                                                 (section-status-face status))))
+                                (title ,(section-status-word G_ status)))
+                             ,(section-status-glyph status)
+                             " "
+                             ,(number->string (count-of-status steps status)))))
+                   statuses))))))
+
+(define (graph-node G_ section index)
+  "One command as a node of the run's graph, linking to its step."
+  (let* ((status (section-status section))
+         (wall (section-wall-time section))
+         (summary (section-summary section)))
+    `(li (@ (class ,(mk-class '(flex flex-row items-center gap-1))))
+         (a (@ (href ,(format #f "#step-~a" index))
+               (title ,(if wall
+                           (format #f "~a — ~a" summary (human-duration wall))
+                           summary))
+               (data-graph-stage ,(symbol->string (section-stage section)))
+               (data-graph-status ,(symbol->string status))
+               (class "no-underline"))
+            (span (@ (class ,(mk-class (graph-node-face status))))
+                  (span (@ (class ,(mk-class '(text-xs uppercase tracking-widest
+                                                      text-asparagus-900
+                                                      dark:text-asparagus-300))))
+                        ,(G_ (stage-label (section-stage section))))
+                  (span (@ (class ,(mk-class (append '(text-xs)
+                                                     (section-status-face status)))))
+                        ,(section-status-glyph status)
+                        " "
+                        ,(shorten summary 28))
+                  ,@(if wall
+                        (list `(span (@ (class ,(mk-class (append '(text-xs)
+                                                                   muted-ink))))
+                                     ,(human-duration wall)))
+                        '()))))))
+
+(define (graph-arrow status)
+  "The arrow between two nodes of a chain, in the ink of the step it leaves."
+  `(span (@ (class ,(mk-class (append '(text-sm)
+                                        (section-status-face status)))))
+         "→"))
+
+(define (graph-connector status)
+  "The arrow between two nodes of a chain, as a list item."
+  `(li (@ (class ,(mk-class '(flex flex-row items-center gap-1))))
+       ,(graph-arrow status)))
+
+(define (graph-items G_ steps)
+  "The nodes of STEPS, each followed by the arrow to the next one."
+  (let loop ((left steps) (index 0))
+    (if (null? left)
+        '()
+        (append (list (graph-node G_ (car left) index))
+                (if (null? (cdr left))
+                    '()
+                    (list (graph-connector (section-status (car left)))))
+                (loop (cdr left) (+ index 1))))))
+
+(define (stage-groups steps)
+  "STEPS grouped into the runs of the same stage, in the order they ran."
+  (let loop ((left steps) (groups '()))
+    (if (null? left)
+        (reverse groups)
+        (let* ((stage (section-stage (car left)))
+               (same (take-while (lambda (section)
+                                   (eq? stage (section-stage section)))
+                                 left)))
+          (loop (drop left (length same))
+                (cons (cons stage same) groups))))))
+
+(define (stage-group-status sections)
+  "How a group of steps went: failed if any did, then running, then succeeded."
+  (cond
+    ((any (lambda (section) (eq? (section-status section) 'failed)) sections)
+     'failed)
+    ((any (lambda (section) (eq? (section-status section) 'running)) sections)
+     'running)
+    ((every (lambda (section) (eq? (section-status section) 'succeeded)) sections)
+     'succeeded)
+    (else 'unknown)))
+
+(define (stage-chip G_ stage members index)
+  "One stage of the run as a chip, linking to its first step."
+  (let ((status (stage-group-status members))
+        (wall (graph-row-wall members)))
+    `(a (@ (href ,(format #f "#step-~a" index))
+           (data-graph-stage ,(symbol->string stage))
+           (class "no-underline"))
+        (span (@ (class ,(mk-class (append '(border px-2 py-1 flex flex-row
+                                                     flex-wrap items-center gap-1
+                                                     text-xs)
+                                            (graph-status-border status)))))
+              (span (@ (class ,(mk-class '(uppercase tracking-widest
+                                                   text-asparagus-900
+                                                   dark:text-asparagus-300))))
+                    ,(G_ (stage-label stage)))
+              (span (@ (class ,(mk-class (append '(text-xs) muted-ink))))
+                    ,(format #f "~a" (length members)))
+              ,@(if wall
+                    (list `(span (@ (class ,(mk-class (append '(text-xs)
+                                                               muted-ink))))
+                                 ,(human-duration wall)))
+                    '())))))
+
+(define (stage-items G_ steps)
+  "The stage chips of STEPS, separated by the arrow that ran between them."
+  (let loop ((groups (stage-groups steps)) (index 0) (items '()))
+    (if (null? groups)
+        items
+        (let* ((group (car groups))
+               (stage (car group))
+               (members (cdr group))
+               (chip (stage-chip G_ stage members index))
+               (items (if (null? items)
+                          (list chip)
+                          (append items
+                                  (list (graph-arrow
+                                         (stage-group-status members))
+                                        chip)))))
+          (loop (cdr groups) (+ index (length members)) items)))))
+
+(define (stage-row G_ steps)
+  "The stages of the run, above the command chain they are made of."
+  (let ((items (stage-items G_ steps)))
+    (if (null? items)
+        '()
+        (list `(div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
+                                                  gap-1 text-xs))))
+                    (span (@ (class ,(mk-class '(uppercase tracking-widest
+                                                         text-asparagus-900
+                                                         dark:text-asparagus-300))))
+                          ,(G_ "stages"))
+                    ,@items)))))
+
+(define (graph-header G_ steps)
+  "The graph's name, its size, and the outcomes it holds."
+  `(div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
+                                       gap-2 w-full))))
+        (span (@ (class ,(mk-class '(text-xs uppercase tracking-widest
+                                             text-asparagus-900
+                                             dark:text-asparagus-300))))
+              ,(G_ "pipeline"))
+        (span (@ (class ,(mk-class (append '(text-xs) muted-ink))))
+              ,(graph-summary G_ steps))
+        ,@(graph-legend G_ steps)))
+
+(define (pipeline-graph G_ sections)
+  "The run's commands as a chain, each a link to the step it names.
+
+The stages of a job are run one after another, so the graph is a chain: it says
+what ran, in which order, and which of them stopped.  A matrix contributes a
+node per combination, and a command nobody has classified is still a node -- it
+is the shape of the run that is drawn, not a shape the run had to fit.  The
+stage row above it is the same run at the height a reader scans first."
+  (let ((steps (filter section-command? sections)))
+    (if (null? steps)
+        '()
+        (append
+         (list (graph-header G_ steps))
+         (stage-row G_ steps)
+         (list `(div (@ (class ,(mk-class '(overflow-x-auto w-full
+                                                   min-w-0 pb-1))))
+                     (ol (@ (class ,(mk-class '(flex flex-row items-center
+                                                        gap-1 w-max))))
+                         ,@(graph-items G_ steps))))))))
+
+(define (log-graph-region G_ sections)
+  "The graph where a page reads it, hidden until the run has a command.
+
+The place is drawn whether or not there is a graph to put in it: a run that has
+not started writing has no steps, and the poll that brings the first one has to
+find the place it is drawn in."
+  (let ((graph (pipeline-graph G_ sections)))
+    (list
+     `(div (@ (data-log-graph "")
+              (class ,(mk-class '(flex flex-col gap-1 min-w-0)))
+              ,@(if (null? graph) '((hidden "")) '()))
+           ,@(if (null? graph) '("") graph)))))
+
+(define (usage-reading value reader)
+  "VALUE as READER says it, or the dash that says it was not measured."
+  (if value (reader value) "—"))
+
+(define (log-usage-region G_ sections)
+  "What the build's commands cost, in the place the page reads its usage."
+  (let ((usage (log-usage sections)))
+    (list
+     `(dl (@ (data-log-usage ""))
+          (dt (G_ "steps") #:color muted-ink)
+          (dd ,(number->string (assq-ref usage 'steps))
+              #:color prose-ink)
+          (dt (G_ "wall time") #:color muted-ink)
+          (dd ,(usage-reading (assq-ref usage 'wall) human-duration)
+              #:color prose-ink)
+          (dt (G_ "cpu time") #:color muted-ink)
+          (dd ,(usage-reading (assq-ref usage 'cpu) human-duration)
+              #:color prose-ink)
+          (dt (G_ "peak memory") #:color muted-ink)
+          (dd ,(usage-reading (assq-ref usage 'rss) human-memory)
+              #:color prose-ink)
+          (dt (G_ "output") #:color muted-ink)
+          (dd ,(format #f "~a ~a"
+                       (assq-ref usage 'lines)
+                       (plural (assq-ref usage 'lines) (G_ "line")))
+              #:color prose-ink)))))
+
+(define (diagnostic-face severity)
+  "The ink a build-wide diagnostic is read in."
+  (if (eq? severity 'error) job-failed-face job-running-face))
+
+(define (diagnostic-item G_ diagnostic)
+  "One build-wide warning or error, linked to the step that printed it."
+  (let ((severity (diagnostic-severity diagnostic))
+        (index (diagnostic-step-index diagnostic))
+        (stage (diagnostic-stage diagnostic)))
+    `(li (@ (class ,(mk-class '(flex flex-col gap-1 min-w-0))))
+         (a (@ (href ,(format #f "#step-~a" index))
+               (class "no-underline"))
+            (span (@ (class ,(mk-class (append '(text-xs uppercase
+                                                       tracking-widest)
+                                                 (diagnostic-face severity)))))
+                  ,(G_ (if (eq? severity 'error) "error" "warning")))
+            (span (@ (class ,(mk-class (append '(text-xs) muted-ink))))
+                  ,(G_ (stage-label stage))))
+         (code (@ (class ,(mk-class '(text-xs sm:text-sm font-mono
+                                             wrap-break-word))))
+               ,(diagnostic-line diagnostic)))))
+
+(define (diagnostics-region G_ sections)
+  "The warnings and errors the whole build wrote, in the place the page reads them."
+  (let* ((diagnostics (log-diagnostics sections))
+         (errors (filter (lambda (diagnostic)
+                           (eq? (diagnostic-severity diagnostic) 'error))
+                         diagnostics))
+         (warnings (filter (lambda (diagnostic)
+                             (eq? (diagnostic-severity diagnostic) 'warning))
+                           diagnostics)))
+    (if (null? diagnostics)
+        `((div (@ (data-log-diagnostics "")
+                  (hidden ""))
+               ""))
+        `((div (@ (data-log-diagnostics ""))
+               (details (@ (class ,(mk-class '(border
+                                               border-asparagus-700
+                                               dark:border-asparagus-900
+                                               bg-stone-100
+                                               dark:bg-onyx-900
+                                               min-w-0)))
+                          (open ""))
+                        (summary (@ (class ,(mk-class '(cursor-pointer
+                                                        flex flex-row
+                                                        flex-wrap
+                                                        items-center
+                                                        gap-2
+                                                        px-2 py-2
+                                                        font-mono
+                                                        text-sm))))
+                                 (span (@ (class ,(mk-class '(text-xs uppercase
+                                                                     tracking-widest
+                                                                     text-asparagus-900
+                                                                     dark:text-asparagus-300))))
+                                       ,(G_ "build diagnostics"))
+                                 (span (@ (class ,(mk-class (append '(text-xs)
+                                                                    muted-ink))))
+                                       ,(format #f "~a ~a, ~a ~a"
+                                                (length warnings)
+                                                (plural (length warnings)
+                                                        (G_ "warning"))
+                                                (length errors)
+                                                (plural (length errors)
+                                                        (G_ "error")))))
+                        (ul (@ (class ,(mk-class '(flex flex-col gap-2 p-2))))
+                            ,@(map (lambda (diagnostic)
+                                     (diagnostic-item G_ diagnostic))
+                                   (append errors warnings)))))))))
+
+(define (opening-lines sections frames-label)
+  "The lines before the first command, as the log they were written in."
+  (map (lambda (section)
+         `(div (@ (class ,(mk-class (append '(px-2 py-1) muted-ink))))
+               ,@(terminal-pre (section-text section)
+                               #:size '(text-xs sm:text-sm)
+                               #:wrap? #f
+                               #:framed? #f
+                               #:ansi? #t
+                               #:frames-label frames-label)))
+       (filter (lambda (section)
+                 (not (section-command? section)))
+               sections)))
+
+(define (steps-list G_ steps frames-label)
+  "STEPS as the folded sections of the log, a failed or running one open."
+  (let loop ((left steps) (index 0) (rendered '()))
+    (if (null? left)
+        (reverse rendered)
+        (loop (cdr left)
+              (+ index 1)
+              (cons (section-details
+                     G_ (car left) index
+                     #:frames-label frames-label
+                     #:open? (let ((status (section-status (car left)))
+                                   (clone? (eq? (section-stage (car left))
+                                                'clone)))
+                               ;; The clone is the noisy step every job starts
+                               ;; with, and a reader rarely opens it: leave it
+                               ;; folded unless it failed.  A failure is the one
+                               ;; reading a clone has that is worth opening.
+                               (or (eq? status 'failed)
+                                   (and (not clone?)
+                                        (eq? status 'running))
+                                   (and (not clone?)
+                                        (= 1 (length steps))))))
+                    rendered)))))
+
+(define* (log-output #:key log (view 'output) (frames-label "frames")
+                     (job #f) (G_ (lambda (text) text)))
   "A job's output as the pane it is read in.
 
 The output is read two ways and a pane is one of them: `output' is the console
@@ -87,6 +593,12 @@ characters spelled out (`(byggsteg ansi)', `ansi->raw-text'), which is what a
 reader looks at when they want to see what the command actually wrote rather
 than what a terminal made of it.
 
+The rendered reading is the log cut into its steps: one folded section per
+command, the stage it belongs to and how it went.  A log with no command in it
+-- one written before commands were announced, or a job that printed its first
+line and nothing else -- is drawn as the text it is, because there is no step to
+cut it into.
+
 The `pre' is unframed on purpose.  The pane the page wraps around it
 (`log-pane-face') carries the ground, the hairline and the scroll, so it is the
 pane that stays where it is and the output that moves inside it -- a frame drawn
@@ -94,16 +606,27 @@ by the output would scroll away with it, leaving a border with three sides.
 
 This is the output alone; what a poll is answered with is the output beside the
 state of the run that wrote it, which is `log-poll' below."
-  (let* ((escaped (log-text log))
-         (output (html-unescape escaped)))
-    (list (terminal-pre (if (eq? view 'raw)
-                            (html-escape (ansi->raw-text output))
-                            output)
-                        #:size '(text-sm md:text-md)
-                        #:wrap? #f
-                        #:framed? #f
-                        #:ansi? (eq? view 'output)
-                        #:frames-label frames-label))))
+  (let ((output (log-raw-text log)))
+    (if (eq? view 'raw)
+        (list (terminal-pre (html-escape (ansi->raw-text output))
+                            #:size '(text-sm md:text-md)
+                            #:wrap? #f
+                            #:framed? #f
+                            #:ansi? #f
+                            #:frames-label frames-label))
+        (let* ((sections (log-sections-of log job))
+               (steps (filter section-command? sections)))
+          (if (null? steps)
+              (list (terminal-pre output
+                                  #:size '(text-sm md:text-md)
+                                  #:wrap? #f
+                                  #:framed? #f
+                                  #:ansi? #t
+                                  #:frames-label frames-label))
+              (list
+               `(div (@ (class ,(mk-class '(flex flex-col gap-2 p-1))))
+                     ,@(opening-lines sections frames-label)
+                     ,@(steps-list G_ steps frames-label))))))))
 
 (define* (log-view-tabs G_ #:key (chosen 'output))
   "The two tabs that choose the reading of a job's output, CHOSEN being the one
@@ -175,12 +698,11 @@ name, and a term over nothing is worse than no term."
           (if-job-was-updated-html job
                                    (list (dt (G_ "time taken")
                                              #:color muted-ink)
-                                         (dd (format #f
-                                                     "~a seconds"
-                                                     (- (assq-ref job
-                                                                  'updated-at)
-                                                        (assq-ref job
-                                                                  'created-at)))
+                                         (dd (human-duration
+                                              (- (assq-ref job
+                                                            'updated-at)
+                                                 (assq-ref job
+                                                            'created-at)))
                                              #:color prose-ink)
                                          (dt (G_ "updated at")
                                              #:color muted-ink)
@@ -335,14 +857,21 @@ whole of the answer, so that the state beside it can be drawn where it belongs:
 the script moves the output into the pane and the rest into the page."
   (let* ((running? (equal? 1 (assq-ref job
                                        'job-in-progress)))
-         (changed? (not (and have (equal? have (log-length log))))))
+         (changed? (not (and have (equal? have (log-length log)))))
+         (sections (log-sections-of log job)))
     (list `(div (@ (data-log-state "")
                    (data-log-running ,(if running? "true" "false"))
                    (data-log-length ,(log-length log)))
                 ,@(log-status-region G_ job)
+                ;; The graph is sent with the state rather than with the
+                ;; output: a step's colour is how the run is going, and the
+                ;; run says that here even when it has printed nothing new.
+                ,@(log-graph-region G_ sections)
+                ,@(diagnostics-region G_ sections)
                 ,@(log-live-region G_ job)
                 ,@(log-facts-region G_ job (assq-ref log
                                                      'id))
+                ,@(log-usage-region G_ sections)
                 ,@(log-actions-region G_ job permissions)
                 ;; A job that has printed nothing yet still has a pane: the
                 ;; reader is following it, and an empty frame is what there is
@@ -351,6 +880,8 @@ the script moves the output into the pane and the rest into the page."
                       `((div (@ (data-log-out ""))
                              ,@(log-output #:log log
                                            #:view view
+                                           #:job job
+                                           #:G_ G_
                                            #:frames-label frames-label)))
                       '())))))
 
@@ -439,6 +970,7 @@ draw that one twice."
          ;; whether the page follows it and whether the pane says so.
          (running? (equal? 1 (assq-ref job
                                        'job-in-progress)))
+         (sections-of-log (log-sections-of log job))
          (G_ (:i18n rc))
          ;; The run's name and how it ended, on one line where there is room for
          ;; one and on two where there is not.  How it ended is the place a poll
@@ -459,6 +991,8 @@ draw that one twice."
           (list `(div (@ (data-log-pane "output")
                          (class ,log-pane-face))
                       ,@(log-output #:log log
+                                    #:job job
+                                    #:G_ G_
                                     #:frames-label (G_ "frames")))
                 ;; The empty pane is written with a child of its own -- an
                 ;; empty text node -- and that is not decoration: the
@@ -512,6 +1046,8 @@ draw that one twice."
                                                                   gap-3
                                                                   w-full
                                                                   min-w-0))))
+                            ,@(log-graph-region G_ sections-of-log)
+                            ,@(diagnostics-region G_ sections-of-log)
                             (div (@ (class ,(mk-class '(flex flex-row
                                                                 flex-wrap
                                                                 items-center
@@ -536,6 +1072,16 @@ draw that one twice."
                                ,@(log-actions-region G_ job permissions)
                                ,@(terminal-panel
                                   (log-facts-region G_ job log-id)
+                                  #:gap '(gap-1))
+                               ,@(terminal-panel
+                                  (cons `(div (@ (class ,(mk-class
+                                                          '(text-xs
+                                                            uppercase
+                                                            tracking-widest
+                                                            text-asparagus-900
+                                                            dark:text-asparagus-300))))
+                                              ,(G_ "usage"))
+                                        (log-usage-region G_ sections-of-log))
                                   #:gap '(gap-1))
                                ;; The tarballs the job built, each one a
                                ;; download, in a panel of their own: they are

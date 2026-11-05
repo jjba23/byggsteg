@@ -272,6 +272,20 @@
                       (cons 'trivial-cmds (list each-task-command))))
           #:created-at "2026-01-01 00:00:05")
 
+;; One job that asks for two combinations of one dimension.  A matrix is read
+;; into the jobs it asks for before any step is run, so what is read below is
+;; that both combinations ran, in the order their values are written, and that
+;; each command was handed its own value.
+(define matrix-command
+  "echo MATRIX=$MATRIX_LANG")
+(define matrix-job
+  "spec-matrix")
+(enqueue! matrix-job
+          (list (list (cons 'task "trivial")
+                      (cons 'matrix '((lang . ("guile" "python"))))
+                      (cons 'trivial-cmds (list matrix-command))))
+          #:created-at "2026-01-01 00:00:09")
+
 ;; One job, sent the way a request that asks for a single job sends it.
 (define one-stage-job
   "spec-one-stage")
@@ -525,6 +539,20 @@ them; that the numbering is the one the field asked for is what the names say."
           (list 'outcome
                 (outcome-flags collecting-job)))))
 
+(define (matrix-readings)
+  "The combinations a matrix asked for, as the log of the one job says."
+  (run! matrix-job)
+  (let* ((text (log-text matrix-job))
+         (first (string-contains text "MATRIX=guile"))
+         (second (string-contains text "MATRIX=python")))
+    (list (list 'the-first-combination-ran (holds? text "MATRIX=guile"))
+          (list 'the-second-combination-ran (holds? text "MATRIX=python"))
+          (list 'in-the-order-they-are-written
+                (and first second (< first second)))
+          (list 'the-combination-is-announced
+                (holds? text "matrix lang=guile"))
+          (list 'outcome (outcome-flags matrix-job)))))
+
 (define (spec-readings)
   "How a job's data is read into the jobs it asks for."
   (list (list 'a-list-of-two
@@ -645,6 +673,16 @@ it lives in."
                            (the-environment-a-command-is-handed
                             "PATH=/usr/bin LC_ALL=C.UTF-8"))
                 #:got (locale-in-environment-readings)))
+         (test "a matrix runs its steps once per combination"
+               #:shuffle? #f
+               (assert-equal #:name
+                "both values ran, the first before the second, and the job passed"
+                #:expect '((the-first-combination-ran #t)
+                           (the-second-combination-ran #t)
+                           (in-the-order-they-are-written #t)
+                           (the-combination-is-announced #t)
+                           (outcome ("1" "0" "0")))
+                #:got (deferred 'matrix-readings)))
          (test "every task of a job is run, and each is a step of its own"
                #:shuffle? #f
                (assert-equal #:name

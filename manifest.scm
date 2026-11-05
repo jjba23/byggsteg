@@ -246,8 +246,11 @@ Features include executing migrations transactionally and computing SHA256
 checksums to track schema evolution in a @code{migrations_history} table.")
     (license license:agpl3+)))
 
-(packages->manifest (list (specification->package "gettext")
+(packages->manifest (list                          (specification->package "gettext")
                           (specification->package "make")
+                          ;; `time' measures a command's CPU and peak memory for
+                          ;; its log; wall time is measured without it.
+                          (specification->package "time")
                           guile-3.0-latest
                           guile-scriba
                           guile-ares-rs

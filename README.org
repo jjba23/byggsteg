@@ -105,6 +105,25 @@ thread of the same program.  See [[*Concurrency and the queue]].
   stages run in the order they are written, one log, one status, and the first
   failure stops the rest -- so a deploy that was going to ship a build the test
   stage never produced does not run.
+- *Steps you can fold.*  A log is drawn as the commands that wrote it: one
+  folded section per step, the stage it belongs to -- clone, build, test,
+  deploy, or the word its command names -- and how it went.  A failed or
+  running step is open, the rest wait behind a click, and the clone at the
+  front of every job stays folded unless it failed.  The run's commands are
+  drawn as a chain above the log, with a stage row, a summary of the steps and
+  stages, and each node's duration.
+- *Measured usage, readable durations.*  Every command is timed around its own
+  child; when GNU time is installed, CPU time and peak resident memory are
+  measured too.  The page shows the run's wall time, CPU time, peak memory and
+  output size, and writes durations the way a reader says them: ~4.3s~, ~42s~,
+  ~1m 30s~, ~1h 1m~.
+- *Build-wide diagnostics.*  Warnings and errors are read out of the output of
+  every step, collected into one panel, and linked back to the step that
+  printed them, so a build that failed in the middle does not hide the warning
+  that came before it.
+- *Matrices.*  A job that names a ~matrix~ runs its steps once per
+  combination, with each value handed to the commands as
+  ~MATRIX_<DIMENSION>~.
 - *Run anything.*  A task is a word for something to do: ~build~, ~test~,
   ~lint~, ~check~, ~fmt~, ~docs~, ~package~, ~migrate~ and the rest are run
   with the runner the checkout has (Maak or Make), an unknown name is run as
@@ -287,6 +306,8 @@ The clone is pulled by the job's own clone step before any task runs, which is w
 
 ~image~ is the container image a job's build and test steps run in, for a deployment that has a container runtime. Omit it and the job runs on the machine, which is what every job did before this field existed. See [[*Building in containers]].
 
+~matrix~ is an alist of dimensions and the values each takes. The job runs once per combination, in the order the values are written, and each combination is available to its commands as ~MATRIX_<DIMENSION>~. See [[*Matrices]].
+
 *** Example jobs
 
 An example showing a herd daemon restart after the git pull:
@@ -331,6 +352,32 @@ The stages run one after the other, and the first one that fails stops the rest:
 
 The title of a pipeline names its first job's project, and ~trivial~ when it runs bare commands; a pipeline none of whose jobs names a project is titled ~pipeline~.
 
+** Matrices
+
+A job that has the same steps for several languages, operating systems or
+database versions names them once, as a matrix:
+
+#+begin_src scheme
+(lambda()
+  `((project . "wikimusic-api")
+    (branch-name . "trunk")
+    (task . ("maak-test" "maak-build"))
+    (matrix . ((lang . ("guile" "python"))
+               (os . ("linux" "musl"))))
+    (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
+#+end_src
+
+The job is read as one job per combination before any step is run, so the four
+combinations above run one after another in the order the values are written --
+~lang=guile, os=linux~ first. Each command is handed its combination as
+~MATRIX_LANG=guile~ and ~MATRIX_OS=linux~, and the log announces the combination
+before its commands, so two otherwise identical chains are told apart.
+
+A matrix is a convenience for a pipeline, not a second scheduler: combinations
+run in order and the first failure stops the rest, as the stages of a pipeline
+do. A job that wants a log and a status of its own for each combination submits
+them as separate jobs.
+
 ------------------
 
 * Watching your work
@@ -344,6 +391,26 @@ needs running again.
 A running job's output reaches its log as it is produced, in batches of twenty lines (~log-stream-batch-size~), so the log page a reader has open fills up while the job is still running rather than all at once when it ends.
 
 What a job prints is announced command by command, each with the line ~→ running command: <cmd>~, so a long log reads as the list of commands that produced it.
+
+The log page reads those commands back as steps: each is a folded section with
+the stage it belongs to, what it ran, how many lines it printed, how long it
+took and whether it finished. A step that failed or is still writing is open;
+the others are folded until a reader asks for them, and the clone at the front
+of every job stays folded unless it failed. The same run is drawn above the log
+as a stage row and a chain of command nodes, with a summary of the steps, stages
+and wall time, a count of each outcome and a duration on every node that has one;
+each node links to its step.
+
+The page also measures what the run cost. Wall time is measured for every
+command; when GNU time is installed, CPU time and peak resident memory are
+measured for each command as well. The usage panel adds those readings up, and
+the step headings and the run's own facts use the same compact durations --
+~4.3s~, ~42s~, ~1m 30s~, ~1h 1m~.
+
+Warnings and errors are not tied to whether their step failed: every step's
+output is read, and the build-wide diagnostics panel collects what it finds,
+counts the warnings and errors, and links each reading back to the step that
+printed it.
 
 The REST API answers with what the log holds at the moment it is read, and the run it belongs to with it, so a client can poll for both:
 
@@ -1039,6 +1106,9 @@ A job may name the image its *build* and *test* steps run in. The image is a fie
     (image . "docker.io/library/node:22")
     (clone-url . "https://codeberg.org/jjba23/wikimusic-api")))
 #+end_src
+
+The step headers on the job's log page name the image a command ran in, so a
+log of a container build says which image produced it.
 
 What runs in the image are ~maak-test~, ~make-test~, ~maak-build~, ~make-build~ and ~trivial~. The deploy and restart tasks -- ~maak-deploy~, ~pull-and-deploy~, ~pull-and-restart~ and ~byggsteg-version~ -- do not: they act on the machine byggsteg is on, through ~sudo herd~ and ~sudo maak deploy~, so a pipeline can build in a container and deploy on the host in the same run.
 

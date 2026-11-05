@@ -121,6 +121,15 @@
                  #:task task
                  #:env (list (cons "PATH" spec-path)))))
 
+(define (command-output result)
+  "The command's own output, less the completion line the runner appends."
+  (let ((text (step-result-stdout result)))
+    (let loop ((markers '("\n✓ command " "\n✗ command ")))
+      (if (null? markers)
+          text
+          (let ((at (string-contains text (car markers))))
+            (if at (substring text 0 at) (loop (cdr markers))))))))
+
 (define make-publish (run-target #:project "make-project" #:task "publish"))
 (define make-test (run-target #:project "make-project" #:task "test"))
 (define maak-test (run-target #:project "maak-project" #:task "test"))
@@ -253,8 +262,12 @@
                             #:name "test on a Make checkout is make test")
                (assert-true (step-result-succeeded? make-test)
                             #:name "and it ran")
+               (assert-true (and (string-contains (step-result-stdout make-test)
+                                                  "✓ command finished")
+                                 #t)
+                            #:name "and its result says it finished")
                (assert-equal #:expect "make-tested"
-                             #:got (string-trim (step-result-stdout make-test))
+                             #:got (command-output make-test)
                              #:name "the target the Makefile has ran")
                (assert-true (string-suffix? "maak test" (step-result-cmd maak-test))
                             #:name "test on a Maak checkout is maak test")
@@ -281,7 +294,7 @@
                (assert-true (string-suffix? "make publish" (step-result-cmd make-publish))
                             #:name "publish is run as the target it names")
                (assert-equal #:expect "make-published"
-                             #:got (string-trim (step-result-stdout make-publish))
+                             #:got (command-output make-publish)
                              #:name "and the project's own target did the work"))))
 
 (define (spec)

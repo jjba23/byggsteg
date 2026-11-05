@@ -21,6 +21,7 @@
   #:use-module (ice-9 iconv)
   #:use-module (ice-9 threads)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-13)
   #:use-module (srfi srfi-9)
   #:export (display-cmd do-in-clone-dir
                         checkout-runner
@@ -224,11 +225,87 @@ back with the newlines the reader took off."
                                (string-append line "\n"))
             (loop (cons line lines)))))))
 
-(define* ($ cmd
-            #:key (env #f))
-  (let* ((input+output (pipe))
-         (pid (spawn "bash"
-                     (list "bash" "-c" cmd)
+;;; ====== What a command cost ======
+;;;
+;;; Every command is timed around its own child, so the reading belongs to the
+;;; step rather than to the daemon that happens to be running several jobs at
+;;; once.  GNU time is used when it is on PATH: it is the only way to read a
+;;; child's CPU and peak memory without reading the process' global children,
+;;; which would mix in every other job.  Without it, wall time is still
+;;; measured and the page says only what was measured.
+
+(define (time-executable)
+  "GNU time on PATH, or #f when this deployment has none."
+  (search-path (string-split (or (getenv "PATH") "") #\:) "time"))
+
+(define (make-usage-file)
+  "A temporary file GNU time can write one command's usage to, or #f."
+  (catch #t
+         (lambda ()
+           (let ((port (mkstemp "/tmp/byggsteg-usage-XXXXXX")))
+             (let ((path (port-filename port)))
+               (close-port port)
+               path)))
+         (lambda args #f)))
+
+(define (read-time-usage path wall)
+  "The usage GNU time wrote to PATH, with WALL as the measured elapsed time.
+
+GNU time writes `user system max-rss elapsed' on one line; a file it could not
+write, or a line it could not parse, leaves the wall time as the only reading."
+  (let* ((text (if (and path (file-exists? path))
+                   (call-with-input-file path get-string-all)
+                   #f))
+         (fields (if text
+                     (filter (lambda (field)
+                               (positive? (string-length field)))
+                             (string-split (string-trim text) #\space))
+                     '())))
+    (if (>= (length fields) 3)
+        (let ((user (string->number (list-ref fields 0)))
+              (system (string->number (list-ref fields 1)))
+              (rss (string->number (list-ref fields 2))))
+          (if (and user system rss)
+              `((wall . ,wall) (cpu . ,(+ user system)) (rss . ,rss))
+              `((wall . ,wall))))
+        `((wall . ,wall)))))
+
+(define (format-usage usage)
+  "The measured CPU and memory USAGE, as the completion line says them."
+  (let ((cpu (assq-ref usage 'cpu))
+        (rss (assq-ref usage 'rss)))
+    (cond
+      ((and cpu rss)
+       (format #f " (cpu ~,2fs, rss ~,1fMB)" cpu (/ rss 1024.0)))
+      (cpu (format #f " (cpu ~,2fs)" cpu))
+      (rss (format #f " (rss ~,1fMB)" (/ rss 1024.0)))
+      (else ""))))
+
+(define (usage-footer succeeded? exit-code usage)
+  "The line that says how a command went, and what it cost."
+  (let ((wall (assq-ref usage 'wall)))
+    (format #f "\n~a command ~a~a~a\n"
+            (if succeeded? "✓" "✗")
+            (if succeeded?
+                "finished"
+                (format #f "failed (exit ~a)" exit-code))
+            (if wall
+                (format #f " ~a ~,2fs"
+                        (if succeeded? "in" "after") wall)
+                "")
+            (format-usage usage))))
+
+(define* (run-command cmd env usage-file)
+  "Run CMD with GNU time writing to USAGE-FILE, or directly when there is none."
+  (let* ((time (and usage-file (time-executable)))
+         (timed? (and time usage-file))
+         (input+output (pipe))
+         (started (get-internal-real-time))
+         (pid (spawn (if timed? time "bash")
+                     (if timed?
+                         (list time "-q" "-f" "%U %S %M %e"
+                               "-o" usage-file "bash" "-c" cmd)
+                         (list "bash" "-c" cmd))
                      #:output (cdr input+output)
                      #:error (cdr input+output)
                      ;; The command's environment: the daemon's, the job's own
@@ -249,8 +326,30 @@ back with the newlines the reader took off."
          (out (read-command-output in stream cmd))
          (_ (close-port in))
          (ex (waitpid pid))
-         (exit-code (status:exit-val (cdr ex))))
-    (make-step-result (equal? 0 exit-code) out cmd)))
+         (finished (get-internal-real-time))
+         (exit-code (status:exit-val (cdr ex)))
+         (succeeded? (equal? 0 exit-code))
+         (wall (/ (- finished started)
+                  (exact->inexact internal-time-units-per-second)))
+         (usage (if timed?
+                    (read-time-usage usage-file wall)
+                    `((wall . ,wall))))
+         (footer (usage-footer succeeded? exit-code usage)))
+    (log-stream-write! stream footer)
+    (make-step-result succeeded? (string-append out footer) cmd)))
+
+(define* ($ cmd
+            #:key (env #f))
+  "Run CMD, measuring what it cost and writing how it went into its log."
+  (let ((usage-file (and (time-executable) (make-usage-file))))
+    (if usage-file
+        (dynamic-wind
+         (lambda () #t)
+         (lambda () (run-command cmd env usage-file))
+         (lambda ()
+           (if (file-exists? usage-file)
+               (delete-file usage-file) #t)))
+        (run-command cmd env #f))))
 
 (define* (do-in-clone-dir clone-dir cmds
                           #:key (env #f) (image #f))

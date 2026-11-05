@@ -134,6 +134,39 @@
     }
   }
 
+  /* The steps the reader has unfolded, by the index the step is drawn with.
+     A poll draws the log again from what the job has printed, so a section the
+     reader opened would be folded again under their hand without this.  A
+     reader who has touched a section is the one whose choice is kept -- the
+     server has its own reasons for opening a failed or a running step, and
+     those are the ones a page that has not been touched should arrive with. */
+  function openSteps() {
+    var indexes = []
+    var open = section.querySelectorAll('[data-log-section][open]')
+    for (var i = 0; i < open.length; i++) {
+      indexes.push(open[i].getAttribute('data-log-section'))
+    }
+    return indexes
+  }
+
+  function drawSteps(indexes, open) {
+    var steps = section.querySelectorAll('[data-log-section]')
+    for (var i = 0; i < steps.length; i++) {
+      var index = steps[i].getAttribute('data-log-section')
+      steps[i].open = open && indexes.indexOf(index) !== -1
+    }
+  }
+
+  /* Whether the reader has folded or unfolded a step.  A native `toggle' does
+     not bubble, so this listens in the capture phase. */
+  var choseSteps = false
+  document.addEventListener('toggle', function (event) {
+    if (event.target && event.target.hasAttribute
+        && event.target.hasAttribute('data-log-section')) {
+      choseSteps = true
+    }
+  }, true)
+
   /* Draw the run's state from the answer over the place the page draws it: the
      status in the heading, the mark of work in progress beside the tabs, the
      facts in the column and the actions that become possible once the job has
@@ -151,7 +184,8 @@
      drawing them -- they stay in front of a reader while the output moves. */
   function redraw(state) {
     var places = ['data-log-status', 'data-log-live', 'data-log-facts',
-                  'data-log-actions']
+                  'data-log-actions', 'data-log-graph',
+                  'data-log-diagnostics', 'data-log-usage']
     for (var i = 0; i < places.length; i++) {
       var here = document.querySelector('[' + places[i] + ']')
       var there = state.querySelector('[' + places[i] + ']')
@@ -201,6 +235,7 @@
     var target = pane(name)
     var have = target.getAttribute('data-log-have')
     var opened = unfolded()
+    var openedSteps = openSteps()
     var stick = atTheEnd()
     /* `at' is what keeps a poll from being answered out of a cache: every ask
        is a page of a log that is being written, and the one before it is not
@@ -249,6 +284,7 @@
           while (target.firstChild) { target.removeChild(target.firstChild) }
           while (content.firstChild) { target.appendChild(content.firstChild) }
           unfoldAgain(opened)
+          if (choseSteps) { drawSteps(openedSteps, true) }
         }
         target.setAttribute('data-log-have', state.getAttribute('data-log-length') || '')
         read[name] = true
