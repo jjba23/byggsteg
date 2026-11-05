@@ -15,62 +15,62 @@
 
 ;;; --- SQLite implementation ---
 
-(define execute-write
-  (db-write (database)))
+(define (make-sqlite-artifact-repository)
+  (define execute-write
+    (db-write (database)))
 
-(define execute-read
-  (db-read (database)))
+  (define execute-read
+    (db-read (database)))
 
-(define columns
-  '(id job-id
-       title
-       artifact-path
-       artifact-size
-       created-at
-       updated-at))
+  (define columns
+    '(id job-id
+         title
+         artifact-path
+         artifact-size
+         created-at
+         updated-at))
 
-(define (get-artifacts-by-job-ids ids)
-  (if (nil? ids)
-    '()
-    (execute-read "get-artifacts-by-job-ids"
+  (define (get-artifacts-by-job-ids ids)
+    (if (nil? ids)
+        '()
+        (execute-read "get-artifacts-by-job-ids"
+                      (sql-select "artifact"
+                                  #:columns columns
+                                  #:where (list (list 'job-id
+                                                      'in ids))
+                                  #:order-by '((created-at desc))))))
+
+  (define* (get-artifacts #:key limit offset)
+    (execute-read "get-artifacts"
                   (sql-select "artifact"
                               #:columns columns
-                              #:where (list (list 'job-id
-                                                  'in ids))
-                              #:order-by '((created-at desc))))))
+                              #:order-by '((created-at desc))
+                              #:limit limit
+                              #:offset offset)))
 
-(define* (get-artifacts #:key limit offset)
-  (execute-read "get-artifacts"
-                (sql-select "artifact"
-                            #:columns columns
-                            #:order-by '((created-at desc))
-                            #:limit limit
-                            #:offset offset)))
+  (define (get-artifact-by-id id)
+    (let ((rows (execute-read "get-artifact-by-id"
+                              (sql-select "artifact"
+                                          #:columns columns
+                                          #:where (list (cons 'id id))
+                                          #:limit 1))))
+      (if (nil? rows) #f
+          (car rows))))
 
-(define (get-artifact-by-id id)
-  (let ((rows (execute-read "get-artifact-by-id"
-                            (sql-select "artifact"
-                                        #:columns columns
-                                        #:where (list (cons 'id id))
-                                        #:limit 1))))
-    (if (nil? rows) #f
-      (car rows))))
+  (define (delete-artifact-by-id id)
+    (execute-write "delete-artifact-by-id"
+                   (sql-delete "artifact"
+                               #:where (list (cons 'id id)))))
 
-(define (delete-artifact-by-id id)
-  (execute-write "delete-artifact-by-id"
-                 (sql-delete "artifact"
-                             #:where (list (cons 'id id)))))
+  (define (insert-artifact attrs)
+    (execute-write "insert-artifact"
+                   (sql-insert "artifact" attrs)))
 
-(define (insert-artifact attrs)
-  (execute-write "insert-artifact"
-                 (sql-insert "artifact" attrs)))
+  (define (update-artifact-by-id id attrs)
+    (execute-write "update-artifact-by-id"
+                   (sql-update "artifact" attrs
+                               #:where (list (cons 'id id)))))
 
-(define (update-artifact-by-id id attrs)
-  (execute-write "update-artifact-by-id"
-                 (sql-update "artifact" attrs
-                             #:where (list (cons 'id id)))))
-
-(define (make-sqlite-artifact-repository)
   (mk-artifact-repository #:get-artifacts-proc get-artifacts
                           #:get-artifact-by-id-proc get-artifact-by-id
                           #:get-artifacts-by-job-ids-proc

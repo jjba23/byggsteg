@@ -171,7 +171,7 @@ is the one byggsteg looks an account up by, so it holds one account each."
          #:shuffle? #f
          #:concurrent? #f
          #:after-all (lambda (vc)
-                       (close-databases!)
+                       (close-databases! #:path spec-db)
                        (for-each (lambda (path)
                                    (if (file-exists? path)
                                        (delete-file path)))

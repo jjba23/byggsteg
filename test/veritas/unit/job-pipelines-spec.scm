@@ -594,7 +594,7 @@ it lives in."
          #:shuffle? #f
          #:concurrent? #f
          #:after-all (lambda (vc)
-                       (close-databases!)
+                       (close-databases! #:path spec-db)
                        ;; The database and the tarballs the collecting job wrote
                        ;; are the suite's own, and go with it.
                        (for-each (lambda (path)

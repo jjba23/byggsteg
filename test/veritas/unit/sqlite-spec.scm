@@ -106,7 +106,7 @@
          #:shuffle? #f
          #:concurrent? #f
          #:after-all (lambda (vc)
-                       (close-databases!)
+                       (close-databases! #:path spec-db)
                        (for-each (lambda (path)
                                    (if (file-exists? path)
                                        (delete-file path)))
@@ -123,6 +123,30 @@
                              (assq-ref job 'title))
                            (read-with-collection (lambda ()
                                                    (get-jobs job-repo))))))
+
+         (test "closing one database leaves another open"
+               #:shuffle? #f
+               (let ((first (string-append spec-db ".close-first"))
+                     (second (string-append spec-db ".close-second")))
+                 (let ((first-db (database #:path first))
+                       (second-db (database #:path second)))
+                   (close-databases! #:path first)
+                   (assert-true
+                    (begin
+                      (sqlite-exec second-db
+                                   "CREATE TABLE still_open (id INTEGER)")
+                      #t)
+                    #:name "the connection that was not named still answers")
+                   (close-databases! #:path second))
+                 (for-each (lambda (path)
+                             (if (file-exists? path)
+                                 (delete-file path)))
+                           (list first
+                                 (string-append first "-wal")
+                                 (string-append first "-shm")
+                                 second
+                                 (string-append second "-wal")
+                                 (string-append second "-shm")))))
 
          (test "The same statement answers again and again"
                ;; One SQL text, read twenty times, with a collection between

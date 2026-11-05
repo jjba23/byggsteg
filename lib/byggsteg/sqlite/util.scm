@@ -136,12 +136,22 @@ statements, and the statements take it again."
                           (let ((db (open-database #:path path)))
                             (hash-set! *connections* path db) db)))))
 
-(define (close-databases!)
-  "Close every connection this process opened.  For shutdown and for tests."
-  (with-database-lock (lambda ()
-                        (hash-for-each (lambda (path db)
-                                         (sqlite-close db)) *connections*)
-                        (hash-clear! *connections*))))
+(define* (close-databases! #:key path)
+  "Close every connection this process opened, or only PATH's.
+
+A test suite has a database of its own and runs beside the others, so it must
+not close a connection another suite is still using."
+  (with-database-lock
+   (lambda ()
+     (if path
+         (let ((db (hash-ref *connections* path)))
+           (when db
+             (sqlite-close db)
+             (hash-remove! *connections* path)))
+         (begin
+           (hash-for-each (lambda (path db)
+                            (sqlite-close db)) *connections*)
+           (hash-clear! *connections*))))))
 
 ;;;
 ;;; Running a query

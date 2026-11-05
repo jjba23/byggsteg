@@ -427,7 +427,7 @@ not a guess: the sweep reads them oldest first, as the retention does."
          #:shuffle? #f
          #:concurrent? #f
          #:after-all (lambda (vc)
-                       (close-databases!)
+                       (close-databases! #:path spec-db)
                        (for-each (lambda (path)
                                    (if (file-exists? path)
                                        (delete-file path)))

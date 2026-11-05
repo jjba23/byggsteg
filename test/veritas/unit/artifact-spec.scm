@@ -313,7 +313,7 @@ a quiet directory, is what stopped it."
          #:shuffle? #f
          #:concurrent? #f
          #:after-all (lambda (vc)
-                       (close-databases!)
+                       (close-databases! #:path spec-db)
                        (for-each (lambda (path)
                                    (if (file-exists? path)
                                        (delete-file path)))

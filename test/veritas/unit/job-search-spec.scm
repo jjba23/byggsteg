@@ -200,7 +200,7 @@ the newlines a log is mostly made of do not survive into it."
          #:shuffle? #f
          #:concurrent? #f
          #:after-all (lambda (vc)
-                       (close-databases!)
+                       (close-databases! #:path spec-db)
                        (for-each (lambda (path)
                                    (if (file-exists? path)
                                        (delete-file path)))
