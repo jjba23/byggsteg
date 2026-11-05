@@ -198,7 +198,11 @@
               ;; one are not there to read.
               (job-id (and l (assoc-ref l
                                         'job-id)))
-              (j (and job-id (get-job-by-id job-repo job-id))))
+              (j (and job-id (get-job-by-id job-repo job-id)))
+              ;; A reader without JavaScript is sent the page that draws its
+              ;; own log and graph: the default page returns the shell as soon
+              ;; as it can and the script fills it in.
+              (defer? (not (equal? "1" (get-from-qstr rc "full")))))
          ;; A log that is not there is a 404 rather than a page about nothing:
          ;; the id is the whole of the request, so it either names a log or the
          ;; path names none.  A log whose job is gone is the same page about
@@ -220,11 +224,41 @@
                                                #:job j
                                                #:log l
                                                #:artifacts artifacts
+                                               #:defer? defer?
                                                ;; What the reader may do with
                                                ;; this run: retry it, delete it,
                                                ;; or neither.
                                                #:permissions (session-permissions
                                                               rc)))))))))
+
+;; The run's graph and the readings beside it, on their own.
+;;
+;; A large log takes a moment to turn into the console a reader reads, and the
+;; graph does not need that rendering: it is the commands the log announces, and
+;; their state.  So the page asks for this first and draws the graph while the
+;; output is still being read, and then asks for the output separately.  What
+;; comes back is the state `log-poll' draws -- status, graph, diagnostics,
+;; usage, facts and actions -- and no output at all.
+(get "/logs/:id/state"
+     #:mime 'xml
+     #:i18n '(cookie "lang")
+     (lambda (rc)
+       (let* ((log-repo (make-sqlite-log-repository))
+              (job-repo (make-sqlite-job-repository))
+              (l (get-log-by-id log-repo
+                                (params rc "id"))))
+         (if (not l)
+             (response-emit (error-page 404)
+                            #:status 404
+                            #:headers '((content-type text/html)))
+             (let ((j (get-job-by-id job-repo (assoc-ref l
+                                                          'job-id))))
+               (response-emit (:mime rc (log-poll (:i18n rc)
+                                                  #:log l
+                                                  #:job j
+                                                  #:permissions (session-permissions
+                                                                 rc)
+                                                  #:parts 'state)))))))))
 
 ;; The pane a job's output is read in, on its own.
 ;;
@@ -235,11 +269,11 @@
 ;;
 ;; What is asked for is one of the two readings of the output -- the console, or
 ;; the bytes with the control characters spelled out -- and what comes back is
-;; the pane with the state of the run beside it: its status, the mark of work in
-;; progress, its facts and its actions (see `log-poll'), so that a page arrives
-;; at `job succeeded' where the reader is standing.  A reader that already has
-;; the whole log says so, and is told that it has not changed rather than sent
-;; megabytes of build output to say the same thing.
+;; the pane with the state of the run beside it.  The graph and the other
+;; readings that take the whole log to read are asked for at `/logs/:id/state'
+;; instead, so this answer can be drawn as soon as the console is rendered.  A
+;; reader that already has the whole log says so, and is told that it has not
+;; changed rather than sent megabytes of build output to say the same thing.
 (get "/logs/:id/output"
      #:mime 'xml
      #:i18n '(cookie "lang")
@@ -272,5 +306,6 @@
                                                   #:view view
                                                   #:have (get-from-qstr rc
                                                                         "have")
+                                                  #:parts 'output
                                                   #:frames-label ((:i18n rc)
                                                                   "frames")))))))))

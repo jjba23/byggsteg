@@ -401,6 +401,11 @@ as a stage row and a chain of command nodes, with a summary of the steps, stages
 and wall time, a count of each outcome and a duration on every node that has one;
 each node links to its step.
 
+The graph and the output are fetched separately, so a long log does not hold the
+steps back while the console is rendered. A reader without JavaScript is offered
+~?full=1~ in the output pane, or can open ~/logs/<id>?full=1~ directly, and gets
+the graph and the whole log in the page itself.
+
 The page also measures what the run cost. Wall time is measured for every
 command; when GNU time is installed, CPU time and peak resident memory are
 measured for each command as well. The usage panel adds those readings up, and

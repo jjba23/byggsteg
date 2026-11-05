@@ -250,7 +250,40 @@ page as it is opened."
                                               "data-log-usage"
                                               "data-log-actions")
                                      '("wall time" "cpu time" "peak memory"
-                                       "3.5s" "2.0 MB")))))
+                                       "3.5s" "2.0 MB")))
+                 (assert-equal #:name
+                  "the graph is a labelled region, and its links say what they open"
+                  #:expect '(#t #t)
+                  #:got (readings-of markup
+                                     '("aria-label=\"pipeline steps\""
+                                       "aria-label=\"clone:")))))
+         (test "the graph and the output are answered separately"
+               #:shuffle? #f
+               (let* ((job (spec-job #:success 1
+                                     #:in-progress 0
+                                     #:updated-at 5))
+                      (state (sxml->xml-string
+                              (log-poll G_ #:log stepped-log #:job job
+                                        #:permissions all-permissions
+                                        #:parts 'state)))
+                      (output (sxml->xml-string
+                               (log-poll G_ #:log stepped-log #:job job
+                                         #:permissions all-permissions
+                                         #:parts 'output))))
+                 (assert-equal #:name
+                  "the state answer draws the graph without rendering the console"
+                  #:expect '(#t #t #t #f #f)
+                  #:got (list (reads? state "data-log-graph")
+                              (reads? state "data-graph-stage=\"clone\"")
+                              (reads? state "data-log-usage")
+                              (reads? state "data-log-out")
+                              (reads? state "cloned")))
+                 (assert-equal #:name
+                  "the output answer carries the console alone"
+                  #:expect '(#t #t #f)
+                  #:got (list (reads? output "data-log-out")
+                              (reads? output "cloned")
+                              (reads? output "data-log-graph")))))
          (test "a build's warnings and errors are read across its steps"
                #:shuffle? #f
                (let ((markup (answer (spec-job #:success 1

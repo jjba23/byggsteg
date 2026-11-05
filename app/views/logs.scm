@@ -133,10 +133,18 @@ last sent a row of this length has the whole of it."
   (let ((status (section-status section))
         (image (section-image section)))
     `(summary (@ (class ,(mk-class '(cursor-pointer flex flex-row flex-wrap
-                                               items-center gap-2
-                                               px-2 py-2 font-mono text-sm))))
-              (span (@ (class ,(mk-class '(text-xs uppercase tracking-widest
-                                                   px-1 border
+                                               items-center gap-2 sm:gap-3
+                                               px-3 py-3 min-h-12
+                                               font-mono text-sm sm:text-md
+                                               transition-colors
+                                               hover:bg-stone-300
+                                               dark:hover:bg-onyx-700
+                                               focus-visible:outline-2
+                                               focus-visible:outline-offset-2
+                                               outline-asparagus-500))))
+              (span (@ (class ,(mk-class '(text-xs sm:text-sm uppercase
+                                                   tracking-widest px-2 py-1
+                                                   border-2
                                                    border-asparagus-700
                                                    dark:border-asparagus-900
                                                    text-asparagus-900
@@ -146,12 +154,12 @@ last sent a row of this length has the whole of it."
                                                  strong-ink))))
                     ,(section-summary section))
               ,@(if image
-                    (list `(span (@ (class ,(mk-class (append '(text-xs)
+                    (list `(span (@ (class ,(mk-class (append '(text-xs sm:text-sm)
                                                              muted-ink))))
                                  ,(format #f "in ~a" image)))
                     '())
               (span (@ (class ,(mk-class '(ml-auto flex flex-row items-center
-                                                   gap-1 text-xs))))
+                                                   gap-1 text-xs sm:text-sm))))
                     ,@(if (eq? status 'running)
                           (pending-mark #:size 'xs
                                         #:label (section-status-word G_
@@ -160,7 +168,8 @@ last sent a row of this length has the whole of it."
                     (span (@ (class ,(mk-class (append '()
                                                        (section-status-face
                                                         status)))))
-                          ,(section-status-glyph status)
+                          (span (@ (aria-hidden "true"))
+                                ,(section-status-glyph status))
                           " "
                           ,(section-status-word G_ status))
                     (span (@ (class ,(mk-class (append '(ml-1) muted-ink))))
@@ -185,18 +194,21 @@ commands that produced it."
   (let ((text (section-text section)))
     `(details (@ (id ,(format #f "step-~a" index))
                  (data-log-section ,(number->string index))
-                 (class ,(mk-class '(border border-asparagus-700
+                 (class ,(mk-class '(border-2 border-asparagus-700
                                              dark:border-asparagus-900
                                              bg-stone-100 dark:bg-onyx-900
                                              min-w-0)))
                  ,@(if open? '((open "")) '()))
                ,(section-heading G_ section)
                ,@(if (positive? (string-length text))
-                     (list `(div (@ (class ,(mk-class '(border-t
+                     (list `(div (@ (class ,(mk-class '(border-t-2
                                                         border-asparagus-700
                                                         dark:border-asparagus-900))))
                                  ,@(terminal-pre text
-                                                 #:size '(text-sm)
+                                                 #:size '(text-sm sm:text-md)
+                                                 #:leading '(leading-6 sm:leading-7)
+                                                 #:padding-x '(px-3 sm:px-4)
+                                                 #:padding-y '(py-4)
                                                  #:wrap? #f
                                                  #:framed? #f
                                                  #:ansi? #t
@@ -213,8 +225,20 @@ commands that produced it."
 
 (define (graph-node-face status)
   "The hairline and layout of a graph node, by how its step went."
-  (append '(border px-2 py-1 flex flex-col gap-0 min-w-0)
+  (append '(border-2 px-3 py-2 min-h-12 flex flex-col gap-1 min-w-0
+                   transition-colors)
           (graph-status-border status)))
+
+(define (graph-link-label G_ section)
+  "What a screen reader calls one graph node."
+  (let ((wall (section-wall-time section)))
+    (format #f "~a: ~a, ~a~a"
+            (G_ (stage-label (section-stage section)))
+            (section-summary section)
+            (section-status-word G_ (section-status section))
+            (if wall
+                (format #f ", ~a" (human-duration wall))
+                ""))))
 
 (define (section-wall-time section)
   "The measured wall time of SECTION, or #f when its log was not measured."
@@ -263,15 +287,20 @@ commands that produced it."
                                               gap-2 text-xs))))
                 ,@(append-map
                    (lambda (status)
-                     (list
-                      `(span (@ (class ,(mk-class
-                                         (append '(flex flex-row items-center
-                                                           gap-1)
-                                                 (section-status-face status))))
-                                (title ,(section-status-word G_ status)))
-                             ,(section-status-glyph status)
-                             " "
-                             ,(number->string (count-of-status steps status)))))
+                     (let ((count (count-of-status steps status))
+                           (word (section-status-word G_ status)))
+                       (list
+                        `(span (@ (class ,(mk-class
+                                           (append '(flex flex-row items-center
+                                                             gap-1)
+                                                   (section-status-face status))))
+                                  (title ,word))
+                               (span (@ (aria-hidden "true"))
+                                     ,(section-status-glyph status))
+                               (span (@ (class "sr-only"))
+                                     ,word)
+                               " "
+                               ,(number->string count)))))
                    statuses))))))
 
 (define (graph-node G_ section index)
@@ -284,29 +313,36 @@ commands that produced it."
                (title ,(if wall
                            (format #f "~a — ~a" summary (human-duration wall))
                            summary))
+               (aria-label ,(graph-link-label G_ section))
                (data-graph-stage ,(symbol->string (section-stage section)))
                (data-graph-status ,(symbol->string status))
-               (class "no-underline"))
+               (class ,(mk-class '(no-underline cursor-pointer
+                                    focus-visible:outline-2
+                                    focus-visible:outline-offset-2
+                                    outline-asparagus-500))))
             (span (@ (class ,(mk-class (graph-node-face status))))
-                  (span (@ (class ,(mk-class '(text-xs uppercase tracking-widest
+                  (span (@ (class ,(mk-class '(text-xs sm:text-sm uppercase
+                                                      tracking-widest
                                                       text-asparagus-900
                                                       dark:text-asparagus-300))))
                         ,(G_ (stage-label (section-stage section))))
-                  (span (@ (class ,(mk-class (append '(text-xs)
+                  (span (@ (class ,(mk-class (append '(text-sm sm:text-md)
                                                      (section-status-face status)))))
-                        ,(section-status-glyph status)
+                        (span (@ (aria-hidden "true"))
+                              ,(section-status-glyph status))
                         " "
-                        ,(shorten summary 28))
+                        ,(shorten summary 36))
                   ,@(if wall
-                        (list `(span (@ (class ,(mk-class (append '(text-xs)
+                        (list `(span (@ (class ,(mk-class (append '(text-xs sm:text-sm)
                                                                    muted-ink))))
                                      ,(human-duration wall)))
                         '()))))))
 
 (define (graph-arrow status)
   "The arrow between two nodes of a chain, in the ink of the step it leaves."
-  `(span (@ (class ,(mk-class (append '(text-sm)
-                                        (section-status-face status)))))
+  `(span (@ (class ,(mk-class (append '(text-sm sm:text-md)
+                                        (section-status-face status))))
+            (aria-hidden "true"))
          "→"))
 
 (define (graph-connector status)
@@ -351,22 +387,41 @@ commands that produced it."
 (define (stage-chip G_ stage members index)
   "One stage of the run as a chip, linking to its first step."
   (let ((status (stage-group-status members))
-        (wall (graph-row-wall members)))
+        (wall (graph-row-wall members))
+        (count (length members)))
     `(a (@ (href ,(format #f "#step-~a" index))
+           (aria-label ,(format #f "~a: ~a ~a~a, ~a"
+                                 (G_ (stage-label stage))
+                                 count
+                                 (plural count (G_ "step"))
+                                 (if wall
+                                     (format #f ", ~a"
+                                             (human-duration wall))
+                                     "")
+                                 (section-status-word G_ status)))
            (data-graph-stage ,(symbol->string stage))
-           (class "no-underline"))
-        (span (@ (class ,(mk-class (append '(border px-2 py-1 flex flex-row
+           (class ,(mk-class '(no-underline cursor-pointer
+                               focus-visible:outline-2
+                               focus-visible:outline-offset-2
+                               outline-asparagus-500))))
+        (span (@ (class ,(mk-class (append '(border-2 px-3 py-2 min-h-12
+                                                     flex flex-row
                                                      flex-wrap items-center gap-1
-                                                     text-xs)
+                                                     text-sm
+                                                     transition-colors
+                                                     hover:bg-stone-300
+                                                     dark:hover:bg-onyx-700)
                                             (graph-status-border status)))))
-              (span (@ (class ,(mk-class '(uppercase tracking-widest
+              (span (@ (class ,(mk-class '(text-xs sm:text-sm uppercase
+                                                   tracking-widest
                                                    text-asparagus-900
                                                    dark:text-asparagus-300))))
                     ,(G_ (stage-label stage)))
-              (span (@ (class ,(mk-class (append '(text-xs) muted-ink))))
-                    ,(format #f "~a" (length members)))
+              (span (@ (class ,(mk-class (append '(text-xs sm:text-sm)
+                                                    muted-ink))))
+                    ,(format #f "~a" count))
               ,@(if wall
-                    (list `(span (@ (class ,(mk-class (append '(text-xs)
+                    (list `(span (@ (class ,(mk-class (append '(text-xs sm:text-sm)
                                                                muted-ink))))
                                  ,(human-duration wall)))
                     '())))))
@@ -394,8 +449,11 @@ commands that produced it."
     (if (null? items)
         '()
         (list `(div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
-                                                  gap-1 text-xs))))
-                    (span (@ (class ,(mk-class '(uppercase tracking-widest
+                                                  gap-2 text-sm)))
+                       (role "group")
+                       (aria-label ,(G_ "stages")))
+                    (span (@ (class ,(mk-class '(text-xs sm:text-sm uppercase
+                                                         tracking-widest
                                                          text-asparagus-900
                                                          dark:text-asparagus-300))))
                           ,(G_ "stages"))
@@ -405,11 +463,12 @@ commands that produced it."
   "The graph's name, its size, and the outcomes it holds."
   `(div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
                                        gap-2 w-full))))
-        (span (@ (class ,(mk-class '(text-xs uppercase tracking-widest
+        (span (@ (class ,(mk-class '(text-xs sm:text-sm uppercase
+                                             tracking-widest
                                              text-asparagus-900
                                              dark:text-asparagus-300))))
               ,(G_ "pipeline"))
-        (span (@ (class ,(mk-class (append '(text-xs) muted-ink))))
+        (span (@ (class ,(mk-class (append '(text-sm) muted-ink))))
               ,(graph-summary G_ steps))
         ,@(graph-legend G_ steps)))
 
@@ -428,9 +487,12 @@ stage row above it is the same run at the height a reader scans first."
          (list (graph-header G_ steps))
          (stage-row G_ steps)
          (list `(div (@ (class ,(mk-class '(overflow-x-auto w-full
-                                                   min-w-0 pb-1))))
+                                                   min-w-0 pb-2)))
+                        (tabindex "0")
+                        (role "region")
+                        (aria-label ,(G_ "pipeline steps")))
                      (ol (@ (class ,(mk-class '(flex flex-row items-center
-                                                        gap-1 w-max))))
+                                                        gap-2 w-max))))
                          ,@(graph-items G_ steps))))))))
 
 (define (log-graph-region G_ sections)
@@ -442,9 +504,44 @@ find the place it is drawn in."
   (let ((graph (pipeline-graph G_ sections)))
     (list
      `(div (@ (data-log-graph "")
-              (class ,(mk-class '(flex flex-col gap-1 min-w-0)))
+              (role "region")
+              (aria-label ,(G_ "pipeline steps"))
+              (aria-busy "false")
+              (class ,(mk-class '(flex flex-col gap-2 min-w-0)))
               ,@(if (null? graph) '((hidden "")) '()))
            ,@(if (null? graph) '("") graph)))))
+
+(define (log-graph-placeholder G_)
+  "The graph's place while the page reads the first steps."
+  (list
+   `(div (@ (data-log-graph "")
+            (role "region")
+            (aria-label ,(G_ "pipeline steps"))
+            (aria-busy "true")
+            (class ,(mk-class '(flex flex-col gap-2 min-w-0))))
+         (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center
+                                            gap-2 text-sm muted-ink)))
+                 (role "status"))
+              ,@(pending-mark #:size 'sm #:label (G_ "reading the pipeline"))
+              (span ,(G_ "drawing the steps as the log arrives"))))))
+
+(define (log-usage-placeholder G_)
+  "What the usage panel says while the first steps are being read."
+  (list
+   `(dl (@ (data-log-usage "")
+           (aria-busy "true"))
+        (dt (G_ "reading") #:color muted-ink)
+        (dd "…" #:color prose-ink))))
+
+(define (log-output-placeholder G_)
+  "What the output pane says while the first response is on its way."
+  (list
+   `(div (@ (data-log-pending "")
+            (role "status")
+            (class ,(mk-class '(flex flex-row flex-wrap items-center
+                                       gap-2 p-4 text-sm muted-ink))))
+         ,@(pending-mark #:size 'sm #:label (G_ "reading the log"))
+         (span ,(G_ "the output is on its way")))))
 
 (define (usage-reading value reader)
   "VALUE as READER says it, or the dash that says it was not measured."
@@ -484,16 +581,23 @@ find the place it is drawn in."
         (stage (diagnostic-stage diagnostic)))
     `(li (@ (class ,(mk-class '(flex flex-col gap-1 min-w-0))))
          (a (@ (href ,(format #f "#step-~a" index))
-               (class "no-underline"))
-            (span (@ (class ,(mk-class (append '(text-xs uppercase
+               (class ,(mk-class '(no-underline cursor-pointer
+                                    flex flex-col gap-1 p-2
+                                    transition-colors
+                                    hover:bg-stone-300
+                                    dark:hover:bg-onyx-700
+                                    focus-visible:outline-2
+                                    focus-visible:outline-offset-2
+                                    outline-asparagus-500)))
+            (span (@ (class ,(mk-class (append '(text-xs sm:text-sm uppercase
                                                        tracking-widest)
                                                  (diagnostic-face severity)))))
                   ,(G_ (if (eq? severity 'error) "error" "warning")))
-            (span (@ (class ,(mk-class (append '(text-xs) muted-ink))))
-                  ,(G_ (stage-label stage))))
-         (code (@ (class ,(mk-class '(text-xs sm:text-sm font-mono
-                                             wrap-break-word))))
-               ,(diagnostic-line diagnostic)))))
+            (span (@ (class ,(mk-class (append '(text-xs sm:text-sm) muted-ink))))
+                  ,(G_ (stage-label stage)))
+            (code (@ (class ,(mk-class '(text-sm sm:text-md font-mono
+                                              wrap-break-word))))
+                  ,(diagnostic-line diagnostic)))))))
 
 (define (diagnostics-region G_ sections)
   "The warnings and errors the whole build wrote, in the place the page reads them."
@@ -509,7 +613,7 @@ find the place it is drawn in."
                   (hidden ""))
                ""))
         `((div (@ (data-log-diagnostics ""))
-               (details (@ (class ,(mk-class '(border
+               (details (@ (class ,(mk-class '(border-2
                                                border-asparagus-700
                                                dark:border-asparagus-900
                                                bg-stone-100
@@ -520,16 +624,22 @@ find the place it is drawn in."
                                                         flex flex-row
                                                         flex-wrap
                                                         items-center
-                                                        gap-2
-                                                        px-2 py-2
+                                                        gap-2 sm:gap-3
+                                                        px-3 py-3 min-h-12
                                                         font-mono
-                                                        text-sm))))
-                                 (span (@ (class ,(mk-class '(text-xs uppercase
+                                                        text-sm sm:text-md
+                                                        transition-colors
+                                                        hover:bg-stone-300
+                                                        dark:hover:bg-onyx-700
+                                                        focus-visible:outline-2
+                                                        focus-visible:outline-offset-2
+                                                        outline-asparagus-500))))
+                                 (span (@ (class ,(mk-class '(text-xs sm:text-sm uppercase
                                                                      tracking-widest
                                                                      text-asparagus-900
                                                                      dark:text-asparagus-300))))
                                        ,(G_ "build diagnostics"))
-                                 (span (@ (class ,(mk-class (append '(text-xs)
+                                 (span (@ (class ,(mk-class (append '(text-xs sm:text-sm)
                                                                     muted-ink))))
                                        ,(format #f "~a ~a, ~a ~a"
                                                 (length warnings)
@@ -538,7 +648,7 @@ find the place it is drawn in."
                                                 (length errors)
                                                 (plural (length errors)
                                                         (G_ "error")))))
-                        (ul (@ (class ,(mk-class '(flex flex-col gap-2 p-2))))
+                        (ul (@ (class ,(mk-class '(flex flex-col gap-2 p-3))))
                             ,@(map (lambda (diagnostic)
                                      (diagnostic-item G_ diagnostic))
                                    (append errors warnings)))))))))
@@ -546,9 +656,13 @@ find the place it is drawn in."
 (define (opening-lines sections frames-label)
   "The lines before the first command, as the log they were written in."
   (map (lambda (section)
-         `(div (@ (class ,(mk-class (append '(px-2 py-1) muted-ink))))
+         `(div (@ (class ,(mk-class (append '(px-3 py-2 text-sm sm:text-md)
+                                           muted-ink))))
                ,@(terminal-pre (section-text section)
-                               #:size '(text-xs sm:text-sm)
+                               #:size '(text-sm sm:text-md)
+                               #:leading '(leading-6 sm:leading-7)
+                               #:padding-x '(px-3 sm:px-4)
+                               #:padding-y '(py-2)
                                #:wrap? #f
                                #:framed? #f
                                #:ansi? #t
@@ -609,7 +723,10 @@ state of the run that wrote it, which is `log-poll' below."
   (let ((output (log-raw-text log)))
     (if (eq? view 'raw)
         (list (terminal-pre (html-escape (ansi->raw-text output))
-                            #:size '(text-sm md:text-md)
+                            #:size '(text-md md:text-lg)
+                            #:leading '(leading-6 sm:leading-7)
+                            #:padding-x '(px-3 sm:px-5)
+                            #:padding-y '(py-4 sm:py-5)
                             #:wrap? #f
                             #:framed? #f
                             #:ansi? #f
@@ -618,13 +735,16 @@ state of the run that wrote it, which is `log-poll' below."
                (steps (filter section-command? sections)))
           (if (null? steps)
               (list (terminal-pre output
-                                  #:size '(text-sm md:text-md)
+                                  #:size '(text-md md:text-lg)
+                                  #:leading '(leading-6 sm:leading-7)
+                                  #:padding-x '(px-3 sm:px-5)
+                                  #:padding-y '(py-4 sm:py-5)
                                   #:wrap? #f
                                   #:framed? #f
                                   #:ansi? #t
                                   #:frames-label frames-label))
               (list
-               `(div (@ (class ,(mk-class '(flex flex-col gap-2 p-1))))
+               `(div (@ (class ,(mk-class '(flex flex-col gap-3 p-1))))
                      ,@(opening-lines sections frames-label)
                      ,@(steps-list G_ steps frames-label))))))))
 
@@ -795,7 +915,9 @@ may submit one, which is what PERMISSIONS is read for."
 
 The status is the one reading of a job both this page and the list of logs draw,
 so the two cannot come to different colours for it."
-  (list `(span (@ (data-log-status ""))
+  (list `(span (@ (data-log-status "")
+                   (aria-live "polite")
+                   (aria-atomic "true"))
                ,@(job-status-label G_ job
                                    #:size '(text-base sm:text-lg
                                                       md:text-xl)))))
@@ -839,12 +961,19 @@ somewhere the page already has."
                ,@(terminal-panel actions #:gap '(gap-3)))))))
 
 (define* (log-poll G_ #:key log job permissions (view 'output) (have #f)
-                   (frames-label "frames"))
+                   (parts 'all) (frames-label "frames"))
   "What a page following a job is answered with: the output, and the run's state.
 
-The output is the pane the job writes into, and the state is the four readings
-of the run that change while it does -- its status, the mark of work in
-progress, its facts and its actions -- each in the place the page draws it.
+The output is the pane the job writes into, and the state is the readings of
+the run that change while it does -- its status, the mark of work in progress,
+its graph, its diagnostics, its usage, its facts and its actions -- each in the
+place the page draws it.
+
+PARTS is `all', `state' or `output'.  A page that has been open for a moment
+asks for the state at `/logs/:id/state' and the output at `/logs/:id/output'
+separately, so that the graph can be drawn while the console is still being
+rendered; `all' is the shape both endpoints answer with when one of them is
+asked for on its own.
 
 A reader who was last sent a row of HAVE's length is answered with the state
 alone: the output has not changed, and sending it again to say so is a page of
@@ -858,25 +987,32 @@ the script moves the output into the pane and the rest into the page."
   (let* ((running? (equal? 1 (assq-ref job
                                        'job-in-progress)))
          (changed? (not (and have (equal? have (log-length log)))))
-         (sections (log-sections-of log job)))
+         (state? (memq parts '(all state)))
+         (output? (memq parts '(all output)))
+         (sections (if (or state? output?)
+                       (log-sections-of log job)
+                       '())))
     (list `(div (@ (data-log-state "")
                    (data-log-running ,(if running? "true" "false"))
                    (data-log-length ,(log-length log)))
-                ,@(log-status-region G_ job)
-                ;; The graph is sent with the state rather than with the
-                ;; output: a step's colour is how the run is going, and the
-                ;; run says that here even when it has printed nothing new.
-                ,@(log-graph-region G_ sections)
-                ,@(diagnostics-region G_ sections)
-                ,@(log-live-region G_ job)
-                ,@(log-facts-region G_ job (assq-ref log
-                                                     'id))
-                ,@(log-usage-region G_ sections)
-                ,@(log-actions-region G_ job permissions)
+                ,@(if state?
+                      (append (log-status-region G_ job)
+                              ;; The graph is sent with the state rather than
+                              ;; with the output: a step's colour is how the
+                              ;; run is going, and the run says that here even
+                              ;; when it has printed nothing new.
+                              (log-graph-region G_ sections)
+                              (diagnostics-region G_ sections)
+                              (log-live-region G_ job)
+                              (log-facts-region G_ job (assq-ref log
+                                                                 'id))
+                              (log-usage-region G_ sections)
+                              (log-actions-region G_ job permissions))
+                      '())
                 ;; A job that has printed nothing yet still has a pane: the
                 ;; reader is following it, and an empty frame is what there is
                 ;; to follow.
-                ,@(if changed?
+                ,@(if (and output? changed?)
                       `((div (@ (data-log-out ""))
                              ,@(log-output #:log log
                                            #:view view
@@ -956,7 +1092,13 @@ draw that one twice."
                    ;; say is read as a reader who may do nothing: a form drawn
                    ;; for the wrong reader is the worse mistake, and this page
                    ;; is public, so most of its readers hold nothing.
-                   (permissions '()))
+                   (permissions '())
+                   ;; Whether the page returns its shell before the log is read
+                   ;; and lets the script draw the graph and output as they
+                   ;; arrive, or draws them while the answer is built.  A
+                   ;; reader without JavaScript is sent the full page by the
+                   ;; link in the empty pane (see `log-page' below).
+                   (defer? #t))
   (let* ((log-id (assq-ref log
                            'id))
          (log-filename (text-from-db (assq-ref log
@@ -970,8 +1112,12 @@ draw that one twice."
          ;; whether the page follows it and whether the pane says so.
          (running? (equal? 1 (assq-ref job
                                        'job-in-progress)))
-         (sections-of-log (log-sections-of log job))
          (G_ (:i18n rc))
+         (sections-of-log (if defer? '() (log-sections-of log job)))
+         (graph-region (if defer?
+                           (log-graph-placeholder G_)
+                           (log-graph-region G_ sections-of-log)))
+         (diagnostics (diagnostics-region G_ sections-of-log))
          ;; The run's name and how it ended, on one line where there is room for
          ;; one and on two where there is not.  How it ended is the place a poll
          ;; draws over (see `log-status-region').
@@ -988,23 +1134,54 @@ draw that one twice."
          ;; The two readings of the job's output, the mark that says whether it
          ;; is still arriving, and the pane it is read in.
          (output-panes
-          (list `(div (@ (data-log-pane "output")
-                         (class ,log-pane-face))
-                      ,@(log-output #:log log
-                                    #:job job
-                                    #:G_ G_
-                                    #:frames-label (G_ "frames")))
-                ;; The empty pane is written with a child of its own -- an
-                ;; empty text node -- and that is not decoration: the
-                ;; serializer closes a childless element as `<div .../>', and
-                ;; an HTML parser reads that slash as nothing and takes the
-                ;; tag for an opening one, so an empty pane would swallow
-                ;; everything written after it (the expression the job runs,
-                ;; and the script the page follows itself with).
-                `(div (@ (data-log-pane "raw")
-                         (class ,log-pane-face)
-                         (hidden ""))
-                      "")))
+          (if defer?
+              (list `(div (@ (data-log-pane "output")
+                             (class ,log-pane-face)
+                             (tabindex "0")
+                             (role "region")
+                             (aria-label ,(G_ "job output"))
+                             (aria-busy "true"))
+                          (noscript
+                           (p (@ (class ,(mk-class '(p-2 text-sm muted-ink))))
+                              ,(G_ "This page draws the log as it arrives. ")
+                              (a (@ (href ,(format #f
+                                                   "/logs/~a?full=1"
+                                                   log-id))
+                                    (class ,(mk-class (append '(underline)
+                                                              accent-ink))))
+                                 ,(G_ "Open the full log.")))
+                          ,@(log-output-placeholder G_))
+                    ;; The empty pane is written with a child of its own -- an
+                    ;; empty text node -- and that is not decoration: the
+                    ;; serializer closes a childless element as `<div .../>',
+                    ;; and an HTML parser reads that slash as nothing and takes
+                    ;; the tag for an opening one, so an empty pane would
+                    ;; swallow everything written after it (the expression the
+                    ;; job runs, and the script the page follows itself with).
+                    `(div (@ (data-log-pane "raw")
+                             (class ,log-pane-face)
+                             (tabindex "0")
+                             (role "region")
+                             (aria-label ,(G_ "raw log output"))
+                             (hidden ""))
+                          ""))
+              (list `(div (@ (data-log-pane "output")
+                             (class ,log-pane-face)
+                             (tabindex "0")
+                             (role "region")
+                             (aria-label ,(G_ "job output"))
+                             (aria-busy "false"))
+                          ,@(log-output #:log log
+                                        #:job job
+                                        #:G_ G_
+                                        #:frames-label (G_ "frames")))
+                    `(div (@ (data-log-pane "raw")
+                             (class ,log-pane-face)
+                             (tabindex "0")
+                             (role "region")
+                             (aria-label ,(G_ "raw log output"))
+                             (hidden ""))
+                          "")))))
          ;; The expression the job runs, under the log it wrote rather than
          ;; above it: it is what a reader reaches for once the output has told
          ;; them something is wrong, and it is open by default, because a
@@ -1039,15 +1216,19 @@ draw that one twice."
                                        (data-log-url ,(format #f
                                                        "/logs/~a/output"
                                                        log-id))
+                                       (data-log-state-url ,(format #f
+                                                       "/logs/~a/state"
+                                                       log-id))
                                        (data-log-running ,(if running?
                                                               "true" "false"))
-                                       (data-log-length ,(log-length log))
+                                       (data-log-length ,(if defer?
+                                                              ""
+                                                              (log-length log)))
                                        (class ,(mk-class '(flex flex-col
                                                                   gap-3
                                                                   w-full
                                                                   min-w-0))))
-                            ,@(log-graph-region G_ sections-of-log)
-                            ,@(diagnostics-region G_ sections-of-log)
+                            ,@graph-region
                             (div (@ (class ,(mk-class '(flex flex-row
                                                                 flex-wrap
                                                                 items-center
@@ -1056,6 +1237,11 @@ draw that one twice."
                                  ,@(log-view-tabs G_)
                                  ,@(log-live-region G_ job))
                             ,@output-panes
+                            ;; The warnings belong under the output they are
+                            ;; about: a reader reaches the log first, and the
+                            ;; build-wide list is what they read once they have
+                            ;; seen what was printed.
+                            ,@diagnostics
                             ,@job-expression)))
          ;; The run's facts and its actions, as the column beside the log on a
          ;; wide screen and the block above it on a narrow one.  A column of its
@@ -1081,7 +1267,9 @@ draw that one twice."
                                                             text-asparagus-900
                                                             dark:text-asparagus-300))))
                                               ,(G_ "usage"))
-                                        (log-usage-region G_ sections-of-log))
+                                        (if defer?
+                                            (log-usage-placeholder G_)
+                                            (log-usage-region G_ sections-of-log)))
                                   #:gap '(gap-1))
                                ;; The tarballs the job built, each one a
                                ;; download, in a panel of their own: they are

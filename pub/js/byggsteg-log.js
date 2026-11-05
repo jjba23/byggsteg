@@ -55,15 +55,22 @@
   if (!section || !window.fetch) { return }
 
   var url = section.getAttribute('data-log-url')
+  /* The graph is asked for separately: it is small once the steps are read,
+     and waiting for the console to be rendered before drawing it would leave
+     a long log with no graph for as long as its output takes. */
+  var stateUrl = section.getAttribute('data-log-state-url')
   var view = 'output'
   var read = { output: true, raw: false }
   var timer = null
+  var stateTimer = null
   var busy = false
+  var stateBusy = false
   /* The pace a page that is being written is read at, and the longest this
      waits after asks that were not answered. */
   var seconds = 3
   var longest = 30
   var wait = seconds
+  var stateWait = seconds
 
   function pane(name) {
     return section.querySelector('[data-log-pane="' + name + '"]')
@@ -190,11 +197,52 @@
       var here = document.querySelector('[' + places[i] + ']')
       var there = state.querySelector('[' + places[i] + ']')
       if (!here || !there) { continue }
+      if (here.hasAttribute('aria-busy')) {
+        here.setAttribute('aria-busy', 'false')
+      }
       if (here.innerHTML !== there.innerHTML) {
         here.innerHTML = there.innerHTML
         here.hidden = !there.firstElementChild
       }
     }
+  }
+
+  /* Ask for the run's graph and the readings beside it, without the output.
+     This is what lets a long log show its steps first: the answer is the same
+     state the output poll used to carry, but it never renders the console. */
+  function refreshState() {
+    if (!stateUrl || stateBusy) { return }
+    stateBusy = true
+    fetch(stateUrl + '?at=' + new Date().getTime(),
+          { credentials: 'same-origin' })
+      .then(function (response) {
+        if (!response.ok) { throw new Error('the state was not answered') }
+        return response.text()
+      })
+      .then(function (html) {
+        stateBusy = false
+        stateWait = seconds
+        var holder = document.createElement('div')
+        holder.innerHTML = html
+        var state = holder.firstElementChild
+        if (!state || !state.hasAttribute('data-log-state')) {
+          if (running()) { scheduleState(stateWait) } else { stopState() }
+          return
+        }
+        redraw(state)
+        section.setAttribute('data-log-running',
+                             state.getAttribute('data-log-running') || 'false')
+        section.setAttribute('data-log-length',
+                             state.getAttribute('data-log-length') || '')
+        if (running()) { scheduleState(seconds) }
+        else { stopState() }
+      })
+      .catch(function () {
+        stateBusy = false
+        stateWait = Math.min(stateWait * 2, longest)
+        if (running()) { scheduleState(stateWait) }
+        else { stopState() }
+      })
   }
 
   /* The tab showing the reading the reader is looking at is filled and the other
@@ -222,11 +270,20 @@
     if (timer) { clearTimeout(timer); timer = null }
   }
 
+  function stopState() {
+    if (stateTimer) { clearTimeout(stateTimer); stateTimer = null }
+  }
+
   /* When the pane is asked for again, which is after an answer and after a
      failure alike: what decides whether to ask at all is the job, not this. */
   function schedule(delay) {
     stop()
     timer = setTimeout(function () { follow(view) }, delay * 1000)
+  }
+
+  function scheduleState(delay) {
+    stopState()
+    stateTimer = setTimeout(refreshState, delay * 1000)
   }
 
   function follow(name) {
@@ -264,15 +321,16 @@
           schedule(wait)
           return
         }
-        /* The run's own readings are drawn first, and then the output: a page
-           that is told the job is over draws it where the reader is looking
-           before the last line arrives under it. */
-        redraw(state)
-        /* What the page believes about the job is what the answer says, so that
-           the section is read the same way by whoever reads it next -- the
-           retry after a failed ask included. */
-        section.setAttribute('data-log-running',
-                             state.getAttribute('data-log-running') || 'false')
+        /* The output endpoint carries only the pane and the two readings the
+           script needs to keep asking; the graph and the run's facts arrive
+           from the state endpoint, independently.  A page with no state
+           endpoint -- an older answer, or a page drawn whole -- still has the
+           full state in this answer, so it is drawn here. */
+        if (!stateUrl) {
+          redraw(state)
+          section.setAttribute('data-log-running',
+                               state.getAttribute('data-log-running') || 'false')
+        }
         /* A pane the reader already has is answered with the state and no
            output at all, which is what a poll with nothing new to draw is: the
            job has printed no more, and the document is not drawn again. */
@@ -287,6 +345,7 @@
           if (choseSteps) { drawSteps(openedSteps, true) }
         }
         target.setAttribute('data-log-have', state.getAttribute('data-log-length') || '')
+        target.setAttribute('aria-busy', 'false')
         read[name] = true
         if (stick) { followTheEnd() }
         /* A job that has stopped writing has said everything it will say: the
@@ -333,7 +392,13 @@
   try { remembered = localStorage.getItem('log-view') } catch (error) { remembered = null }
   choose(remembered === 'raw' ? 'raw' : 'output')
 
-  if (running()) {
+  if (stateUrl) { refreshState() }
+
+  if (!pane(view).getAttribute('data-log-have')) {
+    /* The page was drawn as a shell, so the output is asked for now rather
+       than after a first interval. */
+    follow(view)
+  } else if (running()) {
     /* A job that is still writing is opened at the end of what it has written
        so far, and then asked for again: the reader is following the build, and
        the pane is where it is being written. */

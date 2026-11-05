@@ -775,6 +775,9 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; the pane is narrower on either side to hand the output the width it has.
 (define* (terminal-pre content
                        #:key (size '(text-sm))
+                       (leading '(leading-6))
+                       (padding-x '(px-2 sm:px-4))
+                       (padding-y '(py-4))
                        (extra '())
                        ;; Whether the pane draws its own frame -- the ground, the
                        ;; phosphor hairline and the shadow.  A `pre' read inside
@@ -806,7 +809,7 @@ z-10)' is what keeps a bar of glass under the reader's eye."
        #:rounding '(rounded-none)
        #:shadow '()
        #:size size
-       #:leading '(leading-6)
+       #:leading leading
        ;; A framed output is as wide as the page and scrolls itself sideways.
        ;; An unframed one is as wide as what the command wrote, and it is the
        ;; pane around it that scrolls -- because a `pre' squeezed to the pane's
@@ -816,8 +819,8 @@ z-10)' is what keeps a bar of glass under the reader's eye."
        #:width (if framed?
                    '(w-full max-w-full min-w-0)
                    '(w-max max-w-none min-w-0))
-       #:padding-x '(px-2 sm:px-4)
-       #:padding-y '(py-4)
+       #:padding-x padding-x
+       #:padding-y padding-y
        #:pre-classes (append (if wrap?
                                  '(font-mono whitespace-pre-wrap)
                                  '(font-mono whitespace-pre))
@@ -859,7 +862,10 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                            h-96
                            sm:h-128
                            lg:h-196
-                           overflow-auto)))
+                           overflow-auto
+                           focus-visible:outline-2
+                           focus-visible:outline-offset-2
+                           outline-asparagus-500)))
 
 ;;
 ;; Work in progress
