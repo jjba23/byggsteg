@@ -50,6 +50,266 @@
    markup (see `log-page' in `(app views logs)').  Everything in this file is
    read as a hint rather than a truth: a page whose script did not run is still a
    page with the job's output on it. */
+
+/* The job view is a tiling terminal: the pipeline, the output, the expression
+   and the facts column each have a splitter of their own.  A splitter remembers
+   what it was last told in the browser's local storage rather than in the
+   deployment's database, because the shape of a reader's screen is not a fact
+   about the run -- and because the page is read without an account.
+
+   This runs before the follower below: a remembered height is in place when the
+   follower puts the reader at the end of the output for the first time.  The
+   splitter is a separator to a screen reader, a pair of arrow keys to a reader
+   without a pointer, and a drag to everyone else; a double-click returns the
+   pane to the page's own height. */
+(function () {
+  var root = document.getElementById('job-view')
+  if (!root) { return }
+
+  var handles = root.querySelectorAll('[data-log-resize]')
+  if (!handles.length) { return }
+
+  var storage = 'byggsteg-log-panes'
+  var sizes = {}
+  try { sizes = JSON.parse(localStorage.getItem(storage) || '{}') || {} }
+  catch (error) { sizes = {} }
+
+  var ids = { graph: 'job-graph-pane',
+              output: 'job-output-pane',
+              expression: 'job-expression-pane',
+              sidebar: 'job-sidebar' }
+
+  function boxFor(name) { return document.getElementById(ids[name]) }
+
+  function wide() {
+    return window.matchMedia
+      ? window.matchMedia('(min-width: 1024px)').matches
+      : window.innerWidth >= 1024
+  }
+
+  function limits(name) {
+    if (name === 'sidebar') { return { low: 0.2, high: 0.55 } }
+    var page = window.innerHeight || 800
+    if (name === 'output') {
+      return { low: 160, high: Math.max(240, Math.round(page * 0.82)) }
+    }
+    if (name === 'graph') {
+      return { low: 80, high: Math.max(180, Math.round(page * 0.55)) }
+    }
+    return { low: 80, high: Math.max(200, Math.round(page * 0.65)) }
+  }
+
+  function clamp(value, low, high) {
+    return Math.min(high, Math.max(low, value))
+  }
+
+  function remembered(name) {
+    var value = sizes[name]
+    return typeof value === 'number' && isFinite(value) ? value : null
+  }
+
+  function current(name) {
+    var box = boxFor(name)
+    if (!box) { return 0 }
+    if (name === 'sidebar') {
+      var row = root.getBoundingClientRect().width
+      return row ? box.getBoundingClientRect().width / row : 1 / 3
+    }
+    return box.getBoundingClientRect().height
+  }
+
+  /* A height is pixels; the facts column is a fraction of the row it shares
+     with the log, so a remembered column stays a column when the window is
+     narrower or wider on the next visit. */
+  function paint(name, value) {
+    var box = boxFor(name)
+    if (!box) { return }
+    if (name === 'sidebar') {
+      if (wide()) {
+        var percent = (value * 100).toFixed(3) + '%'
+        box.style.width = percent
+        box.style.flex = '0 0 ' + percent
+      } else {
+        box.style.width = ''
+        box.style.flex = ''
+      }
+      return
+    }
+    var atEnd = name === 'output'
+      ? box.scrollTop + box.clientHeight >= box.scrollHeight - 24
+      : false
+    box.style.height = value + 'px'
+    if (name === 'output') {
+      var raw = root.querySelector('[data-log-pane="raw"]')
+      if (raw) { raw.style.height = value + 'px' }
+      if (atEnd) { box.scrollTop = box.scrollHeight }
+    }
+  }
+
+  function announce(handle, name, value) {
+    var range = limits(name)
+    var scale = name === 'sidebar' ? 100 : 1
+    handle.setAttribute('aria-valuemin', String(Math.round(range.low * scale)))
+    handle.setAttribute('aria-valuemax', String(Math.round(range.high * scale)))
+    handle.setAttribute('aria-valuenow', String(Math.round(value * scale)))
+    handle.setAttribute('aria-valuetext',
+                        Math.round(value * scale) +
+                        (name === 'sidebar' ? '%' : 'px'))
+  }
+
+  function keep(name, value) {
+    sizes[name] = value
+    try { localStorage.setItem(storage, JSON.stringify(sizes)) } catch (error) { }
+  }
+
+  function handleOf(name) {
+    return root.querySelector('[data-log-resize="' + name + '"]')
+  }
+
+  function forget(name) {
+    var box = boxFor(name)
+    delete sizes[name]
+    if (box) {
+      if (name === 'sidebar') {
+        box.style.width = ''
+        box.style.flex = ''
+      } else {
+        box.style.height = ''
+        if (name === 'output') {
+          var raw = root.querySelector('[data-log-pane="raw"]')
+          if (raw) { raw.style.height = '' }
+        }
+      }
+    }
+    try {
+      if (Object.keys(sizes).length) {
+        localStorage.setItem(storage, JSON.stringify(sizes))
+      } else {
+        localStorage.removeItem(storage)
+      }
+    } catch (error) { }
+    var handle = handleOf(name)
+    if (handle) {
+      announce(handle, name,
+               name === 'sidebar' ? 1 / 3 : current(name))
+    }
+  }
+
+  function start(event) {
+    var handle = event.currentTarget
+    var name = handle.getAttribute('data-log-resize')
+    if (name === 'sidebar' && !wide()) { return }
+    if (!boxFor(name)) { return }
+    event.preventDefault()
+    var from = current(name)
+    var row = root.getBoundingClientRect().width || 1
+    var origin = name === 'sidebar' ? event.clientX : event.clientY
+    var moved = false
+
+    function move(moveEvent) {
+      var delta = (name === 'sidebar' ? moveEvent.clientX : moveEvent.clientY)
+                  - origin
+      var range = limits(name)
+      var next = clamp(from + (name === 'sidebar' ? delta / row : delta),
+                       range.low, range.high)
+      paint(name, next)
+      announce(handle, name, next)
+      moved = true
+    }
+
+    function finish() {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', finish)
+      window.removeEventListener('pointercancel', finish)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      if (moved) { keep(name, current(name)) }
+      else { announce(handle, name, current(name)) }
+    }
+
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', finish)
+    window.addEventListener('pointercancel', finish)
+    document.body.style.cursor = name === 'sidebar' ? 'col-resize' : 'row-resize'
+    document.body.style.userSelect = 'none'
+  }
+
+  function keydown(event) {
+    var handle = event.currentTarget
+    var name = handle.getAttribute('data-log-resize')
+    if (name === 'sidebar' && !wide()) { return }
+    var range = limits(name)
+    var step = name === 'sidebar'
+      ? (event.shiftKey ? 0.05 : 0.02)
+      : (event.shiftKey ? 64 : 16)
+    var value = current(name)
+    if (name === 'sidebar') {
+      if (event.key === 'ArrowLeft') { value -= step }
+      else if (event.key === 'ArrowRight') { value += step }
+      else if (event.key === 'Home') { value = range.low }
+      else if (event.key === 'End') { value = range.high }
+      else { return }
+    } else {
+      if (event.key === 'ArrowUp') { value -= step }
+      else if (event.key === 'ArrowDown') { value += step }
+      else if (event.key === 'Home') { value = range.low }
+      else if (event.key === 'End') { value = range.high }
+      else { return }
+    }
+    event.preventDefault()
+    value = clamp(value, range.low, range.high)
+    paint(name, value)
+    announce(handle, name, value)
+    keep(name, value)
+  }
+
+  function reset(event) {
+    event.preventDefault()
+    forget(event.currentTarget.getAttribute('data-log-resize'))
+  }
+
+  for (var i = 0; i < handles.length; i++) {
+    var handle = handles[i]
+    var name = handle.getAttribute('data-log-resize')
+    if (!boxFor(name)) { continue }
+    /* The markup hides the splits until this script is there to work them: a
+       reader without JavaScript gets the full log and no handle that does
+       nothing. */
+    handle.style.display = ''
+    var value = remembered(name)
+    if (value !== null && !(name === 'sidebar' && !wide())) {
+      value = clamp(value, limits(name).low, limits(name).high)
+      paint(name, value)
+    }
+    announce(handle, name,
+             name === 'sidebar' && !wide() ? 1 / 3
+             : value !== null ? clamp(value, limits(name).low, limits(name).high)
+             : current(name))
+    handle.addEventListener('pointerdown', start)
+    handle.addEventListener('keydown', keydown)
+    handle.addEventListener('dblclick', reset)
+  }
+
+  window.addEventListener('resize', function () {
+    for (var i = 0; i < handles.length; i++) {
+      var handle = handles[i]
+      var name = handle.getAttribute('data-log-resize')
+      if (!boxFor(name)) { continue }
+      var value = remembered(name)
+      if (name === 'sidebar' && !wide()) {
+        paint(name, 1 / 3)
+        announce(handle, name, 1 / 3)
+      } else if (value !== null) {
+        value = clamp(value, limits(name).low, limits(name).high)
+        paint(name, value)
+        announce(handle, name, value)
+      } else {
+        announce(handle, name, current(name))
+      }
+    }
+  })
+})();
+
 (function () {
   var section = document.getElementById('job-log')
   if (!section || !window.fetch) { return }

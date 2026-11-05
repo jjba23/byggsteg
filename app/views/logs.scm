@@ -776,6 +776,85 @@ once, in the theme, and not again here."
                 ,(tab 'output (G_ "rendered"))
                 ,(tab 'raw (G_ "raw bytes"))))))
 
+(define (log-resize-handle G_ name label orientation controls)
+  "A tmux-style splitter for one pane of the job view.
+
+NAME is what the page's script remembers the size by, LABEL is the phrase a
+screen reader hears, ORIENTATION is `horizontal' for a split above and below
+and `vertical' for the facts column, and CONTROLS is the id of the pane the
+splitter changes.  The visible arrow and label are the reason a reader can tell
+the pane is resizable without hovering: the dashed rule alone only says where
+the split is.  A drag and the arrow keys both work; the script sets the value
+the separator announces."
+  (let ((vertical? (eq? orientation 'vertical)))
+    (list `(div (@ (class ,(mk-class (if vertical?
+                                     '(hidden
+                                       lg:flex
+                                       w-5
+                                       shrink-0
+                                       cursor-col-resize
+                                       touch-none
+                                       select-none
+                                       flex-col
+                                       items-center
+                                       justify-center
+                                       gap-1
+                                       border-x
+                                       border-dashed
+                                       border-asparagus-700
+                                       bg-transparent
+                                       text-xs
+                                       uppercase
+                                       tracking-widest
+                                       text-asparagus-900
+                                       hover:bg-asparagus-100
+                                       focus-visible:outline-2
+                                       focus-visible:outline-offset-2
+                                       outline-asparagus-500
+                                       dark:border-asparagus-900
+                                       dark:text-asparagus-300
+                                       dark:hover:bg-asparagus-900)
+                                     '(flex
+                                       h-5
+                                       w-full
+                                       shrink-0
+                                       cursor-row-resize
+                                       touch-none
+                                       select-none
+                                       items-center
+                                       justify-center
+                                       gap-2
+                                       border-y
+                                       border-dashed
+                                       border-asparagus-700
+                                       bg-transparent
+                                       text-xs
+                                       uppercase
+                                       tracking-widest
+                                       text-asparagus-900
+                                       hover:bg-asparagus-100
+                                       focus-visible:outline-2
+                                       focus-visible:outline-offset-2
+                                       outline-asparagus-500
+                                       dark:border-asparagus-900
+                                       dark:text-asparagus-300
+                                       dark:hover:bg-asparagus-900))))
+                    (style "display: none")
+                    (role "separator")
+                    (tabindex "0")
+                    (aria-label ,label)
+                    (aria-orientation ,(if vertical? "vertical" "horizontal"))
+                    (aria-controls ,controls)
+                    (title ,(G_ "drag to resize; double-click to reset"))
+                    (data-log-resize ,name))
+                (span (@ (aria-hidden "true"))
+                      ,(if vertical? "↔" "↕"))
+                (span (@ (aria-hidden "true")
+                         ,@(if vertical?
+                               '((style "writing-mode: vertical-rl"))
+                               '()))
+                      ,(if vertical? (G_ "resize") label))))))
+
 (define (log-live-mark G_)
   "The mark of work in progress, beside the reading a reader is following.
 
@@ -1135,7 +1214,8 @@ draw that one twice."
          ;; is still arriving, and the pane it is read in.
          (output-panes
           (if defer?
-              (list `(div (@ (data-log-pane "output")
+              (list `(div (@ (id "job-output-pane")
+                             (data-log-pane "output")
                              (class ,log-pane-face)
                              (tabindex "0")
                              (role "region")
@@ -1164,8 +1244,9 @@ draw that one twice."
                              (role "region")
                              (aria-label ,(G_ "raw log output"))
                              (hidden ""))
-                          ""))
-              (list `(div (@ (data-log-pane "output")
+                          "")))
+              (list `(div (@ (id "job-output-pane")
+                             (data-log-pane "output")
                              (class ,log-pane-face)
                              (tabindex "0")
                              (role "region")
@@ -1181,7 +1262,7 @@ draw that one twice."
                              (role "region")
                              (aria-label ,(G_ "raw log output"))
                              (hidden ""))
-                          "")))))
+                          ""))))
          ;; The expression the job runs, under the log it wrote rather than
          ;; above it: it is what a reader reaches for once the output has told
          ;; them something is wrong, and it is open by default, because a
@@ -1228,7 +1309,15 @@ draw that one twice."
                                                                   gap-3
                                                                   w-full
                                                                   min-w-0))))
-                            ,@graph-region
+                            (div (@ (id "job-graph-pane")
+                                    (data-log-resize-pane "graph")
+                                    (class ,(string-append job-pane-face
+                                                           " p-2 overflow-auto")))
+                              ,@graph-region)
+                            ,@(log-resize-handle G_ "graph"
+                                                 (G_ "resize pipeline")
+                                                 'horizontal
+                                                 "job-graph-pane")
                             (div (@ (class ,(mk-class '(flex flex-row
                                                                 flex-wrap
                                                                 items-center
@@ -1237,18 +1326,32 @@ draw that one twice."
                                  ,@(log-view-tabs G_)
                                  ,@(log-live-region G_ job))
                             ,@output-panes
+                            ,@(log-resize-handle G_ "output"
+                                                 (G_ "resize output")
+                                                 'horizontal
+                                                 "job-output-pane")
                             ;; The warnings belong under the output they are
                             ;; about: a reader reaches the log first, and the
                             ;; build-wide list is what they read once they have
                             ;; seen what was printed.
                             ,@diagnostics
-                            ,@job-expression)))
+                            (div (@ (id "job-expression-pane")
+                                    (data-log-resize-pane "expression")
+                                    (class ,(string-append job-pane-face
+                                                           " p-2 overflow-auto")))
+                              ,@job-expression)
+                            ,@(log-resize-handle G_ "expression"
+                                                 (G_ "resize expression")
+                                                 'horizontal
+                                                 "job-expression-pane"))))
          ;; The run's facts and its actions, as the column beside the log on a
          ;; wide screen and the block above it on a narrow one.  A column of its
          ;; own rather than a second half of the page, because the log is what a
          ;; reader came for: the facts are read once, and the log is where the
          ;; eye stays.
-         (sidebar (list `(aside (@ (class ,(mk-class '(flex flex-col
+         (sidebar (list `(aside (@ (id "job-sidebar")
+                                   (data-log-resize-pane "sidebar")
+                                   (class ,(mk-class '(flex flex-col
                                                               gap-4
                                                               lg:gap-6
                                                               w-full
@@ -1256,10 +1359,13 @@ draw that one twice."
                                                               lg:shrink-0
                                                               min-w-0))))
                                ,@(log-actions-region G_ job permissions)
-                               ,@(terminal-panel
+                               ,@(terminal-glass-panel
                                   (log-facts-region G_ job log-id)
-                                  #:gap '(gap-1))
-                               ,@(terminal-panel
+                                  #:washes '()
+                                  #:padding '(p-4 sm:py-6 sm:px-6)
+                                  #:classes '(min-w-0)
+                                  #:content-classes '(flex flex-col gap-1))
+                               ,@(terminal-glass-panel
                                   (cons `(div (@ (class ,(mk-class
                                                           '(text-xs
                                                             uppercase
@@ -1270,7 +1376,10 @@ draw that one twice."
                                         (if defer?
                                             (log-usage-placeholder G_)
                                             (log-usage-region G_ sections-of-log)))
-                                  #:gap '(gap-1))
+                                  #:washes '()
+                                  #:padding '(p-4 sm:py-6 sm:px-6)
+                                  #:classes '(min-w-0)
+                                  #:content-classes '(flex flex-col gap-1))
                                ;; The tarballs the job built, each one a
                                ;; download, in a panel of their own: they are
                                ;; the one thing on this page a reader takes
@@ -1279,14 +1388,21 @@ draw that one twice."
                                                    G_ artifacts)))
                                    (if (nil? downloads)
                                        '()
-                                       (terminal-panel downloads
-                                                       #:gap '(gap-2)))))))
+                                       (terminal-glass-panel
+                                        downloads
+                                        #:washes '()
+                                        #:padding '(p-4 sm:py-6 sm:px-6)
+                                        #:classes '(min-w-0)
+                                        #:content-classes
+                                        '(flex flex-col gap-2)))))))
          ;; The page: the run's name, then the log and the run side by side.
          ;; `items-start' keeps the facts column the height of what it holds
          ;; rather than of the log beside it.
-         (body (list `(div (@ (class ,(page-body-class)))
+         (body (list `(div (@ (class ,(page-body-class))
+                               (style "background-image: radial-gradient(circle at 18% 0%, rgba(126,166,62,0.10), transparent 34%), linear-gradient(rgba(127,127,127,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(127,127,127,0.07) 1px, transparent 1px); background-repeat: no-repeat, repeat, repeat; background-size: auto, 26px 26px, 26px 26px"))
                            ,@heading
-                           (div (@ (class ,(mk-class '(flex flex-col
+                           (div (@ (id "job-view")
+                                   (class ,(mk-class '(flex flex-col
                                                                lg:flex-row
                                                                items-start
                                                                gap-4
@@ -1297,6 +1413,10 @@ draw that one twice."
                                                                     min-w-0
                                                                     w-full))))
                                      ,@log-block)
+                                ,@(log-resize-handle G_ "sidebar"
+                                                     (G_ "resize facts column")
+                                                     'vertical
+                                                     "job-sidebar")
                                 ,@sidebar)
                            ;; A job that is still writing is followed by this
                            ;; page's own script rather than by the page asking

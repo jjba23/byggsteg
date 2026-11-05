@@ -850,7 +850,8 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;; box that carries them, because a border drawn on the scrolling thing itself
 ;; scrolls away with it.
 (define-public log-pane-face
-  (mk-class '(bg-stone-100 dark:bg-onyx-900
+  (mk-class '(bg-stone-100/75 dark:bg-onyx-900/75
+                           backdrop-blur-md
                            border-2
                            border-asparagus-700
                            dark:border-asparagus-900
@@ -866,6 +867,22 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                            focus-visible:outline-2
                            focus-visible:outline-offset-2
                            outline-asparagus-500)))
+
+;; The glass around a pane that is not itself the scroller: the pipeline and the
+;; expression.  The tint and the frost are the same two the rest of the
+;; console's glass uses, so a pane laid over the page's grid still reads as the
+;; same terminal rather than as a second material.
+(define-public job-pane-face
+  (mk-class '(bg-stone-100/75 dark:bg-onyx-900/75
+                           backdrop-blur-md
+                           border-2
+                           border-asparagus-700
+                           dark:border-asparagus-900
+                           rounded-none
+                           shadow-md
+                           min-w-0
+                           font-mono)))
+(export job-pane-face)
 
 ;;
 ;; Work in progress

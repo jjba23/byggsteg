@@ -406,6 +406,14 @@ steps back while the console is rendered. A reader without JavaScript is offered
 ~?full=1~ in the output pane, or can open ~/logs/<id>?full=1~ directly, and gets
 the graph and the whole log in the page itself.
 
+The log page is also a set of resizable panes: the pipeline, the output, the
+job's expression and the facts column each have a splitter of their own.  Drag
+a splitter, or focus it and use the arrow keys, to give the log the room it
+needs; a double-click returns that pane to the page's own size.  The page keeps
+the sizes in the browser's local storage, so they survive a reload and are read
+without an account.  Resizing needs JavaScript; ~?full=1~ remains the
+server-drawn fallback.
+
 The page also measures what the run cost. Wall time is measured for every
 command; when GNU time is installed, CPU time and peak resident memory are
 measured for each command as well. The usage panel adds those readings up, and

@@ -258,7 +258,7 @@
                                                   #:job j
                                                   #:permissions (session-permissions
                                                                  rc)
-                                                  #:parts 'state)))))))))
+                                                  #:parts 'state))))))))
 
 ;; The pane a job's output is read in, on its own.
 ;;
