@@ -18,7 +18,7 @@ jobs:
     name: 🧱 Byggsteg
     uses: jjba23/byggsteg-github/.github/workflows/byggsteg.yml@trunk
     with:
-      tasks: maak-test byggsteg-version maak-deploy
+      tasks: maak-test maak-migrate byggsteg-version maak-deploy
       daemon-name: byggsteg-daemon
       timeout-minutes: 60
     secrets: inherit
