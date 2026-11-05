@@ -588,16 +588,16 @@ find the place it is drawn in."
                                                 dark:hover:bg-onyx-700
                                                 focus-visible:outline-2
                                                 focus-visible:outline-offset-2
-                                                outline-asparagus-500)))
-               (span (@ (class ,(mk-class (append '(text-xs sm:text-sm uppercase
-                                                            tracking-widest)
-                                                  (diagnostic-face severity)))))
-                     ,(G_ (if (eq? severity 'error) "error" "warning")))
-               (span (@ (class ,(mk-class (append '(text-xs sm:text-sm) muted-ink))))
-                     ,(G_ (stage-label stage)))
-               (code (@ (class ,(mk-class '(text-sm sm:text-md font-mono
-                                                    wrap-break-word))))
-                     ,(diagnostic-line diagnostic))) ""))))
+                                                outline-asparagus-500))))
+            (span (@ (class ,(mk-class (append '(text-xs sm:text-sm uppercase
+                                                         tracking-widest)
+                                               (diagnostic-face severity)))))
+                  ,(G_ (if (eq? severity 'error) "error" "warning")))
+            (span (@ (class ,(mk-class (append '(text-xs sm:text-sm) muted-ink))))
+                  ,(G_ (stage-label stage)))
+            (code (@ (class ,(mk-class '(text-sm sm:text-md font-mono
+                                                 wrap-break-word))))
+                  ,(diagnostic-line diagnostic))))))
 
 (define (diagnostics-region G_ sections)
   "The warnings and errors the whole build wrote, in the place the page reads them."
