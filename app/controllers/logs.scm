@@ -199,10 +199,12 @@
               (job-id (and l (assoc-ref l
                                         'job-id)))
               (j (and job-id (get-job-by-id job-repo job-id)))
-              ;; A reader without JavaScript is sent the page that draws its
-              ;; own log and graph: the default page returns the shell as soon
-              ;; as it can and the script fills it in.
-              (defer? (not (equal? "1" (get-from-qstr rc "full")))))
+              ;; The page draws its own log and graph while the answer is
+              ;; built: a reader without JavaScript has the whole run in the
+              ;; first response.  The script keeps a running page current; it is
+              ;; no longer what puts the run on the page in the first place.
+              ;; `?full=1' stays a valid spelling of this same complete page.
+              (defer? #f))
          ;; A log that is not there is a 404 rather than a page about nothing:
          ;; the id is the whole of the request, so it either names a log or the
          ;; path names none.  A log whose job is gone is the same page about

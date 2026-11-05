@@ -530,7 +530,7 @@ find the place it is drawn in."
   (list
    `(dl (@ (data-log-usage "")
            (aria-busy "true"))
-        (dt (G_ "reading") #:color muted-ink)
+        (dt (G_ "reading") #:color prose-ink)
         (dd "…" #:color prose-ink))))
 
 (define (log-output-placeholder G_)
@@ -552,19 +552,19 @@ find the place it is drawn in."
   (let ((usage (log-usage sections)))
     (list
      `(dl (@ (data-log-usage ""))
-          (dt (G_ "steps") #:color muted-ink)
+          (dt (G_ "steps") #:color prose-ink)
           (dd ,(number->string (assq-ref usage 'steps))
               #:color prose-ink)
-          (dt (G_ "wall time") #:color muted-ink)
+          (dt (G_ "wall time") #:color prose-ink)
           (dd ,(usage-reading (assq-ref usage 'wall) human-duration)
               #:color prose-ink)
-          (dt (G_ "cpu time") #:color muted-ink)
+          (dt (G_ "cpu time") #:color prose-ink)
           (dd ,(usage-reading (assq-ref usage 'cpu) human-duration)
               #:color prose-ink)
-          (dt (G_ "peak memory") #:color muted-ink)
+          (dt (G_ "peak memory") #:color prose-ink)
           (dd ,(usage-reading (assq-ref usage 'rss) human-memory)
               #:color prose-ink)
-          (dt (G_ "output") #:color muted-ink)
+          (dt (G_ "output") #:color prose-ink)
           (dd ,(format #f "~a ~a"
                        (assq-ref usage 'lines)
                        (plural (assq-ref usage 'lines) (G_ "line")))
@@ -881,22 +881,23 @@ a reader who cannot see the ring is told the same thing by the word beside it."
 (define (run-facts G_ job log-id)
   "The run's own facts, as the terms they are read under and what they say.
 
-A term is a word about the value beneath it rather than a value itself, so the
-terms are read in `muted-ink' and their readings in `prose-ink': the phosphor is
-kept for what a reader came to the page for (see the head of `(byggsteg faces)').
+A term is a word about the value beneath it rather than a value itself, and both
+are read in `prose-ink': a label is still text, and a reader should not have to
+squint at one.  The phosphor is kept for what a reader came to the page for (see
+the head of `(byggsteg faces)').
 
 Three of the four readings only exist once the job has been written to a second
 time: a job that has not been updated has no time taken to show and no update to
 name, and a term over nothing is worse than no term."
   (append (list (dt (G_ "started at")
-                    #:color muted-ink)
+                    #:color prose-ink)
                 (dd (strftime "%c"
                               (localtime (assq-ref job
                                                    'created-at)))
                     #:color prose-ink))
           (if-job-was-updated-html job
                                    (list (dt (G_ "time taken")
-                                             #:color muted-ink)
+                                             #:color prose-ink)
                                          (dd (human-duration
                                               (- (assq-ref job
                                                             'updated-at)
@@ -904,7 +905,7 @@ name, and a term over nothing is worse than no term."
                                                             'created-at)))
                                              #:color prose-ink)
                                          (dt (G_ "updated at")
-                                             #:color muted-ink)
+                                             #:color prose-ink)
                                          (dd (strftime "%c"
                                                        (localtime
                                                         (assq-ref job
@@ -916,7 +917,7 @@ name, and a term over nothing is worse than no term."
           ;; it is read in (see "the console's inks" at the head of
           ;; `(byggsteg faces)' for why the column is not widened instead).
           (list (dt (G_ "log uuid")
-                    #:color muted-ink)
+                    #:color prose-ink)
                 (dd (terminal-code log-id
                                    #:size '(text-xs sm:text-sm))
                     #:color prose-ink))))
@@ -1172,12 +1173,14 @@ draw that one twice."
                    ;; for the wrong reader is the worse mistake, and this page
                    ;; is public, so most of its readers hold nothing.
                    (permissions '())
-                   ;; Whether the page returns its shell before the log is read
-                   ;; and lets the script draw the graph and output as they
-                   ;; arrive, or draws them while the answer is built.  A
-                   ;; reader without JavaScript is sent the full page by the
-                   ;; link in the empty pane (see `log-page' below).
-                   (defer? #t))
+                   ;; Whether the page is returned as a shell before the log is
+                   ;; read, or draws the whole log and graph while the answer is
+                   ;; built.  The default is complete: a reader without
+                   ;; JavaScript gets the run itself, and the script only keeps
+                   ;; a running page current.  A caller that wants to answer
+                   ;; before a long console is rendered may still ask for the
+                   ;; shell.
+                   (defer? #f))
   (let* ((log-id (assq-ref log
                            'id))
          (log-filename (text-from-db (assq-ref log
@@ -1367,11 +1370,10 @@ draw that one twice."
                                   #:content-classes '(flex flex-col gap-1))
                                ,@(terminal-glass-panel
                                   (cons `(div (@ (class ,(mk-class
-                                                          '(text-xs
-                                                            uppercase
-                                                            tracking-widest
-                                                            text-asparagus-900
-                                                            dark:text-asparagus-300))))
+                                                          (append '(text-xs
+                                                                    uppercase
+                                                                    tracking-widest)
+                                                                  prose-ink))))
                                               ,(G_ "usage"))
                                         (if defer?
                                             (log-usage-placeholder G_)
