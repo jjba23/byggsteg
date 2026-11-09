@@ -5,11 +5,14 @@ That link is the full policy and wins wherever it disagrees with this summary.
 
 ## Agents are welcome
 
-- AI agents may explore, plan, branch, commit to unprotected branches, run the
-  build and the tests, write tests, and open draft pull requests.
+- AI agents may explore, plan, branch, run the build and the tests, write tests,
+  commit, push, open and merge pull requests, and cut and publish releases.
 - A human is the author of record and is accountable for every commit that
   lands. The operator must be able to explain and debug every line without the
   agent.
+- The QA checklist is the merge gate and the release checklist is the release
+  gate: an agent runs them, records the commands and their output, and merges or
+  releases once they are green.
 - Disclose agent involvement: which tool or model, what it did, and what the
   human changed.
 
@@ -21,20 +24,13 @@ That link is the full policy and wins wherever it disagrees with this summary.
 - A bug fix starts with a test that reproduces the bug. A test that has never
   failed proves nothing.
 
-## A human gates every merge and release
-
-- No change is merged until a human has read the full diff, run the tests
-  locally, confirmed the new test fails without the change, and built and
-  smoke-tested the result.
-- A green CI run, a pasted log, or another model's approval is not human QA.
-- Only a human tags, publishes, deploys, or signs a release. An agent may
-  prepare all of it and execute none of it.
-
 ## What agents never do
 
-- Merge, approve, or dismiss a review.
-- Push to a protected branch, or tag, publish, deploy, or sign.
+- Merge or release on a red suite, a dirty tree, or a checklist nobody ran and
+  recorded.
 - Weaken, skip, or delete a test, or edit CI to get a green run.
+- Change CI, the test suite, the build, the licence or this policy without a
+  person's agreement.
 - Handle secrets or contributor data, or fabricate evidence.
 - Make legal or licensing commitments for the project.
 
