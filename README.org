@@ -1542,13 +1542,8 @@ In summary, we foster an inclusive, respectful, and cooperative environment for 
 
 ** AI Policy
 
-This project adheres to the [[https://jointhefreeworld.org/blog/articles/personal/jointhefreeworld-ai-policy/index.html][jointhefreeworld AI (Artificial Intelligence) policy]].
-
-Our core principle is simple: *AI should assist human creativity and problem-solving, never replace human reasoning.*
-
-While tools like Large Language Models (LLMs) and interactive chatbots can be beneficial for reviewing, refactoring small functions, or acting as a sounding board, they should be used with moderation.
-
-We require a human in the loop for all contributions.
+This project follows the [[https://jointhefreeworld.org/ai-policy/][jointhefreeworld AI policy]].
+[[file:AI_POLICY.md][AI_POLICY.md]] holds the short version; the full policy is the link above.
 
 ------------------
 
