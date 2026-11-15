@@ -189,10 +189,10 @@ a term over nothing is worse than no term."
                        ;; others, and a caller that does not say is read as a
                        ;; reader who may do nothing.
                        (permissions '()))
-  (let* ((profile-name (html-unescape (assq-ref p
-                                                'title)))
-         (profile-data (html-unescape (assq-ref p
-                                                'profile-data)))
+  (let* ((profile-name (text-from-db (assq-ref p
+                                               'title)))
+         (profile-data (text-from-db (assq-ref p
+                                               'profile-data)))
          (profile-id (assq-ref p
                                'id))
          (G_ (:i18n rc))

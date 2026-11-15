@@ -85,8 +85,8 @@
   "What the log row ID holds, as the reader of a log page reads it."
   (let ((row (get-log-by-id log-repo id)))
     (if row
-        (html-unescape (assq-ref row
-                                 'log-data))
+        (assq-ref row
+                  'log-data)
         (list 'no-log-row id))))
 
 (define (holds? text needle)

@@ -106,11 +106,11 @@
                              (assq-ref l
                                        'title))
                       (log-data unquote
-                                (base64-encode (html-unescape (assq-ref l
-                                                                        'log-data))))
+                                (base64-encode (assq-ref l
+                                                        'log-data)))
                       (job-data unquote
-                                (base64-encode (html-unescape (assq-ref j
-                                                                        'job-data))))))))))
+                                (base64-encode (assq-ref j
+                                                        'job-data)))))))))
 
 (post "/api/v1/login"
       #:mime 'json

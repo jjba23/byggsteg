@@ -209,8 +209,8 @@ readings are one list of specs here and everything below works from that."
 The column holds a thunk a request sent; a value that is not one -- an empty or
 malformed `job_data', say -- is a broken job, and saying so beats letting Guile
 report \"Wrong type to apply\" from somewhere further in."
-  (let ((thunk (eval-string (html-unescape (assoc-ref-or-empty-str job
-                                                                   'job-data)))))
+  (let ((thunk (eval-string (assoc-ref-or-empty-str job
+                                                    'job-data))))
     (unless (procedure? thunk)
       (error "byggsteg: job data did not evaluate to a procedure"
              (assq-ref job
@@ -546,7 +546,7 @@ bundle."
               (log-stream-flush! stream) #t)
           (update-log-by-id log-repo log-id
                             `((log_data unquote
-                                        (html-escape log-text))
+                                        log-text)
                               (updated_at unquote
                                           (current-time))))))
     (update-job-by-id job-repo

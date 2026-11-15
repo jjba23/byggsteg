@@ -55,6 +55,10 @@
   #:use-module (byggsteg sqlite profile)
   #:use-module (byggsteg sqlite util)
   #:use-module (sqlite3)
+  ;; The splitter is mutastructura's own, so a migration this fixture reads is
+  ;; split where the deployment's migration tool splits it -- an entity name in
+  ;; a quoted string holds a `;', and a split on every semicolon would cut it.
+  #:use-module (mutastructura persistence sql-parser)
   #:use-module (json)
   #:use-module (kracht prelude)
   #:use-module (ice-9 textual-ports)
@@ -232,7 +236,8 @@ is what tells an object (`keys . value' pairs) from a list of values."
 ;; Every migration the deployment runs, in the order it runs them.
 (define migrations
   '("2026-04-07_12:21:00_init_byggsteg_schema.sql"
-    "2026-10-13_09:30:00_add_artifact_table.sql"))
+    "2026-10-13_09:30:00_add_artifact_table.sql"
+    "2026-11-15_12:00:00_unescape_html_entities.sql"))
 
 (define (migration-path name)
   (string-append (project-root) "/resources/migrations/sqlite/" name))
@@ -243,9 +248,10 @@ is what tells an object (`keys . value' pairs) from a list of values."
               (for-each (lambda (statement)
                           (if (string-any char-set:graphic statement)
                               (sqlite-exec db statement)))
-                        (string-split (call-with-input-file (migration-path
-                                                             name)
-                                        get-string-all) #\;))) migrations))
+                        (string-split-to-queries
+                         (call-with-input-file (migration-path name)
+                           get-string-all))))
+            migrations))
 
 ;; The repositories take their connection from `(database-path)' as they are
 ;; built, so the file is in place before they are made.
@@ -257,13 +263,13 @@ is what tells an object (`keys . value' pairs) from a list of values."
   (sqlite-close db))
 
 ;; One run, with the log its output went into and the profile beside it.  The
-;; columns hold escaped text, which is what every writer of them writes: a title
-;; with an `&' in it and a log with a line break in it are the two readings the
-;; suite is about, since both are unescaped on their way out of the column.
+;; columns hold text as it was written, which is what every writer of them
+;; writes: a title with an `&' in it and a log with a line break in it are the
+;; two readings the suite is about, since both are answered as text.
 (define spec-run
   '((id . "spec-run")
-    (title . "spec run &amp; its output")
-    (job-data . "(lambda () (list (cons (quote task) &quot;trivial&quot;)))")
+    (title . "spec run & its output")
+    (job-data . "(lambda () (list (cons (quote task) \"trivial\")))")
     (job-success . 1)
     (job-in-progress . 0)
     (job-failed . 0)
@@ -272,9 +278,9 @@ is what tells an object (`keys . value' pairs) from a list of values."
 
 (define spec-log
   '((id . "spec-log")
-    (title . "spec run &amp; its output")
+    (title . "spec run & its output")
     (job-id . "spec-run")
-    (log-data . "&#27;[32mgreen&#27;[0m a needle in the output&#10;second line")
+    (log-data . "\x1b[32mgreen\x1b[0m a needle in the output\nsecond line")
     (created-at . 1791922811)))
 
 (define spec-profile
@@ -282,7 +288,7 @@ is what tells an object (`keys . value' pairs) from a list of values."
     (title . "spec profile")
     ;; The word the search reading below looks for is in this profile's Lisp
     ;; rather than in its title, which is the column that reading is about.
-    (profile-data . "(lambda () (list (cons (quote task) &quot;needle&quot;)))")
+    (profile-data . "(lambda () (list (cons (quote task) \"needle\")))")
     (created-at . 1791922811)))
 
 (insert-job (make-sqlite-job-repository) spec-run)
@@ -587,18 +593,18 @@ it."
                #:shuffle? #f
                (assert-equal #:name
                 "a log is its id, its title, the run it belongs to, its two instants and the size of its output"
-                ;; The length is of the stored column, entities and all, which
-                ;; is the number a pane polling for output compares against.
+                ;; The length is of the stored column, escapes and all, which is
+                ;; the number a pane polling for output compares against.
                 #:expect '(("id" . "spec-log")
                            ("title" . "spec run & its output")
                            ("run-id" . "spec-run")
                            ("created-at" . 1791922811)
                            ("updated-at" . null)
-                           ("length" . 61))
+                           ("length" . 49))
                 #:got (json-of (log-json spec-log)))
                (assert-equal #:name
                 "the length of a log is the size of the output a pane polls with"
-                #:expect '(61 0)
+                #:expect '(49 0)
                 #:got (list (log-length spec-log) (log-length '())))
                (assert-equal #:name
                 "the log of a run is found by the row that names it, and a run no log names has none"
@@ -612,7 +618,7 @@ it."
                                                    ("run-id" . "spec-run")
                                                    ("created-at" . 1791922811)
                                                    ("updated-at" . null)
-                                                   ("length" . 61)))
+                                                   ("length" . 49)))
                                         (cons "run" '(("id" . "spec-run")
                                                       ("title" . "spec run")
                                                       ("status" . "queued")

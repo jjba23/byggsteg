@@ -88,8 +88,7 @@
               `((id unquote id)
                 (title unquote title)
                 (job-id unquote job-id)
-                (log-data unquote
-                          (html-escape text))
+                (log-data unquote text)
                 (created-at unquote created-at))))
 
 (enqueue-job! "search-job-a" "deploy byggsteg-site (trunk)")

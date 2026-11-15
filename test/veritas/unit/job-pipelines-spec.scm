@@ -128,7 +128,7 @@
                 (title unquote
                        (string-append "spec " job-id))
                 (job-data unquote
-                          (html-escape (thunk-of jobs)))
+                          (thunk-of jobs))
                 (job-success . 0)
                 (job-in-progress . 1)
                 (job-failed . 0)
@@ -330,8 +330,8 @@
   (let ((row (get-log-by-id log-repo
                             (log-id job-id))))
     (if row
-        (html-unescape (assq-ref row
-                                 'log-data)) "")))
+        (assq-ref row
+                  'log-data) "")))
 
 (define (holds? text needle)
   (if (string-contains text needle) #t #f))

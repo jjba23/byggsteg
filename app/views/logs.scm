@@ -85,13 +85,9 @@ last sent a row of this length has the whole of it."
 ;;; how it went.  The reading is `(byggsteg job log-sections)''s, so the page,
 ;;; the poll and the graph cannot disagree about where a command begins.
 
-(define (log-raw-text log)
-  "The text of LOG, unescaped once, as the console is read."
-  (html-unescape (log-text log)))
-
 (define (log-sections-of log job)
   "The steps of LOG, with JOB's state answering for the last one."
-  (log-sections (log-raw-text log)
+  (log-sections (log-text log)
                 #:running? (and job
                              (equal? 1 (assq-ref job
                                                  'job-in-progress)))
@@ -720,7 +716,7 @@ by the output would scroll away with it, leaving a border with three sides.
 
 This is the output alone; what a poll is answered with is the output beside the
 state of the run that wrote it, which is `log-poll' below."
-  (let ((output (log-raw-text log)))
+  (let ((output (log-text log)))
     (if (eq? view 'raw)
       (list (terminal-pre (html-escape (ansi->raw-text output))
                           #:size '(text-md md:text-lg)

@@ -25,10 +25,12 @@
   (let* ((user-details `((div (@ (class ,(mk-class '(py-4 px-0 sm:py-6
                                                           max-w-prose))))
                               ,(terminal-heading (format #f "~a &lt;~a&gt;"
-                                                         (assq-ref user
-                                                                   'username)
-                                                         (assq-ref user
-                                                                   'email))
+                                                         (text-from-db
+                                                          (assq-ref user
+                                                                    'username))
+                                                         (text-from-db
+                                                          (assq-ref user
+                                                                    'email)))
                                                  #:tag 'h3
                                                  #:size '(text-xl))
                               (div (@ (class ,(mk-class '(flex flex-row
@@ -141,16 +143,16 @@
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "username")
                    #:color prose-ink)
-              ,(p (assq-ref u
-                            'username)
+              ,(p (text-from-db (assq-ref u
+                                          'username))
                   #:color prose-ink
                   #:size '(text-md)))
 
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
               ,(em (G_ "email")
                    #:color prose-ink)
-              ,(p (assq-ref u
-                            'email)
+              ,(p (text-from-db (assq-ref u
+                                          'email))
                   #:color prose-ink
                   #:size '(text-md)))
          (div (@ (class ,(mk-class '(flex flex-col gap-2))))
@@ -384,7 +386,7 @@
                                ,(sub-h3 (format #f "~a: ~a"
                                                 (G_
                                                  "perform a password reset for")
-                                                email)
+                                                (text-from-db email))
                                         #:color prose-ink)
                                (form (@ (method POST)
                                         (action "/password/do-reset"))
@@ -397,7 +399,7 @@
                                                                               max-w-prose)))))
                                           (input (@ (hidden true)
                                                     (name email)
-                                                    (value ,email)) "")
+                                                    (value ,(text-from-db email))) "")
                                           (input (@ (hidden true)
                                                     (name reset-token)
                                                     (value ,token)) "")
@@ -540,17 +542,19 @@
                                                                       'id))))
                                           (div ,(terminal-input #:label (G_
                                                                          "username")
-                                                                #:value (assq-ref
-                                                                         u
-                                                                         'username)
+                                                                #:value (text-from-db
+                                                                         (assq-ref
+                                                                          u
+                                                                          'username))
                                                                 #:name 'username
                                                                 #:required #t))
                                           (div ,(terminal-input #:label (G_
                                                                          "email")
                                                                 #:name 'email
-                                                                #:value (assq-ref
-                                                                         u
-                                                                         'email)
+                                                                #:value (text-from-db
+                                                                         (assq-ref
+                                                                          u
+                                                                          'email))
                                                                 #:type 'email
                                                                 #:required #t))
                                           (div (@ (class ,(mk-class '(my-6))))

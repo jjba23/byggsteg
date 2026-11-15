@@ -32,9 +32,9 @@
 (define (snippet-of text query)
   "The line TEXT matched QUERY on, in the shape the page is written through.
 
-The text comes out of a column escaped, as `(byggsteg html)' explains; the
-excerpt is read off the text as a reader sees it, then escaped again on its way
-back into the page, so a log line that prints a `<` arrives as that character.
+The text comes out of a column as it was written, as `(byggsteg html)' explains;
+the excerpt is read off the text as a reader sees it, then escaped on its way
+into the page, so a log line that prints a `<` arrives as that character.
 
 `(byggsteg ansi)' is what says what a reader sees: a job's output is not prose
 but a terminal's, and a line of it left as the command wrote it is a line with a
@@ -43,7 +43,7 @@ hundred times.  Reading it here is what makes a search result carry the line the
 reader will meet when they open the log, rather than the bytes that line is
 sent as.  A row that is not console output at all -- a job's expression, a
 profile's name -- is text with nothing to read, and comes through unchanged."
-  (html-escape (search-snippet (ansi->text (html-unescape (if (string? text) text "")))
+  (html-escape (search-snippet (ansi->text (if (string? text) text ""))
                                query)))
 
 ;; The excerpt is the reading the search matched on, so it is read in the

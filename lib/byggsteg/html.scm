@@ -52,15 +52,15 @@
 (define (text-from-db value)
   "VALUE as a column holds it, ready to be written into a page.
 
-Columns hold escaped text, and the serializer writes a page's text through as
-it stands, so what comes out of a column is put back into the shape the
-serializer expects: unescaped once, escaped once.  That is what makes a job
-titled after a project whose name holds a `<', or a log line that prints one,
-arrive as the text it is rather than as markup; text written by hand, in the
-escaped shape or not, is safe either way."
-  (html-escape (html-unescape (if (string? value) value
-                                (format #f "~a"
-                                        (or value ""))))))
+Columns hold text as it was written -- a job's title, the Lisp it runs, a log's
+output -- and the serializer writes a page's text through as it stands, so text
+read from a column is escaped here, on its way into the page.  That is what
+makes a job titled after a project whose name holds a `<', or a log line that
+prints one, arrive as the text it is rather than as markup; and it is the only
+place that escaping happens, since nothing escapes text on its way into a
+column."
+  (html-escape (if (string? value) value
+                   (format #f "~a" (or value "")))))
 
 ;;; ====== What a page says about itself ======
 ;;;

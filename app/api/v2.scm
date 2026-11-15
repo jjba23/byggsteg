@@ -166,7 +166,7 @@ output went into, and the tarballs it collected."
          (password (request-parameter params "password"))
          (user-repo (make-sqlite-user-repository))
          (u (and email
-                 (get-user-by-email user-repo (html-escape email))))
+                 (get-user-by-email user-repo email)))
          ;; The credential is checked against a row, so an address this
          ;; deployment does not know is a failed sign-in rather than a hash
          ;; compared with no row at all -- the reading `(byggsteg auth)'s own
@@ -546,9 +546,8 @@ output went into, and the tarballs it collected."
 ;; says whether this was a new profile or an edit of an old one rather than
 ;; leaving a client to guess from the status alone.
 ;;
-;; Both fields are escaped on their way into their columns, as the form's are: the
-;; pages read them back out with `text-from-db', so what is stored is what every
-;; other writer of those columns stores.
+;; Both fields are stored as they arrive, as the form stores them: a page escapes
+;; what it reads out of a column (`text-from-db'), and nothing escapes it here.
 (api-route (post "/api/v2/profiles")
   (api-endpoint #:rc rc
                 #:needed-permissions '(byggsteg:profile-create)
@@ -568,15 +567,14 @@ output went into, and the tarballs it collected."
                                     "the request needs a data field: the Lisp the profile is"))
                       (else
                        (let ((found (get-profile-by-title profile-repo
-                                                          (html-escape
-                                                           title))))
+                                                          title)))
                          (if found
                              (begin
                                (update-profile-by-title
                                 profile-repo
-                                (html-escape title)
+                                title
                                 `((profile_data unquote
-                                                (html-escape data))
+                                                data)
                                   (updated_at unquote
                                               (current-time))))
                                (api-json rc 200
@@ -591,10 +589,9 @@ output went into, and the tarballs it collected."
                                (insert-profile profile-repo
                                                `((id unquote new-id)
                                                  (title unquote
-                                                        (html-escape title))
+                                                        title)
                                                  (profile-data unquote
-                                                               (html-escape
-                                                                data))
+                                                               data)
                                                  (created-at unquote
                                                              (current-time))))
                                (api-json rc 201
@@ -684,7 +681,7 @@ output went into, and the tarballs it collected."
                                              (map symbol->string
                                                   all-permissions)
                                              ", "))))
-                      ((get-user-by-email user-repo (html-escape email))
+                      ((get-user-by-email user-repo email)
                        (api-problem rc 400
                                     "an account with that email is already here"))
                       (else
@@ -692,10 +689,9 @@ output went into, and the tarballs it collected."
                               (_ (insert-user user-repo
                                               `((id unquote new-id)
                                                 (username unquote
-                                                           (html-escape
-                                                            username))
+                                                           username)
                                                 (email unquote
-                                                       (html-escape email))
+                                                       email)
                                                 (password . "")
                                                 (salt . "")
                                                 (permissions unquote
@@ -761,13 +757,11 @@ output went into, and the tarballs it collected."
                        (update-user-by-id user-repo id
                                           (append (if username
                                                       `((username unquote
-                                                                  (html-escape
-                                                                   username)))
+                                                                  username))
                                                   '())
                                                   (if email
                                                       `((email unquote
-                                                               (html-escape
-                                                                email)))
+                                                               email))
                                                       '())
                                                   (if wanted
                                                       `((permissions unquote
@@ -812,7 +806,7 @@ output went into, and the tarballs it collected."
          (user-repo (make-sqlite-user-repository))
          (password-reset-repo (make-sqlite-password-reset-repository))
          (u (cond
-              (email (get-user-by-email user-repo (html-escape email)))
+              (email (get-user-by-email user-repo email))
               (claims (get-user-by-id user-repo (assq-ref claims
                                                           'owner-id)))
               (else #f))))

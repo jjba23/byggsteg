@@ -34,6 +34,10 @@
   #:use-module (byggsteg sqlite job)
   #:use-module (byggsteg sqlite util)
   #:use-module (sqlite3)
+  ;; The splitter is mutastructura's own, so a migration this fixture reads is
+  ;; split where the deployment's migration tool splits it -- an entity name in
+  ;; a quoted string holds a `;', and a split on every semicolon would cut it.
+  #:use-module (mutastructura persistence sql-parser)
   #:use-module (ice-9 format)
   #:use-module (ice-9 textual-ports)
   #:use-module (srfi srfi-1)
@@ -46,7 +50,8 @@
 
 (define migrations
   '("2026-04-07_12:21:00_init_byggsteg_schema.sql"
-    "2026-10-13_09:30:00_add_artifact_table.sql"))
+    "2026-10-13_09:30:00_add_artifact_table.sql"
+    "2026-11-15_12:00:00_unescape_html_entities.sql"))
 
 (define (migration-path name)
   (let ((here (current-filename)))
@@ -59,8 +64,9 @@
               (for-each (lambda (statement)
                           (if (string-any char-set:graphic statement)
                               (sqlite-exec db statement)))
-                        (string-split (call-with-input-file (migration-path name)
-                                        get-string-all) #\;)))
+                        (string-split-to-queries
+                         (call-with-input-file (migration-path name)
+                           get-string-all))))
             migrations))
 
 (if (file-exists? spec-db)

@@ -105,8 +105,7 @@ never claims, which the contract test needs."
               `((id unquote job-id)
                 (title unquote
                        (string-append "spec " job-id))
-                (job-data unquote
-                          (html-escape job-data))
+                (job-data unquote job-data)
                 (job-success . 0)
                 (job-in-progress unquote
                                  (if in-progress? 1 0))

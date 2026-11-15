@@ -50,7 +50,7 @@
 ;; so the two readings of a log agree.
 (define (command-banner cmd)
   (format #f "\n→ running command: ~a\n"
-          (html-unescape cmd)))
+          cmd))
 
 (define-record-type <log-stream>
   (%make-log-stream chunks
@@ -148,11 +148,10 @@ nothing does not write to its log row again."
   "A log stream whose refresh writes the running job's log row.
 
 The row is the one the job was queued with, LOG-ID in LOG-REPO; the text is
-escaped on its way in, as every other write of `log_data' is."
+stored as it stands, and a page escapes it on its way in."
   (make-log-stream (lambda (text)
                      (update-log-by-id log-repo log-id
-                                       `((log_data unquote
-                                                   (html-escape text))
+                                       `((log_data unquote text)
                                          (updated_at unquote
                                                      (current-time)))))
                    #:batch-size batch-size))

@@ -1052,6 +1052,8 @@ Both tasks act on ~byggsteg.db~ in the directory they are run from, which is the
 
 Both tasks run mutastructura, so an operator never assembles the command by hand: ~maak migrate~ is the whole of it.
 
+The text columns -- a run's title, the Lisp it runs, a log's output -- hold the text as it was written, and a page escapes it on its way into the HTML. Older releases escaped it on its way into the database instead; ~2026-11-15_12:00:00_unescape_html_entities.sql~ unescapes what they wrote, so ~maak migrate~ is also the whole of upgrading a deployment.
+
 ------------------
 
 ** Making your first user

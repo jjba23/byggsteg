@@ -91,16 +91,14 @@
                  (new-uuid (generate-string-uuid))
                  (profile-repo (make-sqlite-profile-repository))
                  (found-profile (get-profile-by-title profile-repo
-                                                      (html-escape
-                                                       profile-name))))
+                                                      profile-name)))
             
             (cond
               ((not (nil? found-profile))
                (update-profile-by-title profile-repo
-                                        (html-escape profile-name)
+                                        profile-name
                                         `((profile_data unquote
-                                                        (html-escape
-                                                         profile-data))
+                                                        profile-data)
                                           (updated_at unquote
                                                       (current-time))))
                (redirect-to rc
@@ -111,9 +109,9 @@
               (else (insert-profile profile-repo
                                     `((id unquote new-uuid)
                                       (title unquote
-                                             (html-escape profile-name))
+                                             profile-name)
                                       (profile-data unquote
-                                                    (html-escape profile-data))
+                                                    profile-data)
                                       (created-at unquote
                                                   (current-time))))
                     (redirect-to rc

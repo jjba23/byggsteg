@@ -50,17 +50,15 @@ the page a run is read on."
          (new-log-id (generate-string-uuid))
          ;; A job's title names the project it is about; a pipeline of jobs --
          ;; whose value is a list of them -- is titled after its first, and one
-         ;; that runs bare commands `trivial'.  The prefix is escaped and then
-         ;; the whole title is, which is how every title in this deployment has
-         ;; been written and what a page reads back out of the column.
-         (title (html-escape (format #f "~a-~a"
-                                     (html-escape (job-title-prefix kvv))
-                                     (string-take new-log-id 13)))))
+         ;; that runs bare commands `trivial'.  The title is stored as it reads;
+         ;; a page escapes it on its way in (`text-from-db').
+         (title (format #f "~a-~a"
+                        (job-title-prefix kvv)
+                        (string-take new-log-id 13))))
     (insert-job job-repo
                 `((id unquote new-job-id)
                   (title unquote title)
-                  (job-data unquote
-                            (html-escape job-code))
+                  (job-data unquote job-code)
                   (job-success . 0)
                   (job-in-progress . 1)
                   (job-failed . 0)
@@ -90,15 +88,15 @@ apart in a list of logs.
     (if (not job) #f
         (let* ((new-job-id (generate-string-uuid))
                (new-log-id (generate-string-uuid))
-               (title (html-escape (format #f "~a (retry ~a)"
-                                           (html-unescape (assq-ref job
-                                                                    'title))
-                                           (string-take new-log-id 8)))))
+               (title (format #f "~a (retry ~a)"
+                              (assq-ref job
+                                        'title)
+                              (string-take new-log-id 8))))
           (insert-job job-repo
                       `((id unquote new-job-id)
                         (title unquote title)
                         ;; The job data is copied as the request sent it,
-                        ;; escaped and unread; the worker is what reads it.
+                        ;; unread; the worker is what reads it.
                         (job-data unquote
                                   (assq-ref job
                                             'job-data))

@@ -467,14 +467,13 @@ the first page of everything and moves on with `offset'."
 (define (column-text value)
   "VALUE as a column holds it, read as the text it is.
 
-Columns hold escaped text -- every write of a title, a log or a job's data goes
-through `html-escape' on its way in -- so it is unescaped once on its way out,
-which is the same reading `text-from-db' gives a page.  A column that holds
-nothing readable is the empty string rather than a raise: a row written by hand
-must not be able to break the answer about the rows beside it."
-  (html-unescape (if (string? value) value
-                     (format #f "~a"
-                             (or value "")))))
+The text of a title, a log or a job's data is stored as it was written, so a
+column is read as it stands; escaping happens where a value is written into a
+page, not here.  A column that holds nothing readable is the empty string
+rather than a raise: a row written by hand must not be able to break the answer
+about the rows beside it."
+  (if (string? value) value
+      (format #f "~a" (or value ""))))
 
 (define (run-status job)
   "JOB's status, as one word.
