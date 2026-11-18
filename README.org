@@ -564,6 +564,21 @@ Reading the page needs no account, as reading a run and its log needs none: the 
 
 The directory is read as it stands at the moment the page is read, and nothing holds a clone while a job is using it: removing one that a run is going through makes that run fail, which is a thing a reader is trusted to know -- the page is a way to take the room back from projects nobody builds any more, and ~maak dir-uninstall~ is still the blunt way to remove everything.
 
+What fills the directory fastest is the tags. A job that names a tag cuts a release, and a tag clone is made once and never pulled again: the clone step fetches a branch, so a job that runs in a tag's checkout reads the tree it cloned. What that leaves is a copy of the whole project at one tag, kept for a release that has already happened, and a deployment that cuts a release per tag holds one for ever. So the queue worker keeps the two most recently written tag clones of every project (~clone-tags-kept~) and removes the rest, once a day (~clone-sweep-interval~; both are parameters in ~lib/byggsteg/preferences.scm~). Set ~clone-tags-kept~ to 0 and no tag checkout is kept at all.
+
+The clones of ~trunk~, ~main~ and ~master~ are never among them. That is the one thing the prune trusts about the directory: a tag clone can be made again by the next release job, while a deployment may be serving from a trunk clone at the moment the sweep runs, and a server whose tree was removed stops. Which clones are tags is read from the clone rather than from its name -- ~v1.2.3~ is an ordinary branch name as well as a tag one: a clone left on no branch at all is a tag's, since ~git clone -b <tag>~ leaves it that way, and so is one that holds a tag under the name its directory has. What is not a checkout of a tag -- a directory a deployment made by hand, a branch clone under a version-like name -- is left where it is.
+
+To prune by hand -- a directory that collected a checkout per release before this was the worker's business, say -- run ~maak prune-tag-clones~, which says what it removed:
+
+#+begin_src sh
+maak prune-tag-clones
+#  keeping 2 tag clone(s) per project
+#  3 tag clone(s) removed
+#    /etc/byggsteg/job-clone/byggsteg/v1.22.0
+#    /etc/byggsteg/job-clone/byggsteg/v1.23.0
+#    /etc/byggsteg/job-clone/byggsteg/v1.24.0
+#+end_src
+
 There is no call for any of it under ~/api/v2~: what the page reads and edits is the machine rather than a row of the database, which is the one kind of thing this console shows that its JSON API does not (see [[*The JSON API under /api/v2]]). Everything behind the page is reachable from a shell on the machine, where ~/etc/byggsteg/job-clone~ is a directory like any other.
 
 ------------------
@@ -1106,7 +1121,7 @@ maak production-server
 
 Both are read once, when byggsteg starts, and an empty value is read as no value at all: ~BYGGSTEG_JOB_CLONE=~ leaves the default in place rather than naming a directory called nothing.
 
-The artifact directory belongs to byggsteg: its queue worker removes what the database no longer records (see [[*Artifacts]]). The same worker prunes the runs themselves once they have outlived their retention, which is 30 days by default; see [[*Retention]] before starting a deployment that has runs older than that.
+The artifact directory belongs to byggsteg: its queue worker removes what the database no longer records (see [[*Artifacts]]). The same worker prunes the runs themselves once they have outlived their retention, which is 30 days by default; see [[*Retention]] before starting a deployment that has runs older than that. It also gives up the tag clones of the clone directory that no job will build again, keeping the newest two per project; see [[*The clones a deployment keeps]].
 
 ------------------
 
@@ -1392,7 +1407,7 @@ The green threads are what let the whole thing stay one readable program: no thr
 
 ** What the worker does between jobs
 
-Two things that have no request to hang off are done by the worker itself, between visits, each on a clock of its own, so a visit costs nothing until one of them is due: the tarballs the database no longer names are swept from the artifact directory, and the runs that have outlived their retention are pruned. Both are caught, separately, so a sweep that fails says so in the log and the queue is served on the next pass regardless (see [[*Artifacts]] and [[*Retention]]).
+Three things that have no request to hang off are done by the worker itself, between visits, each on a clock of its own, so a visit costs nothing until one of them is due: the tarballs the database no longer names are swept from the artifact directory, the runs that have outlived their retention are pruned, and the tag clones a project no longer builds are given up. All are caught, separately, so a sweep that fails says so in the log and the queue is served on the next pass regardless (see [[*Artifacts]], [[*Retention]] and [[*The clones a deployment keeps]]).
 
 A job that updates byggsteg ends by restarting the daemon that is running it, which is a job outliving the process that would record it. The job therefore *asks* for the restart, and the worker performs it once the job's row says how the job went -- so a deployment stopped in the middle of an update comes back to a queue that does not still hold that job.
 

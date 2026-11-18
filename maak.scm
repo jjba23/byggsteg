@@ -572,6 +572,17 @@ not been running."
    (list "guile" "-L" "./lib" "-L" "."
          "-c" "'(begin (use-modules (byggsteg job retention) (byggsteg preferences)) (format #t \"keeping runs for ~a day(s)~%\" (job-retention-days)) (let ((pruned (prune-old-runs!))) (format #t \"~a run(s) pruned~%\" (length pruned)) (for-each (lambda (run) (format #t \"  ~a  ~a~%\" (assq-ref run 'id) (assq-ref run 'title))) pruned)))'")))
 
+(define (prune-tag-clones)
+  "Remove the tag clones a project no longer builds, keeping the newest few.
+
+The queue worker does this on its own once a day, so this task is for a clone
+directory that has already collected a checkout per release, or for a deployment
+whose worker has not been running.  The clones of `trunk', `main' and `master'
+are never removed: a deployment may be serving from one of them."
+  (time-machine-manifest-shell
+   (list "guile" "-L" "./lib" "-L" "."
+         "-c" "'(begin (use-modules (byggsteg clones) (byggsteg preferences)) (format #t \"keeping ~a tag clone(s) per project~%\" (clone-tags-kept)) (let ((removed (prune-tag-clones!))) (format #t \"~a tag clone(s) removed~%\" (length removed)) (for-each (lambda (path) (format #t \"  ~a~%\" path)) removed)))'")))
+
 (define (i18n-compile)
   "Compile the translation files for all locales."
   (for-each i18n-compile* i18n-locales))

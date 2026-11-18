@@ -86,6 +86,7 @@
                                 (use-modules (byggsteg job pipeline)
                                              (byggsteg job retention)
                                              (byggsteg artifacts)
+                                             (byggsteg clones)
                                              (byggsteg domain job)
                                              (byggsteg domain log)
                                              (byggsteg sqlite job)
@@ -117,6 +118,25 @@
                                                 (lambda (key . args)
                                                   (display (format #f
                                                                    "\n  could not sweep artifacts: ~a ~s\n"
+                                                                   key args))))
+                                         ;; A tag clone is made once and never
+                                         ;; pulled again, so a deployment that
+                                         ;; cuts releases holds a copy of the
+                                         ;; whole project per tag for ever.  The
+                                         ;; few written most recently are kept,
+                                         ;; and never the clone of `trunk',
+                                         ;; `main' or `master': a deployment may
+                                         ;; be serving from one of those.
+                                         (catch #t
+                                                (lambda ()
+                                                  (for-each (lambda (path)
+                                                              (display (format #f
+                                                                               "\nremoved the stale tag clone ~a\n"
+                                                                               path)))
+                                                            (prune-tag-clones-when-due!)))
+                                                (lambda (key . args)
+                                                  (display (format #f
+                                                                   "\n  could not prune tag clones: ~a ~s\n"
                                                                    key args))))
                                          (catch #t
                                                 (lambda ()

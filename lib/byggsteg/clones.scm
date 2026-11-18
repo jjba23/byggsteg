@@ -18,10 +18,20 @@
 ;;; ordinary states of that directory, and none of them is something a deployment
 ;;; can do anything about without a shell on the machine it runs on.
 ;;;
+;;; What accumulates fastest is the tags.  A release job for every tag of a
+;;; project leaves a clone per tag, and a tag is over the moment the next one is
+;;; cut: the checkout of `v1.2.0' is worth nothing once `v1.3.0' has been built,
+;;; since a tag clone is never pulled again and the room it takes is the whole
+;;; history of the project at that tag.  So the one removal this module makes
+;;; without being asked keeps the few most recently written tag clones of a
+;;; project and removes the rest -- and it never removes the clone of a branch
+;;; somebody may be serving from (`kept-clone-names').
+;;;
 ;;; So this module is the reading and the edits of that one directory: which
 ;;; projects are there, which branches each of them has, where each clone pulls
-;;; from and how much room it takes, and the two edits a deployment may want --
-;;; remove a clone, and point every clone of a project at another origin.
+;;; from and how much room it takes, and the edits a deployment may want --
+;;; remove a clone, point every clone of a project at another origin, and give up
+;;; the tag clones nothing will build again.
 ;;;
 ;;; Both edits are filesystem work asked for by a request, which is where the
 ;;; care in the module comes from: every path is built here from names that were
@@ -34,9 +44,11 @@
 
 (define-module (byggsteg clones)
   #:use-module (byggsteg preferences)
+  #:use-module (byggsteg upkeep)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 ftw)
   #:use-module (ice-9 textual-ports)
+  #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-13)
   #:export (clone-root
             clone-projects
@@ -44,9 +56,14 @@
             clone-origin
             clone-size
             clone-path
+            kept-clone-names
+            tag-clone?
             delete-clone!
             delete-project-clones!
-            set-clone-origin!))
+            set-clone-origin!
+            tag-clones-to-prune
+            prune-tag-clones!
+            prune-tag-clones-when-due!))
 
 ;;; ====== Where a deployment's clones stand ======
 
@@ -397,3 +414,150 @@ them."
          (loop (cdr branches) (+ changed 1) not-changed))
         (else (loop (cdr branches) changed
                     (cons (car branches) not-changed)))))))
+
+;;; ====== Giving up the tag clones nothing will build again ======
+;;;
+;;; A tag clone is made once and never pulled: the clone step fetches a branch
+;;; (`refs/heads/<branch>'), so a job that runs in a tag's checkout either fails
+;;; on the fetch or is left reading the tree it cloned.  What that clone holds is
+;;; therefore a copy of the whole project at one tag, kept for a release that has
+;;; already happened, and a deployment that cuts releases holds one per tag for
+;;; ever.  The few most recently written ones are worth keeping -- the tag a
+;;; deployment is building or has just built -- and the rest are room.
+;;;
+;;; The two readings this needs are both of the checkout rather than of the name:
+;;; a tag has no shape a branch name does not have (`v1.2.3' is an ordinary
+;;; branch name too), so git is asked whether the clone has a tag by that name;
+;;; and which tag clones are recent is read from the filesystem, since the clone
+;;; step writes the tree whenever it checks one out.
+
+;; The clones that are never removed by the pass below, whatever stands beside
+;; them: the branches a deployment builds itself from, one of which it may be
+;; serving from the clone right now.  A tag clone can be made again by the next
+;; release job; a server that was running from a trunk clone cannot.
+(define kept-clone-names
+  '("trunk" "main" "master"))
+
+(define (kept-clone-name? name)
+  "Whether NAME is the branch of a clone the prune never removes."
+  (and (member name kept-clone-names) #t))
+
+(define (head-on-branch? clone-directory)
+  "Whether the checkout at CLONE-DIRECTORY has a branch checked out.
+
+A clone made from a tag is left on no branch at all: there is nothing for git to
+point `HEAD' at but the commit itself."
+  (and (checkout? clone-directory)
+       (command-succeeded?
+        (run-program "git" "-C" clone-directory
+                     "symbolic-ref" "--quiet" "HEAD"))))
+
+(define (tag-clone? clone-directory name)
+  "Whether the clone at CLONE-DIRECTORY is a clone of a tag.
+
+Two readings, either of which is enough, because a tag reaches a clone two ways:
+one made with `git clone -b <tag>' is left on no branch at all, and one cloned
+by hand and checked out at the tag holds `refs/tags/<name>' under the name its
+directory has.  Both are asked of the clone rather than read out of NAME, since
+`v1.2.3' is an ordinary branch name too, and neither fetches anything, so what is
+read is the clone as it was left.
+
+A directory that is not a checkout is not a tag clone, and neither is one on a
+branch whose name is no tag of it."
+
+  (and (checkout? clone-directory)
+       (or (not (head-on-branch? clone-directory))
+           (command-succeeded?
+            (run-program "git" "-C" clone-directory
+                         "rev-parse" "--verify" "--quiet"
+                         (string-append "refs/tags/" name))))))
+
+(define (clone-age path)
+  "How many seconds ago the tree at PATH was last written.
+
+A tree whose time cannot be read answers 0 -- as though it had just been written
+-- so a clone the filesystem will not say anything about is kept rather than
+removed on a reading that failed."
+  (catch #t
+         (lambda ()
+           (max 0 (- (current-time)
+                     (stat:mtime (lstat path)))))
+         (lambda (key . args)
+           0)))
+
+(define (tag-clones-of project-path)
+  "PROJECT-PATH's clones of tags, each as `(branch . seconds-since-written)'.
+
+The clones of the kept branch names are left out, and so is everything that is
+not a plain directory holding a checkout of a tag: a directory a deployment made
+by hand is not this module's to remove.  Oldest first, so the tail is what is
+worth keeping.
+
+Nothing holds a clone while a job is in it, which is the same trust the page
+places in a reader who removes one: a run whose clone is given up fails, and the
+next run clones it again."
+  (let ((tags (filter (lambda (branch)
+                        (and (not (kept-clone-name? branch))
+                             (let ((path (string-append project-path "/"
+                                                        branch)))
+                               (and (plain-directory? path)
+                                    (tag-clone? path branch)))))
+                      (sub-directory-names project-path))))
+    (sort (map (lambda (branch)
+                 (cons branch
+                       (clone-age (string-append project-path "/" branch))))
+               tags)
+          (lambda (a b)
+            (> (cdr a) (cdr b))))))
+
+(define* (tag-clones-to-prune #:key (keep (clone-tags-kept)))
+  "The tag clones to remove, as their paths, oldest first.
+
+Of every project, the KEEP tag clones that were written most recently are left
+where they are and the rest are answered here.  A KEEP of 0 or less answers every
+tag clone, which is the way to say that this deployment keeps no tag checkout at
+all."
+  (let ((keep (max 0 keep)))
+    (apply append
+           (map (lambda (project)
+                  (let* ((project-path (clone-path project))
+                         (clones (if project-path
+                                     (tag-clones-of project-path)
+                                     '()))
+                         (removable (max 0
+                                         (- (length clones) keep))))
+                    (map (lambda (clone)
+                           (string-append project-path "/" (car clone)))
+                         (take clones removable))))
+                (clone-projects)))))
+
+(define* (prune-tag-clones! #:key (keep (clone-tags-kept)))
+  "Remove the tag clones a project no longer builds, answering the paths removed.
+
+The removal is `remove-tree!', which leaves a link where it is and reports a tree
+that could not be removed whole as the failure it is, so a pass that answers
+paths has answered the paths that are gone."
+  (let loop
+    ((paths (tag-clones-to-prune #:keep keep))
+     (removed '()))
+    (if (null? paths)
+        (reverse removed)
+        (loop (cdr paths)
+              (if (remove-tree! (car paths))
+                  (cons (car paths) removed)
+                  removed)))))
+
+;; When the last tag prune was made, so that a worker visiting this on every trip
+;; round its loop prunes on the clock rather than on the trip.
+(define *tag-prune-clock*
+  (make-upkeep))
+
+(define* (prune-tag-clones-when-due! #:key (every (clone-sweep-interval))
+                                     (keep (clone-tags-kept)))
+  "Prune the tag clones once EVERY seconds have passed, and answer the paths.
+
+Nothing is read and nothing is removed until the interval has gone by, so a
+caller may visit this as often as it likes."
+  (when-due *tag-prune-clock* every
+            (lambda ()
+              (prune-tag-clones! #:keep keep))))

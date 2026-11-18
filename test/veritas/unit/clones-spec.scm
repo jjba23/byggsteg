@@ -158,6 +158,92 @@ rather than a directory that quietly is not there."
                    linked))
        #t))
 
+;;; ====== The tag clones, and the prune ======
+;;;
+;;; A tag clone is made once and never pulled again, so a project that cuts a
+;;; release per tag leaves one copy of its whole history per tag for ever.  The
+;;; prune keeps the few written most recently and removes the rest, and the
+;;; readings below are of the three ways that could go wrong: removing the clone
+;;; of `trunk' (a deployment may be serving from it), removing a directory that
+;;; is no checkout of a tag (it is not the prune's to remove), and keeping the
+;;; end of the tags that nobody builds.
+;;;
+;;; The tags are made with `update-ref' rather than by committing and tagging:
+;;; what is read is the clone's own refs, and a commit needs the machine's git to
+;;; be willing to sign one -- which this project's own checkouts do, and a
+;;; throwaway fixture has no key for.
+
+(define tag-root
+  (format #f "/tmp/byggsteg-clones-spec-tags-~a/" (getpid)))
+
+;; The clone directory the prune is taken in, apart from the one the readings
+;; above are taken from for the reason the other fixtures are apart.
+(define prune-root
+  (format #f "/tmp/byggsteg-clones-spec-prune-~a/" (getpid)))
+
+(define (make-tag-clone! path tag url hours-ago)
+  "Make PATH a clone of a project's TAG that pulls from URL, written HOURS-AGO."
+  (and (make-tree! path)
+       (make-checkout! path url)
+       (sh (format #f
+                   "git -C ~s update-ref refs/tags/~a \"$(echo x | git -C ~s hash-object -w --stdin)\""
+                   path tag path))
+       (sh (format #f "touch -d ~s ~s"
+                   (format #f "~a hours ago" hours-ago)
+                   path))))
+
+(define (make-tag-checkout! path url hours-ago)
+  "Make PATH a checkout at no branch at all, written HOURS-AGO.
+
+A clone made with `git clone -b <tag>' is left this way, with no `refs/tags'
+entry to say what it was cloned from.  The commit is made with signing turned
+off: this machine's git signs by default and a throwaway fixture has no key."
+  (and (make-tree! path)
+       (make-checkout! path url)
+       (sh (format #f
+                   "git -C ~s -c commit.gpgsign=false -c user.email=spec@example.org -c user.name=spec commit -q --allow-empty -m spec"
+                   path))
+       (sh (format #f "git -C ~s checkout -q --detach HEAD" path))
+       (sh (format #f "touch -d ~s ~s"
+                   (format #f "~a hours ago" hours-ago)
+                   path))))
+
+(define tag-fixture-is-ready
+  (and (make-tree! tag-root)
+       (make-tree! prune-root)
+       ;; Read: three tags of one project, its trunk clone, and a directory
+       ;; beside them that is no checkout at all.
+       (make-tree! (under tag-root "theta" "trunk"))
+       (make-checkout! (under tag-root "theta" "trunk")
+                       "https://example.org/theta.git")
+       (make-tag-clone! (under tag-root "theta" "v1.0.0")
+                        "v1.0.0" "https://example.org/theta.git" 3)
+       (make-tag-clone! (under tag-root "theta" "v1.2.0")
+                        "v1.2.0" "https://example.org/theta.git" 2)
+       (make-tag-clone! (under tag-root "theta" "v1.3.0")
+                        "v1.3.0" "https://example.org/theta.git" 1)
+       (make-tree! (under tag-root "theta" "notes"))
+       ;; Read: a project with a single tag, which no prune has reason to touch.
+       (make-tree! (under tag-root "iota" "trunk"))
+       (make-checkout! (under tag-root "iota" "trunk")
+                       "https://example.org/iota.git")
+       (make-tag-clone! (under tag-root "iota" "v0.1")
+                        "v0.1" "https://example.org/iota.git" 1)
+       ;; Pruned: two tags and a checkout at no branch at all, beside a trunk
+       ;; clone written before any of them.
+       (make-tree! (under prune-root "kappa" "trunk"))
+       (make-checkout! (under prune-root "kappa" "trunk")
+                       "https://example.org/kappa.git")
+       (make-tag-checkout! (under prune-root "kappa" "v0.5.0")
+                           "https://example.org/kappa.git" 4)
+       (make-tag-clone! (under prune-root "kappa" "v1.0.0")
+                        "v1.0.0" "https://example.org/kappa.git" 2)
+       (make-tag-clone! (under prune-root "kappa" "v1.1.0")
+                        "v1.1.0" "https://example.org/kappa.git" 1)
+       (sh (format #f "touch -d ~s ~s" "3 hours ago"
+                   (under prune-root "kappa" "trunk")))
+       #t))
+
 ;;; ====== Reading the page ======
 
 (define* (page-markup root
@@ -458,7 +544,82 @@ support deployment)'), so the reading is of the same page everywhere."
                                #:name "a directory that is not there has no projects"))
                (assert-true (holds? markup-of-nothing
                                     "no project has been cloned here yet")
-                            #:name "and the page says so"))))
+                            #:name "and the page says so"))
+
+         (test "the tag clones a project no longer builds are the ones to give up"
+               (assert-true tag-fixture-is-ready
+                            #:name "the tag clones were made")
+               (parameterize ((job-clone-location tag-root))
+                 (assert-equal #:expect #t
+                               #:got (tag-clone? (string-append tag-root
+                                                                "theta/v1.3.0")
+                                                 "v1.3.0")
+                               #:name "a clone of a tag is read as one")
+                 (assert-equal #:expect #f
+                               #:got (tag-clone? (string-append tag-root
+                                                                "theta/trunk")
+                                                 "trunk")
+                               #:name "a clone of a branch is not")
+                 (assert-equal #:expect (list (string-append tag-root
+                                                             "theta/v1.0.0"))
+                               #:got (tag-clones-to-prune #:keep 2)
+                               #:name "every tag clone but the two written most recently")
+                 (assert-equal #:expect (list (string-append tag-root
+                                                             "theta/v1.0.0")
+                                              (string-append tag-root
+                                                             "theta/v1.2.0"))
+                               #:got (tag-clones-to-prune #:keep 1)
+                               #:name "oldest first, so the tail is what is kept")
+                 (assert-equal #:expect '()
+                               #:got (tag-clones-to-prune #:keep 3)
+                               #:name "a project with no more tags than are kept gives up nothing")
+                 (let ((all (tag-clones-to-prune #:keep 0)))
+                   (assert-equal #:expect 4
+                                 #:got (length all)
+                                 #:name "keeping no tag clone answers every one of them")
+                   (assert-equal #:expect '#f
+                                 #:got (member (string-append tag-root
+                                                              "theta/trunk")
+                                               all)
+                                 #:name "and the trunk clone is still not among them")
+                   (assert-equal #:expect '#f
+                                 #:got (member (string-append tag-root
+                                                              "theta/notes")
+                                               all)
+                                 #:name "nor is a directory that is no checkout"))))
+
+         (test "a stale tag clone is removed and the rest of its project stays"
+               (parameterize ((job-clone-location prune-root))
+                 (assert-equal #:expect #t
+                               #:got (tag-clone? (string-append prune-root
+                                                                "kappa/v0.5.0")
+                                                 "v0.5.0")
+                               #:name "a checkout left on no branch is a clone of a tag")
+                 (assert-equal #:expect (list (string-append prune-root
+                                                             "kappa/v0.5.0")
+                                              (string-append prune-root
+                                                             "kappa/v1.0.0"))
+                               #:got (prune-tag-clones! #:keep 1)
+                               #:name "every tag clone but the newest is removed, oldest first")
+                 (assert-equal #:expect '#f
+                               #:got (file-exists? (string-append prune-root
+                                                                  "kappa/v0.5.0"))
+                               #:name "the checkout that was on no branch is gone")
+                 (assert-equal #:expect '#f
+                               #:got (file-exists? (string-append prune-root
+                                                                  "kappa/v1.0.0"))
+                               #:name "and so is the older of the two tags")
+                 (assert-equal #:expect #t
+                               #:got (file-exists? (string-append prune-root
+                                                                  "kappa/v1.1.0"))
+                               #:name "the tag written most recently stays")
+                 (assert-equal #:expect #t
+                               #:got (file-exists? (string-append prune-root
+                                                                  "kappa/trunk"))
+                               #:name "and so does the trunk clone a deployment may be serving from")
+                 (assert-equal #:expect '()
+                               #:got (prune-tag-clones! #:keep 1)
+                               #:name "a second pass has nothing left to remove")))))
 
 (define (spec)
   (veritas-run clones-suite))

@@ -30,6 +30,8 @@
                                artifact-location
                                artifact-sweep-grace-seconds
                                artifact-sweep-interval
+                               clone-tags-kept
+                               clone-sweep-interval
                                job-container-runtime
                                job-container-user
                                job-container-image
@@ -295,6 +297,19 @@ frame, and a console that is nobody's in particular is still this project's."
 
 ;; How often the queue worker looks for tarballs that no row names.
 (define artifact-sweep-interval
+  (make-parameter 86400))
+
+;; How many clones of a project's tags are kept.  A tag clone is made once and
+;; never pulled again, so one per tag is a copy of the whole project per release
+;; for ever; the worker keeps the ones that were written most recently and
+;; removes the rest (see `(byggsteg clones)').  The clones of `trunk', `main' and
+;; `master' are never removed, whatever this says.  0 keeps no tag checkout at
+;; all, which is the way to say that a deployment builds every tag from scratch.
+(define clone-tags-kept
+  (make-parameter 2))
+
+;; How often the queue worker looks for tag clones a project no longer builds.
+(define clone-sweep-interval
   (make-parameter 86400))
 
 ;; How long a finished run is kept, in days, counted from when it finished.  A
