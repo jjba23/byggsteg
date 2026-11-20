@@ -352,6 +352,22 @@ library, so the task releases the tree it was started in."
           (tag-release version)
           (log-info "Nothing to commit; tagged ~a at the current commit." tag)))))
 
+(define (source-check . roots)
+  "Fail if a Scheme source of the tree does not read to its last form.
+
+The suite cannot answer this on its own.  `(veritas runner)' warns that a spec
+failed to compile and carries on, so a spec that cannot load is simply absent
+from the run -- which is how v1.29.0 was released with `app/views/logs.scm' one
+parenthesis short and every log page answering 500: the compile warning was
+printed four thousand lines into the log the release was read from.
+
+The roots are `lib', `app' and `test' unless the task is given others, and the
+check reads them with the Guile on the path rather than the pinned one: what it
+asks is whether a file reads, which every Guile answers the same way."
+  (run (append (list "guile" "--no-auto-compile"
+                     "scripts/check-sources.scm")
+               roots)))
+
 (define (test)
   "Run the project's test suite.
 
@@ -383,6 +399,9 @@ at the first test of a suite, on a spec whose source is untouched and whose
 suite passes when compiled afresh.  Compiling from source every run costs a few
 seconds and makes the reading depend on the specs alone, which is what a suite
 that is run to judge a change has to be."
+  ;; Read before the suite is asked anything: a file that does not read fails
+  ;; the run by name, rather than leaving the specs that import it absent.
+  (source-check)
   (time-machine-manifest-shell
    (list "guile" "--fresh-auto-compile"
          "-L" "./lib" "-L" "." "-L" "./test"
