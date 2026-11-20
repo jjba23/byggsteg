@@ -33,7 +33,7 @@
                             byggsteg-version-string print-version))
 
 (define byggsteg-version
-  "1.29.0")
+  "1.29.1")
 
 (define byggsteg-homepage
   "https://codeberg.org/jjba23/byggsteg")
