@@ -392,14 +392,14 @@ A running job's output reaches its log as it is produced, in batches of twenty l
 
 What a job prints is announced command by command, each with the line ~→ running command: <cmd>~, so a long log reads as the list of commands that produced it.
 
-The log page reads those commands back as steps: each is a folded section with
-the stage it belongs to, what it ran, how many lines it printed, how long it
-took and whether it finished. A step that failed or is still writing is open;
-the others are folded until a reader asks for them, and the clone at the front
-of every job stays folded unless it failed. The same run is drawn above the log
-as a stage row and a chain of command nodes, with a summary of the steps, stages
-and wall time, a count of each outcome and a duration on every node that has one;
-each node links to its step.
+The log page reads those commands back as steps, and each step is headed the way
+the shell it was read in heads a command: a chip naming the stage, a ~$~, and the
+command that ran, with how it went and how much it printed on the right. A step
+that failed or is still writing is open; the others are folded until a reader asks
+for them, and the clone at the front of every job stays folded unless it failed.
+The same run is drawn above the log as a stage row and a chain of command nodes,
+with a summary of the steps, stages and wall time, a count of each outcome and a
+duration on every node that has one; each node links to its step.
 
 The expression the job runs heads that list as its first step, drawn folded
 under a ~job~ chip: a reader reaches for it once the log has told them something
@@ -1629,6 +1629,36 @@ them, with the addresses of the files relative to it, so the sheet and the files
 move together to whatever host a deployment serves them from.
 
 The Phosphor icon font is MIT.
+
+------------------
+
+** On how the console looks
+
+The console is a terminal that happens to be a web page: two themes (green ink on
+paper, and the phosphor screen), monospaced type, square corners, and no colour
+used for decoration. Green is the signal -- a prompt, a heading, a link, a failed
+step -- rather than the text, because a page whose body was green would have
+nothing left to say anything with. That is why the inks are three neutrals and
+why they are stated once, at the head of `lib/byggsteg/faces.scm`, rather than
+picked by each page: a console whose every page chose its own grey is a console
+whose pages are three different greys.
+
+Its surfaces are panes of glass rather than slabs. A panel's edge is a hairline
+at three quarters rather than a saturated rule two pixels wide, its ground is a
+translucent tint with the page blurred behind it, and what a panel holds is not
+outlined again inside it. The reason is the reading: a log is a thousand lines of
+one grey, and every box around it that shouts takes attention the output needs --
+so the shouting is left to the marks that carry a status, and to the prompt line a
+step is headed by. The tint on the phosphor screen is a step *lighter* than the
+ground it sits on, never a step of the ground itself, or the panel dissolves into
+the page.
+
+Only Olive utilities reach the page, and the sheet a deployment serves carries a
+fixed set of them: a utility a page names but the sheet does not carry is a class
+that draws nothing. Everything the console needs to look like itself is therefore
+in `pub/css/byggsteg.olive.min.css` before it is used, and a face that needs a new
+one asks `maak` for a sheet that has it rather than inventing a stylesheet of its
+own beside it.
 
 ------------------
 

@@ -488,11 +488,12 @@
                                         (checked #f)
                                         (input-css (append '(p-3 max-w-prose
                                                                 rounded-none
-                                                                border-asparagus-700
-                                                                dark:border-asparagus-900
-                                                                bg-stone-100
-                                                                dark:bg-onyx-700
-                                                                border-2
+                                                                border-asparagus-700/75
+                                                                dark:border-asparagus-900/75
+                                                                bg-stone-100/75
+                                                                dark:bg-onyx-700/50
+                                                                backdrop-blur-sm
+                                                                border
                                                                 font-mono
                                                                 shadow-md)
                                                            prose-ink))

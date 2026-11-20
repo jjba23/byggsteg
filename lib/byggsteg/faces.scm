@@ -87,23 +87,38 @@
 ;;;
 
 ;;; A panel: paper with green ink, or the phosphor screen.
+;;;
+;;; The panel is a pane of glass rather than a slab: the tint steps down from
+;;; opaque, the ground behind it is blurred, and the edge is a hairline at three
+;;; quarters rather than a two-pixel rule.  A console whose every box was a
+;;; saturated outline two pixels wide is a page of frames with the text inside
+;;; them competing against the frames; the hairline leaves the phosphor for the
+;;; marks that carry a status, and the blur is what keeps a pane readable once
+;;; whatever sits behind the page moves under it.
+;;;
+;;; The tint on the phosphor screen is a step *lighter* than the ground and not
+;;; a step of the ground itself: `dark:bg-onyx-900/75' over a `dark:bg-onyx-900'
+;;; body is a panel that has dissolved into the page, which is the one thing a
+;;; translucent panel may not do.
 (define-public terminal-frame
-  (mk-class '(bg-stone-300 dark:bg-onyx-700
-                           border-2
-                           border-asparagus-700
-                           dark:border-asparagus-900
+  (mk-class '(bg-stone-300/75 dark:bg-onyx-700/50
+                           backdrop-blur-md
+                           border
+                           border-asparagus-700/75
+                           dark:border-asparagus-900/75
                            rounded-none
-                           shadow-md)))
+                           shadow-lg)))
 
 ;;; The window-title strip of a panel, in small uppercase chrome.
 ;;; Olive has per-side border *widths* but no per-side border *colours*, so the
-;;; rule is drawn by a `border-b-2' width and a colour that covers all four
-;;; sides -- the sides with no width draw nothing.
+;;; rule is drawn by a `border-b' width and a colour that covers all four sides
+;;; -- the sides with no width draw nothing.
 (define-public terminal-chrome
-  (mk-class '(bg-stone-500 dark:bg-onyx-900
-                           border-b-2
-                           border-asparagus-700
-                           dark:border-asparagus-900
+  (mk-class '(bg-stone-300/75 dark:bg-onyx-900/50
+                           backdrop-blur-sm
+                           border-b
+                           border-asparagus-700/75
+                           dark:border-asparagus-900/75
                            rounded-none
                            px-3
                            py-1
@@ -239,7 +254,7 @@
   '(bg-stone-100/75 dark:bg-onyx-900/75))
 
 (define-public terminal-glass-border
-  '(border-2 border-asparagus-700 dark:border-asparagus-900))
+  '(border border-asparagus-700/75 dark:border-asparagus-900/75))
 
 (define-public terminal-glass-rounding
   '(rounded-none))
@@ -376,13 +391,16 @@ z-10)' is what keeps a bar of glass under the reader's eye."
         rounded-none))
 (define-public button-face
   (mk-class (append base-button
-                    '(bg-stone-300 dark:bg-onyx-700
-                                   border-2
-                                   border-asparagus-700
-                                   dark:border-asparagus-900
+                    '(bg-stone-300/75 dark:bg-onyx-700/50
+                                   backdrop-blur-sm
+                                   border
+                                   border-asparagus-700/75
+                                   dark:border-asparagus-900/75
                                    shadow-md
-                                   hover:bg-stone-500
-                                   dark:hover:bg-onyx-900)
+                                   hover:bg-stone-500/75
+                                   dark:hover:bg-onyx-900/90
+                                   transition-colors
+                                   duration-150)
                     prose-ink)))
 
 ;;;
@@ -407,9 +425,9 @@ z-10)' is what keeps a bar of glass under the reader's eye."
     min-h-12
     flex
     items-center
-    border-2
-    border-asparagus-700
-    dark:border-asparagus-900
+    border
+    border-asparagus-700/75
+    dark:border-asparagus-900/75
     rounded-none
     shadow-md
     transition-colors
@@ -465,11 +483,12 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 ;;; face said so: `min-w-prose' is 84 characters, some 820 pixels, which no phone
 ;;; has ever held.
 (define-public input-face
-  (append '(bg-stone-100 dark:bg-onyx-900
+  (append '(bg-stone-100/75 dark:bg-onyx-900/75
+                         backdrop-blur-sm
                          caret-asparagus-300
-                         border-2
-                         border-asparagus-700
-                         dark:border-asparagus-900
+                         border
+                         border-asparagus-700/75
+                         dark:border-asparagus-900/75
                          rounded-none
                          p-4
                          text-md
@@ -485,11 +504,12 @@ z-10)' is what keeps a bar of glass under the reader's eye."
           prose-ink))
 
 (define-public textarea-face
-  (append '(bg-stone-100 dark:bg-onyx-900
+  (append '(bg-stone-100/75 dark:bg-onyx-900/75
+                         backdrop-blur-sm
                          caret-asparagus-300
-                         border-2
-                         border-asparagus-700
-                         dark:border-asparagus-900
+                         border
+                         border-asparagus-700/75
+                         dark:border-asparagus-900/75
                          rounded-none
                          p-3
                          ;; As wide as the room it is given (`w-full'), no wider
@@ -528,8 +548,8 @@ z-10)' is what keeps a bar of glass under the reader's eye."
           muted-ink))
 
 (define-public hr-face
-  (mk-class '(mx-8 my-5 border-t-2 border-asparagus-700
-                   dark:border-asparagus-900)))
+  (mk-class '(mx-8 my-5 border-t border-asparagus-700/75
+                   dark:border-asparagus-900/75)))
 
 ;;;
 ;;; Job status
@@ -738,8 +758,8 @@ z-10)' is what keeps a bar of glass under the reader's eye."
         #:rounding '(rounded-none)
         #:shadow '()
         #:size size
-        #:code-classes '(font-mono border border-asparagus-700
-                                   dark:border-asparagus-900)))
+        #:code-classes '(font-mono border border-asparagus-700/75
+                                   dark:border-asparagus-900/75)))
 (export terminal-code)
 
 ;;; A phosphor section heading, one of `h1'..`h4'.
@@ -832,8 +852,8 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                                '(font-mono whitespace-pre))
                              (if framed?
                                '(overflow-x-auto caret-asparagus-300 border
-                                                 border-asparagus-700
-                                                 dark:border-asparagus-900)
+                                                 border-asparagus-700/75
+                                                 dark:border-asparagus-900/75)
                                '())
                              extra)))
 
@@ -858,9 +878,9 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 (define-public log-pane-face
   (mk-class '(bg-stone-100/75 dark:bg-onyx-900/75
                               backdrop-blur-md
-                              border-2
-                              border-asparagus-700
-                              dark:border-asparagus-900
+                              border
+                              border-asparagus-700/75
+                              dark:border-asparagus-900/75
                               rounded-none
                               shadow-md
                               w-full
@@ -881,9 +901,9 @@ z-10)' is what keeps a bar of glass under the reader's eye."
 (define-public job-pane-face
   (mk-class '(bg-stone-100/75 dark:bg-onyx-900/75
                               backdrop-blur-md
-                              border-2
-                              border-asparagus-700
-                              dark:border-asparagus-900
+                              border
+                              border-asparagus-700/75
+                              dark:border-asparagus-900/75
                               rounded-none
                               shadow-md
                               min-w-0

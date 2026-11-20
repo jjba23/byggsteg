@@ -1149,7 +1149,21 @@ at all (see `pub/js/byggsteg-logs.js')."
                                          'id))
                 (data-log-running ,(if (job-still-to-come? job)
                                      "true" "false"))
-                (class ,(mk-class '(flex flex-col gap-1))))
+                ;; A row of the list is a line of a table: a hairline under it and
+                ;; a tint of the console's green while the hand is on it, rather
+                ;; than a card of its own.  A list of a year of runs is read by
+                ;; scanning, and a rule between two rows is what a reader's eye
+                ;; follows across a title, a moment and a status.
+                (class ,(mk-class '(flex flex-col gap-1
+                                                w-full
+                                                py-2
+                                                px-1
+                                                border-b
+                                                border-asparagus-700/25
+                                                dark:border-asparagus-900/50
+                                                transition-colors
+                                                hover:bg-asparagus-700/5
+                                                dark:hover:bg-asparagus-900/10))))
              (a (@ (class ,dash-link-face)
                    (href ,logs-link))
                 (div (@ (class ,(mk-class '(flex flex-wrap gap-2 items-center

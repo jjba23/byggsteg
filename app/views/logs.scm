@@ -128,17 +128,30 @@ last sent a row of this length has the whole of it."
 ;;; clicks to unfold a step, and the chip that says which stage it belongs to.
 ;;; The expression a job runs is headed the same way, so it reads as the step
 ;;; before the first one rather than as a second kind of thing on the page.
+;;;
+;;; The header row is the console's prompt line: a stage chip, a `$', and the
+;;; command that was run.  It is read in the log's own mono at the log's own
+;;; size, so the list of steps a build ran reads as the transcript of a shell
+;;; rather than as a list of headings.
 (define step-header-face
   '(cursor-pointer flex flex-row flex-wrap items-center gap-2 sm:gap-3
                    px-3 py-3 min-h-12 font-mono text-sm sm:text-md
-                   transition-colors hover:bg-stone-300 dark:hover:bg-onyx-700
+                   tabular-nums
+                   transition-colors hover:bg-asparagus-700/10
+                   dark:hover:bg-asparagus-900/25
                    focus-visible:outline-2 focus-visible:outline-offset-2
                    outline-asparagus-500))
 
+;;; The stage a step belongs to, as a chip: a tint of the console's green and a
+;;; hairline, in lower case.  It says which stage without being a heading of its
+;;; own -- a row of uppercase chips at the size of the command beside them is a
+;;; row of labels shouting over the thing they label -- and its tint is what
+;;; separates it from the command in the same mono at almost the same size.
 (define stage-chip-face
-  '(text-xs sm:text-sm uppercase tracking-widest px-2 py-1 border-2
-    border-asparagus-700 dark:border-asparagus-900 text-asparagus-900
-    dark:text-asparagus-300))
+  '(text-xs sm:text-sm tracking-wider px-2 py-1 border
+    border-asparagus-700/50 dark:border-asparagus-900/75
+    bg-asparagus-700/10 dark:bg-asparagus-900/25
+    text-asparagus-900 dark:text-asparagus-300))
 
 (define (section-heading G_ section)
   "The header of one step: the stage, what it ran, and how it went."
@@ -149,6 +162,13 @@ last sent a row of this length has the whole of it."
                     ,(G_ (stage-label (section-stage section))))
               (span (@ (class ,(mk-class (append '(min-w-0 wrap-break-word)
                                                  strong-ink))))
+                    ;; The prompt the console opens its sample terminal with, on
+                    ;; the step that ran: read by the eye, not by a screen
+                    ;; reader, which is told the same thing by the command.
+                    (span (@ (aria-hidden "true")
+                              (class ,(string-append "select-none "
+                                                     prompt-face)))
+                          "$ ")
                     ,(section-summary section))
               ,@(if image
                   (list `(span (@ (class ,(mk-class (append '(text-xs sm:text-sm)
@@ -191,16 +211,17 @@ commands that produced it."
   (let ((text (section-text section)))
     `(details (@ (id ,(format #f "step-~a" index))
                  (data-log-section ,(number->string index))
-                 (class ,(mk-class '(border-2 border-asparagus-700
-                                              dark:border-asparagus-900
-                                              bg-stone-100 dark:bg-onyx-900
+                 (class ,(mk-class '(border border-asparagus-700/75
+                                              dark:border-asparagus-900/75
+                                              bg-stone-300/50 dark:bg-onyx-700/25
+                                              backdrop-blur-sm
                                               min-w-0)))
                  ,@(if open? '((open "")) '()))
               ,(section-heading G_ section)
               ,@(if (positive? (string-length text))
-                  (list `(div (@ (class ,(mk-class '(border-t-2
-                                                     border-asparagus-700
-                                                     dark:border-asparagus-900))))
+                  (list `(div (@ (class ,(mk-class '(border-t
+                                                     border-asparagus-700/75
+                                                     dark:border-asparagus-900/75))))
                               ,@(terminal-pre text
                                               #:size '(text-sm sm:text-md)
                                               #:leading '(leading-6 sm:leading-7)
@@ -215,14 +236,14 @@ commands that produced it."
 (define (graph-status-border status)
   "The hairline a graph node is drawn with, by how its step went."
   (case status
-    [(failed) '(border-redwood-700 dark:border-redwood-300)]
-    [(running) '(border-jeans-blue-700 dark:border-jeans-blue-300)]
-    [(succeeded) '(border-asparagus-700 dark:border-asparagus-900)]
-    [else '(border-stone-500 dark:border-onyx-500)]))
+    [(failed) '(border-redwood-700/75 dark:border-redwood-900/75)]
+    [(running) '(border-jeans-blue-700/75 dark:border-jeans-blue-900/75)]
+    [(succeeded) '(border-asparagus-700/75 dark:border-asparagus-900/75)]
+    [else '(border-stone-500/75 dark:border-onyx-500/75)]))
 
 (define (graph-node-face status)
   "The hairline and layout of a graph node, by how its step went."
-  (append '(border-2 px-3 py-2 min-h-12 flex flex-col gap-1 min-w-0
+  (append '(border px-3 py-2 min-h-12 flex flex-col gap-1 min-w-0
                      transition-colors)
           (graph-status-border status)))
 
@@ -401,13 +422,13 @@ commands that produced it."
                                             focus-visible:outline-2
                                             focus-visible:outline-offset-2
                                             outline-asparagus-500))))
-        (span (@ (class ,(mk-class (append '(border-2 px-3 py-2 min-h-12
+        (span (@ (class ,(mk-class (append '(border px-3 py-2 min-h-12
                                                       flex flex-row
                                                       flex-wrap items-center gap-1
                                                       text-sm
                                                       transition-colors
-                                                      hover:bg-stone-300
-                                                      dark:hover:bg-onyx-700)
+                                                      hover:bg-asparagus-700/10
+                                                      dark:hover:bg-asparagus-900/25)
                                            (graph-status-border status)))))
               (span (@ (class ,(mk-class '(text-xs sm:text-sm uppercase
                                                    tracking-widest
@@ -610,11 +631,12 @@ find the place it is drawn in."
                 (hidden ""))
              ""))
       `((div (@ (data-log-diagnostics ""))
-             (details (@ (class ,(mk-class '(border-2
-                                             border-asparagus-700
-                                             dark:border-asparagus-900
-                                             bg-stone-100
-                                             dark:bg-onyx-900
+             (details (@ (class ,(mk-class '(border
+                                             border-asparagus-700/75
+                                             dark:border-asparagus-900/75
+                                             bg-stone-300/50
+                                             dark:bg-onyx-700/25
+                                             backdrop-blur-sm
                                              min-w-0)))
                          (open ""))
                       (summary (@ (class ,(mk-class '(cursor-pointer
@@ -747,11 +769,12 @@ an empty `pre' says less than no step at all."
       '()
       (list `(details (@ (id "job-expression")
                          (data-log-section "expression")
-                         (class ,(mk-class '(border-2
-                                             border-asparagus-700
-                                             dark:border-asparagus-900
-                                             bg-stone-100
-                                             dark:bg-onyx-900
+                         (class ,(mk-class '(border
+                                             border-asparagus-700/75
+                                             dark:border-asparagus-900/75
+                                             bg-stone-300/50
+                                             dark:bg-onyx-700/25
+                                             backdrop-blur-sm
                                              min-w-0))))
                       (summary (@ (class ,(mk-class step-header-face)))
                                (span (@ (class ,(mk-class stage-chip-face)))
@@ -763,9 +786,9 @@ an empty `pre' says less than no step at all."
                                                             items-center
                                                             gap-1))))
                                      ,@(expression-controls G_)))
-                      (div (@ (class ,(mk-class '(border-t-2
-                                                  border-asparagus-700
-                                                  dark:border-asparagus-900))))
+                      (div (@ (class ,(mk-class '(border-t
+                                                  border-asparagus-700/75
+                                                  dark:border-asparagus-900/75))))
                            ,@(terminal-pre expression
                                            #:id "job-expression-pre"
                                            #:size '(text-sm sm:text-md)
@@ -1571,7 +1594,7 @@ draw that one twice."
                                           ,(number->string limit)))
                                        '())
                                    (class ,(mk-class '(flex flex-col
-                                                            gap-4))))
+                                                            gap-0))))
                                 ,jobs-html))
                       ,page-buttons
                       (script (@ (type "text/javascript")

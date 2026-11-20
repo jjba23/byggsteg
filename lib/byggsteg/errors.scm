@@ -93,7 +93,7 @@ with the console's own page rather than a blank one."
 (define (error-border status)
   "The pane's hairline for STATUS: redwood for a server-side failure, else green."
   (if (< 499 status)
-      '(border-2 border-redwood-700 dark:border-redwood-900)
+      '(border border-redwood-700/75 dark:border-redwood-900/75)
       terminal-glass-border))
 
 ;; What a reader can do about STATUS, in the order the page offers it: the way
