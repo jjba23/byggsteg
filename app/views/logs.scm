@@ -1411,7 +1411,7 @@ draw that one twice."
                                     ;; about: a reader reaches the log first, and the
                                     ;; build-wide list is what they read once they have
                                     ;; seen what was printed.
-                                    ,@diagnostics))
+                                    ,@diagnostics)))
          ;; The run's facts and its actions, as the column beside the log on a
          ;; wide screen and the block above it on a narrow one.  A column of its
          ;; own rather than a second half of the page, because the log is what a
