@@ -124,27 +124,28 @@ last sent a row of this length has the whole of it."
     (string-append (substring text 0 (- limit 1)) "…")
     text))
 
+;;; The two faces a step is headed by, stated once: the header row a reader
+;;; clicks to unfold a step, and the chip that says which stage it belongs to.
+;;; The expression a job runs is headed the same way, so it reads as the step
+;;; before the first one rather than as a second kind of thing on the page.
+(define step-header-face
+  '(cursor-pointer flex flex-row flex-wrap items-center gap-2 sm:gap-3
+                   px-3 py-3 min-h-12 font-mono text-sm sm:text-md
+                   transition-colors hover:bg-stone-300 dark:hover:bg-onyx-700
+                   focus-visible:outline-2 focus-visible:outline-offset-2
+                   outline-asparagus-500))
+
+(define stage-chip-face
+  '(text-xs sm:text-sm uppercase tracking-widest px-2 py-1 border-2
+    border-asparagus-700 dark:border-asparagus-900 text-asparagus-900
+    dark:text-asparagus-300))
+
 (define (section-heading G_ section)
   "The header of one step: the stage, what it ran, and how it went."
   (let ((status (section-status section))
         (image (section-image section)))
-    `(summary (@ (class ,(mk-class '(cursor-pointer flex flex-row flex-wrap
-                                                    items-center gap-2 sm:gap-3
-                                                    px-3 py-3 min-h-12
-                                                    font-mono text-sm sm:text-md
-                                                    transition-colors
-                                                    hover:bg-stone-300
-                                                    dark:hover:bg-onyx-700
-                                                    focus-visible:outline-2
-                                                    focus-visible:outline-offset-2
-                                                    outline-asparagus-500))))
-              (span (@ (class ,(mk-class '(text-xs sm:text-sm uppercase
-                                                   tracking-widest px-2 py-1
-                                                   border-2
-                                                   border-asparagus-700
-                                                   dark:border-asparagus-900
-                                                   text-asparagus-900
-                                                   dark:text-asparagus-300))))
+    `(summary (@ (class ,(mk-class step-header-face)))
+              (span (@ (class ,(mk-class stage-chip-face)))
                     ,(G_ (stage-label (section-stage section))))
               (span (@ (class ,(mk-class (append '(min-w-0 wrap-break-word)
                                                  strong-ink))))
@@ -691,6 +692,98 @@ find the place it is drawn in."
                                  (= 1 (length steps))))))
                   rendered)))))
 
+(define (expression-controls G_)
+  "The two controls a job's expression is read by, in the corner of its step.
+
+Both are buttons of the header row they stand in, so neither of them folds the
+step by being clicked at the same time as doing its own work: each says what it
+does itself.  The first unfolds the step -- it is drawn folded, since the pane is
+opened on the log -- and the second copies the text, by the console's own copy
+script (see `copy-pre-inner-text-js' in `(byggsteg html)'), which reads the
+element whose id is the one it is named with and `-pre' after it.
+
+Both are drawn only for a reader whose script is there to do it, since a button
+that does nothing is worse than no button (`js-only' is the framework's class for
+exactly this, and it is a class a browser without scripting is sent in a
+stylesheet of its own).  Such a reader has what both buttons are for anyway: the
+header is the native disclosure it looks like, and the text is selectable once it
+is unfolded."
+  (let ((in-the-row '(js-only py-1 px-3 cursor-pointer select-none
+                            transition-colors duration-200 ease-in-out
+                            focus-visible:outline-2 focus-visible:outline-offset-2
+                            outline-onyx-500)))
+    (list (terminal-icon-button
+           #:icon 'eye
+           #:content (G_ "inspect the job's lambda expression")
+           #:size '(text-xs sm:text-sm)
+           #:extra-classes in-the-row
+           #:on-click "event.preventDefault(); var step = this.closest('details'); if (step) { step.open = !step.open }")
+          (terminal-icon-button
+           #:icon 'copy
+           #:content (G_ "copy")
+           #:size '(text-xs sm:text-sm)
+           #:extra-classes in-the-row
+           #:on-click "event.preventDefault(); hygguileCopyPreInnerText('job-expression')"))))
+
+(define (expression-step G_ job)
+  "The expression the job runs, as the first step of the log it wrote.
+
+The output is read as the steps that wrote it, and the expression is the step
+before the first one: it is the job itself rather than something the job ran, but
+a reader reaches for it once the log has told them something is wrong, and they
+reach for it from the top of the output rather than from the end of it.
+
+It is folded, the way the clone at the front of every job is: the pane is opened
+on the log, and a page of the job's code in front of it is what a reader
+following a build scrolls past.  The two controls in its header are what it is
+unfolded and copied by.
+
+A job whose expression is empty is a job that runs nothing, and a step headed by
+an empty `pre' says less than no step at all."
+  (let ((expression (text-from-db (and job
+                                   (assq-ref job
+                                             'job-data)))))
+    (if (string=? "" expression)
+      '()
+      (list `(details (@ (id "job-expression")
+                         (data-log-section "expression")
+                         (class ,(mk-class '(border-2
+                                             border-asparagus-700
+                                             dark:border-asparagus-900
+                                             bg-stone-100
+                                             dark:bg-onyx-900
+                                             min-w-0))))
+                      (summary (@ (class ,(mk-class step-header-face)))
+                               (span (@ (class ,(mk-class stage-chip-face)))
+                                     ,(G_ "job"))
+                               (span (@ (class ,(mk-class '(ml-auto
+                                                            flex
+                                                            flex-row
+                                                            flex-wrap
+                                                            items-center
+                                                            gap-1))))
+                                     ,@(expression-controls G_)))
+                      (div (@ (class ,(mk-class '(border-t-2
+                                                  border-asparagus-700
+                                                  dark:border-asparagus-900))))
+                           ,@(terminal-pre expression
+                                           #:id "job-expression-pre"
+                                           #:size '(text-sm sm:text-md)
+                                           #:leading '(leading-6 sm:leading-7)
+                                           #:padding-x '(px-3 sm:px-4)
+                                           #:padding-y '(py-4)
+                                           ;; The log's lines are read unwrapped
+                                           ;; in this pane, and a line of the
+                                           ;; expression is read the same way.
+                                           #:wrap? #f
+                                           #:framed? #f
+                                           ;; The expression arrives escaped,
+                                           ;; since a column holds text as it was
+                                           ;; written: it is code, not console
+                                           ;; output, and there are no escapes in
+                                           ;; it to read.
+                                           #:ansi? #f)))))))
+
 (define* (log-output #:key log (view 'output) (frames-label "frames")
                      (job #f) (G_ (lambda (text) text)))
   "A job's output as the pane it is read in.
@@ -704,10 +797,17 @@ reader looks at when they want to see what the command actually wrote rather
 than what a terminal made of it.
 
 The rendered reading is the log cut into its steps: one folded section per
-command, the stage it belongs to and how it went.  A log with no command in it
--- one written before commands were announced, or a job that printed its first
-line and nothing else -- is drawn as the text it is, because there is no step to
-cut it into.
+command, the stage it belongs to and how it went.  The first of those sections is
+the expression the job runs (`expression-step'): it is the job rather than a
+command, and it is read from the top of the output rather than from the end of
+it.  A log with no command in it -- one written before commands were announced,
+or a job that printed its first line and nothing else -- is drawn as the text it
+is, because there is no step to cut it into, and the expression heads it all the
+same.
+
+The bytes are the command's, and are read without the expression above them: a
+reader who asked for what the command actually wrote did not ask for the job's
+code a second time.
 
 The `pre' is unframed on purpose.  The pane the page wraps around it
 (`log-pane-face') carries the ground, the hairline and the scroll, so it is the
@@ -728,19 +828,26 @@ state of the run that wrote it, which is `log-poll' below."
                           #:ansi? #f
                           #:frames-label frames-label))
       (let* ((sections (log-sections-of log job))
-             (steps (filter section-command? sections)))
+             (steps (filter section-command? sections))
+             ;; The expression is the step before the first one, and it is
+             ;; drawn whether or not the job has announced a command yet: a job
+             ;; that has written nothing has no log to head, and the expression
+             ;; is still what a reader opened the page to read.
+             (expression (expression-step G_ job)))
         (if (null? steps)
-          (list (terminal-pre output
-                              #:size '(text-md md:text-lg)
-                              #:leading '(leading-6 sm:leading-7)
-                              #:padding-x '(px-3 sm:px-5)
-                              #:padding-y '(py-4 sm:py-5)
-                              #:wrap? #f
-                              #:framed? #f
-                              #:ansi? #t
-                              #:frames-label frames-label))
+          (append expression
+                  (list (terminal-pre output
+                                      #:size '(text-md md:text-lg)
+                                      #:leading '(leading-6 sm:leading-7)
+                                      #:padding-x '(px-3 sm:px-5)
+                                      #:padding-y '(py-4 sm:py-5)
+                                      #:wrap? #f
+                                      #:framed? #f
+                                      #:ansi? #t
+                                      #:frames-label frames-label)))
           (list
            `(div (@ (class ,(mk-class '(flex flex-col gap-3 p-1))))
+                 ,@expression
                  ,@(opening-lines sections frames-label)
                  ,@(steps-list G_ steps frames-label))))))))
 
@@ -1181,11 +1288,6 @@ draw that one twice."
                            'id))
          (log-filename (text-from-db (assq-ref log
                                                'title)))
-         ;; `job_data' is written into the page through `text-from-db', so the
-         ;; expression of a job that prints a `<' is read as the character it is
-         ;; rather than opened as a tag.
-         (detail-data (text-from-db (assq-ref job
-                                              'job-data)))
          ;; Whether the job is still writing its output, which is what says
          ;; whether the page follows it and whether the pane says so.
          (running? (equal? 1 (assq-ref job
@@ -1262,36 +1364,12 @@ draw that one twice."
                            (aria-label ,(G_ "raw log output"))
                            (hidden ""))
                         ""))))
-         ;; The expression the job runs, under the log it wrote rather than
-         ;; above it: it is what a reader reaches for once the output has told
-         ;; them something is wrong, and it is open by default, because a
-         ;; collapsed disclosure hides it behind a click.
-         (job-expression
-          (list `(details (@ (class ,(mk-class '(mt-1)))
-                             (open ""))
-                          (summary (@ (class ,(mk-class '(cursor-pointer
-                                                          block
-                                                          text-asparagus-900
-                                                          dark:text-asparagus-300
-                                                          hover:text-asparagus-700
-                                                          dark:hover:text-asparagus-100))))
-                                   (div (@ (class ,(mk-class '(flex flex-row
-                                                                    gap-2
-                                                                    items-center))))
-                                        (span ,(icon #:type 'code
-                                                     #:icon-css '(text-asparagus-900
-                                                                  dark:text-asparagus-300)))
-                                        (span (@ (class ,(mk-class '(text-sm
-                                                                     md:text-md))))
-                                              ,(G_ "inspect the job's lambda expression"))))
-                          ,(terminal-pre detail-data
-                                         #:size '(text-sm md:text-md)))))
          ;; The job's output as the block a reader came for: the tabs above the
-         ;; pane, the pane itself, and the expression under it.  It carries the
-         ;; address the script asks for the pane at, whether the job is still
-         ;; writing, which is what tells the script whether to keep asking, and
-         ;; how long the log row already is, which is what tells the answer that
-         ;; the reader has the whole of it.
+         ;; pane, and the pane itself with the expression the job runs as its
+         ;; first step.  It carries the address the script asks for the pane at,
+         ;; whether the job is still writing, which is what tells the script
+         ;; whether to keep asking, and how long the log row already is, which is
+         ;; what tells the answer that the reader has the whole of it.
          (log-block (list `(section (@ (id "job-log")
                                        (data-log-url ,(format #f
                                                               "/logs/~a/output"
@@ -1333,16 +1411,7 @@ draw that one twice."
                                     ;; about: a reader reaches the log first, and the
                                     ;; build-wide list is what they read once they have
                                     ;; seen what was printed.
-                                    ,@diagnostics
-                                    (div (@ (id "job-expression-pane")
-                                            (data-log-resize-pane "expression")
-                                            (class ,(string-append job-pane-face
-                                                                   " p-2 overflow-auto")))
-                                         ,@job-expression)
-                                    ,@(log-resize-handle G_ "expression"
-                                                         (G_ "resize expression")
-                                                         'horizontal
-                                                         "job-expression-pane"))))
+                                    ,@diagnostics))
          ;; The run's facts and its actions, as the column beside the log on a
          ;; wide screen and the block above it on a narrow one.  A column of its
          ;; own rather than a second half of the page, because the log is what a

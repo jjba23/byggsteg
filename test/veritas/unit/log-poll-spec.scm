@@ -312,6 +312,62 @@ page as it is opened."
                                        "1 error"
                                        "warning: unused variable"
                                        "error: could not compile")))))
+         (test "the expression the job runs is the first step of its output"
+               #:shuffle? #f
+               ;; The expression is read as one of the steps rather than as a
+               ;; pane of its own: a reader reaches for it when the log has said
+               ;; something is wrong, and they reach for it from the top of the
+               ;; output rather than from the end of it.
+               (let ((markup (sxml->xml-string
+                              (log-output #:log stepped-log
+                                          #:job (spec-job #:success 1
+                                                          #:in-progress 0
+                                                          #:updated-at 5)
+                                          #:G_ G_))))
+                 (assert-equal #:name
+                  "the output is headed by the expression, and the log follows it"
+                  #:expect '(#t #t #t)
+                  #:got (let ((expression-at (string-contains markup
+                                                              "spec data"))
+                              (log-at (string-contains markup "cloned")))
+                          (list (reads? markup
+                                        "data-log-section=\"expression\"")
+                                (not (not expression-at))
+                                (and expression-at
+                                     log-at
+                                     (< expression-at log-at)))))
+                 ;; The pane is read for the log: the expression is one click
+                 ;; away rather than a page of the job's code before its output.
+                 (assert-equal #:name
+                  "and it is folded, so the pane still opens on the log"
+                  #:expect #f
+                  #:got (section-open? markup "expression"))
+                 ;; The two controls in its corner are read by name here: the
+                 ;; copy button names the element the framework's copy script
+                 ;; reads, which is that element's id with `-pre' after it (see
+                 ;; `copy-pre-inner-text-js' in `(byggsteg html)').
+                 (assert-equal #:name
+                  "and its header carries the controls that inspect and copy it"
+                  #:expect '(#t #t)
+                  #:got (list (reads? markup
+                                      "hygguileCopyPreInnerText('job-expression')")
+                              (reads? markup "id=\"job-expression-pre\""))))
+         (test "a job that runs no expression is not headed by one"
+               #:shuffle? #f
+               (assert-equal #:name
+                "a job whose expression is empty is answered with its log alone"
+                #:expect '(#f #t)
+                #:got (let ((markup (sxml->xml-string
+                                     (log-output #:log stepped-log
+                                                 #:job (cons (cons 'job-data "")
+                                                             (spec-job
+                                                              #:success 1
+                                                              #:in-progress 0
+                                                              #:updated-at 5))
+                                                 #:G_ G_))))
+                        (list (reads? markup
+                                      "data-log-section=\"expression\"")
+                              (reads? markup "cloned"))))))
          (test "the clone is folded by default"
                #:shuffle? #f
                (assert-equal #:name

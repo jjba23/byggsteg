@@ -265,7 +265,11 @@
 ;; A page following a running job asks for this again every few seconds rather
 ;; than for the page: the output arrives where the reader is reading it, drawn
 ;; the way a terminal draws it, and the rest of the page -- the status, the
-;; artifacts, the expression the job runs -- is answered once and left alone.
+;; artifacts, the run's own facts -- is answered once and left alone.
+;;
+;; The expression the job runs is not one of the readings that is left alone: it
+;; heads the output as its first step, so it travels with the pane the job
+;; writes into and is drawn again with it.
 ;;
 ;; What is asked for is one of the two readings of the output -- the console, or
 ;; the bytes with the control characters spelled out -- and what comes back is

@@ -51,11 +51,11 @@
    read as a hint rather than a truth: a page whose script did not run is still a
    page with the job's output on it. */
 
-/* The job view is a tiling terminal: the pipeline, the output, the expression
-   and the facts column each have a splitter of their own.  A splitter remembers
-   what it was last told in the browser's local storage rather than in the
-   deployment's database, because the shape of a reader's screen is not a fact
-   about the run -- and because the page is read without an account.
+/* The job view is a tiling terminal: the pipeline, the output and the facts
+   column each have a splitter of their own.  A splitter remembers what it was
+   last told in the browser's local storage rather than in the deployment's
+   database, because the shape of a reader's screen is not a fact about the run
+   -- and because the page is read without an account.
 
    This runs before the follower below: a remembered height is in place when the
    follower puts the reader at the end of the output for the first time.  The
@@ -76,7 +76,6 @@
 
   var ids = { graph: 'job-graph-pane',
               output: 'job-output-pane',
-              expression: 'job-expression-pane',
               sidebar: 'job-sidebar' }
 
   function boxFor(name) { return document.getElementById(ids[name]) }

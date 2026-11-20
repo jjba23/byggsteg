@@ -779,6 +779,11 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                        (padding-x '(px-2 sm:px-4))
                        (padding-y '(py-4))
                        (extra '())
+                       ;; What a control beside the `pre' names it by.  A job's
+                       ;; expression is copied from the page by a button rather
+                       ;; than selected by hand, and the id is the whole of the
+                       ;; address that button has.
+                       (id #f)
                        ;; Whether the pane draws its own frame -- the ground, the
                        ;; phosphor hairline and the shadow.  A `pre' read inside
                        ;; a box of the page's own (`log-pane-face') is a `pre'
@@ -804,6 +809,7 @@ z-10)' is what keeps a bar of glass under the reader's eye."
                        (frames-label "frames"))
   (pre (if ansi? (ansi->sxml content #:frames? #t #:frames-label frames-label)
          content)
+       #:id id
        #:color prose-ink
        #:background (if framed? '(bg-stone-100 dark:bg-onyx-900) '())
        #:rounding '(rounded-none)
