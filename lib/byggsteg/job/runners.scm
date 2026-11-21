@@ -46,7 +46,7 @@
 ;; for. Falling back to another runner there would build the project the
 ;; way it did not ask to be built.
 ;;
-;; Code:
+;;; Code:
 
 (define-module (byggsteg job runners)
   #:use-module (srfi srfi-1)

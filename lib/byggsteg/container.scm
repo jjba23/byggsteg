@@ -52,7 +52,7 @@
 ;; finds one whether it runs on the machine or inside the build
 ;; container (the socket is mounted into the container at the same path).
 ;;
-;; Code:
+;;; Code:
 
 (define-module (byggsteg container)
   #:use-module (byggsteg preferences)

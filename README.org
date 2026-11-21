@@ -613,6 +613,16 @@ There is no call for any of it under ~/api/v2~: what the page reads and edits is
 
 Byggsteg provides HTTP endpoints. After logging in -- with an account that holds ~byggsteg:job-create~, which the form page itself asks for -- you can use the UI and visit ~/jobs/request~, or you can also invoke this via the REST API by first calling ~POST /api/v2/login~ with the right credentials and then calling ~POST /api/v2/jobs~.
 
+#+attr_html: :width 720 :alt A job's path from the request that starts it to its log, its status and its artifacts
+[[file:resources/diagrams/job-run.svg]]
+
+The figure is the whole of it: a request is answered with a run and a log at
+once, the queue worker takes the run, and what a reader follows afterwards is
+the log while the run's status says how it went.  The figure's source is
+=resources/diagrams/job-run.mmd=, rendered with =maak diagrams=; =maak docs=
+generates the library's API reference from the modules themselves, with the
+diagrams their commentaries carry.
+
 You could also do this for example from your favourite programming language, or system, or via cURL, etc:
 
 #+begin_src sh

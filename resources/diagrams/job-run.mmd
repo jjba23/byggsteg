@@ -1,0 +1,10 @@
+flowchart LR
+  request["a job thunk, POST /api/v2/jobs"] --> stages["stages, in the order written"]
+  stages --> queue["the queue, a table"]
+  queue --> worker["the queue worker"]
+  worker --> clone["a clone of the project"]
+  clone --> task["each task, run by the checkout's runner"]
+  task --> log["the log, streamed as it runs"]
+  task --> status["queued, running, succeeded or failed"]
+  task --> artifacts["the run's artifacts"]
+  artifacts --> retention["retention removes old runs and their tarballs"]

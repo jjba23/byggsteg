@@ -6,6 +6,8 @@
 
 (define-module (maak)
   #:use-module (maak maak)
+  ;; `scandir' is what `maak diagrams' lists the mermaid sources with.
+  #:use-module (ice-9 ftw)
   #:use-module ((ice-9 rdelim) #:select (read-line))
   ;; What the release tasks read the tree with: a file that carries a copy of
   ;; the version is rewritten through a regular expression.  The DSL re-exports
@@ -24,6 +26,19 @@
 
 (define deploy-dir
   "/srv/http/jointhefreeworld.org")
+
+;; The stylesheet the API reference is read in, served by the same host the
+;; manual is published to.
+(define api-docs-css-url
+  "https://jointhefreeworld.org/static/css/jointhefreeworld.css")
+
+;; The library, as dokgen is handed it.  dokgen names a module relative to the
+;; parent of the root it is given, so the root is the directory the modules of
+;; this library sit in -- `(byggsteg version)' is `lib/byggsteg/version.scm' --
+;; and not the project root.  The Artanis web layer under `app/' is named from
+;; the project root instead, and is therefore not part of this chapter.
+(define library-root
+  "./lib/byggsteg")
 
 (define byggsteg-dir
   "/etc/byggsteg")
@@ -421,6 +436,77 @@ manual's."
          "-c"
          (shell-quote
           "(begin (use-modules (byggsteg container)) (display (container-description)) (newline) (newline) (display (container-command \"maak test\" #:image (or (container-image) \"docker.io/library/alpine:3\") #:workdir \"/etc/byggsteg/job-clone/example/trunk\")) (newline))"))))
+
+(define (docs)
+  "Generate the library's API reference and render it as HTML.
+
+The reference is extracted from the loaded modules by guile-dokgen, so a name a
+caller can reach is a name the reference documents, with the docstring the
+module gives it.  What is documented is the library -- the domain, the storage
+and the services under `lib/byggsteg' -- rather than the Artanis web layer,
+whose controllers and views are named from the project root and reach into a
+request rather than being called by one.
+
+The modules are loaded, not read, so the directories they are found in have to
+be on the load path.  `(byggsteg env)' is the one that is not in the
+repository: a deployment keeps its keys in an `env.scm' at the root of its
+checkout, and `./test' holds the suite's copy of that module with values that
+are nobody's.  Reading the same stub is what lets the reference be generated
+from a checkout that holds no deployment's secrets, and it is the module
+`maak test' compiles the library against already.
+
+Beside the Texinfo dokgen writes the stylesheet and the script the page is read
+with, and a directory of diagrams for the commentaries that carry one; Texinfo
+copies neither, so both are put beside the page that points at them."
+  (delete-file-recursively "doc")
+  (time-machine-manifest-shell
+   (list "dokgen" "api"
+         "--destination" "doc/api"
+         library-root)
+   #:env '("GUILE_LOAD_PATH=lib:test")
+   #:verbose? #t)
+  (mkdir-p "doc/api-dist")
+  ;; `-I doc/api' is what finds the diagrams beside the chapter, and the head
+  ;; below points the pages at the stylesheet and the script dokgen writes
+  ;; there.  `--no-split' keeps the reference one page.
+  (time-machine-manifest-shell
+   (list "texi2any" "-v" "--html" "--no-split"
+         (~ "--css-ref=~a" api-docs-css-url)
+         "-I" "doc/api"
+         "-c" (shell-quote
+               (string-append
+                "EXTRA_HEAD="
+                "<link rel=\"stylesheet\" href=\"dokgen.css\">"
+                "<script src=\"dokgen.js\" defer></script>"))
+         "-o" "doc/api-dist/index.html"
+         "./doc/api/index.texi")
+   #:verbose? #t)
+  (for-each (lambda (asset)
+              (when (file-exists? (~ "doc/api/~a" asset))
+                (cp (~ "doc/api/~a" asset) "doc/api-dist"
+                    #:force? #t #:verbose? #t)))
+            '("dokgen.css" "dokgen.js"))
+  (when (file-exists? "doc/api/diagrams")
+    (cp "doc/api/diagrams" "doc/api-dist" #:force? #t #:verbose? #t)))
+
+(define (diagrams)
+  "Render every mermaid source under resources/diagrams to the SVG beside it.
+
+The images are committed, because the manual shows them and a checkout should
+read without a renderer installed; this task is how they are made again after
+a source changes.  The reference under `doc/api' carries its own diagrams,
+drawn from the modules' commentaries by `maak docs'."
+  (for-each
+   (lambda (name)
+     (let* ((source (in-vicinity "resources/diagrams" name))
+            (image (string-append (string-drop-right source 4) ".svg")))
+       (run (list "mmdc" "-i" source "-o" image
+                  "--backgroundColor" "transparent")
+            #:verbose? #t)))
+   (scandir "resources/diagrams"
+            (lambda (name)
+              (and (not (member name '("." "..")))
+                   (string-suffix? ".mmd" name))))))
 
 (define (build-manual)
   "Render the project's manual -- the README -- as a single HTML page."

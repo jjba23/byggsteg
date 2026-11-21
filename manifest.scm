@@ -6,6 +6,7 @@
 
 (use-modules (guix packages)
              (gnu)
+             (gnu packages)
              (guix utils)
              (guix git-download)
              (guix download)
@@ -266,6 +267,10 @@ checksums to track schema evolution in a @code{migrations_history} table.")
                           guile-gcrypt
                           guile-bewaking
                           guile-veritas
+                          ;; The reference `maak docs' generates is written by
+                          ;; guile-dokgen, which comes from the
+                          ;; jointhefreeworld channel rather than from Guix.
+                          (specification->package "guile-dokgen")
                           watchexec
                           guile-curl
                           sqlite

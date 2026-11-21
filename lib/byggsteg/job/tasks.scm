@@ -46,7 +46,17 @@
 ;; client reads has one reading of it (see "Writing a task" in the
 ;; manual).
 ;;
-;; Code:
+;; ```mermaid
+;; flowchart LR
+;;   readings["target readings"] --> spellings["bare, maak- and make- spellings"]
+;;   spellings --> groups["pipeline-task-groups"]
+;;   machine["machine readings"] --> groups
+;;   anything["anything readings"] --> groups
+;;   groups --> tasks["pipeline-tasks"]
+;;   tasks --> pipeline["(byggsteg job pipeline) dispatches them"]
+;; ```
+;;
+;;; Code:
 
 (define-module (byggsteg job tasks)
   #:use-module (ice-9 format)
