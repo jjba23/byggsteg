@@ -271,6 +271,7 @@ checksums to track schema evolution in a @code{migrations_history} table.")
                           ;; guile-dokgen, which comes from the
                           ;; jointhefreeworld channel rather than from Guix.
                           (specification->package "guile-dokgen")
+                          (specification->package "texinfo")
                           watchexec
                           guile-curl
                           sqlite
