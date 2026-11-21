@@ -7,20 +7,23 @@
 ;;; A saved job, and the list of them.
 ;;;
 ;;; A profile is a pipeline with a name on it: the same expression a reader
-;;; would type into the run form, kept so that it can be run again.  So the page
-;;; is about two things at once -- what the saved job says, and what a reader
-;;; can do with it -- and the two are laid out as such: the name and the actions
-;;; a reader presses are at the top of the page where they are in reach on any
-;;; screen, the expression gets the width and is set as the code it is, and the
-;;; saved job's own facts sit in a column beside it.
+;;; would type into the run form, kept so that it can be run again.  Two pages
+;;; are about that, and both are read the same way -- a name to recognise it by,
+;;; and the pipeline itself, set as the code it is.
 ;;;
-;;; The two forms are drawn only for a reader whose session may send them (see
-;;; the note on PERMISSIONS below), which is also why the expression is read
-;;; here rather than only inside the form that edits it: a reader who may not
-;;; save a profile may still read one.
+;;; The index is a list of rows rather than a column of cards: a reader comes to
+;;; it to find one saved job among a few dozen, and a hairline between two names
+;;; is what the eye follows down a list.  The pipeline is on the row as a single
+;;; line, because a name is not always enough to tell two of them apart; the
+;;; moment it was last written over is on the far side of the row.
+;;;
+;;; The page of one profile is the pipeline with the name above it and what a
+;;; reader may do with it beside the name: run it, save it back, or remove it.
+;;; The form and the reading are the same place on that page -- a reader who may
+;;; save the profile edits the expression where a reader who may not reads it --
+;;; which is why the pipeline is drawn once and never twice.
 
 (define-module (app views profiles)
-  #:use-module (byggsteg preferences)
   #:use-module (byggsteg permissions)
   #:use-module (byggsteg faces)
   #:use-module (byggsteg html)
@@ -31,11 +34,61 @@
   #:use-module (artanis i18n sxml)
   #:use-module (hygguile hygguile)
   #:use-module (artanis i18n locale)
-  #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 string-fun)
   #:export (profile-page add-profile-form-page profile-list-page))
 
-(define (profile-start-form G_ profile-data)
+;;; ====== The pipeline, as one line ======
+
+;; How much of a pipeline a row of the index says.  A row is read at a glance
+;; and beside a name, so the answer has to be shorter than a reading line; what
+;; it is for is telling one saved job from another, not quoting it.
+(define profile-preview-length
+  68)
+
+(define (profile-preview data)
+  "The pipeline DATA on one line, cut to the width of a row of the index.
+
+A pipeline is written over several lines, with the indentation of the Lisp it
+is; a row of the index has one line to say what a profile runs, so the breaks
+and the indentation it was written with are collapsed here.  The expression a
+reader edits keeps its layout, which is the field's business rather than this
+one's."
+  (let* ((text (if (string? data) data ""))
+         (one-line (string-join (string-tokenize text) " ")))
+    (if (> (string-length one-line) profile-preview-length)
+        (string-append (substring one-line 0
+                                  (- profile-preview-length 1))
+                       "…")
+        one-line)))
+
+;;; ====== The moment a profile was last written over ======
+
+(define (profile-last-saved profile)
+  "When PROFILE was last saved: the moment it was written over, or kept.
+
+A profile that has never been edited has no update of its own, and the two are
+one reading to a reader looking down a list."
+  (or (assq-ref profile
+                'updated-at)
+      (assq-ref profile
+                'created-at)))
+
+(define (profile-moment moment)
+  "MOMENT as a row of the console says it."
+  (if (number? moment)
+      (strftime "%c"
+                (localtime moment))
+      (format #f "~a" (or moment ""))))
+
+;;; ====== What a reader may do with one profile ======
+
+;; The two forms the page of a profile draws under it, and the two the index
+;; draws above it.  Each is drawn only for a reader whose session may send it,
+;; and a caller that does not say what the session may do is read as one that
+;; may do nothing: a button whose submission is refused is worse than no button,
+;; because it is the same answer twice.
+
+(define (profile-run-form G_ profile-data)
   "The form that queues this profile's expression as a job of its own.
 
 The expression travels in a hidden field rather than being fetched again by the
@@ -83,99 +136,145 @@ faces)')."
                                 #:hover-background '(hover:bg-redwood-900
                                                      dark:hover:bg-redwood-100))))
 
-(define (profile-edit-panel G_ profile-name profile-data)
-  "The panel a reader who may save a profile edits it in: its name, its
-expression, and the control that writes it back.
+;;; ====== Saving a profile back ======
+
+(define (profile-save-form G_ profile-name profile-data profile-id)
+  "The form a reader who may save a profile writes it back with.
+
+It posts to the endpoint that saves a profile, and it names the profile it is
+about in a field of its own.  That field is what makes this an edit rather than a
+save under a name: a form that carried only a name would have to be matched back
+to a row by its title -- and a reader who renames a profile would be answered
+with a second profile under the new name, the old one still there beside it.
 
 The two fields are the console's own (`terminal-input' and `terminal-textarea'),
-so the ground, the caret, the hairline and the fact that a field may be narrower
-than the screen are stated once in the theme -- a label at the framework's own
-size and face, too, which is what the code field of this page was wearing before
-it was a field of this console (see `label-face')."
-  (terminal-panel (list (terminal-input #:label (G_ "profile name")
-                                        #:name 'profile-name
-                                        #:value profile-name
-                                        #:required #t)
-                        (terminal-textarea #:label (G_ "profile code")
-                                           #:name 'job-code
-                                           #:value profile-data
-                                           #:required #t)
-                        ;; The control that writes the record back, in a row of
-                        ;; its own: a filled button against the field above it
-                        ;; is the shape every form of this console ends in.
-                        (list 'div (terminal-submit-button (G_ "save"))))))
+and they are given ids that are not the ones the run form beside them uses: one
+page may name a field once, or the label of one of two fields is bound to the
+other (`profile-code', `job-code')."
+  `(form (@ (method POST)
+            (action "/profiles/manage/submit")
+            (enctype application/x-www-form-urlencoded)
+            (charset utf-8)
+            (class ,(mk-class '(flex flex-col gap-3 w-full min-w-0))))
+         ;; The row this form is about, drawn by hand rather than as a field of
+         ;; this console: a hidden field is read by no one and is dressed as
+         ;; nothing, and an id it does not need is an id a page cannot afford.
+         (input (@ (type hidden)
+                   (name profile-id)
+                   (value ,profile-id)))
+         ,(terminal-input #:label (G_ "profile name")
+                          #:name 'profile-name
+                          #:id 'profile-title
+                          #:value profile-name
+                          #:required #t)
+         ,(terminal-textarea #:label (G_ "profile code")
+                             #:name 'job-code
+                             #:id 'profile-code
+                             #:value profile-data
+                             #:required #t)
+         (div (@ (class ,(mk-class '(flex flex-row flex-wrap items-center))))
+              ,(terminal-submit-button (G_ "save")))))
 
-(define (profile-page-body heading actions expression-panel facts-panel)
-  "A profile page's body: the saved job's name and what a reader may do with it,
-the expression, and the record's own facts.
+(define (profile-reading G_ profile-data)
+  "The pipeline of a profile for a reader who may not save it.
 
-The name and the actions share a row, because they are the two things a reader
-comes for and neither should be the part that is pushed below the fold: on a
-narrow screen the row wraps and the actions land under the name, which is where
-a reader's thumb already is.
+It is drawn the way this console draws an expression everywhere else -- the glass
+of a pane with the `pre' inside it unscrolled (`job-pane-face', `(byggsteg
+faces)') -- so a saved pipeline reads as the job it is a copy of.  The pane is
+the frame and the scroller both: a pipeline whose lines are longer than the screen
+is read by scrolling the pane along them, which is how a job's expression is read
+on its own log page.  Only the fields it would be edited in are missing."
+  `((div (@ (class ,(string-append job-pane-face
+                                   " overflow-auto p-1")))
+         ,@(terminal-pre profile-data
+                         #:size '(text-sm sm:text-md)
+                         #:leading '(leading-6 sm:leading-7)
+                         #:padding-x '(px-3 sm:px-4)
+                         #:padding-y '(py-4)
+                         ;; A pipeline has lines of its own, as the expression
+                         ;; of a job has: they are read unwrapped, and the pane
+                         ;; hands the room to scroll them.
+                         #:wrap? #f
+                         #:framed? #f))))
 
-The expression and the facts are a column each on a wide screen and one under
-the other on a narrow one, with the expression first -- it is what the page is
-about, and the facts beside it are the reading a reader checks once."
-  (list `(div (@ (class ,(page-body-class)))
-              (div (@ (class ,(mk-class '(flex flex-col
-                                                 lg:flex-row
-                                                 lg:items-start
-                                                 lg:justify-between
-                                                 gap-3
-                                                 lg:gap-6))))
-                   ,@heading
-                   ,@(if (null? actions)
-                         '()
-                         (list `(div (@ (class ,(mk-class '(flex flex-row
-                                                                   flex-wrap
-                                                                   items-center
-                                                                   gap-3))))
-                                     ,@actions))))
-              (div (@ (class ,(mk-class '(flex flex-col
-                                                 lg:flex-row
-                                                 items-start
-                                                 gap-4
-                                                 lg:gap-6
-                                                 w-full
-                                                 min-w-0))))
-                   (div (@ (class ,(mk-class '(flex-1
-                                               min-w-0
-                                               w-full))))
-                        ,@expression-panel)
-                   ,@facts-panel))))
+;;; ====== The page of one profile ======
+
+(define (profile-head G_ actions name)
+  "The name of the saved job, and what a reader may do with it.
+
+The name is the page's heading rather than a reading under it: a reader arrives
+here from the index, where the name is what they read, and a page headed by the
+words `profile details' makes them look twice to know which profile they are on.
+
+The actions sit beside the name on a wide screen and under it on a narrow one,
+which is where a thumb already is; a page whose delete button is the outermost
+thing on the right of a phone is a page a thumb removes a profile from."
+  `(div (@ (class ,(mk-class '(flex flex-col gap-3
+                                       lg:flex-row
+                                       lg:items-center
+                                       lg:justify-between))))
+        (div (@ (class ,(mk-class '(flex flex-col gap-1 min-w-0))))
+             (a (@ (href "/profiles")
+                   (class ,(mk-class (append '(text-xs
+                                               uppercase
+                                               tracking-widest
+                                               no-underline
+                                               hover:underline)
+                                             muted-ink))))
+                ,(G_ "all profiles"))
+             ,@(terminal-heading name
+                                 #:tag 'h1
+                                 #:size '(text-xl sm:text-2xl)))
+        ,@(if (null? actions)
+              '()
+              (list `(div (@ (class ,(mk-class '(flex flex-row
+                                                        flex-wrap
+                                                        items-center
+                                                        gap-2))))
+                          ,@actions)))))
 
 (define (profile-facts G_ p)
-  "The saved job's own facts: when it was kept, and under which id.
+  "The saved job's own facts, as one muted line under its name.
 
-They are the panel's terms and readings rather than prose, so the terms are read
-in `muted-ink' and what they say in `prose-ink' (see the head of `(byggsteg
-faces)').  A profile that has never been written over has no update to name, and
-a term over nothing is worse than no term."
-  (append (list (dt (G_ "saved at")
-                    #:color muted-ink)
-                (dd (strftime "%c"
-                              (localtime (assq-ref p
-                                                   'created-at)))
-                    #:color prose-ink))
-          (if-job-was-updated-html p
-                                   (list (dt (G_ "updated at")
-                                             #:color muted-ink)
-                                         (dd (strftime "%c"
-                                                       (localtime (assq-ref p
-                                                                            'updated-at)))
-                                             #:color prose-ink)))
-          (list (dt (G_ "profile uuid")
-                    #:color muted-ink)
-                ;; The id is thirty-six characters with no word in them, so it
-                ;; is read a step smaller than the readings above it: at the
-                ;; size they are set it is wider than the column it is read in.
-                (dd (terminal-code (assq-ref p
-                                             'id)
-                                   #:size '(text-xs sm:text-sm))
-                    #:color prose-ink))))
+When it was kept and when it was last written over are the two things a reader
+checks once; the id is what the same profile is called by the JSON API and by a
+log's header, so it is here in the console's token face rather than in a panel
+of its own."
+  (let ((updated (assq-ref p
+                           'updated-at)))
+    `((div (@ (class ,(mk-class '(flex flex-col gap-1))))
+           (p (@ (class ,(mk-class (append '(flex flex-row
+                                                    flex-wrap
+                                                    items-baseline
+                                                    gap-x-2
+                                                    text-xs
+                                                    sm:text-sm
+                                                    tabular-nums)
+                                            muted-ink))))
+              (span ,(format #f "~a: ~a"
+                             (G_ "saved at")
+                             (profile-moment (assq-ref p
+                                                       'created-at))))
+              ;; A profile that has never been written over has no update to
+              ;; name, and a term over nothing is worse than no term.
+              ,@(if updated
+                    (list `(span (@ (aria-hidden "true")) "·")
+                          `(span ,(format #f "~a: ~a"
+                                          (G_ "updated at")
+                                          (profile-moment updated))))
+                    '()))
+           (div (@ (class ,(mk-class (append '(flex flex-row
+                                                      flex-wrap
+                                                      items-center
+                                                      gap-2
+                                                      text-xs)
+                                              muted-ink))))
+                (span ,(G_ "profile uuid"))
+                ,(terminal-code (assq-ref p
+                                          'id)
+                                #:size '(text-xs)))))))
 
-(define* (profile-page rc
+(define* (profile-page G_
                        p
                        #:key is-logged-in
                        ;; What the reader's session may do.  This page is the
@@ -195,111 +294,172 @@ a term over nothing is worse than no term."
                                                'profile-data)))
          (profile-id (assq-ref p
                                'id))
-         (G_ (:i18n rc))
          (actions (append (if (may? permissions
                                     'byggsteg:job-create)
-                              (list (profile-start-form G_ profile-data))
+                              (list (profile-run-form G_ profile-data))
                               '())
                           (if (may? permissions
                                     'byggsteg:profile-delete)
                               (list (profile-delete-form G_ profile-id))
                               '())))
-         ;; The saved job's name and the page's own name, told apart by their
-         ;; setting rather than by their size alone: the page's name is the
-         ;; heading, and the job's is the reading under it, in the phosphor.
-         (heading (list `(div (@ (class ,(mk-class '(flex flex-col gap-1
-                                                              min-w-0))))
-                              ,(terminal-heading (G_ "profile details")
-                                                 #:tag 'h1
-                                                 #:size '(text-xl sm:text-2xl))
-                              (div (@ (class ,(mk-class '(flex flex-row
-                                                                  flex-wrap
-                                                                  items-center
-                                                                  gap-2))))
-                                   (span (@ (class ,(mk-class (append
-                                                               '(text-xs
-                                                                 uppercase
-                                                                 tracking-widest
-                                                                 font-mono)
-                                                               muted-ink))))
-                                         ,(G_ "saved job"))
-                                   ,(terminal-heading profile-name
-                                                      #:tag 'h2
-                                                      #:size '(text-lg
-                                                               sm:text-xl))))))
-         ;; What the page is about: the expression, either in the field a reader
-         ;; who may save it edits it in, or as the reading everyone may read.
-         (expression-panel
-          (if (may? permissions
-                    'byggsteg:profile-create)
-              (profile-edit-panel G_ profile-name profile-data)
-              (terminal-panel (list (terminal-heading (G_ "profile code"))
-                                    (terminal-pre profile-data
-                                                  #:size '(text-sm md:text-md)))
-                              #:gap '(gap-2))))
-         (body (profile-page-body heading
-                                  actions
-                                  expression-panel
-                                  (terminal-panel
-                                   (list (dl (profile-facts G_ p)))
-                                   #:gap '(gap-1)))))
+         (body `((div (@ (class ,(page-body-class)))
+                      ,(profile-head G_ actions profile-name)
+                      ,@(profile-facts G_ p)
+                      ;; The expression is the page: the field a reader who may
+                      ;; save it edits it in, or the reading everyone may read.
+                      ,@(if (may? permissions
+                                  'byggsteg:profile-create)
+                            (terminal-panel (list (profile-save-form G_
+                                                                     profile-name
+                                                                     profile-data
+                                                                     profile-id)))
+                            (profile-reading G_ profile-data))))))
     (html-template G_
-                   #:title (format #f "byggsteg - ~a"
-                                   (G_ "profile"))
+                   #:title (format #f "byggsteg - ~a" profile-name)
                    #:description (format #f "~a: ~a"
                                          (G_ "the saved byggsteg job")
-                                         (text-from-db (assq-ref p
-                                                                 'title)))
+                                         profile-name)
                    #:path (format #f "/profiles/~a" profile-id)
                    #:is-logged-in is-logged-in
                    #:body body)))
 
-(define* (add-profile-form-page rc
-                                #:key is-logged-in)
-  (let* ((G_ (:i18n rc)))
-    (html-template G_
-                   #:title (format #f "byggsteg - ~a"
-                                   (G_ "new profile"))
-                   #:path "/profiles/manage/create"
-                   ;; Saving a profile takes a permission a crawler does not
-                   ;; hold, so the form is nobody's search result.
-                   #:robots "noindex, nofollow"
-                   #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(page-body-class)))
-                                 ,(terminal-heading (G_ "new profile")
-                                                    #:tag 'h1
-                                                    #:size '(text-xl sm:text-2xl))
-                                 ,@(terminal-panel (list (job-form G_
-                                                                   "/profiles/manage/submit"
-                                                                   #t))))))))
+;;; ====== The form that saves a new profile ======
 
-(define* (profile-list-page rc profiles
-                            #:key is-logged-in)
-  (let* ((profiles-html (map make-profile-link profiles))
-         (G_ (:i18n rc)))
-    (html-template G_
-                   #:title (format #f "byggsteg - ~a"
-                                   (G_ "profiles"))
-                   #:description (G_
-                                  "The jobs this byggsteg deployment has saved as profiles, each ready to run again")
-                   #:path "/profiles"
-                   #:is-logged-in is-logged-in
-                   #:body `((div (@ (class ,(page-body-class #:extra '(align-center
-                                                                       whitespace-break-spaces))))
-                                 ,(terminal-heading (G_ "profiles")
-                                                    #:tag 'h1
-                                                    #:size '(text-2xl))
-                                 ,@(terminal-panel profiles-html
-                                                   #:gap '(gap-4))
-                                 (a (@ (href "/profiles/manage/create"))
-                                    ,(terminal-icon-button #:icon 'plus
-                                                           #:content (G_
-                                                                      "new profile")
-                                                           #:size '(text-xs
-                                                                    md:text-sm)
-                                                           #:extra-classes '(py-1
-                                                                             md:py-2
-                                                                             px-2
-                                                                             md:px-3
-                                                                             max-w-prose
-                                                                             cursor-pointer))))))))
+(define* (add-profile-form-page G_
+                                #:key is-logged-in)
+  (html-template G_
+                 #:title (format #f "byggsteg - ~a"
+                                 (G_ "new profile"))
+                 #:path "/profiles/manage/create"
+                 ;; Saving a profile takes a permission a crawler does not
+                 ;; hold, so the form is nobody's search result.
+                 #:robots "noindex, nofollow"
+                 #:is-logged-in is-logged-in
+                 #:body `((div (@ (class ,(page-body-class)))
+                               ,(terminal-heading (G_ "new profile")
+                                                  #:tag 'h1
+                                                  #:size '(text-xl sm:text-2xl))
+                               ,@(terminal-panel (list (job-form G_
+                                                                 "/profiles/manage/submit"
+                                                                 #t)))))))
+
+;;; ====== The list of them ======
+
+(define (profile-row G_ profile first?)
+  "PROFILE as a row of the index.
+
+The row is the console's table of hairlines: the name in the mono the console is
+read in, the pipeline it saves as a single line of it, and the moment it was last
+written over on the far side.  The whole row is the link, because a name that is
+the only thing a finger can hit is a list read twice on a phone.
+
+FIRST? is what keeps the pane's own top hairline from being drawn twice: the rows
+below the first are separated from it, and no row is outlined on all four sides."
+  (let ((taken '(flex flex-row
+                      flex-wrap
+                      items-baseline
+                      gap-x-3
+                      gap-y-1
+                      py-3
+                      px-4
+                      no-underline
+                      cursor-pointer
+                      transition-colors
+                      hover:bg-asparagus-700/5
+                      dark:hover:bg-asparagus-900/10)))
+    `(a (@ (href ,(format #f "/profiles/~a"
+                          (assq-ref profile
+                                    'id)))
+           (class ,(mk-class (append taken
+                                     (if first?
+                                         '()
+                                         '(border-t
+                                           border-asparagus-700/25
+                                           dark:border-asparagus-900/50))))))
+        (span (@ (class ,(mk-class (append '(font-mono
+                                             font-bold
+                                             text-md
+                                             shrink-0
+                                             hover:text-asparagus-900
+                                             dark:hover:text-asparagus-100)
+                                           strong-ink))))
+              ,(text-from-db (assq-ref profile
+                                        'title)))
+        ;; The pipeline is a reading beside the name rather than a second
+        ;; heading: one step smaller, one ink quieter, and out of the way
+        ;; altogether on a screen with no room for it.
+        (span (@ (class ,(mk-class (append '(hidden
+                                             sm:inline-block
+                                             flex-1
+                                             min-w-0
+                                             truncate
+                                             font-mono
+                                             text-xs)
+                                           muted-ink))))
+              ,(text-from-db (profile-preview (assq-ref profile
+                                                         'profile-data))))
+        (span (@ (class ,(mk-class (append '(ml-auto
+                                             shrink-0
+                                             font-mono
+                                             text-xs
+                                             tabular-nums)
+                                           muted-ink))))
+              ,(profile-moment (profile-last-saved profile))))))
+
+(define* (profile-list-page G_
+                            profiles
+                            #:key is-logged-in
+                            (permissions '()))
+  (html-template G_
+                 #:title (format #f "byggsteg - ~a"
+                                 (G_ "profiles"))
+                 #:description (G_ "The jobs this byggsteg deployment has saved as profiles, each ready to run again")
+                 #:path "/profiles"
+                 #:is-logged-in is-logged-in
+                 #:body `((div (@ (class ,(page-body-class)))
+                               (div (@ (class ,(mk-class '(flex flex-col
+                                                                  gap-3
+                                                                  sm:flex-row
+                                                                  sm:items-center
+                                                                  sm:justify-between))))
+                                    ,(terminal-heading (G_ "profiles")
+                                                       #:tag 'h1
+                                                       #:size '(text-2xl))
+                                    ;; Saving a profile is a form nobody but a
+                                    ;; reader who may send it is offered, and
+                                    ;; the way to that form goes with it.
+                                    ,@(if (may? permissions
+                                                'byggsteg:profile-create)
+                                          (list `(div (@ (class ,(mk-class '(shrink-0))))
+                                                       (a (@ (href "/profiles/manage/create"))
+                                                          ,(terminal-icon-button
+                                                            #:icon 'plus
+                                                            #:content (G_
+                                                                       "new profile")
+                                                            #:type 'button))))
+                                          '()))
+                               ,@(if (null? profiles)
+                                     (terminal-panel
+                                      (list `(p (@ (class ,(mk-class (append '(font-mono
+                                                                               text-sm)
+                                                                             muted-ink))))
+                                                 ,(G_ "no profiles yet"))))
+                                     (list `(div (@ (class ,(terminal-frame-class
+                                                             #:extra
+                                                             '(flex flex-col
+                                                                    w-full
+                                                                    min-w-0
+                                                                    overflow-hidden))))
+                                                 ,@(let loop
+                                                       ((rest profiles)
+                                                        (first? #t)
+                                                        (rows '()))
+                                                     (if (null? rest)
+                                                         (reverse rows)
+                                                         (loop (cdr rest)
+                                                               #f
+                                                               (cons (profile-row
+                                                                      G_
+                                                                      (car rest)
+                                                                      first?)
+                                                                     rows)))))))))))

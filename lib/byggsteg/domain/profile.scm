@@ -12,6 +12,7 @@
                               get-profiles
                               search-profiles
                               insert-profile
+                              update-profile-by-id
                               update-profile-by-title
                               delete-profile-by-id))
 
@@ -25,6 +26,7 @@
                        (get-profiles-proc repo-get-profiles)
                        (search-profiles-proc repo-search-profiles)
                        (insert-profile-proc repo-insert-profile)
+                       (update-profile-by-id-proc repo-update-profile-by-id)
                        (update-profile-by-title-proc
                         repo-update-profile-by-title)
                        (delete-profile-by-id-proc repo-delete-profile-by-id))
@@ -45,6 +47,9 @@
 
 (define-repo-method insert-profile repo-insert-profile
                     "Inserts a profile with ATTRS in the given REPO.")
+
+(define-repo-method update-profile-by-id repo-update-profile-by-id
+                    "Updates the profile identified by ID with ATTRS in the given REPO.")
 
 (define-repo-method update-profile-by-title repo-update-profile-by-title
                     "Updates profile of TITLE with ATTRS in the given REPO.")

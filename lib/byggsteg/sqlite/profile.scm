@@ -69,6 +69,11 @@
     (execute-write "insert-profile"
                    (sql-insert "profile" attrs)))
 
+  (define (update-profile-by-id id attrs)
+    (execute-write "update-profile-by-id"
+                   (sql-update "profile" attrs
+                               #:where (list (cons 'id id)))))
+
   (define (update-profile-by-title title attrs)
     (execute-write "update-profile-by-title"
                    (sql-update "profile" attrs
@@ -79,6 +84,7 @@
                          #:get-profiles-proc get-profiles
                          #:search-profiles-proc search-profiles
                          #:insert-profile-proc insert-profile
+                         #:update-profile-by-id-proc update-profile-by-id
                          #:update-profile-by-title-proc
                          update-profile-by-title
                          #:delete-profile-by-id-proc delete-profile-by-id))

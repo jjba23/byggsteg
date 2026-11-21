@@ -211,6 +211,24 @@ Sending things in thunk form allows one to execute any code arbitrarily, inside 
     (clone-url unquote (format #f "https://codeberg.org/jjba23/~a" my-project-name))))
 #+end_src
 
+** Saving, editing and running a profile
+
+The list at =/profiles= is every job this deployment has saved, one row each: the
+name, the pipeline on one line, and when it was last written over.  A row opens
+the profile, which is the pipeline with the name above it.
+
+What you can do on that page is what your session's permissions allow.  Starting
+the saved job takes =byggsteg:job-create=, saving it back takes
+=byggsteg:profile-create=, and removing it takes =byggsteg:profile-delete=; a
+reader holding none of the three reads the pipeline and is offered no control.
+
+A reader who may save is given the profile as a form, and saving it writes over
+the profile the form was drawn from: the page names it by its id, so renaming a
+profile renames that profile rather than leaving a second one beside it.  The
+same form is how a profile is made -- =/profiles/manage/create= -- and a name
+that is already saved is the profile that name, as it is over the JSON API: what
+arrives replaces what it held.
+
 ------------------
 
 ** Types of jobs

@@ -28,10 +28,16 @@
        (let* ((profile-repo (make-sqlite-profile-repository))
               (profiles (get-profiles profile-repo)))
          (response-emit (:mime rc
-                               (profile-list-page rc profiles
+                               (profile-list-page (:i18n rc)
+                                                  profiles
                                                   #:is-logged-in (:cookies-value
                                                                   rc
-                                                                  "x-bewaking-byggsteg")))))))
+                                                                  "x-bewaking-byggsteg")
+                                                  ;; The way to a new profile is a
+                                                  ;; form nobody but a reader who
+                                                  ;; may save one is offered.
+                                                  #:permissions (session-permissions
+                                                                 rc)))))))
 
 (get "/profiles/:id"
      #:mime 'xml
@@ -49,7 +55,7 @@
                             #:status 404
                             #:headers '((content-type text/html)))
              (response-emit (:mime rc
-                                   (profile-page rc
+                                   (profile-page (:i18n rc)
                                                  p
                                                  #:is-logged-in (:cookies-value
                                                                  rc
@@ -68,7 +74,7 @@
      (lambda (rc)
        (define (show-the-form)
          (response-emit (:mime rc
-                               (add-profile-form-page rc
+                               (add-profile-form-page (:i18n rc)
                                                       #:is-logged-in (:cookies-value
                                                                       rc
                                                                       "x-bewaking-byggsteg")))))
@@ -84,41 +90,83 @@
 (post "/profiles/manage/submit"
       #:cookies '(names x-bewaking-byggsteg)
       (lambda (rc)
+        (define (to-profile profile-id)
+          "Answer the submission by sending the reader to the profile it saved."
+          (redirect-to rc
+                       (string->uri (format #f "~a/profiles/~a"
+                                            (current-myhost)
+                                            profile-id))
+                       #:status 302))
+
+        (define (saved-back repo profile-id name data)
+          "Write NAME and DATA over the profile PROFILE-ID, and open its page.
+
+The moment it was saved back is the only field of the row this writes beside the
+two the form carries: the id it was saved under never changes, which is what
+makes this an edit of one profile rather than a second profile under a new name."
+          (update-profile-by-id repo
+                                profile-id
+                                `((title unquote
+                                         name)
+                                  (profile-data unquote
+                                                data)
+                                  (updated-at unquote
+                                              (current-time))))
+          (to-profile profile-id))
+
+        (define (bad-request)
+          "Answer a submission that is not a profile with the 400 page.
+
+A profile is a name and a pipeline, and neither may be blank: a row saved with an
+empty name is one a reader cannot tell from the next, and a row whose pipeline is
+empty is one that runs nothing.  Both answer here rather than being written."
+          (response-emit (error-page 400)
+                         #:status 400
+                         #:headers '((content-type text/html))))
+
         (define (do-submit)
           (let* ((body (alist-from-url-encoded-body (rc-body rc)))
+                 ;; The profile the form was drawn from, and empty or absent for
+                 ;; the form that saves a new one.
+                 (profile-id (assoc-ref body "profile-id"))
+                 (profile-name (string-trim-both (or (assoc-ref body
+                                                                "profile-name")
+                                                     "")))
                  (profile-data (assoc-ref body "job-code"))
-                 (profile-name (assoc-ref body "profile-name"))
-                 (new-uuid (generate-string-uuid))
-                 (profile-repo (make-sqlite-profile-repository))
-                 (found-profile (get-profile-by-title profile-repo
-                                                      profile-name)))
-            
+                 (profile-repo (make-sqlite-profile-repository)))
             (cond
-              ((not (nil? found-profile))
-               (update-profile-by-title profile-repo
-                                        profile-name
-                                        `((profile_data unquote
-                                                        profile-data)
-                                          (updated_at unquote
-                                                      (current-time))))
-               (redirect-to rc
-                            (string->uri (format #f "~a/profiles/~a"
-                                                 (current-myhost)
-                                                 (assoc-ref found-profile "id")))
-                            #:status 302))
-              (else (insert-profile profile-repo
-                                    `((id unquote new-uuid)
-                                      (title unquote
-                                             profile-name)
-                                      (profile-data unquote
-                                                    profile-data)
-                                      (created-at unquote
-                                                  (current-time))))
-                    (redirect-to rc
-                                 (string->uri (format #f "~a/profiles/~a"
-                                                      (current-myhost)
-                                                      new-uuid))
-                                 #:status 302)))))
+              ((or (string-null? profile-name)
+                   (not profile-data)
+                   (string-null? (string-trim-both profile-data)))
+               (bad-request))
+              (else
+               (let ((existing (get-profile-by-title profile-repo
+                                                     profile-name)))
+                 (cond
+                  ;; The form of a profile being edited says which one, and the
+                  ;; id is the whole of that reading: a form that carried only
+                  ;; its name would save a rename as a second profile.
+                  ((and profile-id
+                        (not (string-null? profile-id)))
+                   (saved-back profile-repo profile-id profile-name
+                               profile-data))
+                  ;; A name that is already saved is the profile that name, as
+                  ;; the JSON API has it: what arrives replaces what it held.
+                  (existing
+                   (saved-back profile-repo (assq-ref existing
+                                                      'id)
+                               profile-name profile-data))
+                  (else
+                   (let ((new-id (generate-string-uuid)))
+                     (insert-profile profile-repo
+                                     `((id unquote new-id)
+                                       (title unquote
+                                              profile-name)
+                                       (profile-data unquote
+                                                     profile-data)
+                                       (created-at unquote
+                                                   (current-time))))
+                     (to-profile new-id)))))))))
         (bewaking-endpoint #:token-name 'x-bewaking-byggsteg
                            #:needed-permissions '(byggsteg:profile-create)
                            #:rc rc
