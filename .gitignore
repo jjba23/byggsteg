@@ -14,3 +14,6 @@ env.scm
 .nrepl-port
 reports/
 README.html
+
+# Generated API reference and its rendered output.
+doc/
