@@ -12,6 +12,8 @@
 #+attr_html: :width 160 :alt byggsteg logo
 [[file:logo.svg]]
 
+- 📖 *API reference:* [[https://jointhefreeworld.org/api-docs/byggsteg/index.html][Byggsteg API reference]]
+
 /a build step, in Lisp: describe your pipeline as a list, and byggsteg runs it/
 
 byggsteg is a continuous integration and delivery system written in Scheme (GNU
