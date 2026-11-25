@@ -208,19 +208,14 @@ came before the batch are in it as well as the one that completed it."
                 (row-text other-log-id)))))
 
 (define (deferred read)
-  "READ written the way a `comp' assertion takes it.
+  "READ written the way a `lazy' assertion takes it.
 
 veritas builds an assertion's arguments while the suite is being *declared*, so a
 reading of the rows a stream writes has to be taken when the test runs instead;
-`comp' is its form for that, and it evaluates the expression in the interaction
-environment rather than in this module, which is why the reader is named through
-the module it lives in."
-  (list 'comp
-        (list (list 'module-ref
-                    (list 'resolve-module
-                          (list 'quote
-                                '(veritas unit log-streaming-spec)))
-                    (list 'quote read)))))
+`lazy' is its form for that, and the reader is named through the module it lives
+in so that this file's own bindings need not be in scope."
+  (lazy ((module-ref (resolve-module '(veritas unit log-streaming-spec))
+                     read))))
 
 (define streaming-suite
   (suite "job log streaming"

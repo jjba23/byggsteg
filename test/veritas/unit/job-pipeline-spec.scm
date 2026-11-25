@@ -274,19 +274,14 @@ what the suite asserts; when it is not empty it prints the readings above."
                        (format #f "~a: ~s" key args))))))
 
 (define (deferred read)
-  "READ written the way a `comp' assertion takes it.
+  "READ written the way a `lazy' assertion takes it.
 
 veritas builds an assertion's arguments while the suite is being *declared*, so a
 reading of the rows a sweep writes has to be taken when the test runs instead;
-`comp' is its form for that, and it evaluates the expression in the interaction
-environment rather than in this module, which is why the reader is named through
-the module it lives in."
-  (list 'comp
-        (list (list 'module-ref
-                    (list 'resolve-module
-                          (list 'quote
-                                '(veritas unit job-pipeline-spec)))
-                    (list 'quote read)))))
+`lazy' is its form for that, and the reader is named through the module it lives
+in so that this file's own bindings need not be in scope."
+  (lazy ((module-ref (resolve-module '(veritas unit job-pipeline-spec))
+                     read))))
 
 ;;; ====== The suite ======
 
